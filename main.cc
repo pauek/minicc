@@ -3,7 +3,8 @@
 #include <fstream>
 using namespace std;
 
-#include "parser.h"
+#include "parser.hh"
+#include "prettyprint.hh"
 
 int main(int argc, char *argv[]) {
    istream *i = &cin;
@@ -12,4 +13,6 @@ int main(int argc, char *argv[]) {
    }
    Parser P(i);
    AstNode *program = P.parse();
+   PrettyPrinter pr(&cout);
+   program->visit(&pr);
 }
