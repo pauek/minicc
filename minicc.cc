@@ -26,25 +26,8 @@ class Input {
    }
 
 public:
-   Input() : _in(0) { 
-      _reset(); 
-   }
-
-   Input(istream& i) {
-      _reset();
-      _in = &i;
-   }
-
-   Input(string filename) {
-      _reset();
-      _in = new ifstream(filename.c_str());
-   }
-
-   ~Input() {
-      if (istream* f = dynamic_cast<ifstream*>(_in)) {
-         delete f;
-      }
-   }
+   Input()           : _in(0) { _reset(); }
+   Input(istream* i) : _in(i) { _reset(); }
 
    Pos  pos() const { return _pos; }
    bool next();
@@ -77,9 +60,12 @@ bool Input::next() {
    return true;
 }
 
-int main() {
-   Input I(cin);
-   char c;
+int main(int argc, char *argv[]) {
+   istream *i = &cin;
+   if (argc > 1) {
+      i = new ifstream(argv[1]);
+   }
+   Input I(i);
    while (I.next()) {
       cout << "'" << I.curr() << "' " << I.pos() << endl;
    }
