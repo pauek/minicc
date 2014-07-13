@@ -56,18 +56,43 @@ struct Include : public AstNode {
 
 struct Macro : public AstNode {
    std::string macro;
-   
    Macro(std::string _macro) : macro(_macro) {}
-
    void visit(AstVisitor *v);
 };
 
 struct Using : public AstNode {
    std::string namespc;
-   
    Using(std::string _namespc) : namespc(_namespc) {}
+   void visit(AstVisitor *v);
+};
 
-   void visit(AstVisitor* v);
+struct Type;
+struct Block;
+
+struct FuncDecl : public AstNode {
+   struct Param {
+      Type *type;
+      std::string name;
+      CommentNode *c[3];
+   };
+
+   Type *return_type;
+   std::string name;
+   std::vector<Param> params;
+   Block* block;
+   
+   FuncDecl(std::string _name) : name(_name) {}
+   void visit(AstVisitor *v);
+};
+
+struct Block : public AstNode {
+   void visit(AstVisitor *v);
+};
+
+struct Type : public AstNode {
+   std::string name;
+   Type(std::string _name) : name(_name) {}
+   void visit(AstVisitor *v);
 };
 
 // AstVisitor
@@ -78,13 +103,19 @@ struct AstVisitor {
    virtual void visit_include(Include*) = 0;
    virtual void visit_macro(Macro *) = 0;
    virtual void visit_using(Using *) = 0;
+   virtual void visit_funcdecl(FuncDecl *) = 0;
+   virtual void visit_type(Type *) = 0;
+   virtual void visit_block(Block *) = 0;
 };
 
 // Visit implementations
 
-inline void CommentNode::visit(AstVisitor* v) { v->visit_comment(this); }
-inline void Include::visit(AstVisitor* v)     { v->visit_include(this); }
-inline void Macro::visit(AstVisitor* v)       { v->visit_macro(this); }
-inline void Using::visit(AstVisitor* v)       { v->visit_using(this); }
+inline void CommentNode::visit(AstVisitor *v) { v->visit_comment(this); }
+inline void Include::visit(AstVisitor *v)     { v->visit_include(this); }
+inline void Macro::visit(AstVisitor *v)       { v->visit_macro(this); }
+inline void Using::visit(AstVisitor *v)       { v->visit_using(this); }
+inline void FuncDecl::visit(AstVisitor* v)    { v->visit_funcdecl(this); }
+inline void Type::visit(AstVisitor *v)        { v->visit_type(this); }
+inline void Block::visit(AstVisitor *v)       { v->visit_block(this); }
 
 #endif

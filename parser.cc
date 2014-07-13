@@ -4,6 +4,19 @@
 #include "parser.hh"
 using namespace std;
 
+set<string> Parser::_types;
+
+Parser::Parser(istream *i) : _in(i) {
+   string T[] = { "int", "char", "string", "void", "bool", "double", "float" };
+   for (string t : T) {
+      _types.insert(t);
+   }
+}
+
+bool Parser::is_type(string t) const {
+   return _types.find(t) != _types.end();
+}
+
 void Parser::error(string msg) {
    cerr << msg << endl;
    exit(1);   
@@ -32,10 +45,15 @@ AstNode* Parser::parse() {
          if (tok == "using") {
             res->add(parse_using_declaration());
             continue;
+         } else if (tok == "struct" || tok == "typedef" || tok == "class") {
+            error("'" + tok + "' is not supported yet");
+         } else if (is_type(tok)) {
+            res->add(parse_func_or_var(tok));
+         } else {
+            ostringstream msg;
+            msg << pos << ": Unexpected token '" << tok << "'";
+            error(msg.str());
          }
-         ostringstream msg;
-         msg << pos << ": Unexpected token '" << tok << "'";
-         error(msg.str());
       }
       c = _in.skip("\n\t ");
       if (c != 0) {
@@ -130,4 +148,77 @@ AstNode* Parser::parse_using_declaration() {
    u->ini = ini;
    u->fin = fin;
    return u;
+}
+
+AstNode *Parser::parse_func_or_var(string typ) {
+   CommentNode *c[2] = { 0, 0 };
+   Pos ini = _in.pos();
+   _in.consume(typ);
+   c[0] = _in.skip("\t ");
+   string name = _in.next_token();
+   c[1] = _in.skip("\t ");
+   if (_in.curr() == '(') {
+      FuncDecl *fn = new FuncDecl(name);
+      fn->comments.assign(c, c+2);
+      fn->return_type = new Type(typ);
+      fn->ini = ini;
+      parse_function(fn);
+      return fn;
+   } else {
+      error("Variable declaration is unimplemented");
+   }
+   return NULL;
+}
+
+void Parser::parse_function(FuncDecl *fn) {
+   parse_parameter_list(fn->params);
+   CommentNode *cn = _in.skip("\t\n ");
+   fn->comments.push_back(cn);
+   fn->block = new Block();
+   parse_block(fn->block);
+   fn->fin = _in.pos();
+}
+
+void Parser::parse_parameter_list(vector<FuncDecl::Param>& params) {
+   _in.consume('(');
+   FuncDecl::Param p;
+   while (parse_param(p)) {
+      params.push_back(p);
+      if (_in.curr() == ')') {
+         break;
+      } else if (_in.curr() == ',') {
+         _in.consume(',');
+      } else {
+         error(string("Unexpected character '") + _in.curr() + "' in parameter list");
+      }
+   }
+   _in.consume(')');
+}
+
+bool Parser::parse_param(FuncDecl::Param& prm) {
+   prm.c[0] = _in.skip("\t ");
+   if (_in.curr() == ')') {
+      return false;
+   }
+   string typ = _in.next_token();
+   if (typ == "") {
+      return false;
+   }
+   prm.type = new Type(typ);
+   prm.c[1] = _in.skip("\t ");
+   prm.name = _in.next_token();
+   prm.c[2] = _in.skip("\t ");
+   return !_in.end();
+}
+
+void Parser::parse_block(Block *b) {
+   _in.skip("\t\n ");
+   if (!_in.expect("{")) {
+      error("'{' expected");
+   }
+   CommentNode *cn = _in.skip("\t\n ");
+   if (!_in.expect("}")) {
+      error("'}' expected");
+   }
+   b->comments.push_back(cn);
 }
