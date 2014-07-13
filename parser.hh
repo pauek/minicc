@@ -14,6 +14,7 @@ public:
    
    AstNode* parse();
    AstNode* parse_macro();
+   AstNode* parse_using_declaration();
 };
 
 #endif

@@ -4,6 +4,8 @@
 #include <iostream>
 #include <vector>
 
+static const char* separators = ";,.[](){}+-*/=<>|&\n\t ";
+
 struct Pos { 
    int lin, col; 
    Pos() : lin(1), col(0) {}
@@ -50,6 +52,9 @@ struct Range {
 
 // Input /////////////////////////////////////////////////////////////
 
+struct Comment;
+struct CommentNode;
+
 class Input {
    std::istream* _in;
    std::string _text;
@@ -70,17 +75,29 @@ public:
    Input(std::istream* i) : _in(i), _linepos(1) { _reset(); }
    
    bool next();
-   Pos  pos()  const { return _pos; }
-   char curr() const { return _text[_curr]; }
-   bool end()  const { return _curr >= _text.size(); }
+   bool peek(int offset);
+   Pos  pos()           const { return _pos; }
+   char curr(int i = 0) const { return _text[_curr + i]; }
+   bool end()           const { return _curr >= _text.size(); }
 
-   void skip_space();
-   void skip_space_ln();
-   void skip_to(char stop);
-   void skip_to_next_line();
+   void consume(char c);
+   void consume(std::string s);
+   CommentNode *skip(std::string skip_set);
+   std::string skip_to(std::string stop_set);
+   std::string peek_to(std::string stop_set);
+   std::string skip_to_next_line();
+   std::string next_token() { return skip_to(separators); }
+   std::string peek_token() { return peek_to(separators); }
    bool expect(std::string word);
 
+   void read_singleline_comment(Comment& c);
+   void read_multiline_comment(Comment& c);
+
    std::string substr(const Pos& ini, const Pos& fin) const;
+
+   void error(std::string msg);
 };
+
+bool is_space(std::string s);
 
 #endif

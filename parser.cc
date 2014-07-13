@@ -16,32 +16,48 @@ void Parser::warning(string msg) {
 AstNode* Parser::parse() {
    Program *res = new Program();
    _in.next();
+   CommentNode *c = _in.skip("\n\t ");
+   if (c != 0) {
+      res->add(c);
+   }
    while (!_in.end()) {
-      switch (_in.curr()) {
-      case '#':
+      if (_in.curr() == '#') {
          res->add(parse_macro());
-         break;
-      default:
+      } else {
+         Pos pos = _in.pos();
+         string tok = _in.peek_token();
+         // 1) using namespace std;
+         // 2) definición de tipo (typedef, struct, class)
+         // 3) funcion.
+         if (tok == "using") {
+            res->add(parse_using_declaration());
+            continue;
+         }
          ostringstream msg;
-         msg << "Unexpected character " << int(_in.curr()) << endl;
+         msg << pos << ": Unexpected token '" << tok << "'";
          error(msg.str());
+      }
+      c = _in.skip("\n\t ");
+      if (c != 0) {
+         res->add(c);
       }
    }
    return res;
 }
 
 AstNode* Parser::parse_macro() {
-   assert(_in.curr() == '#');
-   _in.next();
-   _in.skip_space();
    Pos ini = _in.pos();
+   _in.consume('#');
+   vector<CommentNode*> cmts;
+   cmts.push_back(_in.skip("\t "));
+   Pos macro_ini = _in.pos();
    if (!_in.expect("include")) {
-      _in.skip_to('\n');
-      Pos fin = _in.pos();
+      _in.skip_to("\n");
+      Pos macro_fin = _in.pos();
       _in.next();
-      return new Macro(_in.substr(ini, fin));
+      return new Macro(_in.substr(macro_ini, macro_fin));
    }
-   _in.skip_space();
+   cmts.push_back(_in.skip("\t "));
    char open = _in.curr();
    if (open != '"' && open != '<') {
       error(_in.pos().str() + ": expected '\"' or '<'");
@@ -68,24 +84,50 @@ AstNode* Parser::parse_macro() {
          break;
       }
    }
+   CommentNode *c3 = 0;
    if (_in.curr() == close) {
       _in.next();
-      _in.skip_space();
+      c3 = _in.skip("\t ");
    }
+   cmts.push_back(c3);
+   Pos fin = _in.pos();
    if (!_in.expect("\n")) {
-      Pos begin = _in.pos();
-      _in.skip_to('\n');
-      Pos end = _in.pos();
-      string skipped = _in.substr(begin, end);
+      string skipped = _in.skip_to("\n");
       warning(_in.pos().str() + ": expected '\\n' after '#include' (skipped \"" + skipped + "\")");
       _in.next();
    }
-   return new Include(filename, is_global);
+   AstNode* inc = new Include(filename, is_global);
+   inc->comments = cmts;
+   inc->ini = ini;
+   inc->fin = fin;
+   return inc;
 }
 
-void NodeList::visit(AstVisitor* v) {
-   v->visit_nodelist(this);
-   for (int i = 0; i < _children.size(); i++) {
-      _children[i]->visit(v);
+AstNode* Parser::parse_using_declaration() {
+   CommentNode *c[4] = { 0, 0, 0, 0 };
+   Pos ini = _in.pos();
+   _in.consume("using");
+   c[0] = _in.skip("\t ");
+   if (!_in.expect("namespace")) {
+      error(ini.str() + ": expected 'namespace'");
    }
+   c[1] = _in.skip("\t ");
+   string namespc = _in.next_token();
+   c[2] = _in.skip("\t ");
+   Pos fin = _in.pos();
+   if (!_in.expect(";")) {
+      warning(fin.str() + ": expected ';'");
+   }
+   c[3] = _in.skip("\t ");
+   Pos p = _in.pos();
+   string rest = _in.skip_to("\n");
+   if (!is_space(rest)) {
+      warning(p.str() + ": extra text after 'using' declaration (\"" + rest + "\")");
+   }
+   _in.next();
+   Using *u = new Using(namespc);
+   u->comments.assign(c, c+4);
+   u->ini = ini;
+   u->fin = fin;
+   return u;
 }

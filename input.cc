@@ -4,6 +4,16 @@
 using namespace std;
 
 #include "input.hh"
+#include "ast.hh"
+
+bool is_space(string s) {
+   for (char c : s) {
+      if (c != ' ' && c != '\t') {
+         return false;
+      }
+   }
+   return true;
+}
 
 string Pos::str() const {
    ostringstream out;
@@ -11,35 +21,96 @@ string Pos::str() const {
    return out.str();
 }
 
-void Input::skip_space() {
-   while (!end() and (curr() == ' ' || curr() == '\t')) {
-      next();
-   }
+void Input::error(string msg) {
+   cerr << msg << endl;
+   exit(1);
 }
 
-void Input::skip_space_ln() {
-   while (!end()) {
-      switch (curr()) {
-      case ' ': case '\t': 
-         next();
-      case '\n': 
-         next(); 
-         return;
-      default:
-         return;
-      }
-   }
-}
-
-void Input::skip_to(char stop) {
-   while (!end() and curr() != stop) {
-      next();
-   }
-}
-
-void Input::skip_to_next_line() {
-   skip_to('\n');
+void Input::consume(char c) {
+   assert(curr() == c);
    next();
+}
+
+void Input::consume(string word) {
+   for (int i = 0; i < word.size(); i++) {
+      consume(word[i]);
+   }
+}
+
+CommentNode* Input::skip(string skip_set) {
+   CommentNode *cn = 0;
+   while (!end()) {
+      if (curr() == '/') {
+         peek(1);
+         if (cn == 0) {
+            cn = new CommentNode();
+         }
+         if (curr(1) == '*') {
+            cn->comments.push_back(Comment(Comment::multiline));
+            read_multiline_comment(cn->comments.back());
+         } else if (curr(1) == '/') {
+            cn->comments.push_back(Comment(Comment::singleline));
+            read_singleline_comment(cn->comments.back());
+         } else {
+            break;
+         }
+      }
+      if (skip_set.find(curr()) == string::npos) {
+         break;
+      }
+      next();
+   }
+   return cn;
+}
+
+void Input::read_singleline_comment(Comment& c) {
+   consume("//");
+   while (!end() and curr() != '\n') {
+      c.text += curr();
+      next();
+   }
+   return;
+}
+
+void Input::read_multiline_comment(Comment& c) {
+   consume("/*");
+   while (!end()) {
+      if (curr() == '*') {
+         peek(1);
+         if (curr(1) == '/') {
+            consume("*/");
+            return;
+         }
+      }
+      c.text += curr();
+      next();
+   }
+   error(pos().str() + "unfinished comment");
+   return;
+}
+
+string Input::skip_to(string stop_set) {
+   string s;
+   while (!end() and (stop_set.find(curr()) == string::npos)) {
+      s += curr();
+      next();
+   }
+   return s;
+}
+
+string Input::peek_to(string stop_set) {
+   Pos saved_pos = _pos;
+   int saved_curr = _curr;
+   string res = skip_to(stop_set);
+   _pos = saved_pos;
+   _curr = saved_curr;
+   return res;
+}
+
+string Input::skip_to_next_line() {
+   string s = skip_to("\n");
+   next();
+   return s;
 }
 
 int Input::_pos_to_idx(Pos p) const {
@@ -56,6 +127,24 @@ int Input::_pos_to_idx(Pos p) const {
       return -1;
    }
    return lini + p.col;
+}
+
+bool Input::peek(int offset) {
+   if (_in == 0 || !_in->good()) {
+      return false;
+   }
+   int k = _curr + offset;
+   if (k >= _text.size()) {
+      string line;
+      if (!getline(*_in, line)) {
+         return false;
+      }
+      _text += line;
+      if (!_in->eof()) {
+         _text += "\n";
+      }
+   }
+   return k < _text.size();
 }
 
 bool Input::next() {
