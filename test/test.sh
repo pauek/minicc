@@ -14,7 +14,6 @@ for dir in $(find -mindepth 1 -maxdepth 1 -type d); do
 done
 for dir in $(find -mindepth 1 -maxdepth 1 -type d); do
    if [ -f ${dir}-err ]; then
-      echo
       cat ${dir}-err
       rm ${dir}-err
    fi

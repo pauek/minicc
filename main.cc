@@ -20,7 +20,11 @@ int main(int argc, char *argv[]) {
       i = new ifstream(argv[1]);
    }
    Parser P(i);
-   AstNode *program = P.parse();
-   PrettyPrinter pr(&cout);
-   program->visit(&pr);
+   try {
+      AstNode *program = P.parse();
+      PrettyPrinter pr(&cout);
+      program->visit(&pr);
+   } catch (ParseError *e) {
+      cerr << e->msg << endl;
+   }
 }

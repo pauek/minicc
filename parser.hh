@@ -5,6 +5,11 @@
 #include "ast.hh"
 #include "input.hh"
 
+struct ParseError {
+   std::string msg;
+   ParseError(std::string _msg) : msg(_msg) {}
+};
+
 class Parser {
    Input _in;
    std::ostream *_err;

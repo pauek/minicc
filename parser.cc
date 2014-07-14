@@ -21,8 +21,7 @@ bool Parser::is_type(string t) const {
 }
 
 void Parser::error(string msg) {
-   (*_err) << msg << endl;
-   exit(1);   
+   throw new ParseError(msg);
 }
 
 void Parser::warning(string msg) {
@@ -42,12 +41,8 @@ AstNode* Parser::parse() {
       } else {
          Pos pos = _in.pos();
          string tok = _in.peek_token();
-         // 1) using namespace std;
-         // 2) definición de tipo (typedef, struct, class)
-         // 3) funcion.
          if (tok == "using") {
             res->add(parse_using_declaration());
-            continue;
          } else if (tok == "struct" || tok == "typedef" || tok == "class") {
             error("'" + tok + "' is not supported yet");
          } else if (is_type(tok)) {
@@ -288,10 +283,14 @@ void test_parser(string filename) {
    ostringstream Sout, Serr;
    istringstream Scode(code);
    Parser P(&Scode, &Serr);
-   AstNode *program = P.parse();
-   PrettyPrinter pr(&Sout);
-   program->visit(&pr);
-
+   AstNode *program;
+   try {
+      program = P.parse();
+      PrettyPrinter pr(&Sout);
+      program->visit(&pr);
+   } catch (ParseError *e) {
+      Serr << e->msg << endl;
+   }
    char res = '.';
    string sep((82 - filename.size()) / 2, '-');
    string header = sep + " " + filename + " " + sep + "\n";
