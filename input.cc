@@ -55,6 +55,9 @@ CommentNode* Input::skip(string skip_set) {
             break;
          }
       }
+      if (cn != 0 and curr() == '\n') {
+         cn->comments.back().endl = true;
+      }
       if (skip_set.find(curr()) == string::npos) {
          break;
       }

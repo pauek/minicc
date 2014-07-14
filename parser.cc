@@ -1,12 +1,15 @@
 #include <cstdlib>
 #include <sstream>
+#include <fstream>
 #include <assert.h>
-#include "parser.hh"
 using namespace std;
+
+#include "parser.hh"
+#include "prettyprint.hh"
 
 set<string> Parser::_types;
 
-Parser::Parser(istream *i) : _in(i) {
+Parser::Parser(istream *i, std::ostream* err) : _in(i), _err(err) {
    string T[] = { "int", "char", "string", "void", "bool", "double", "float" };
    for (string t : T) {
       _types.insert(t);
@@ -18,12 +21,12 @@ bool Parser::is_type(string t) const {
 }
 
 void Parser::error(string msg) {
-   cerr << msg << endl;
+   (*_err) << msg << endl;
    exit(1);   
 }
 
 void Parser::warning(string msg) {
-   cerr << msg << endl;
+   (*_err) << msg << endl;
 }
 
 AstNode* Parser::parse() {
@@ -49,6 +52,10 @@ AstNode* Parser::parse() {
             error("'" + tok + "' is not supported yet");
          } else if (is_type(tok)) {
             res->add(parse_func_or_var(tok));
+         } else if (tok == "") {
+            ostringstream msg;
+            msg << pos << ": Unexpected character '" << _in.curr() << "'";
+            error(msg.str());
          } else {
             ostringstream msg;
             msg << pos << ": Unexpected token '" << tok << "'";
@@ -70,9 +77,11 @@ AstNode* Parser::parse_macro() {
    cmts.push_back(_in.skip("\t "));
    Pos macro_ini = _in.pos();
    if (!_in.expect("include")) {
+      string macro_name = _in.next_token();
       _in.skip_to("\n");
       Pos macro_fin = _in.pos();
       _in.next();
+      warning(ini.str() + ": ignoring macro '" + macro_name + "'");
       return new Macro(_in.substr(macro_ini, macro_fin));
    }
    cmts.push_back(_in.skip("\t "));
@@ -111,7 +120,7 @@ AstNode* Parser::parse_macro() {
    Pos fin = _in.pos();
    if (!_in.expect("\n")) {
       string skipped = _in.skip_to("\n");
-      warning(_in.pos().str() + ": expected '\\n' after '#include' (skipped \"" + skipped + "\")");
+      warning(fin.str() + ": expected '\\n' after '#include' (found \"" + skipped + "\")");
       _in.next();
    }
    AstNode* inc = new Include(filename, is_global);
@@ -221,4 +230,85 @@ void Parser::parse_block(Block *b) {
       error("'}' expected");
    }
    b->comments.push_back(cn);
+}
+
+/// Test the parser //////////////////////////////////////////////////
+
+// Detect lines like:
+//
+//   [[out]]-------------------------
+//
+string test_parser_separator(string line) {
+   int p1 = line.find("[[");
+   if (p1 != 0) {
+      return "";
+   }
+   int p2 = line.find("]]");
+   if (p2 == string::npos) {
+      return "";
+   }
+   int len = line.size() - (p2+2);
+   string dashes(len, '-');
+   if (line.substr(p2+2) != dashes) {
+      return "";
+   }
+   return line.substr(2, p2-2);
+}
+
+string visible_spaces(string output) {
+   string res;
+   for (char c : output) {
+      switch (c) {
+      case ' ': res += '_'; break;
+      case '\n': res += "[endl]\n"; break;
+      case '\t': res += "\\t  "; break;
+      default:
+         res += c;
+      }
+   }
+   return res;
+}
+
+void test_parser(string filename) {
+   ifstream F(filename);
+   string line, code, out, err;
+
+   string *acum = &code;
+   while (getline(F, line)) {
+      string label = test_parser_separator(line);
+      if (label == "") {
+         *acum += line + "\n";
+      } else if (label == "out") {
+         acum = &out;
+      } else if (label == "err") {
+         acum = &err;
+      }
+   }
+   
+   ostringstream Sout, Serr;
+   istringstream Scode(code);
+   Parser P(&Scode, &Serr);
+   AstNode *program = P.parse();
+   PrettyPrinter pr(&Sout);
+   program->visit(&pr);
+
+   char res = '.';
+   string sep((82 - filename.size()) / 2, '-');
+   string header = sep + " " + filename + " " + sep + "\n";
+   if (Sout.str() != out) {
+      cerr << header << "[out]:" << endl;
+      header = "";
+      cerr << "target  \"\"\"" << visible_spaces(out) << "\"\"\"" << endl;
+      cerr << "current \"\"\"" << visible_spaces(Sout.str()) << "\"\"\"" << endl;
+      cerr << endl;
+      res = 'x';
+   }
+   if (Serr.str() != err) {
+      cerr << header << "[err]:" << endl;
+      cerr << "target  \"\"\"" << visible_spaces(Serr.str()) << "\"\"\"" << endl;
+      cerr << "current \"\"\"" << visible_spaces(err) << "\"\"\"" << endl;
+      cerr << endl;
+      res = 'x';
+   }
+   cout << res << flush;
 }

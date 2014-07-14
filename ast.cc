@@ -9,9 +9,12 @@ ostream& operator<<(ostream& o, CommentNode* C) {
    }
    for (const Comment& c : C->comments) {
       if (c.type == Comment::multiline) {
-         o << " /*" << c.text << "*/ ";
+         o << "/*" << c.text << "*/";
       } else {
-         o << " // " << c.text;
+         o << "//" << c.text;
+      }
+      if (c.endl) {
+         o << endl;
       }
    }
    return o;

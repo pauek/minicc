@@ -1,16 +1,22 @@
 #!/bin/bash
 
-function test() {
-   ../minicc $1 > outA 2> errA
-   awk '/\/* out/, /*\// { print }' include_local_global.cc | tail -n+2 | head -n-1 > outB
-   awk '/\/* err/, /*\// { print }' include_local_global.cc | tail -n+2 | head -n-1 > errB
-   diff outA outB
-   diff errA errB
-   rm -f out[AB] err[AB]
+function test_dir() {
+   dir=$(echo $1 | tr -d './');
+   printf "%16s  " $dir
+   for ccfile in $(find $dir -name "*.cc" | sort); do
+      ../minicc --test-${dir} $ccfile 2>> ${dir}-err
+   done
+   echo
 }
 
-test include_local_global.cc
+for dir in $(find -mindepth 1 -maxdepth 1 -type d); do
+   test_dir $dir
+done
+for dir in $(find -mindepth 1 -maxdepth 1 -type d); do
+   if [ -f ${dir}-err ]; then
+      echo
+      cat ${dir}-err
+      rm ${dir}-err
+   fi
+done
 
-# for codefile in *.cc; do
-#    test $codefile
-#done

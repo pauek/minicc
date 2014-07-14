@@ -24,8 +24,9 @@ struct Comment {
    enum Type { singleline, multiline };
    Type type;
    std::string text;
+   bool endl;
 
-   Comment(Type t) : type(t) {}
+   Comment(Type t) : type(t), endl(false) {}
 };
 
 struct CommentNode : public AstNode {

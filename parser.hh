@@ -7,11 +7,12 @@
 
 class Parser {
    Input _in;
+   std::ostream *_err;
 
    static std::set<std::string> _types;
 
 public:
-   Parser(std::istream *i);
+   Parser(std::istream *in, std::ostream* err = &std::cerr);
 
    void error(std::string msg);
    void warning(std::string msg);
@@ -27,5 +28,8 @@ public:
    bool     parse_param(FuncDecl::Param& p);
    void     parse_block(Block *b);
 };
+
+std::string test_parser_separator(std::string line);
+void test_parser(std::string filename);
 
 #endif

@@ -11,9 +11,9 @@ class PrettyPrinter : public AstVisitor {
    std::ostream& out() { return *_out; }
    
 public:
-   PrettyPrinter(std::ostream *o) : _indent(0) {
-      _out = o;
-   }
+   PrettyPrinter(std::ostream *o = &std::cout) : _indent(0), _out(o) {}
+
+   void print(AstNode* x) { x->visit(this); }
 
    void visit_comment(CommentNode *x);
    void visit_include(Include *x);

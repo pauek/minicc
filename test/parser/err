@@ -1,0 +1,13 @@
+comment1.cc: 
+[out]:
+Sout = """ //  bla //  bli /* alkdsjlakdjf */ 
+"""
+out = """// bla
+// bli
+/* alkdsjlakdjf */
+"""
+
+[err]:
+Serr = """"""
+err = """"""
+
