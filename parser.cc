@@ -174,11 +174,14 @@ AstNode *Parser::parse_func_or_var(string typ) {
 }
 
 void Parser::parse_function(FuncDecl *fn) {
+   CommentNode *cn;
    parse_parameter_list(fn->params);
-   CommentNode *cn = _in.skip("\t\n ");
+   cn = _in.skip("\t\n ");
    fn->comment_nodes.push_back(cn);
-   fn->block = new Block();
+   fn->block = Stmt::NewBlock(_in.pos());
    parse_block(fn->block);
+   cn = _in.skip("\t\n ");
+   fn->comment_nodes.push_back(cn);
    fn->fin = _in.pos();
 }
 
@@ -214,9 +217,8 @@ bool Parser::parse_param(FuncDecl::Param& prm) {
    return !_in.end();
 }
 
-void Parser::parse_block(Block *block) {
+void Parser::parse_block(Stmt *block) {
    CommentNode *ncomm;
-   _in.skip("\t\n ");
    if (!_in.expect("{")) {
       error("'{' expected");
    }
@@ -228,7 +230,7 @@ void Parser::parse_block(Block *block) {
          break;
       }
       Stmt *stmt = parse_stmt();
-      block->stmts.push_back(stmt);
+      block->sub_stmts.push_back(stmt);
    }
    if (_in.end()) {
       error("expected '}' but found EOF");
@@ -236,14 +238,25 @@ void Parser::parse_block(Block *block) {
 }
 
 Stmt* Parser::parse_stmt() {
+   Stmt *stmt = new Stmt(_in.pos());
    if (_in.curr() == ';') {
-      Stmt *stmt = new Stmt(_in.pos());
       parse_colon(stmt);
-      return stmt;
    } else {
-      error(string("unexpected char '") + _in.curr() + "'");
-      return NULL;
+      string tok = _in.next_token();
+      if (tok == "for") {
+         parse_for(stmt);
+      } else if (tok == "while") {
+         parse_while(stmt);
+      } else if (tok == "switch") {
+         error("UNIMPLEMENTED");
+      } else if (tok == "if") {
+         error("UNIMPLEMENTED");
+      } else {
+         error(string("unexpected token '") + tok + "'");
+         return NULL;
+      }
    }
+   return stmt;
 }
 
 void Parser::parse_colon(Stmt *stmt) {
@@ -251,4 +264,24 @@ void Parser::parse_colon(Stmt *stmt) {
    _in.consume(';');
    CommentNode *ncomm = _in.skip("\t\n ");
    stmt->comment_nodes.push_back(ncomm);
+}
+
+void Parser::parse_for(Stmt *stmt) {
+   stmt->typ = Stmt::_for;
+   error("UNIMPLEMENTED");
+}
+
+void Parser::parse_while(Stmt *stmt) {
+   stmt->typ = Stmt::_while;
+   error("UNIMPLEMENTED");
+}
+
+void Parser::parse_if(Stmt *stmt) {
+   stmt->typ = Stmt::_if;
+   error("UNIMPLEMENTED");
+}
+
+void Parser::parse_switch(Stmt *stmt) {
+   stmt->typ = Stmt::_switch;
+   error("UNIMPLEMENTED");
 }

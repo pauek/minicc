@@ -31,9 +31,13 @@ public:
       void  parse_function(FuncDecl *fn);
       void  parse_parameter_list(std::vector<FuncDecl::Param>& params);
       bool  parse_param(FuncDecl::Param& p);
-      void  parse_block(Block *b);
+      void  parse_block(Stmt *stmt);
       Stmt *parse_stmt();
       void  parse_colon(Stmt *stmt);
+      void  parse_for(Stmt *stmt);
+      void  parse_while(Stmt *stmt);
+      void  parse_if(Stmt *stmt);
+      void  parse_switch(Stmt *stmt);
 };
 
 std::string test_parser_separator(std::string line);

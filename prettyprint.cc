@@ -92,23 +92,23 @@ void PrettyPrinter::visit_funcdecl(FuncDecl *x) {
       out() << _cmt(x->params[i].c[2], 0);
    }
    out() << ") ";
-   visit_block(x->block);
-}
-
-void PrettyPrinter::visit_block(Block *x) {
-   if (x->stmts.empty()) {
-      out() << "{}" << endl;
-      return;
-   } 
-   indent(+1);
-   out() << "{" << endl;
-   for (int i = 0; i < x->stmts.size(); i++) {
-      visit_stmt(x->stmts[i]);
-   }
-   indent(-1);
-   out(beginl) << "}" << endl;
+   visit_stmt(x->block);
 }
 
 void PrettyPrinter::visit_stmt(Stmt *x) {
-   out(beginl) << ";" << _cmt_endl(x, 0);
+   if (x->typ == Stmt::_block) {
+      if (x->sub_stmts.empty()) {
+         out() << "{}" << endl;
+         return;
+      } 
+      indent(+1);
+      out() << "{" << endl;
+      for (int i = 0; i < x->sub_stmts.size(); i++) {
+         visit_stmt(x->sub_stmts[i]);
+      }
+      indent(-1);
+      out(beginl) << "}" << endl;
+   } else {
+      out(beginl) << ";" << _cmt_endl(x, 0);
+   }
 }
