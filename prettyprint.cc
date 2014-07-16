@@ -117,7 +117,7 @@ void PrettyPrinter::visit_stmt(Stmt *x) {
          return;
       } 
       indent(+1);
-      out() << "{" << endl;
+      out() << "{" << _cmtendl(x, 0);
       for (int i = 0; i < x->sub_stmts.size(); i++) {
          visit_stmt(x->sub_stmts[i]);
       }
@@ -148,6 +148,7 @@ void PrettyPrinter::visit_expr(Expr *x) {
 
    case Expr::assignment:
    case Expr::additive:
+   case Expr::multiplicative:
       visit_expr(x->left);
       out() << " " << Expr::op2char(x->op) << _cmt_(x, 0);
       visit_expr(x->right);
