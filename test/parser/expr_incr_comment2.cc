@@ -1,8 +1,8 @@
-double    fn   (char c1 ,char   c2  )    {
-   a=1  ;
+double fn(  char c1,    char   c2  ){
+a= a+ 1    /* i.e., one */;
 }
 [[out]]--------------------------------------------------
 double fn(char c1, char c2) {
-   a = 1;
+   a = a + 1 /* i.e., one */;
 }
 [[err]]--------------------------------------------------

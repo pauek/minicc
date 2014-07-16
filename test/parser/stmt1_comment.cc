@@ -1,13 +1,7 @@
-#include <iostream>
-using namespace blah;
-
-double fn() {
+double fn(   )   {
    ;    // blah
 }
 [[out]]--------------------------------------------------
-#include <iostream>
-using namespace blah;
-
 double fn() {
    ; // blah
 }
