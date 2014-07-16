@@ -33,6 +33,7 @@ public:
    bool     parse_param(FuncDecl::Param& p);
    void     parse_block(Block *b);
    void     parse_statement(Statement *stmt);
+   void     parse_colon(Statement *stmt);
 };
 
 std::string test_parser_separator(std::string line);

@@ -239,12 +239,16 @@ void Parser::parse_block(Block *block) {
 
 void Parser::parse_statement(Statement *stmt) {
    if (_in.curr() == ';') {
-      stmt->fin = _in.pos();
-      _in.consume(';');
-      CommentNode *ncomm = _in.skip("\t\n ");
-      stmt->comment_nodes.push_back(ncomm);
+      parse_colon(stmt);
       return;
    } else {
       error(string("unexpected char '") + _in.curr() + "'");
    }
+}
+
+void Parser::parse_colon(Statement *stmt) {
+   stmt->fin = _in.pos();
+   _in.consume(';');
+   CommentNode *ncomm = _in.skip("\t\n ");
+   stmt->comment_nodes.push_back(ncomm);
 }
