@@ -118,7 +118,7 @@ AstNode* Parser::parse_macro() {
       _in.next();
    }
    AstNode* inc = new Include(filename, is_global);
-   inc->comments = cmts;
+   inc->comment_nodes = cmts;
    inc->ini = ini;
    inc->fin = fin;
    return inc;
@@ -147,7 +147,7 @@ AstNode* Parser::parse_using_declaration() {
    }
    _in.next();
    Using *u = new Using(namespc);
-   u->comments.assign(c, c+4);
+   u->comment_nodes.assign(c, c+4);
    u->ini = ini;
    u->fin = fin;
    return u;
@@ -162,7 +162,7 @@ AstNode *Parser::parse_func_or_var(string typ) {
    c[1] = _in.skip("\t ");
    if (_in.curr() == '(') {
       FuncDecl *fn = new FuncDecl(name);
-      fn->comments.assign(c, c+2);
+      fn->comment_nodes.assign(c, c+2);
       fn->return_type = new Type(typ);
       fn->ini = ini;
       parse_function(fn);
@@ -176,7 +176,7 @@ AstNode *Parser::parse_func_or_var(string typ) {
 void Parser::parse_function(FuncDecl *fn) {
    parse_parameter_list(fn->params);
    CommentNode *cn = _in.skip("\t\n ");
-   fn->comments.push_back(cn);
+   fn->comment_nodes.push_back(cn);
    fn->block = new Block();
    parse_block(fn->block);
    fn->fin = _in.pos();
@@ -214,14 +214,37 @@ bool Parser::parse_param(FuncDecl::Param& prm) {
    return !_in.end();
 }
 
-void Parser::parse_block(Block *b) {
+void Parser::parse_block(Block *block) {
+   CommentNode *ncomm;
    _in.skip("\t\n ");
    if (!_in.expect("{")) {
       error("'{' expected");
    }
-   CommentNode *cn = _in.skip("\t\n ");
-   b->comments.push_back(cn);
-   if (!_in.expect("}")) {
-      error("'}' expected");
+   ncomm = _in.skip("\t\n ");
+   block->comment_nodes.push_back(ncomm);
+   while (!_in.end()) {
+      if (_in.curr() == '}') {
+         _in.next();
+         break;
+      }
+      Statement *stmt = new Statement();
+      stmt->ini = _in.pos();
+      parse_statement(stmt);
+      block->stmts.push_back(stmt);
+   }
+   if (_in.end()) {
+      error("expected '}' but found EOF");
+   }
+}
+
+void Parser::parse_statement(Statement *stmt) {
+   if (_in.curr() == ';') {
+      stmt->fin = _in.pos();
+      _in.consume(';');
+      CommentNode *ncomm = _in.skip("\t\n ");
+      stmt->comment_nodes.push_back(ncomm);
+      return;
+   } else {
+      error(string("unexpected char '") + _in.curr() + "'");
    }
 }

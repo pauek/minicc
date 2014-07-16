@@ -13,7 +13,7 @@ std::ostream& operator<<(std::ostream& o, CommentNode* C);
 
 struct AstNode {
    Pos ini, fin;
-   std::vector<CommentNode*> comments;
+   std::vector<CommentNode*> comment_nodes;
    virtual ~AstNode() {}
    virtual int num_children()    const { return 0; }
    virtual AstNode* child(int n) const { return 0; }
@@ -86,7 +86,12 @@ struct FuncDecl : public AstNode {
    void visit(AstVisitor *v);
 };
 
+struct Statement : public AstNode {
+   void visit(AstVisitor *v);
+};
+
 struct Block : public AstNode {
+   std::vector<Statement*> stmts;
    void visit(AstVisitor *v);
 };
 
@@ -107,6 +112,7 @@ struct AstVisitor {
    virtual void visit_funcdecl(FuncDecl *) = 0;
    virtual void visit_type(Type *) = 0;
    virtual void visit_block(Block *) = 0;
+   virtual void visit_stmt(Statement *) = 0;
 };
 
 // Visit implementations
@@ -118,5 +124,6 @@ inline void Using::visit(AstVisitor *v)       { v->visit_using(this); }
 inline void FuncDecl::visit(AstVisitor* v)    { v->visit_funcdecl(this); }
 inline void Type::visit(AstVisitor *v)        { v->visit_type(this); }
 inline void Block::visit(AstVisitor *v)       { v->visit_block(this); }
+inline void Statement::visit(AstVisitor *v)   { v->visit_stmt(this); }
 
 #endif

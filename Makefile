@@ -1,6 +1,6 @@
 CXX=clang++
 OBJECTS=main.o input.o parser.o ast.o prettyprint.o test_parser.o
-CXXFLAGS=-std=c++11
+CXXFLAGS=-std=c++11 -g3
 
 all: minicc
 
