@@ -45,6 +45,15 @@ string _cmt_endl(AstNode* x, int i) {
    return _cmt_endl(x->comment_nodes[i]);
 }
 
+void PrettyPrinter::visit_nodelist(NodeList* x) {
+   for (int i = 0; i < x->_children.size(); i++) {
+      AstNode *n = x->_children[i];
+      if (n->is<FuncDecl>() and i > 0) {
+         out() << endl;
+      }
+      n->visit(this);
+   }
+}
 
 void PrettyPrinter::visit_comment(CommentNode* cn) {
    out() << cn;
@@ -70,14 +79,11 @@ void PrettyPrinter::visit_using(Using* x) {
          << ";" << _cmt_endl(x, 3);
 }
 
-void PrettyPrinter::visit_nodelist(NodeList* x) {}
-
 void PrettyPrinter::visit_type(Type *x) {
    out() << x->name;
 }
 
 void PrettyPrinter::visit_funcdecl(FuncDecl *x) {
-   out() << endl;
    visit_type(x->return_type);
    out() << _cmt(x, 0)
          << x->name << _cmt0(x, 1) << "(";

@@ -18,6 +18,9 @@ struct AstNode {
    virtual int num_children()    const { return 0; }
    virtual AstNode* child(int n) const { return 0; }
    virtual void visit(AstVisitor* v) = 0;
+
+   template<typename X>
+   bool is() { return dynamic_cast<X*>(this) != 0; }
 };
 
 struct Comment {
@@ -134,7 +137,7 @@ struct AstVisitor {
 };
 
 // Visit implementations
-
+inline void NodeList::visit(AstVisitor *v)    { v->visit_nodelist(this); }
 inline void CommentNode::visit(AstVisitor *v) { v->visit_comment(this); }
 inline void Include::visit(AstVisitor *v)     { v->visit_include(this); }
 inline void Macro::visit(AstVisitor *v)       { v->visit_macro(this); }

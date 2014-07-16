@@ -275,7 +275,10 @@ Stmt* Parser::parse_stmt() {
 
 void Parser::parse_colon(Stmt *stmt) {
    stmt->fin = _in.pos();
-   _in.consume(';');
+   if (!_in.expect(";")) {
+      warning(_in.pos().str() + ": Expected ';'");
+      _in.skip_to(";\n"); // resync...
+   }
    CommentNode *ncomm = _in.skip("\t\n ");
    stmt->comment_nodes.push_back(ncomm);
 }

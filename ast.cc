@@ -20,9 +20,3 @@ ostream& operator<<(ostream& o, CommentNode* C) {
    return o;
 }
 
-void NodeList::visit(AstVisitor* v) {
-   v->visit_nodelist(this);
-   for (int i = 0; i < _children.size(); i++) {
-      _children[i]->visit(v);
-   }
-}
