@@ -80,8 +80,8 @@ void test_parser(string filename) {
    }
    if (Serr.str() != err) {
       cerr << header << "[err]:" << endl;
-      cerr << "target  \"\"\"" << visible_spaces(Serr.str()) << "\"\"\"" << endl;
-      cerr << "current \"\"\"" << visible_spaces(err) << "\"\"\"" << endl;
+      cerr << "target  \"\"\"" << visible_spaces(err) << "\"\"\"" << endl;
+      cerr << "current \"\"\"" << visible_spaces(Serr.str()) << "\"\"\"" << endl;
       cerr << endl;
       res = 'x';
    }
