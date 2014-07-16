@@ -140,7 +140,7 @@ void PrettyPrinter::visit_expr(Expr *x) {
 
    case Expr::assign:
       visit_expr(x->left);
-      out() << " = ";
+      out() << _cmt(x, 0) << "=" << _cmt(x, 1);
       visit_expr(x->right);
       break;
 
