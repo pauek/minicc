@@ -96,7 +96,12 @@ void PrettyPrinter::visit_funcdecl(FuncDecl *x) {
 }
 
 void PrettyPrinter::visit_stmt(Stmt *x) {
-   if (x->typ == Stmt::_block) {
+   switch (x->typ) {
+   case Stmt::_empty:
+      out(beginl) << ";" << _cmt_endl(x, 0);
+      break;
+
+   case Stmt::_block:
       if (x->sub_stmts.empty()) {
          out() << "{}" << endl;
          return;
@@ -108,7 +113,32 @@ void PrettyPrinter::visit_stmt(Stmt *x) {
       }
       indent(-1);
       out(beginl) << "}" << endl;
-   } else {
-      out(beginl) << ";" << _cmt_endl(x, 0);
+      break;
+
+   case Stmt::_expr:
+      out(beginl);
+      visit_expr(x->expr);
+      out() << ";" << _cmt_endl(x, 0);
+      break;
+
+   default:
+      out(beginl) << "<stmt>;" << endl;
+   }
+}
+
+void PrettyPrinter::visit_expr(Expr *x) {
+   switch (x->typ) {
+   case Expr::identifier:
+   case Expr::literal:
+      out() << x->str; break;
+
+   case Expr::assign:
+      visit_expr(x->left);
+      out() << " = ";
+      visit_expr(x->right);
+      break;
+
+   default:
+      out() << "<expr>";
    }
 }

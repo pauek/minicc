@@ -87,20 +87,30 @@ struct FuncDecl : public AstNode {
    void visit(AstVisitor *v);
 };
 
+struct Expr;
+
 struct Stmt : public AstNode {
-   enum Type { _empty, _single, _block, _for, _while, _if, _switch };
+   enum Type { _empty, _expr, _block, _for, _while, _if, _switch };
 
    Type typ;
+   Expr* expr; 
    std::vector<Stmt*> sub_stmts;
 
-   Stmt(Pos _ini) : typ(_empty) { ini = _ini; }
+   Stmt(Type _typ = _empty) : typ(_typ) {}
    void visit(AstVisitor *v);
+};
 
-   static Stmt* NewBlock(Pos _ini) { 
-      Stmt *s = new Stmt(_ini);
-      s->typ = _block;
-      return s;
-   }
+struct Expr : public AstNode {
+   enum Type { unknown, identifier, literal, assignment, additive, multiplicative };
+   enum Op { assign, add, sub, mult, div };
+   
+   Type typ;
+   Op op;
+   std::string str;
+   Expr *left, *right;
+
+   Expr(Type _typ = unknown) : typ(_typ) {}
+   void visit(AstVisitor *v);
 };
 
 struct Type : public AstNode {
@@ -120,6 +130,7 @@ struct AstVisitor {
    virtual void visit_funcdecl(FuncDecl *) = 0;
    virtual void visit_type(Type *) = 0;
    virtual void visit_stmt(Stmt *) = 0;
+   virtual void visit_expr(Expr *) = 0;
 };
 
 // Visit implementations
@@ -131,5 +142,6 @@ inline void Using::visit(AstVisitor *v)       { v->visit_using(this); }
 inline void FuncDecl::visit(AstVisitor* v)    { v->visit_funcdecl(this); }
 inline void Type::visit(AstVisitor *v)        { v->visit_type(this); }
 inline void Stmt::visit(AstVisitor *v)        { v->visit_stmt(this); }
+inline void Expr::visit(AstVisitor *v)        { v->visit_expr(this); }
 
 #endif

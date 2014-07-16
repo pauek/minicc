@@ -19,6 +19,19 @@ bool Parser::is_type(string t) const {
    return _types.find(t) != _types.end();
 }
 
+bool all_digits(string s) {
+   for (char c : s) {
+      if (!(c >= '0' and c <= '9')) {
+         return false;
+      }
+   }
+   return true;
+}
+
+bool Parser::is_literal(string s) const {
+   return all_digits(s);
+}
+
 void Parser::error(string msg) {
    throw new ParseError(msg);
 }
@@ -178,7 +191,8 @@ void Parser::parse_function(FuncDecl *fn) {
    parse_parameter_list(fn->params);
    cn = _in.skip("\t\n ");
    fn->comment_nodes.push_back(cn);
-   fn->block = Stmt::NewBlock(_in.pos());
+   fn->block = new Stmt(Stmt::_block);
+   fn->block->ini = _in.pos();
    parse_block(fn->block);
    cn = _in.skip("\t\n ");
    fn->comment_nodes.push_back(cn);
@@ -238,22 +252,22 @@ void Parser::parse_block(Stmt *block) {
 }
 
 Stmt* Parser::parse_stmt() {
-   Stmt *stmt = new Stmt(_in.pos());
+   Stmt *stmt = new Stmt();
+   stmt->ini = _in.pos();
    if (_in.curr() == ';') {
       parse_colon(stmt);
    } else {
-      string tok = _in.next_token();
+      string tok = _in.peek_token();
       if (tok == "for") {
          parse_for(stmt);
       } else if (tok == "while") {
          parse_while(stmt);
-      } else if (tok == "switch") {
-         error("UNIMPLEMENTED");
       } else if (tok == "if") {
-         error("UNIMPLEMENTED");
+         parse_if(stmt);
+      } else if (tok == "switch") {
+         parse_switch(stmt);
       } else {
-         error(string("unexpected token '") + tok + "'");
-         return NULL;
+         parse_expr_stmt(stmt);
       }
    }
    return stmt;
@@ -264,6 +278,41 @@ void Parser::parse_colon(Stmt *stmt) {
    _in.consume(';');
    CommentNode *ncomm = _in.skip("\t\n ");
    stmt->comment_nodes.push_back(ncomm);
+}
+
+void Parser::parse_expr_stmt(Stmt *stmt) {
+   stmt->typ = Stmt::_expr;
+   stmt->expr = new Expr();
+   parse_expr(stmt->expr);
+   parse_colon(stmt);
+}
+
+void Parser::parse_expr(Expr *expr) {
+   CommentNode *cn;
+
+   // Left
+   string tok = _in.next_token();
+   expr->left = new Expr(is_literal(tok) ? Expr::literal : Expr::identifier);
+   expr->left->str = tok;
+   cn = _in.skip("\t\n ");
+   expr->comment_nodes.push_back(cn);
+
+   // Op
+   if (_in.curr() == '=') {
+      expr->op = Expr::assign;
+      _in.consume('=');
+   } else {
+      error(string("Unknown operator '") + _in.curr() + "'");
+   }
+   cn = _in.skip("\t\n ");
+   expr->comment_nodes.push_back(cn);
+
+   // Right
+   tok = _in.next_token();
+   expr->right = new Expr(is_literal(tok) ? Expr::literal : Expr::identifier);
+   expr->right->str = tok;
+   cn = _in.skip("\t\n ");
+   expr->comment_nodes.push_back(cn);
 }
 
 void Parser::parse_for(Stmt *stmt) {
@@ -285,3 +334,4 @@ void Parser::parse_switch(Stmt *stmt) {
    stmt->typ = Stmt::_switch;
    error("UNIMPLEMENTED");
 }
+

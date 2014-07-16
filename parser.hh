@@ -16,14 +16,15 @@ class Parser {
 
    static std::set<std::string> _types;
 
+   bool is_type(std::string t) const;
+   bool is_literal(std::string s) const;
+   
 public:
    Parser(std::istream *in, std::ostream* err = &std::cerr);
 
    void error(std::string msg);
    void warning(std::string msg);
 
-   bool is_type(std::string t) const;
-   
    AstNode *parse();
    AstNode *parse_macro();
    AstNode *parse_using_declaration();
@@ -38,6 +39,8 @@ public:
       void  parse_while(Stmt *stmt);
       void  parse_if(Stmt *stmt);
       void  parse_switch(Stmt *stmt);
+      void  parse_expr_stmt(Stmt *stmt);
+      void  parse_expr(Expr *expr);
 };
 
 std::string test_parser_separator(std::string line);
