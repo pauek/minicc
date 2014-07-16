@@ -34,7 +34,7 @@ void PrettyPrinter::visit_include(Include* x) {
          << delim[0] << x->filename << delim[1];
    if (x->comment_nodes[2]) {
       out() << ' ' << x->comment_nodes[2];
-      if (!x->comment_nodes[2]->comments.back().endl) {
+      if (!x->comment_nodes[2]->endl()) {
          out() << endl;
       }
    } else {
@@ -53,7 +53,7 @@ void PrettyPrinter::visit_using(Using* x) {
          << ";";
    if (x->comment_nodes[3] != 0) {
       out() << ' ' << x->comment_nodes[3];
-      if (!x->comment_nodes[3]->comments.back().endl) {
+      if (!x->comment_nodes[3]->endl()) {
          out() << endl;
       }
    } else {
@@ -104,7 +104,7 @@ void PrettyPrinter::visit_stmt(Statement *x) {
    out(beginl) << ";";
    if (x->comment_nodes[0] != 0) {
       out() << ' ' << x->comment_nodes[0];
-      if (!x->comment_nodes[0]->comments.back().endl) {
+      if (!x->comment_nodes[0]->endl()) {
          out() << endl;
       }
    } else {

@@ -32,6 +32,7 @@ struct Comment {
 struct CommentNode : public AstNode {
    std::vector<Comment> comments;
    void visit(AstVisitor* v);
+   bool endl() const { return !comments.empty() and comments.back().endl; }
 };
 
 struct NodeList : public AstNode {
