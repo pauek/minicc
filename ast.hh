@@ -95,25 +95,39 @@ struct Expr;
 struct Stmt : public AstNode {
    enum Type { _empty, _expr, _block, _for, _while, _if, _switch };
 
-   Type typ;
+   Type type;
    Expr* expr; 
    std::vector<Stmt*> sub_stmts;
 
-   Stmt(Type _typ = _empty) : typ(_typ) {}
+   Stmt(Type _type = _empty) : type(_type) {}
    void visit(AstVisitor *v);
 };
 
 struct Expr : public AstNode {
-   enum Type { unknown, identifier, literal, assignment, additive, multiplicative };
-   enum Op { none, assign, add, sub, mult, div };
+   enum Type { 
+      unknown, identifier, literal, 
+      multiplicative, additive, shift, relational, equality, 
+      bit_and, bit_xor, bit_or, logical_and, logical_or, conditional,
+      assignment
+   };
+   enum Op { 
+      none, assign, add, sub, mult, div 
+   };
    
-   Type typ;
+   Type type;
+   bool paren;
    Op op;
    std::string str;
    Expr *left, *right;
 
-   Expr(Type _typ = unknown) : typ(_typ), op(none), left(0), right(0) {}
+   Expr(Type _type = unknown) 
+      : type(_type), op(none), paren(false) {}
+
    void visit(AstVisitor *v);
+
+   static Expr::Type char2type(char c);
+   static       char op2char(Expr::Op type);
+   void set(char op);
 };
 
 struct Type : public AstNode {

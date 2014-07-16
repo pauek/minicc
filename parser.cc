@@ -284,69 +284,81 @@ void Parser::parse_colon(Stmt *stmt) {
 }
 
 void Parser::parse_expr_stmt(Stmt *stmt) {
-   stmt->typ = Stmt::_expr;
-   stmt->expr = new Expr();
-   parse_expr(stmt->expr);
+   stmt->type = Stmt::_expr;
+   stmt->expr = parse_expr();
    parse_colon(stmt);
 }
 
-void Parser::parse_expr(Expr *expr) {
+Expr *Parser::parse_expr(Expr::Type max) {
    CommentNode *cn;
+   Expr *left;
 
    // Left
-   string tok = _in.next_token();
-   if (tok == "") {
-      error("Expression doesn't start with a token");
-      return;
+   if (_in.curr() == '(') {
+      _in.next();
+      left = parse_expr();
+      left->paren = true;
+      if (!_in.expect(")")) {
+         error(_in.pos().str() + ": Expected ')'");
+      }
+   } else {
+      left = new Expr();
+      string tok = _in.next_token();
+      if (tok == "") {
+         error("Expression doesn't start with a token");
+         return 0;
+      }
+      left->type = (is_literal(tok) ? Expr::literal : Expr::identifier);
+      left->str = tok;
    }
-   Expr::Type typ = (is_literal(tok) ? Expr::literal : Expr::identifier);
    cn = _in.skip("\t\n ");
-   expr->comment_nodes.push_back(cn);
+   left->comment_nodes.push_back(cn);
 
-   // Op
-   switch (_in.curr()) {
-   case '=':
-      _in.consume('=');
-      expr->typ = Expr::assignment;
-      expr->op = Expr::assign;
-      expr->left = new Expr(typ);
-      expr->left->str = tok;
-      cn = _in.skip("\t\n ");
-      expr->comment_nodes.push_back(cn);
-      expr->right = new Expr();
-      parse_expr(expr->right);
-      return;
-
-   case '(':
-      // function call
+   // Function call?
+   if (_in.curr() == '(') {
       error("UNIMPLEMENTED");
-      break;
-
-   default:
-      expr->typ = typ;
-      expr->str = tok;
+      return 0;
    }
+
+   while (true) {
+      char op = _in.curr();
+      Expr::Type type = Expr::char2type(_in.curr()); // TODO: Properly read operator...
+      // cerr << "curr = " << _in.curr() << " (" << type << ")" << max << endl;
+      if (_in.curr_one_of(");{") or type > max) {
+         break;
+      }
+      Expr *e = new Expr();
+      e->set(_in.curr());
+      _in.next();
+      cn = _in.skip("\t\n ");
+      e->comment_nodes.push_back(cn);
+      Expr *right = parse_expr(type);
+      e->left = left;
+      e->right = right;
+      left = e;
+   } 
    cn = _in.skip("\t\n ");
-   expr->comment_nodes.push_back(cn);
+   left->comment_nodes.push_back(cn);
+   return left;
 }
 
 void Parser::parse_for(Stmt *stmt) {
-   stmt->typ = Stmt::_for;
+   stmt->type = Stmt::_for;
    error("UNIMPLEMENTED");
 }
 
 void Parser::parse_while(Stmt *stmt) {
-   stmt->typ = Stmt::_while;
+   stmt->type = Stmt::_while;
    error("UNIMPLEMENTED");
 }
 
 void Parser::parse_if(Stmt *stmt) {
-   stmt->typ = Stmt::_if;
+   stmt->type = Stmt::_if;
    error("UNIMPLEMENTED");
 }
 
 void Parser::parse_switch(Stmt *stmt) {
-   stmt->typ = Stmt::_switch;
+   stmt->type = Stmt::_switch;
    error("UNIMPLEMENTED");
 }
 

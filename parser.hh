@@ -40,7 +40,7 @@ public:
       void  parse_if(Stmt *stmt);
       void  parse_switch(Stmt *stmt);
       void  parse_expr_stmt(Stmt *stmt);
-      void  parse_expr(Expr *expr);
+      Expr *parse_expr(Expr::Type max = Expr::assignment);
 };
 
 std::string test_parser_separator(std::string line);

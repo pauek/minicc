@@ -79,6 +79,9 @@ public:
    Pos  pos()           const { return _pos; }
    char curr(int i = 0) const { return _text[_curr + i]; }
    bool end()           const { return _curr >= _text.size(); }
+   bool curr_one_of(std::string set) const { 
+      return set.find(curr()) != std::string::npos; 
+   }
 
    void consume(char c);
    void consume(std::string s);

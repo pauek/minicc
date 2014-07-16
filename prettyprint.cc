@@ -12,17 +12,17 @@ std::ostream& PrettyPrinter::out(OutType typ) {
    return *_out; 
 }
 
-string _cmt(CommentNode* cn, bool space = true) {
+string cmt(CommentNode* cn, bool pre, bool post, bool missing) {
    ostringstream out;
    if (cn != 0) {
-      out << ' ' << cn << ' ';
-   } else if (space) {
+      out << (pre ? " " : "") << cn << (post ? " " : "");
+   } else if (missing) {
       out << ' ';
    }
    return out.str();
 }
 
-string _cmt_endl(CommentNode *cn) {
+string _cmtendl(CommentNode *cn) {
    ostringstream out;
    if (cn) {
       out << ' ' << cn;
@@ -33,16 +33,20 @@ string _cmt_endl(CommentNode *cn) {
    return out.str();
 }
 
-string _cmt(AstNode* x, int i, bool space = true) {
-   return _cmt(x->comment_nodes[i], space);
+string _cmt(AstNode* x, int i, bool missing = true) {
+   return cmt(x->comment_nodes[i], true, false, missing);
 }
 
-string _cmt0(AstNode* x, int i) {
-   return _cmt(x->comment_nodes[i], false);
+string _cmt_(AstNode* x, int i, bool missing = true) {
+   return cmt(x->comment_nodes[i], true, true, missing);
 }
 
-string _cmt_endl(AstNode* x, int i) {
-   return _cmt_endl(x->comment_nodes[i]);
+string _cmt0_(AstNode* x, int i) {
+   return cmt(x->comment_nodes[i], true, true, false);
+}
+
+string _cmtendl(AstNode* x, int i) {
+   return _cmtendl(x->comment_nodes[i]);
 }
 
 void PrettyPrinter::visit_nodelist(NodeList* x) {
@@ -62,10 +66,10 @@ void PrettyPrinter::visit_comment(CommentNode* cn) {
 void PrettyPrinter::visit_include(Include* x) {
    string delim = "\"\"";
    if (x->global) delim = "<>";
-   out() << "#" << _cmt0(x, 0)
-         << "include" << _cmt(x, 1)
+   out() << "#" << _cmt0_(x, 0)
+         << "include" << _cmt_(x, 1)
          << delim[0] << x->filename << delim[1]
-         << _cmt_endl(x, 2);
+         << _cmtendl(x, 2);
 }
 
 void PrettyPrinter::visit_macro(Macro* x) {
@@ -73,10 +77,10 @@ void PrettyPrinter::visit_macro(Macro* x) {
 }
 
 void PrettyPrinter::visit_using(Using* x) {
-   out() << "using" << _cmt(x, 0)
-         << "namespace" << _cmt(x, 1)
-         << x->namespc << _cmt0(x, 2)
-         << ";" << _cmt_endl(x, 3);
+   out() << "using" << _cmt_(x, 0)
+         << "namespace" << _cmt_(x, 1)
+         << x->namespc << _cmt0_(x, 2)
+         << ";" << _cmtendl(x, 3);
 }
 
 void PrettyPrinter::visit_type(Type *x) {
@@ -85,26 +89,26 @@ void PrettyPrinter::visit_type(Type *x) {
 
 void PrettyPrinter::visit_funcdecl(FuncDecl *x) {
    visit_type(x->return_type);
-   out() << _cmt(x, 0)
-         << x->name << _cmt0(x, 1) << "(";
+   out() << _cmt_(x, 0)
+         << x->name << _cmt0_(x, 1) << "(";
    for (int i = 0; i < x->params.size(); i++) {
       if (i > 0) {
          out() << ",";
       }
-      out() << _cmt(x->params[i].c[0], i > 0);
+      out() << cmt(x->params[i].c[0], true, true, i > 0);
       visit_type(x->params[i].type);
-      out() << _cmt(x->params[i].c[1]);
+      out() << cmt(x->params[i].c[1], true, true, true);
       out() << x->params[i].name;
-      out() << _cmt(x->params[i].c[2], false);
+      out() << cmt(x->params[i].c[2], true, true, false);
    }
    out() << ") ";
    visit_stmt(x->block);
 }
 
 void PrettyPrinter::visit_stmt(Stmt *x) {
-   switch (x->typ) {
+   switch (x->type) {
    case Stmt::_empty:
-      out(beginl) << ";" << _cmt_endl(x, 0);
+      out(beginl) << ";" << _cmtendl(x, 0);
       break;
 
    case Stmt::_block:
@@ -124,7 +128,7 @@ void PrettyPrinter::visit_stmt(Stmt *x) {
    case Stmt::_expr:
       out(beginl);
       visit_expr(x->expr);
-      out() << ";" << _cmt_endl(x, 0);
+      out() << ";" << _cmtendl(x, 0);
       break;
 
    default:
@@ -133,18 +137,26 @@ void PrettyPrinter::visit_stmt(Stmt *x) {
 }
 
 void PrettyPrinter::visit_expr(Expr *x) {
-   switch (x->typ) {
+   if (x->paren) {
+      out() << "(";
+   }
+   switch (x->type) {
    case Expr::identifier:
    case Expr::literal:
-      out() << x->str; break;
+      out() << x->str 
+            << (x->comment_nodes[0] == 0 ? "" : " ") << x->comment_nodes[0]; break;
 
    case Expr::assignment:
+   case Expr::additive:
       visit_expr(x->left);
-      out() << _cmt(x, 0) << "=" << _cmt(x, 1);
+      out() << " " << Expr::op2char(x->op) << _cmt_(x, 0);
       visit_expr(x->right);
       break;
 
    default:
       out() << "<expr>";
+   }
+   if (x->paren) {
+      out() << ")";
    }
 }
