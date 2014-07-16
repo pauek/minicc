@@ -22,6 +22,17 @@ string _cmt(string sp, CommentNode* cn) {
    return out.str();
 }
 
+string _cmt_endl(CommentNode *cn) {
+   ostringstream out;
+   if (cn) {
+      out << ' ' << cn;
+   }
+   if (!cn or !cn->endl()) {
+      out << endl;
+   }
+   return out.str();
+}
+
 void PrettyPrinter::visit_comment(CommentNode* cn) {
    out() << cn;
 }
@@ -31,15 +42,8 @@ void PrettyPrinter::visit_include(Include* x) {
    if (x->global) delim = "<>";
    out() << "#" << _cmt("", x->comment_nodes[0])
          << "include" << _cmt(" ", x->comment_nodes[1])
-         << delim[0] << x->filename << delim[1];
-   if (x->comment_nodes[2]) {
-      out() << ' ' << x->comment_nodes[2];
-      if (!x->comment_nodes[2]->endl()) {
-         out() << endl;
-      }
-   } else {
-      out() << endl;
-   }
+         << delim[0] << x->filename << delim[1]
+         << _cmt_endl(x->comment_nodes[2]);
 }
 
 void PrettyPrinter::visit_macro(Macro* x) {
@@ -50,15 +54,7 @@ void PrettyPrinter::visit_using(Using* x) {
    out() << "using" << _cmt(" ", x->comment_nodes[0]) 
          << "namespace" << _cmt(" ", x->comment_nodes[1])
          << x->namespc << _cmt("", x->comment_nodes[2])
-         << ";";
-   if (x->comment_nodes[3] != 0) {
-      out() << ' ' << x->comment_nodes[3];
-      if (!x->comment_nodes[3]->endl()) {
-         out() << endl;
-      }
-   } else {
-      out() << endl;
-   }
+         << ";" << _cmt_endl(x->comment_nodes[3]);
 }
 
 void PrettyPrinter::visit_nodelist(NodeList* x) {}
@@ -101,13 +97,5 @@ void PrettyPrinter::visit_block(Block *x) {
 }
 
 void PrettyPrinter::visit_stmt(Statement *x) {
-   out(beginl) << ";";
-   if (x->comment_nodes[0] != 0) {
-      out() << ' ' << x->comment_nodes[0];
-      if (!x->comment_nodes[0]->endl()) {
-         out() << endl;
-      }
-   } else {
-      out() << endl;
-   }
+   out(beginl) << ";" << _cmt_endl(x->comment_nodes[0]);
 }
