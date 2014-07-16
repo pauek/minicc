@@ -5,6 +5,11 @@ function test_dir() {
    printf "%16s  " $dir
    for ccfile in $(find $dir -name "*.cc" | sort); do
       ../minicc --test-${dir} $ccfile 2>> ${dir}-err
+      code=$?
+      if [ $code -ne 0 ]; then
+         echo "[error code $code in $ccfile]" >> ${dir}-err
+         echo -n "E"
+      fi
    done
    echo
 }
@@ -14,7 +19,7 @@ for dir in $(find -mindepth 1 -maxdepth 1 -type d); do
 done
 for dir in $(find -mindepth 1 -maxdepth 1 -type d); do
    if [ -f ${dir}-err ]; then
-      cat ${dir}-err
+      cat ${dir}-err > /dev/stderr
       rm ${dir}-err
    fi
 done
