@@ -12,12 +12,12 @@ std::ostream& PrettyPrinter::out(OutType typ) {
    return *_out; 
 }
 
-string _cmt(CommentNode* cn, int n = 1) {
+string _cmt(CommentNode* cn, bool space = true) {
    ostringstream out;
-   if (cn == 0) {
-      out << string(n, ' ');
-   } else {
+   if (cn != 0) {
       out << ' ' << cn << ' ';
+   } else if (space) {
+      out << ' ';
    }
    return out.str();
 }
@@ -33,12 +33,12 @@ string _cmt_endl(CommentNode *cn) {
    return out.str();
 }
 
-string _cmt(AstNode* x, int i, int n = 1) {
-   return _cmt(x->comment_nodes[i], n);
+string _cmt(AstNode* x, int i, bool space = true) {
+   return _cmt(x->comment_nodes[i], space);
 }
 
 string _cmt0(AstNode* x, int i) {
-   return _cmt(x->comment_nodes[i], 0);
+   return _cmt(x->comment_nodes[i], false);
 }
 
 string _cmt_endl(AstNode* x, int i) {
@@ -85,11 +85,11 @@ void PrettyPrinter::visit_funcdecl(FuncDecl *x) {
       if (i > 0) {
          out() << ",";
       }
-      out() << _cmt(x->params[i].c[0], (i > 0 ? 1 : 0));
+      out() << _cmt(x->params[i].c[0], i > 0);
       visit_type(x->params[i].type);
       out() << _cmt(x->params[i].c[1]);
       out() << x->params[i].name;
-      out() << _cmt(x->params[i].c[2], 0);
+      out() << _cmt(x->params[i].c[2], false);
    }
    out() << ") ";
    visit_stmt(x->block);
