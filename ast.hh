@@ -105,14 +105,14 @@ struct Stmt : public AstNode {
 
 struct Expr : public AstNode {
    enum Type { unknown, identifier, literal, assignment, additive, multiplicative };
-   enum Op { assign, add, sub, mult, div };
+   enum Op { none, assign, add, sub, mult, div };
    
    Type typ;
    Op op;
    std::string str;
    Expr *left, *right;
 
-   Expr(Type _typ = unknown) : typ(_typ) {}
+   Expr(Type _typ = unknown) : typ(_typ), op(none), left(0), right(0) {}
    void visit(AstVisitor *v);
 };
 

@@ -138,7 +138,7 @@ void PrettyPrinter::visit_expr(Expr *x) {
    case Expr::literal:
       out() << x->str; break;
 
-   case Expr::assign:
+   case Expr::assignment:
       visit_expr(x->left);
       out() << _cmt(x, 0) << "=" << _cmt(x, 1);
       visit_expr(x->right);

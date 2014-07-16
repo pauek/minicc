@@ -295,25 +295,37 @@ void Parser::parse_expr(Expr *expr) {
 
    // Left
    string tok = _in.next_token();
-   expr->left = new Expr(is_literal(tok) ? Expr::literal : Expr::identifier);
-   expr->left->str = tok;
+   if (tok == "") {
+      error("Expression doesn't start with a token");
+      return;
+   }
+   Expr::Type typ = (is_literal(tok) ? Expr::literal : Expr::identifier);
    cn = _in.skip("\t\n ");
    expr->comment_nodes.push_back(cn);
 
    // Op
-   if (_in.curr() == '=') {
-      expr->op = Expr::assign;
+   switch (_in.curr()) {
+   case '=':
       _in.consume('=');
-   } else {
-      error(string("Unknown operator '") + _in.curr() + "'");
-   }
-   cn = _in.skip("\t\n ");
-   expr->comment_nodes.push_back(cn);
+      expr->typ = Expr::assignment;
+      expr->op = Expr::assign;
+      expr->left = new Expr(typ);
+      expr->left->str = tok;
+      cn = _in.skip("\t\n ");
+      expr->comment_nodes.push_back(cn);
+      expr->right = new Expr();
+      parse_expr(expr->right);
+      return;
 
-   // Right
-   tok = _in.next_token();
-   expr->right = new Expr(is_literal(tok) ? Expr::literal : Expr::identifier);
-   expr->right->str = tok;
+   case '(':
+      // function call
+      error("UNIMPLEMENTED");
+      break;
+
+   default:
+      expr->typ = typ;
+      expr->str = tok;
+   }
    cn = _in.skip("\t\n ");
    expr->comment_nodes.push_back(cn);
 }
