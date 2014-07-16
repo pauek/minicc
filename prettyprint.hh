@@ -29,7 +29,7 @@ public:
    void visit_type(Type *x);
    void visit_funcdecl(FuncDecl *x);
    void visit_block(Block *x);
-   void visit_stmt(Statement *x);
+   void visit_stmt(Stmt *x);
 };
 
 #endif

@@ -227,9 +227,7 @@ void Parser::parse_block(Block *block) {
          _in.next();
          break;
       }
-      Statement *stmt = new Statement();
-      stmt->ini = _in.pos();
-      parse_statement(stmt);
+      Stmt *stmt = parse_stmt();
       block->stmts.push_back(stmt);
    }
    if (_in.end()) {
@@ -237,16 +235,18 @@ void Parser::parse_block(Block *block) {
    }
 }
 
-void Parser::parse_statement(Statement *stmt) {
+Stmt* Parser::parse_stmt() {
    if (_in.curr() == ';') {
+      Stmt *stmt = new Stmt(_in.pos());
       parse_colon(stmt);
-      return;
+      return stmt;
    } else {
       error(string("unexpected char '") + _in.curr() + "'");
+      return NULL;
    }
 }
 
-void Parser::parse_colon(Statement *stmt) {
+void Parser::parse_colon(Stmt *stmt) {
    stmt->fin = _in.pos();
    _in.consume(';');
    CommentNode *ncomm = _in.skip("\t\n ");

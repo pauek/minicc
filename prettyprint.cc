@@ -109,6 +109,6 @@ void PrettyPrinter::visit_block(Block *x) {
    out(beginl) << "}" << endl;
 }
 
-void PrettyPrinter::visit_stmt(Statement *x) {
+void PrettyPrinter::visit_stmt(Stmt *x) {
    out(beginl) << ";" << _cmt_endl(x, 0);
 }

@@ -28,12 +28,12 @@ public:
    AstNode *parse_macro();
    AstNode *parse_using_declaration();
    AstNode *parse_func_or_var(std::string typ);
-   void     parse_function(FuncDecl *fn);
-   void     parse_parameter_list(std::vector<FuncDecl::Param>& params);
-   bool     parse_param(FuncDecl::Param& p);
-   void     parse_block(Block *b);
-   void     parse_statement(Statement *stmt);
-   void     parse_colon(Statement *stmt);
+      void  parse_function(FuncDecl *fn);
+      void  parse_parameter_list(std::vector<FuncDecl::Param>& params);
+      bool  parse_param(FuncDecl::Param& p);
+      void  parse_block(Block *b);
+      Stmt *parse_stmt();
+      void  parse_colon(Stmt *stmt);
 };
 
 std::string test_parser_separator(std::string line);

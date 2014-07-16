@@ -87,12 +87,13 @@ struct FuncDecl : public AstNode {
    void visit(AstVisitor *v);
 };
 
-struct Statement : public AstNode {
+struct Stmt : public AstNode {
+   Stmt(Pos _ini) { ini = _ini; }
    void visit(AstVisitor *v);
 };
 
 struct Block : public AstNode {
-   std::vector<Statement*> stmts;
+   std::vector<Stmt*> stmts;
    void visit(AstVisitor *v);
 };
 
@@ -113,7 +114,7 @@ struct AstVisitor {
    virtual void visit_funcdecl(FuncDecl *) = 0;
    virtual void visit_type(Type *) = 0;
    virtual void visit_block(Block *) = 0;
-   virtual void visit_stmt(Statement *) = 0;
+   virtual void visit_stmt(Stmt *) = 0;
 };
 
 // Visit implementations
@@ -125,6 +126,6 @@ inline void Using::visit(AstVisitor *v)       { v->visit_using(this); }
 inline void FuncDecl::visit(AstVisitor* v)    { v->visit_funcdecl(this); }
 inline void Type::visit(AstVisitor *v)        { v->visit_type(this); }
 inline void Block::visit(AstVisitor *v)       { v->visit_block(this); }
-inline void Statement::visit(AstVisitor *v)   { v->visit_stmt(this); }
+inline void Stmt::visit(AstVisitor *v)        { v->visit_stmt(this); }
 
 #endif
