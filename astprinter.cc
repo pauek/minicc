@@ -1,6 +1,6 @@
 #include <sstream>
 #include "ast.hh"
-#include "astprint.hh"
+#include "astprinter.hh"
 using namespace std;
 
 void AstPrinter::visit_nodelist(NodeList* x) {

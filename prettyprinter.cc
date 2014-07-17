@@ -1,6 +1,6 @@
 #include <sstream>
 #include "ast.hh"
-#include "prettyprint.hh"
+#include "prettyprinter.hh"
 using namespace std;
 
 void PrettyPrinter::visit_nodelist(NodeList* x) {
