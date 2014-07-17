@@ -387,9 +387,7 @@ void Parser::parse_while(Stmt *stmt) {
       parse_block(block);
       stmt->sub_stmt = block;
    } else {
-      Stmt *s = new Stmt();
-      parse_expr_stmt(s);
-      stmt->sub_stmt = s;
+      stmt->sub_stmt = parse_stmt();
    }
 }
 

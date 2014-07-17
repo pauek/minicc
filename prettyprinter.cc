@@ -65,6 +65,7 @@ void PrettyPrinter::print_block(Block *x) {
    indent(+1);
    out() << "{" << _cmtl(x, 0);
    for (Stmt *s : x->stmts) {
+      out(beginl);
       s->visit(this);
    }
    indent(-1);
@@ -74,24 +75,24 @@ void PrettyPrinter::print_block(Block *x) {
 void PrettyPrinter::visit_stmt(Stmt *x) {
    switch (x->type) {
    case Stmt::_empty:
-      out(beginl) << ";" << _cmtl(x, 0);
+      out() << ";" << _cmtl(x, 0);
       break;
 
    case Stmt::_expr:
-      out(beginl);
+      out();
       visit_expr(x->expr);
       out() << ";" << _cmtl(x, 0);
       break;
 
    case Stmt::_while:
-      out(beginl) << "while" << _cmt_(x, 0) << "(";
+      out() << "while" << _cmt_(x, 0) << "(";
       x->expr->visit(this);
       out() << ")" << _cmt_(x, 1);
       x->sub_stmt->visit(this);
       break;
 
    default:
-      out(beginl) << "<stmt>;" << endl;
+      out() << "<stmt>;" << endl;
    }
 }
 
