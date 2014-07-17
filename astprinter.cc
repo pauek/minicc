@@ -10,7 +10,6 @@ void AstPrinter::visit_program(Program* x) {
       n->visit(this);
    }
    indent(-1);
-   out() << endl;
    out(beginl) << "}" << endl;
 }
 
@@ -50,7 +49,7 @@ void AstPrinter::visit_funcdecl(FuncDecl *x) {
    indent(+1);
    visit_stmt(x->block);
    indent(-1);
-   out(beginl) << "})";
+   out(beginl) << "})" << endl;
 }
 
 void AstPrinter::visit_stmt(Stmt *x) {

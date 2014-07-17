@@ -4,6 +4,5 @@ using namespace std;
 Program{
    Using(blah)
    Using(std)
-
 }
 [[err]]------------------------------------
