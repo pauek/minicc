@@ -397,18 +397,18 @@ decl_specifier:
    storage_class_specifier
    type_specifier
    function_specifier
-   friend
-   typedef
+   "friend"
+   "typedef"
 storage_class_specifier:
-   auto
-   register
-   static
-   extern
-   mutable
+   "auto"
+   "register"
+   "static"
+   "extern"
+   "mutable"
 function_specifier:
-   inline
-   virtual
-   explicit
+   "inline"
+   "virtual"
+   "explicit"
 typedef_name:
    identifier
 type_specifier:
