@@ -47,7 +47,22 @@ void AstPrinter::visit_funcdecl(FuncDecl *x) {
    }
    out() << "}, {" << endl;
    indent(+1);
-   visit_stmt(x->block);
+   x->block->visit(this);
+   indent(-1);
+   out(beginl) << "})" << endl;
+}
+
+void AstPrinter::visit_block(Block *x) {
+   out(beginl) << "Block(";
+   if (x->stmts.empty()) {
+      out() << "{})" << endl;
+      return;
+   } 
+   out() << "{" << endl;
+   indent(+1);
+   for (Stmt *s : x->stmts) {
+      s->visit(this);
+   }
    indent(-1);
    out(beginl) << "})" << endl;
 }
@@ -58,26 +73,21 @@ void AstPrinter::visit_stmt(Stmt *x) {
    case Stmt::_empty: 
       out() << "empty)" << endl; break;
 
-   case Stmt::_block: 
-      out() << "block, ";
-      if (x->sub_stmts.empty()) {
-         out() << "{})" << endl;
-         return;
-      } 
-      out() << "{" << endl;
-      indent(+1);
-      for (int i = 0; i < x->sub_stmts.size(); i++) {
-         visit_stmt(x->sub_stmts[i]);
-      }
-      indent(-1);
-      out(beginl) << "})" << endl;
-      break;
-
    case Stmt::_expr:
       out() << "expr, ";
       visit_expr(x->expr);
       out() << ")" << endl;
       break;
+
+   case Stmt::_while:
+      out() << "while, ";
+      visit_expr(x->expr);
+      out() << ", {" << endl;
+      indent(+1);
+      x->sub_stmt->visit(this);
+      indent(-1);
+      out(beginl) << "})" << endl;
+      break;      
 
    default:
       out(beginl) << "unimplemented)" << endl;

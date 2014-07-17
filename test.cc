@@ -27,15 +27,24 @@ string test_separator(string line) {
    return line.substr(2, p2-2);
 }
 
-string visible_spaces(string output) {
+string visible_spaces(string output, string compare = "") {
    string res;
-   for (char c : output) {
+   bool first_error_shown = false;
+   for (int i = 0; i < output.size(); i++) {
+      char c = output[i];
+      if (!first_error_shown and compare != "" and output[i] != compare[i]) {
+         res += "\x1b[31;1m>";
+      }
       switch (c) {
       case ' ': res += '_'; break;
       case '\n': res += "[endl]\n"; break;
       case '\t': res += "\\t  "; break;
       default:
          res += c;
+      }
+      if (!first_error_shown and compare != "" and output[i] != compare[i]) {
+         res += "<\x1b[0m";
+         first_error_shown = true;
       }
    }
    return res;
@@ -82,14 +91,14 @@ void test_visitor(string filename, VisitorType vtype) {
       cerr << header << "[out]:" << endl;
       header = "";
       cerr << "target  \"\"\"" << visible_spaces(out) << "\"\"\"" << endl;
-      cerr << "current \"\"\"" << visible_spaces(Sout.str()) << "\"\"\"" << endl;
+      cerr << "current \"\"\"" << visible_spaces(Sout.str(), out) << "\"\"\"" << endl;
       cerr << endl;
       res = 'x';
    }
    if (Serr.str() != err) {
       cerr << header << "[err]:" << endl;
       cerr << "target  \"\"\"" << visible_spaces(err) << "\"\"\"" << endl;
-      cerr << "current \"\"\"" << visible_spaces(Serr.str()) << "\"\"\"" << endl;
+      cerr << "current \"\"\"" << visible_spaces(Serr.str(), err) << "\"\"\"" << endl;
       cerr << endl;
       res = 'x';
    }

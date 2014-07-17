@@ -32,7 +32,7 @@ public:
       void  parse_function(FuncDecl *fn);
       void  parse_parameter_list(std::vector<FuncDecl::Param>& params);
       bool  parse_param(FuncDecl::Param& p);
-      void  parse_block(Stmt *stmt);
+      void  parse_block(Block *stmt);
       Stmt *parse_stmt();
       void  parse_colon(Stmt *stmt);
       void  parse_for(Stmt *stmt);

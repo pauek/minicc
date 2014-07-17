@@ -28,8 +28,12 @@ bool all_digits(string s) {
    return true;
 }
 
+bool is_bool_literal(string s) {
+   return s == "true" or s == "false";
+}
+
 bool Parser::is_literal(string s) const {
-   return all_digits(s);
+   return all_digits(s) || is_bool_literal(s);
 }
 
 void Parser::error(string msg) {
@@ -191,7 +195,7 @@ void Parser::parse_function(FuncDecl *fn) {
    parse_parameter_list(fn->params);
    cn = _in.skip("\t\n ");
    fn->comment_nodes.push_back(cn);
-   fn->block = new Stmt();
+   fn->block = new Block();
    fn->block->ini = _in.pos();
    parse_block(fn->block);
    cn = _in.skip("\t\n ");
@@ -231,7 +235,7 @@ bool Parser::parse_param(FuncDecl::Param& prm) {
    return !_in.end();
 }
 
-void Parser::parse_block(Stmt *block) {
+void Parser::parse_block(Block *block) {
    CommentNode *ncomm;
    block->type = Stmt::_block;
    if (!_in.expect("{")) {
@@ -245,26 +249,34 @@ void Parser::parse_block(Stmt *block) {
          break;
       }
       Stmt *stmt = parse_stmt();
-      block->sub_stmts.push_back(stmt);
+      block->stmts.push_back(stmt);
    }
    if (_in.end()) {
       error("expected '}' but found EOF");
    }
+   ncomm = _in.skip("\t\n ");
+   block->comment_nodes.push_back(ncomm);
 }
 
 Stmt* Parser::parse_stmt() {
-   Stmt *stmt = new Stmt();
-   stmt->ini = _in.pos();
+   Stmt *stmt;
    if (_in.curr() == ';') {
+      stmt = new Stmt();
+      stmt->ini = _in.pos();
       parse_colon(stmt);
    } else if (_in.curr() == '{') {
-      parse_block(stmt);
+      Block *block = new Block();
+      block->ini = _in.pos();
+      parse_block(block);
+      stmt = block;
    }else {
+      stmt = new Stmt();
+      stmt->ini = _in.pos();
       string tok = _in.peek_token();
-      if (tok == "for") {
-         parse_for(stmt);
-      } else if (tok == "while") {
+      if (tok == "while") {
          parse_while(stmt);
+      } else if (tok == "for") {
+         parse_for(stmt);
       } else if (tok == "if") {
          parse_if(stmt);
       } else if (tok == "switch") {
@@ -326,7 +338,6 @@ Expr *Parser::parse_expr(Expr::Type max) {
    while (true) {
       char op = _in.curr();
       Expr::Type type = Expr::char2type(_in.curr()); // TODO: Properly read operator...
-      // cerr << "curr = " << _in.curr() << " (" << type << ")" << max << endl;
       if (_in.curr_one_of(");{") or type > max) {
          break;
       }
@@ -351,8 +362,35 @@ void Parser::parse_for(Stmt *stmt) {
 }
 
 void Parser::parse_while(Stmt *stmt) {
+   CommentNode *cn;
    stmt->type = Stmt::_while;
-   error("UNIMPLEMENTED");
+   _in.consume("while");
+   cn = _in.skip("\t\n ");
+   stmt->comment_nodes.push_back(cn);
+
+   if (!_in.expect("(")) {
+      error(_in.pos().str() + ": Expected '('");
+   }
+   _in.skip("\t\n "); // Comments here will disappear
+   
+   stmt->expr = parse_expr();
+   if (!_in.expect(")")) {
+      error(_in.pos().str() + ": Expected ')')");
+   }
+   cn = _in.skip("\t\n ");
+   stmt->comment_nodes.push_back(cn);
+   
+   if (_in.curr() == ';') {
+      parse_colon(stmt);
+   } else if (_in.curr() == '{') {
+      Block *block = new Block();
+      parse_block(block);
+      stmt->sub_stmt = block;
+   } else {
+      Stmt *s = new Stmt();
+      parse_expr_stmt(s);
+      stmt->sub_stmt = s;
+   }
 }
 
 void Parser::parse_if(Stmt *stmt) {

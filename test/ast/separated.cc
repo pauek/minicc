@@ -16,7 +16,7 @@ Program{
    Include(<iostream>)
    Using(std)
    FuncDecl("main", Type(int), Params = {}, {
-      Stmt(block, {})
+      Block({})
    })
 }
 [[err]]------------------------------------

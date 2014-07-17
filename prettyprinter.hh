@@ -6,6 +6,8 @@
 #include "ast.hh"
 
 class PrettyPrinter : public AstVisitor {
+   void print_block(Block *);
+
 public:
    PrettyPrinter(std::ostream *o = &std::cout) : AstVisitor(o) {}
 
@@ -19,6 +21,7 @@ public:
    void visit_type(Type *x);
    void visit_funcdecl(FuncDecl *x);
    void visit_stmt(Stmt *x);
+   void visit_block(Block *x);
    void visit_expr(Expr *x);
 };
 

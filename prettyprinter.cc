@@ -54,7 +54,21 @@ void PrettyPrinter::visit_funcdecl(FuncDecl *x) {
       out() << _cmt0(&x->params[i], 2);
    }
    out() << ") ";
-   visit_stmt(x->block);
+   x->block->visit(this);
+}
+
+void PrettyPrinter::print_block(Block *x) {
+   if (x->stmts.empty()) {
+      out() << "{}" << _cmtl(x, 1);
+      return;
+   } 
+   indent(+1);
+   out() << "{" << _cmtl(x, 0);
+   for (Stmt *s : x->stmts) {
+      s->visit(this);
+   }
+   indent(-1);
+   out(beginl) << "}" << _cmtl(x, 1);
 }
 
 void PrettyPrinter::visit_stmt(Stmt *x) {
@@ -63,29 +77,26 @@ void PrettyPrinter::visit_stmt(Stmt *x) {
       out(beginl) << ";" << _cmtl(x, 0);
       break;
 
-   case Stmt::_block:
-      if (x->sub_stmts.empty()) {
-         out() << "{}" << endl;
-         return;
-      } 
-      indent(+1);
-      out() << "{" << _cmtl(x, 0);
-      for (int i = 0; i < x->sub_stmts.size(); i++) {
-         visit_stmt(x->sub_stmts[i]);
-      }
-      indent(-1);
-      out(beginl) << "}" << endl;
-      break;
-
    case Stmt::_expr:
       out(beginl);
       visit_expr(x->expr);
       out() << ";" << _cmtl(x, 0);
       break;
 
+   case Stmt::_while:
+      out(beginl) << "while" << _cmt_(x, 0) << "(";
+      x->expr->visit(this);
+      out() << ")" << _cmt_(x, 1);
+      x->sub_stmt->visit(this);
+      break;
+
    default:
       out(beginl) << "<stmt>;" << endl;
    }
+}
+
+void PrettyPrinter::visit_block(Block *x) {
+   print_block(x);
 }
 
 void PrettyPrinter::visit_expr(Expr *x) {

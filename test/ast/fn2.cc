@@ -20,19 +20,19 @@ Program{
    Include(<iostream>)
    Using(std)
    FuncDecl("func", Type(double), Params = {"a": Type(int), "b": Type(int), "c": Type(int)}, {
-      Stmt(block, {
+      Block({
          Stmt(expr, =(id:'a', lit:'1'))
          Stmt(expr, =(id:'b', lit:'2'))
          Stmt(expr, =(id:'c', lit:'3'))
       })
    })
    FuncDecl("reverse", Type(string), Params = {"s": Type(string)}, {
-      Stmt(block, {
+      Block({
          Stmt(expr, =(id:'r', id:'s'))
       })
    })
    FuncDecl("main", Type(int), Params = {}, {
-      Stmt(block, {})
+      Block({})
    })
 }
 [[err]]------------------------------------

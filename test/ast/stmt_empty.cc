@@ -4,7 +4,7 @@ double fn( ){
 [[out]]------------------------------------
 Program{
    FuncDecl("fn", Type(double), Params = {}, {
-      Stmt(block, {
+      Block({
          Stmt(empty)
       })
    })

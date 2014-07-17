@@ -72,6 +72,7 @@ struct Using : public AstNode {
 
 struct Type;
 struct Stmt;
+struct Block;
 
 struct FuncDecl : public AstNode {
    struct Param {
@@ -83,7 +84,7 @@ struct FuncDecl : public AstNode {
    Type *return_type;
    std::string name;
    std::vector<Param> params;
-   Stmt* block;
+   Block* block;
    
    FuncDecl(std::string _name) : name(_name) {}
    void visit(AstVisitor *v);
@@ -95,10 +96,16 @@ struct Stmt : public AstNode {
    enum Type { _empty, _expr, _block, _for, _while, _if, _switch };
 
    Type type;
-   Expr* expr; 
-   std::vector<Stmt*> sub_stmts;
+   Expr *expr; 
+   Stmt *sub_stmt;
 
    Stmt(Type _type = _empty) : type(_type) {}
+   void visit(AstVisitor *v);
+};
+
+struct Block : public Stmt {
+   std::vector<Stmt*> stmts;
+   Block() : Stmt(Stmt::_block) {}
    void visit(AstVisitor *v);
 };
 
@@ -161,6 +168,7 @@ public:
    virtual void visit_funcdecl(FuncDecl *) = 0;
    virtual void visit_type(Type *) = 0;
    virtual void visit_stmt(Stmt *) = 0;
+   virtual void visit_block(Block *) = 0;
    virtual void visit_expr(Expr *) = 0;
 };
 
@@ -173,6 +181,7 @@ inline void Using::visit(AstVisitor *v)       { v->visit_using(this); }
 inline void FuncDecl::visit(AstVisitor* v)    { v->visit_funcdecl(this); }
 inline void Type::visit(AstVisitor *v)        { v->visit_type(this); }
 inline void Stmt::visit(AstVisitor *v)        { v->visit_stmt(this); }
+inline void Block::visit(AstVisitor *v)       { v->visit_block(this); }
 inline void Expr::visit(AstVisitor *v)        { v->visit_expr(this); }
 
 // Comment helpers
