@@ -77,6 +77,31 @@ void PrettyPrinter::print_block(Block *x) {
    out(beginl) << "}" << _cmt0(x, 1);
 }
 
+void PrettyPrinter::visit_expr(Expr *x) {
+   if (x->paren) {
+      out() << "(";
+   }
+   switch (x->type) {
+   case Expr::identifier:
+   case Expr::literal:
+      out() << x->str << _cmt0(x, 0); break;
+
+   case Expr::assignment:
+   case Expr::additive:
+   case Expr::multiplicative:
+      visit_expr(x->left);
+      out() << " " << Expr::op2char(x->op) << _cmt_(x, 0);
+      visit_expr(x->right);
+      break;
+
+   default:
+      out() << "<expr>";
+   }
+   if (x->paren) {
+      out() << ")";
+   }
+}
+
 void PrettyPrinter::visit_stmt(Stmt *x) {
    switch (x->type) {
    case Stmt::_empty:
@@ -84,7 +109,6 @@ void PrettyPrinter::visit_stmt(Stmt *x) {
       break;
 
    case Stmt::_expr:
-      out();
       visit_expr(x->expr);
       out() << ";" << _cmt0(x, 0);
       break;
@@ -122,27 +146,11 @@ void PrettyPrinter::visit_block(Block *x) {
    print_block(x);
 }
 
-void PrettyPrinter::visit_expr(Expr *x) {
-   if (x->paren) {
-      out() << "(";
-   }
-   switch (x->type) {
-   case Expr::identifier:
-   case Expr::literal:
-      out() << x->str << _cmt0(x, 0); break;
+void PrettyPrinter::visit_declstmt(DeclStmt* x) {
+   out() << "<declstmt>";
+}
 
-   case Expr::assignment:
-   case Expr::additive:
-   case Expr::multiplicative:
-      visit_expr(x->left);
-      out() << " " << Expr::op2char(x->op) << _cmt_(x, 0);
-      visit_expr(x->right);
-      break;
-
-   default:
-      out() << "<expr>";
-   }
-   if (x->paren) {
-      out() << ")";
-   }
+void PrettyPrinter::visit_exprstmt(ExprStmt* x) {
+   visit_expr(x->expr);
+   out() << ";" << _cmt0(x, 0);
 }

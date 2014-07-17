@@ -35,14 +35,15 @@ public:
       void  parse_function(FuncDecl *fn);
       void  parse_parameter_list(std::vector<FuncDecl::Param>& params);
       bool  parse_param(FuncDecl::Param& p);
-      void  parse_block(Block *stmt);
+     Block *parse_block();
       Stmt *parse_stmt();
       void  parse_colon(Stmt *stmt);
-      void  parse_for(Stmt *stmt);
-      void  parse_while(Stmt *stmt);
-      void  parse_if(Stmt *stmt);
-      void  parse_switch(Stmt *stmt);
-      void  parse_expr_stmt(Stmt *stmt);
+      Stmt *parse_for();
+      Stmt *parse_while();
+      Stmt *parse_if();
+      Stmt *parse_switch();
+      Stmt *parse_exprstmt();
+      Stmt *parse_declstmt();
       Expr *parse_expr(Expr::Type max = Expr::assignment);
 };
 

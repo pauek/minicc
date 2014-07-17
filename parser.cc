@@ -198,9 +198,7 @@ void Parser::parse_function(FuncDecl *fn) {
    CommentNode *cn;
    parse_parameter_list(fn->params);
    _skip(fn);
-   fn->block = new Block();
-   fn->block->ini = _in.pos();
-   parse_block(fn->block);
+   fn->block = parse_block();
    _skip(fn);
    fn->fin = _in.pos();
 }
@@ -237,8 +235,9 @@ bool Parser::parse_param(FuncDecl::Param& prm) {
    return !_in.end();
 }
 
-void Parser::parse_block(Block *block) {
-   block->type = Stmt::_block;
+Block *Parser::parse_block() {
+   Block *block = new Block();
+   block->ini = _in.pos();
    if (!_in.expect("{")) {
       error("'{' expected");
    }
@@ -255,36 +254,39 @@ void Parser::parse_block(Block *block) {
       error("expected '}' but found EOF");
    }
    _skip(block);
+   return block;
 }
 
 Stmt* Parser::parse_stmt() {
-   Stmt *stmt;
    if (_in.curr() == ';') {
-      stmt = new Stmt();
+      Stmt *stmt = new Stmt();
       stmt->ini = _in.pos();
       parse_colon(stmt);
-   } else if (_in.curr() == '{') {
-      Block *block = new Block();
-      block->ini = _in.pos();
-      parse_block(block);
-      stmt = block;
-   }else {
-      stmt = new Stmt();
-      stmt->ini = _in.pos();
+      return stmt;
+   } 
+   else if (_in.curr() == '{') {
+      return parse_block();
+   } 
+   else {
       string tok = _in.peek_token();
-      if (tok == "while") {
-         parse_while(stmt);
-      } else if (tok == "for") {
-         parse_for(stmt);
-      } else if (tok == "if") {
-         parse_if(stmt);
-      } else if (tok == "switch") {
-         parse_switch(stmt);
+      if (is_type(tok)) {
+         return parse_declstmt();
       } else {
-         parse_expr_stmt(stmt);
+         Stmt *stmt = new Stmt();
+         stmt->ini = _in.pos();
+         if (tok == "while") {
+            return parse_while();
+         } else if (tok == "for") {
+            return parse_for();
+         } else if (tok == "if") {
+            return parse_if();
+         } else if (tok == "switch") {
+            return parse_switch();
+         } else  {
+            return parse_exprstmt();
+         }
       }
    }
-   return stmt;
 }
 
 void Parser::parse_colon(Stmt *stmt) {
@@ -296,10 +298,11 @@ void Parser::parse_colon(Stmt *stmt) {
    _skip(stmt);
 }
 
-void Parser::parse_expr_stmt(Stmt *stmt) {
-   stmt->type = Stmt::_expr;
+Stmt *Parser::parse_exprstmt() {
+   ExprStmt *stmt = new ExprStmt();
    stmt->expr = parse_expr();
    parse_colon(stmt);
+   return stmt;
 }
 
 Expr *Parser::parse_expr(Expr::Type max) {
@@ -351,9 +354,9 @@ Expr *Parser::parse_expr(Expr::Type max) {
    return left;
 }
 
-void Parser::parse_for(Stmt *stmt) {
-   stmt->type = Stmt::_for;
+Stmt *Parser::parse_for() {
    error("UNIMPLEMENTED");
+   return 0;
 }
 
 void Parser::_parse_while_or_if(Stmt *stmt, string which) {
@@ -371,12 +374,15 @@ void Parser::_parse_while_or_if(Stmt *stmt, string which) {
    stmt->sub_stmt[0] = parse_stmt();
 }
 
-void Parser::parse_while(Stmt *stmt) {
+Stmt *Parser::parse_while() {
+   Stmt *stmt = new Stmt();
    stmt->type = Stmt::_while;
    _parse_while_or_if(stmt, "while");
+   return stmt;
 }
 
-void Parser::parse_if(Stmt *stmt) {
+Stmt *Parser::parse_if() {
+   Stmt *stmt= new Stmt();
    stmt->type = Stmt::_if;
    _parse_while_or_if(stmt, "if");
    
@@ -386,10 +392,15 @@ void Parser::parse_if(Stmt *stmt) {
       _skip(stmt);
       stmt->sub_stmt[1] = parse_stmt();
    }
+   return stmt;
 }
 
-void Parser::parse_switch(Stmt *stmt) {
-   stmt->type = Stmt::_switch;
+Stmt *Parser::parse_switch() {
    error("UNIMPLEMENTED");
+   return 0;
 }
 
+Stmt *Parser::parse_declstmt() {
+   error("UNIMPLEMENTED");
+   return 0;
+}

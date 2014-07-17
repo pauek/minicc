@@ -22,6 +22,8 @@ public:
    void visit_stmt(Stmt *x);
    void visit_block(Block *x);
    void visit_expr(Expr *x);
+   void visit_declstmt(DeclStmt *x);
+   void visit_exprstmt(ExprStmt *x);
 };
 
 #endif

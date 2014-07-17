@@ -136,3 +136,13 @@ void AstPrinter::visit_expr(Expr *x) {
       out() << ") ";
    }
 }
+
+void AstPrinter::visit_declstmt(DeclStmt* x) {
+   out() << "<declstmt>";
+}
+
+void AstPrinter::visit_exprstmt(ExprStmt* x) {
+   out(beginl) << "Stmt(expr, ";
+   visit_expr(x->expr);
+   out() << ")" << endl;
+}

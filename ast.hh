@@ -108,6 +108,22 @@ struct Stmt : public AstNode {
    void visit(AstVisitor *v);
 };
 
+struct ExprStmt : public Stmt {
+   Expr *expr;
+   void visit(AstVisitor *v);
+};
+
+struct DeclStmt : public Stmt {
+   struct Decl {
+      std::string name;
+      Expr *init;
+   };
+   AstNode *type;
+   std::vector<Decl> decls;
+
+   void visit(AstVisitor *v);
+};
+
 struct Block : public Stmt {
    std::vector<Stmt*> stmts;
    Block() : Stmt(Stmt::_block) {}
@@ -175,6 +191,8 @@ public:
    virtual void visit_stmt(Stmt *) = 0;
    virtual void visit_block(Block *) = 0;
    virtual void visit_expr(Expr *) = 0;
+   virtual void visit_declstmt(DeclStmt *) = 0;
+   virtual void visit_exprstmt(ExprStmt *) = 0;
 };
 
 // Visit implementations
@@ -188,6 +206,8 @@ inline void Type::visit(AstVisitor *v)        { v->visit_type(this); }
 inline void Stmt::visit(AstVisitor *v)        { v->visit_stmt(this); }
 inline void Block::visit(AstVisitor *v)       { v->visit_block(this); }
 inline void Expr::visit(AstVisitor *v)        { v->visit_expr(this); }
+inline void DeclStmt::visit(AstVisitor *v)    { v->visit_declstmt(this); }
+inline void ExprStmt::visit(AstVisitor *v)    { v->visit_exprstmt(this); }
 
 // Comment helpers
 std::string cmt(CommentNode* cn, bool pre, bool post, bool missing);
