@@ -43,7 +43,4 @@ public:
       Expr *parse_expr(Expr::Type max = Expr::assignment);
 };
 
-std::string test_parser_separator(std::string line);
-void test_parser(std::string filename);
-
 #endif

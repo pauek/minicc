@@ -3,13 +3,14 @@
 using namespace std;
 
 #include "parser.hh"
+#include "astprinter.hh"
 #include "prettyprinter.hh"
 
 // Detect lines like:
 //
 //   [[out]]-------------------------
 //
-string test_parser_separator(string line) {
+string test_separator(string line) {
    int p1 = line.find("[[");
    if (p1 != 0) {
       return "";
@@ -40,13 +41,15 @@ string visible_spaces(string output) {
    return res;
 }
 
-void test_parser(string filename) {
+enum VisitorType { pretty_printer, ast_printer };
+
+void test_visitor(string filename, VisitorType vtype) {
    ifstream F(filename);
    string line, code, out, err;
 
    string *acum = &code;
    while (getline(F, line)) {
-      string label = test_parser_separator(line);
+      string label = test_separator(line);
       if (label == "") {
          *acum += line + "\n";
       } else if (label == "out") {
@@ -62,9 +65,14 @@ void test_parser(string filename) {
    AstNode *program;
    try {
       program = P.parse();
-      PrettyPrinter pr(&Sout);
-      program->visit(&pr);
-   } catch (ParseError *e) {
+      AstVisitor *v;
+      switch (vtype) {
+      case pretty_printer: v = new PrettyPrinter(&Sout); break;
+      case ast_printer:    v = new AstPrinter(&Sout); break;
+      }
+      program->visit(v);
+   } 
+   catch (ParseError *e) {
       Serr << e->msg << endl;
    }
    char res = '.';
@@ -87,3 +95,6 @@ void test_parser(string filename) {
    }
    cout << res << flush;
 }
+
+void test_parser(string filename) { test_visitor(filename, pretty_printer); }
+void test_ast   (string filename) { test_visitor(filename,    ast_printer); }

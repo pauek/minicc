@@ -3,14 +3,15 @@
 #include "astprinter.hh"
 using namespace std;
 
-void AstPrinter::visit_nodelist(NodeList* x) {
-   for (int i = 0; i < x->_children.size(); i++) {
-      AstNode *n = x->_children[i];
-      if (n->is<FuncDecl>() and i > 0) {
-         out() << endl;
-      }
+void AstPrinter::visit_program(Program* x) {
+   out() << "Program{" << endl;
+   indent(+1);
+   for (AstNode* n : x->nodes) {
       n->visit(this);
    }
+   indent(-1);
+   out() << endl;
+   out(beginl) << "}" << endl;
 }
 
 void AstPrinter::visit_comment(CommentNode* cn) {
@@ -18,100 +19,111 @@ void AstPrinter::visit_comment(CommentNode* cn) {
 }
 
 void AstPrinter::visit_include(Include* x) {
-   string delim = "\"\"";
-   if (x->global) delim = "<>";
-   out() << "#" << _cmt0_(x, 0)
-         << "include" << _cmt_(x, 1)
-         << delim[0] << x->filename << delim[1]
-         << _cmtl(x, 2);
+   string D = (x->global ? "<>" : "\"\"");
+   out(beginl) << "Include(" << D[0] << x->filename << D[1] << ")" << endl;
 }
 
 void AstPrinter::visit_macro(Macro* x) {
-   out() << "#" << x->macro << endl;
+   out(beginl) << "Macro(" << x->macro << ")" << endl;
 }
 
 void AstPrinter::visit_using(Using* x) {
-   out() << "using" << _cmt_(x, 0)
-         << "namespace" << _cmt_(x, 1)
-         << x->namespc << _cmt0_(x, 2)
-         << ";" << _cmtl(x, 3);
+   out(beginl) << "Using(" << x->namespc << ")" << endl;
 }
 
 void AstPrinter::visit_type(Type *x) {
-   out() << x->name;
+   out() << "Type(" << x->name << ")";
 }
 
 void AstPrinter::visit_funcdecl(FuncDecl *x) {
+   out(beginl) << "FuncDecl(\"" << x->name << "\", ";
    visit_type(x->return_type);
-   out() << _cmt_(x, 0)
-         << x->name << _cmt0_(x, 1) << "(";
+   out() << ", Params = {";
    for (int i = 0; i < x->params.size(); i++) {
       if (i > 0) {
-         out() << ",";
+         out() << ", ";
       }
-      out() << cmt(x->params[i].comment_nodes[0], true, true, i > 0);
+      out() << "\"" << x->params[i].name << "\": ";
       visit_type(x->params[i].type);
-      out() << cmt(x->params[i].comment_nodes[1], true, true, true);
-      out() << x->params[i].name;
-      out() << cmt(x->params[i].comment_nodes[2], true, true, false);
    }
-   out() << ") ";
+   out() << "}, {" << endl;
+   indent(+1);
    visit_stmt(x->block);
+   indent(-1);
+   out(beginl) << "})";
 }
 
 void AstPrinter::visit_stmt(Stmt *x) {
+   out(beginl) << "Stmt(";
    switch (x->type) {
-   case Stmt::_empty:
-      out(beginl) << ";" << _cmtl(x, 0);
-      break;
+   case Stmt::_empty: 
+      out() << "empty)" << endl; break;
 
-   case Stmt::_block:
+   case Stmt::_block: 
+      out() << "block, ";
       if (x->sub_stmts.empty()) {
-         out() << "{}" << endl;
+         out() << "{})" << endl;
          return;
       } 
+      out() << "{" << endl;
       indent(+1);
-      out() << "{" << _cmtl(x, 0);
       for (int i = 0; i < x->sub_stmts.size(); i++) {
          visit_stmt(x->sub_stmts[i]);
       }
       indent(-1);
-      out(beginl) << "}" << endl;
+      out(beginl) << "})" << endl;
       break;
 
    case Stmt::_expr:
-      out(beginl);
+      out() << "expr, ";
       visit_expr(x->expr);
-      out() << ";" << _cmtl(x, 0);
+      out() << ")" << endl;
       break;
 
    default:
-      out(beginl) << "<stmt>;" << endl;
+      out(beginl) << "unimplemented)" << endl;
    }
 }
 
 void AstPrinter::visit_expr(Expr *x) {
    if (x->paren) {
-      out() << "(";
+      out() << " (";
    }
    switch (x->type) {
-   case Expr::identifier:
+   case Expr::identifier: 
+      out() << "id:'" << x->str << "'"; break;
+
    case Expr::literal:
-      out() << x->str 
-            << (x->comment_nodes[0] == 0 ? "" : " ") << x->comment_nodes[0]; break;
+      out() << "lit:'" << x->str << "'"; break;
 
    case Expr::assignment:
-   case Expr::additive:
-   case Expr::multiplicative:
+      out() << Expr::op2char(x->op) << "(";
       visit_expr(x->left);
-      out() << " " << Expr::op2char(x->op) << _cmt_(x, 0);
+      out() << ", ";
       visit_expr(x->right);
+      out() << ")";
+      break;
+
+   case Expr::additive:
+      out() << Expr::op2char(x->op) << "(";
+      visit_expr(x->left);
+      out() << ", ";
+      visit_expr(x->right);
+      out() << ")";
+      break;
+      
+   case Expr::multiplicative:
+      out() << Expr::op2char(x->op) << "(";
+      visit_expr(x->left);
+      out() << ", ";
+      visit_expr(x->right);
+      out() << ")";
       break;
 
    default:
       out() << "<expr>";
    }
    if (x->paren) {
-      out() << ")";
+      out() << ") ";
    }
 }

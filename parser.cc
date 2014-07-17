@@ -191,7 +191,7 @@ void Parser::parse_function(FuncDecl *fn) {
    parse_parameter_list(fn->params);
    cn = _in.skip("\t\n ");
    fn->comment_nodes.push_back(cn);
-   fn->block = new Stmt(Stmt::_block);
+   fn->block = new Stmt();
    fn->block->ini = _in.pos();
    parse_block(fn->block);
    cn = _in.skip("\t\n ");
@@ -233,6 +233,7 @@ bool Parser::parse_param(FuncDecl::Param& prm) {
 
 void Parser::parse_block(Stmt *block) {
    CommentNode *ncomm;
+   block->type = Stmt::_block;
    if (!_in.expect("{")) {
       error("'{' expected");
    }
@@ -256,7 +257,9 @@ Stmt* Parser::parse_stmt() {
    stmt->ini = _in.pos();
    if (_in.curr() == ';') {
       parse_colon(stmt);
-   } else {
+   } else if (_in.curr() == '{') {
+      parse_block(stmt);
+   }else {
       string tok = _in.peek_token();
       if (tok == "for") {
          parse_for(stmt);

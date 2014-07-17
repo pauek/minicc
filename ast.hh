@@ -39,16 +39,14 @@ struct CommentNode : public AstNode {
    bool endl() const { return !comments.empty() and comments.back().endl; }
 };
 
-struct NodeList : public AstNode {
-   std::vector<AstNode*> _children;
+struct Program : public AstNode {
+   std::vector<AstNode*> nodes;
 
-   int      num_children() const { return _children.size(); }
-   AstNode* child(int n)         { return _children[n]; }
-   void     add(AstNode* n)      { _children.push_back(n); }
+   int      num_children() const { return nodes.size(); }
+   AstNode* child(int n)         { return nodes[n]; }
+   void     add(AstNode* n)      { nodes.push_back(n); }
    void     visit(AstVisitor* v);
 };
-
-typedef NodeList Program;
 
 struct Include : public AstNode {
    std::string filename;
@@ -156,7 +154,7 @@ public:
    AstVisitor(std::ostream *o) : _indent(0), _out(o) {}
 
    virtual void visit_comment(CommentNode*) = 0;
-   virtual void visit_nodelist(Program*) = 0;
+   virtual void visit_program(Program*) = 0;
    virtual void visit_include(Include*) = 0;
    virtual void visit_macro(Macro *) = 0;
    virtual void visit_using(Using *) = 0;
@@ -167,7 +165,7 @@ public:
 };
 
 // Visit implementations
-inline void NodeList::visit(AstVisitor *v)    { v->visit_nodelist(this); }
+inline void Program::visit(AstVisitor *v)     { v->visit_program(this); }
 inline void CommentNode::visit(AstVisitor *v) { v->visit_comment(this); }
 inline void Include::visit(AstVisitor *v)     { v->visit_include(this); }
 inline void Macro::visit(AstVisitor *v)       { v->visit_macro(this); }
@@ -186,12 +184,5 @@ template<typename T> std::string _cmt_ (T* x, int i) { return cmt(x->comment_nod
 template<typename T> std::string _cmt0 (T* x, int i) { return cmt(x->comment_nodes[i], true, false, false); }
 template<typename T> std::string _cmt0_(T* x, int i) { return cmt(x->comment_nodes[i], true, true,  false); }
 template<typename T> std::string _cmtl (T* x, int i) { return cmtl(x->comment_nodes[i]); }
-
-/*
-std::string _cmt  (AstNode* x, int i, bool missing = true);
-std::string _cmt_ (AstNode* x, int i, bool missing = true);
-std::string _cmt0_(AstNode* x, int i);
-std::string _cmtl (AstNode* x, int i);
-*/
 
 #endif

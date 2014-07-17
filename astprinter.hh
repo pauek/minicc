@@ -15,7 +15,7 @@ public:
    void visit_comment(CommentNode *x);
    void visit_include(Include *x);
    void visit_macro(Macro *x);
-   void visit_nodelist(NodeList *x);
+   void visit_program(Program *x);
    void visit_using(Using *x);
    void visit_type(Type *x);
    void visit_funcdecl(FuncDecl *x);

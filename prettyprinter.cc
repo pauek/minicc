@@ -3,9 +3,9 @@
 #include "prettyprinter.hh"
 using namespace std;
 
-void PrettyPrinter::visit_nodelist(NodeList* x) {
-   for (int i = 0; i < x->_children.size(); i++) {
-      AstNode *n = x->_children[i];
+void PrettyPrinter::visit_program(Program* x) {
+   for (int i = 0; i < x->nodes.size(); i++) {
+      AstNode *n = x->nodes[i];
       if (n->is<FuncDecl>() and i > 0) {
          out() << endl;
       }
@@ -19,11 +19,11 @@ void PrettyPrinter::visit_comment(CommentNode* cn) {
 
 void PrettyPrinter::visit_include(Include* x) {
    string delim = "\"\"";
-   if (x->global) delim = "<>";
-   out() << "#" << _cmt0_(x, 0)
-         << "include" << _cmt_(x, 1)
-         << delim[0] << x->filename << delim[1]
-         << _cmtl(x, 2);
+   if (x->global) {
+      delim = "<>";
+   }
+   out() << "#" << _cmt0_(x, 0) << "include" << _cmt_(x, 1)
+         << delim[0] << x->filename << delim[1] << _cmtl(x, 2);
 }
 
 void PrettyPrinter::visit_macro(Macro* x) {
@@ -31,10 +31,8 @@ void PrettyPrinter::visit_macro(Macro* x) {
 }
 
 void PrettyPrinter::visit_using(Using* x) {
-   out() << "using" << _cmt_(x, 0)
-         << "namespace" << _cmt_(x, 1)
-         << x->namespc << _cmt0_(x, 2)
-         << ";" << _cmtl(x, 3);
+   out() << "using" << _cmt_(x, 0) << "namespace" << _cmt_(x, 1)
+         << x->namespc << _cmt0_(x, 2) << ";" << _cmtl(x, 3);
 }
 
 void PrettyPrinter::visit_type(Type *x) {
@@ -43,8 +41,7 @@ void PrettyPrinter::visit_type(Type *x) {
 
 void PrettyPrinter::visit_funcdecl(FuncDecl *x) {
    visit_type(x->return_type);
-   out() << _cmt_(x, 0)
-         << x->name << _cmt0_(x, 1) << "(";
+   out() << _cmt_(x, 0) << x->name << _cmt0_(x, 1) << "(";
    for (int i = 0; i < x->params.size(); i++) {
       if (i > 0) {
          out() << "," << _cmt_(&x->params[i], 0);
@@ -98,8 +95,7 @@ void PrettyPrinter::visit_expr(Expr *x) {
    switch (x->type) {
    case Expr::identifier:
    case Expr::literal:
-      out() << x->str 
-            << (x->comment_nodes[0] == 0 ? "" : " ") << x->comment_nodes[0]; break;
+      out() << x->str << _cmt0(x, 0); break;
 
    case Expr::assignment:
    case Expr::additive:
