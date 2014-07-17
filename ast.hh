@@ -1,6 +1,7 @@
 #ifndef AST_H
 #define AST_H
 
+#include <assert.h>
 #include <string>
 #include <vector>
 #include "input.hh"
@@ -138,7 +139,22 @@ struct Type : public AstNode {
 
 // AstVisitor
 
-struct AstVisitor {
+class AstVisitor {
+   int _indent;
+   std::ostream *_out;
+
+protected:
+   enum OutType { normal, beginl };
+
+   std::ostream& out(OutType typ = normal);
+   void indent(int x) { 
+      _indent += x; 
+      assert(_indent >= 0);
+   }
+
+public:
+   AstVisitor(std::ostream *o) : _indent(0), _out(o) {}
+
    virtual void visit_comment(CommentNode*) = 0;
    virtual void visit_nodelist(Program*) = 0;
    virtual void visit_include(Include*) = 0;
@@ -160,5 +176,12 @@ inline void FuncDecl::visit(AstVisitor* v)    { v->visit_funcdecl(this); }
 inline void Type::visit(AstVisitor *v)        { v->visit_type(this); }
 inline void Stmt::visit(AstVisitor *v)        { v->visit_stmt(this); }
 inline void Expr::visit(AstVisitor *v)        { v->visit_expr(this); }
+
+// Comment helpers
+std::string cmt   (CommentNode* cn, bool pre, bool post, bool missing);
+std::string _cmt  (AstNode* x, int i, bool missing = true);
+std::string _cmt_ (AstNode* x, int i, bool missing = true);
+std::string _cmt0_(AstNode* x, int i);
+std::string _cmtl (AstNode* x, int i);
 
 #endif

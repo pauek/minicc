@@ -1,13 +1,14 @@
-#ifndef PRETTYPRINT_HH
-#define PRETTYPRINT_HH
+#ifndef ASTPRINT_HH
+#define ASTPRINT_HH
 
 #include <assert.h>
 #include <iostream>
 #include "ast.hh"
 
-class PrettyPrinter : public AstVisitor {
+class AstPrinter : public AstVisitor {
+   
 public:
-   PrettyPrinter(std::ostream *o = &std::cout) : AstVisitor(o) {}
+   AstPrinter(std::ostream *o = &std::cout) : AstVisitor(o) {}
 
    void print(AstNode* x) { x->visit(this); }
 

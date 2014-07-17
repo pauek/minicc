@@ -1,9 +1,9 @@
 #include <sstream>
 #include "ast.hh"
-#include "prettyprint.hh"
+#include "astprint.hh"
 using namespace std;
 
-void PrettyPrinter::visit_nodelist(NodeList* x) {
+void AstPrinter::visit_nodelist(NodeList* x) {
    for (int i = 0; i < x->_children.size(); i++) {
       AstNode *n = x->_children[i];
       if (n->is<FuncDecl>() and i > 0) {
@@ -13,11 +13,11 @@ void PrettyPrinter::visit_nodelist(NodeList* x) {
    }
 }
 
-void PrettyPrinter::visit_comment(CommentNode* cn) {
+void AstPrinter::visit_comment(CommentNode* cn) {
    out() << cn;
 }
 
-void PrettyPrinter::visit_include(Include* x) {
+void AstPrinter::visit_include(Include* x) {
    string delim = "\"\"";
    if (x->global) delim = "<>";
    out() << "#" << _cmt0_(x, 0)
@@ -26,22 +26,22 @@ void PrettyPrinter::visit_include(Include* x) {
          << _cmtl(x, 2);
 }
 
-void PrettyPrinter::visit_macro(Macro* x) {
+void AstPrinter::visit_macro(Macro* x) {
    out() << "#" << x->macro << endl;
 }
 
-void PrettyPrinter::visit_using(Using* x) {
+void AstPrinter::visit_using(Using* x) {
    out() << "using" << _cmt_(x, 0)
          << "namespace" << _cmt_(x, 1)
          << x->namespc << _cmt0_(x, 2)
          << ";" << _cmtl(x, 3);
 }
 
-void PrettyPrinter::visit_type(Type *x) {
+void AstPrinter::visit_type(Type *x) {
    out() << x->name;
 }
 
-void PrettyPrinter::visit_funcdecl(FuncDecl *x) {
+void AstPrinter::visit_funcdecl(FuncDecl *x) {
    visit_type(x->return_type);
    out() << _cmt_(x, 0)
          << x->name << _cmt0_(x, 1) << "(";
@@ -59,7 +59,7 @@ void PrettyPrinter::visit_funcdecl(FuncDecl *x) {
    visit_stmt(x->block);
 }
 
-void PrettyPrinter::visit_stmt(Stmt *x) {
+void AstPrinter::visit_stmt(Stmt *x) {
    switch (x->type) {
    case Stmt::_empty:
       out(beginl) << ";" << _cmtl(x, 0);
@@ -90,7 +90,7 @@ void PrettyPrinter::visit_stmt(Stmt *x) {
    }
 }
 
-void PrettyPrinter::visit_expr(Expr *x) {
+void AstPrinter::visit_expr(Expr *x) {
    if (x->paren) {
       out() << "(";
    }
