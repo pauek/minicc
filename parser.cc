@@ -216,7 +216,7 @@ void Parser::parse_parameter_list(vector<FuncDecl::Param>& params) {
 }
 
 bool Parser::parse_param(FuncDecl::Param& prm) {
-   prm.c[0] = _in.skip("\t ");
+   prm.comment_nodes[0] = _in.skip("\t ");
    if (_in.curr() == ')') {
       return false;
    }
@@ -225,9 +225,9 @@ bool Parser::parse_param(FuncDecl::Param& prm) {
       return false;
    }
    prm.type = new Type(typ);
-   prm.c[1] = _in.skip("\t ");
+   prm.comment_nodes[1] = _in.skip("\t ");
    prm.name = _in.next_token();
-   prm.c[2] = _in.skip("\t ");
+   prm.comment_nodes[2] = _in.skip("\t ");
    return !_in.end();
 }
 

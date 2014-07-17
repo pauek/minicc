@@ -49,11 +49,11 @@ void AstPrinter::visit_funcdecl(FuncDecl *x) {
       if (i > 0) {
          out() << ",";
       }
-      out() << cmt(x->params[i].c[0], true, true, i > 0);
+      out() << cmt(x->params[i].comment_nodes[0], true, true, i > 0);
       visit_type(x->params[i].type);
-      out() << cmt(x->params[i].c[1], true, true, true);
+      out() << cmt(x->params[i].comment_nodes[1], true, true, true);
       out() << x->params[i].name;
-      out() << cmt(x->params[i].c[2], true, true, false);
+      out() << cmt(x->params[i].comment_nodes[2], true, true, false);
    }
    out() << ") ";
    visit_stmt(x->block);

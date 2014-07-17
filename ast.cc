@@ -35,10 +35,12 @@ string cmtl(CommentNode *cn) {
    return out.str();
 }
 
-string _cmt  (AstNode* x, int i, bool missing) { return cmt(x->comment_nodes[i], true, false, missing); }
-string _cmt_ (AstNode* x, int i, bool missing) { return cmt(x->comment_nodes[i], true, true,  missing); }
-string _cmt0_(AstNode* x, int i)               { return cmt(x->comment_nodes[i], true, true,  false); }
-string _cmtl (AstNode* x, int i)               { return cmtl(x->comment_nodes[i]); }
+/*
+template<typename T> string _cmt  (T* x, int i, bool missing) { return cmt(x->comment_nodes[i], true, false, missing); }
+template<typename T> string _cmt_ (T* x, int i, bool missing) { return cmt(x->comment_nodes[i], true, true,  missing); }
+template<typename T> string _cmt0_(T* x, int i)               { return cmt(x->comment_nodes[i], true, true,  false); }
+template<typename T> string _cmtl (T* x, int i)               { return cmtl(x->comment_nodes[i]); }
+*/
 
 ostream& operator<<(ostream& o, CommentNode* C) {
    if (C == 0) {

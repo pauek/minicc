@@ -47,13 +47,14 @@ void PrettyPrinter::visit_funcdecl(FuncDecl *x) {
          << x->name << _cmt0_(x, 1) << "(";
    for (int i = 0; i < x->params.size(); i++) {
       if (i > 0) {
-         out() << ",";
+         out() << "," << _cmt_(&x->params[i], 0);
+      } else {
+         out() << _cmt0_(&x->params[i], 0);
       }
-      out() << cmt(x->params[i].c[0], true, true, i > 0);
       visit_type(x->params[i].type);
-      out() << cmt(x->params[i].c[1], true, true, true);
+      out() << _cmt_(&x->params[i], 1);
       out() << x->params[i].name;
-      out() << cmt(x->params[i].c[2], true, true, false);
+      out() << _cmt0(&x->params[i], 2);
    }
    out() << ") ";
    visit_stmt(x->block);

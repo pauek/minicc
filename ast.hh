@@ -79,7 +79,7 @@ struct FuncDecl : public AstNode {
    struct Param {
       Type *type;
       std::string name;
-      CommentNode *c[3];
+      CommentNode *comment_nodes[3];
    };
 
    Type *return_type;
@@ -178,10 +178,20 @@ inline void Stmt::visit(AstVisitor *v)        { v->visit_stmt(this); }
 inline void Expr::visit(AstVisitor *v)        { v->visit_expr(this); }
 
 // Comment helpers
-std::string cmt   (CommentNode* cn, bool pre, bool post, bool missing);
+std::string cmt(CommentNode* cn, bool pre, bool post, bool missing);
+std::string cmtl(CommentNode *cn);
+
+template<typename T> std::string _cmt  (T* x, int i) { return cmt(x->comment_nodes[i], true, false, true); }
+template<typename T> std::string _cmt_ (T* x, int i) { return cmt(x->comment_nodes[i], true, true,  true); }
+template<typename T> std::string _cmt0 (T* x, int i) { return cmt(x->comment_nodes[i], true, false, false); }
+template<typename T> std::string _cmt0_(T* x, int i) { return cmt(x->comment_nodes[i], true, true,  false); }
+template<typename T> std::string _cmtl (T* x, int i) { return cmtl(x->comment_nodes[i]); }
+
+/*
 std::string _cmt  (AstNode* x, int i, bool missing = true);
 std::string _cmt_ (AstNode* x, int i, bool missing = true);
 std::string _cmt0_(AstNode* x, int i);
 std::string _cmtl (AstNode* x, int i);
+*/
 
 #endif
