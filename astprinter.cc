@@ -84,7 +84,7 @@ void AstPrinter::visit_stmt(Stmt *x) {
       visit_expr(x->expr);
       out() << ", {" << endl;
       indent(+1);
-      x->sub_stmt->visit(this);
+      x->sub_stmt[0]->visit(this);
       indent(-1);
       out(beginl) << "})" << endl;
       break;      

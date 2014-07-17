@@ -93,16 +93,16 @@ void PrettyPrinter::visit_stmt(Stmt *x) {
       out() << "if" << _cmt_(x, 0) << "(";
       x->expr->visit(this);
       out() << ")" << _cmt_(x, 1);
-      x->sub_stmt->visit(this);
-      if (x->sub_stmt2) {
-         if (x->endl_before_else) {
+      x->sub_stmt[0]->visit(this);
+      if (x->sub_stmt[1]) {
+         if (!x->sub_stmt[0]->is<Block>()) {
             out() << endl;
             out(beginl);
          } else {
             out() << ' ';
          }
          out() << "else" << _cmt(x, 1);
-         x->sub_stmt2->visit(this);
+         x->sub_stmt[1]->visit(this);
       }
       break;
 
@@ -110,7 +110,7 @@ void PrettyPrinter::visit_stmt(Stmt *x) {
       out() << "while" << _cmt_(x, 0) << "(";
       x->expr->visit(this);
       out() << ")" << _cmt_(x, 1);
-      x->sub_stmt->visit(this);
+      x->sub_stmt[0]->visit(this);
       break;
 
    default:
