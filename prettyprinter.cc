@@ -95,7 +95,13 @@ void PrettyPrinter::visit_stmt(Stmt *x) {
       out() << ")" << _cmt_(x, 1);
       x->sub_stmt->visit(this);
       if (x->sub_stmt2) {
-         out() << " else" << _cmt(x, 1);
+         if (x->endl_before_else) {
+            out() << endl;
+            out(beginl);
+         } else {
+            out() << ' ';
+         }
+         out() << "else" << _cmt(x, 1);
          x->sub_stmt2->visit(this);
       }
       break;

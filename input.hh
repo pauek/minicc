@@ -62,6 +62,8 @@ class Input {
    Pos _pos;
    std::vector<int> _linepos; // positions of line starts (ignoring position 0 since no line 0)
 
+   bool _seen_endl;
+
    void _reset() { 
       _pos.lin = 1;
       _pos.col = -1;
@@ -82,6 +84,9 @@ public:
    bool curr_one_of(std::string set) const { 
       return set.find(curr()) != std::string::npos; 
    }
+
+   bool seen_endl()     const { return _seen_endl; }
+   void mark()                { _seen_endl = false; }
 
    void consume(char c);
    void consume(std::string s);

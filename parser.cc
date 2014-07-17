@@ -254,6 +254,7 @@ void Parser::parse_block(Block *block) {
    if (_in.end()) {
       error("expected '}' but found EOF");
    }
+   _in.mark();
    _skip(block);
 }
 
@@ -293,6 +294,7 @@ void Parser::parse_colon(Stmt *stmt) {
       warning(_in.pos().str() + ": Expected ';'");
       _in.skip_to(";\n"); // resync...
    }
+   _in.mark();
    _skip(stmt);
 }
 
@@ -384,6 +386,7 @@ void Parser::parse_if(Stmt *stmt) {
    if (tok == "else") {
       _in.consume("else");
       _skip(stmt);
+      stmt->endl_before_else = _in.seen_endl();
       stmt->sub_stmt2 = parse_stmt();
    }
 }

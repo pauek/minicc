@@ -162,6 +162,7 @@ bool Input::next() {
       _pos.lin++;
       _pos.col = 0;
       _linepos.push_back(_curr+1);
+      _seen_endl = true;
    } else {
       _pos.col++;
    }

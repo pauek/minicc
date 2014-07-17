@@ -98,8 +98,13 @@ struct Stmt : public AstNode {
    Type type;
    Expr *expr; 
    Stmt *sub_stmt, *sub_stmt2;
+   bool endl_before_else;
 
-   Stmt(Type _type = _empty) : type(_type), expr(0), sub_stmt(0), sub_stmt2(0) {}
+   Stmt(Type _type = _empty) 
+      : type(_type), expr(0), sub_stmt(0), sub_stmt2(0),
+         endl_before_else(false)
+   {}
+
    void visit(AstVisitor *v);
 };
 

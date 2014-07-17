@@ -37,7 +37,7 @@ string visible_spaces(string output, string compare = "") {
       }
       switch (c) {
       case ' ': res += '_'; break;
-      case '\n': res += "[endl]\n"; break;
+      case '\n': res += "[endl]"; break;
       case '\t': res += "\\t  "; break;
       default:
          res += c;
@@ -45,6 +45,9 @@ string visible_spaces(string output, string compare = "") {
       if (!first_error_shown and compare != "" and output[i] != compare[i]) {
          res += "<\x1b[0m";
          first_error_shown = true;
+      }
+      if (c == '\n') {
+         res += '\n';
       }
    }
    return res;
