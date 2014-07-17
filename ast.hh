@@ -97,9 +97,9 @@ struct Stmt : public AstNode {
 
    Type type;
    Expr *expr; 
-   Stmt *sub_stmt;
+   Stmt *sub_stmt, *sub_stmt2;
 
-   Stmt(Type _type = _empty) : type(_type) {}
+   Stmt(Type _type = _empty) : type(_type), expr(0), sub_stmt(0), sub_stmt2(0) {}
    void visit(AstVisitor *v);
 };
 

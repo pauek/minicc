@@ -44,6 +44,10 @@ void Parser::warning(string msg) {
    (*_err) << msg << endl;
 }
 
+void Parser::_skip(AstNode *n) {
+   n->comment_nodes.push_back(_in.skip("\n\t "));
+}
+
 AstNode* Parser::parse() {
    Program *res = new Program();
    _in.next();
@@ -193,13 +197,11 @@ AstNode *Parser::parse_func_or_var(string typ) {
 void Parser::parse_function(FuncDecl *fn) {
    CommentNode *cn;
    parse_parameter_list(fn->params);
-   cn = _in.skip("\t\n ");
-   fn->comment_nodes.push_back(cn);
+   _skip(fn);
    fn->block = new Block();
    fn->block->ini = _in.pos();
    parse_block(fn->block);
-   cn = _in.skip("\t\n ");
-   fn->comment_nodes.push_back(cn);
+   _skip(fn);
    fn->fin = _in.pos();
 }
 
@@ -236,13 +238,11 @@ bool Parser::parse_param(FuncDecl::Param& prm) {
 }
 
 void Parser::parse_block(Block *block) {
-   CommentNode *ncomm;
    block->type = Stmt::_block;
    if (!_in.expect("{")) {
       error("'{' expected");
    }
-   ncomm = _in.skip("\t\n ");
-   block->comment_nodes.push_back(ncomm);
+   _skip(block);
    while (!_in.end()) {
       if (_in.curr() == '}') {
          _in.next();
@@ -254,8 +254,7 @@ void Parser::parse_block(Block *block) {
    if (_in.end()) {
       error("expected '}' but found EOF");
    }
-   ncomm = _in.skip("\t\n ");
-   block->comment_nodes.push_back(ncomm);
+   _skip(block);
 }
 
 Stmt* Parser::parse_stmt() {
@@ -294,8 +293,7 @@ void Parser::parse_colon(Stmt *stmt) {
       warning(_in.pos().str() + ": Expected ';'");
       _in.skip_to(";\n"); // resync...
    }
-   CommentNode *ncomm = _in.skip("\t\n ");
-   stmt->comment_nodes.push_back(ncomm);
+   _skip(stmt);
 }
 
 void Parser::parse_expr_stmt(Stmt *stmt) {
@@ -326,8 +324,7 @@ Expr *Parser::parse_expr(Expr::Type max) {
       left->type = (is_literal(tok) ? Expr::literal : Expr::identifier);
       left->str = tok;
    }
-   cn = _in.skip("\t\n ");
-   left->comment_nodes.push_back(cn);
+   _skip(left);
 
    // Function call?
    if (_in.curr() == '(') {
@@ -344,15 +341,13 @@ Expr *Parser::parse_expr(Expr::Type max) {
       Expr *e = new Expr();
       e->set(_in.curr());
       _in.next();
-      cn = _in.skip("\t\n ");
-      e->comment_nodes.push_back(cn);
+      _skip(e);
       Expr *right = parse_expr(type);
       e->left = left;
       e->right = right;
       left = e;
    } 
-   cn = _in.skip("\t\n ");
-   left->comment_nodes.push_back(cn);
+   _skip(left);
    return left;
 }
 
@@ -361,39 +356,36 @@ void Parser::parse_for(Stmt *stmt) {
    error("UNIMPLEMENTED");
 }
 
-void Parser::parse_while(Stmt *stmt) {
-   CommentNode *cn;
-   stmt->type = Stmt::_while;
-   _in.consume("while");
-   cn = _in.skip("\t\n ");
-   stmt->comment_nodes.push_back(cn);
-
+void Parser::_parse_while_or_if(Stmt *stmt, string which) {
+   _in.consume(which);
+   _skip(stmt);
    if (!_in.expect("(")) {
       error(_in.pos().str() + ": Expected '('");
    }
    _in.skip("\t\n "); // Comments here will disappear
-   
    stmt->expr = parse_expr();
    if (!_in.expect(")")) {
       error(_in.pos().str() + ": Expected ')')");
    }
-   cn = _in.skip("\t\n ");
-   stmt->comment_nodes.push_back(cn);
-   
-   if (_in.curr() == ';') {
-      parse_colon(stmt);
-   } else if (_in.curr() == '{') {
-      Block *block = new Block();
-      parse_block(block);
-      stmt->sub_stmt = block;
-   } else {
-      stmt->sub_stmt = parse_stmt();
-   }
+   _skip(stmt);
+   stmt->sub_stmt = parse_stmt();
+}
+
+void Parser::parse_while(Stmt *stmt) {
+   stmt->type = Stmt::_while;
+   _parse_while_or_if(stmt, "while");
 }
 
 void Parser::parse_if(Stmt *stmt) {
    stmt->type = Stmt::_if;
-   error("UNIMPLEMENTED");
+   _parse_while_or_if(stmt, "if");
+   
+   string tok = _in.peek_token();
+   if (tok == "else") {
+      _in.consume("else");
+      _skip(stmt);
+      stmt->sub_stmt2 = parse_stmt();
+   }
 }
 
 void Parser::parse_switch(Stmt *stmt) {

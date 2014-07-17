@@ -19,6 +19,9 @@ class Parser {
    bool is_type(std::string t) const;
    bool is_literal(std::string s) const;
    
+   void _skip(AstNode *n);
+   void _parse_while_or_if(Stmt *stmt, string which);
+
 public:
    Parser(std::istream *in, std::ostream* err = &std::cerr);
 

@@ -10,6 +10,9 @@ void PrettyPrinter::visit_program(Program* x) {
          out() << endl;
       }
       n->visit(this);
+      if (n->is<CommentNode>()) {
+         out() << endl;
+      }
    }
 }
 
@@ -23,7 +26,7 @@ void PrettyPrinter::visit_include(Include* x) {
       delim = "<>";
    }
    out() << "#" << _cmt0_(x, 0) << "include" << _cmt_(x, 1)
-         << delim[0] << x->filename << delim[1] << _cmtl(x, 2);
+         << delim[0] << x->filename << delim[1] << _cmt0(x, 2) << endl;
 }
 
 void PrettyPrinter::visit_macro(Macro* x) {
@@ -32,7 +35,7 @@ void PrettyPrinter::visit_macro(Macro* x) {
 
 void PrettyPrinter::visit_using(Using* x) {
    out() << "using" << _cmt_(x, 0) << "namespace" << _cmt_(x, 1)
-         << x->namespc << _cmt0_(x, 2) << ";" << _cmtl(x, 3);
+         << x->namespc << _cmt0_(x, 2) << ";" << _cmt0(x, 3) << endl;
 }
 
 void PrettyPrinter::visit_type(Type *x) {
@@ -55,11 +58,12 @@ void PrettyPrinter::visit_funcdecl(FuncDecl *x) {
    }
    out() << ") ";
    x->block->visit(this);
+   out() << endl;
 }
 
 void PrettyPrinter::print_block(Block *x) {
    if (x->stmts.empty()) {
-      out() << "{}" << _cmtl(x, 1);
+      out() << "{}" << _cmt0(x, 1);
       return;
    } 
    indent(+1);
@@ -67,21 +71,33 @@ void PrettyPrinter::print_block(Block *x) {
    for (Stmt *s : x->stmts) {
       out(beginl);
       s->visit(this);
+      out() << endl;
    }
    indent(-1);
-   out(beginl) << "}" << _cmtl(x, 1);
+   out(beginl) << "}" << _cmt0(x, 1);
 }
 
 void PrettyPrinter::visit_stmt(Stmt *x) {
    switch (x->type) {
    case Stmt::_empty:
-      out() << ";" << _cmtl(x, 0);
+      out() << ";" << _cmt0(x, 0);
       break;
 
    case Stmt::_expr:
       out();
       visit_expr(x->expr);
-      out() << ";" << _cmtl(x, 0);
+      out() << ";" << _cmt0(x, 0);
+      break;
+
+   case Stmt::_if:
+      out() << "if" << _cmt_(x, 0) << "(";
+      x->expr->visit(this);
+      out() << ")" << _cmt_(x, 1);
+      x->sub_stmt->visit(this);
+      if (x->sub_stmt2) {
+         out() << " else" << _cmt(x, 1);
+         x->sub_stmt2->visit(this);
+      }
       break;
 
    case Stmt::_while:
@@ -92,7 +108,7 @@ void PrettyPrinter::visit_stmt(Stmt *x) {
       break;
 
    default:
-      out() << "<stmt>;" << endl;
+      out() << "<stmt>;";
    }
 }
 

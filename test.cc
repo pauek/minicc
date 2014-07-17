@@ -90,14 +90,14 @@ void test_visitor(string filename, VisitorType vtype) {
    if (Sout.str() != out) {
       cerr << header << "[out]:" << endl;
       header = "";
-      cerr << "target  \"\"\"" << visible_spaces(out) << "\"\"\"" << endl;
+      cerr << "target  \"\"\"" << visible_spaces(out, Sout.str()) << "\"\"\"" << endl;
       cerr << "current \"\"\"" << visible_spaces(Sout.str(), out) << "\"\"\"" << endl;
       cerr << endl;
       res = 'x';
    }
    if (Serr.str() != err) {
       cerr << header << "[err]:" << endl;
-      cerr << "target  \"\"\"" << visible_spaces(err) << "\"\"\"" << endl;
+      cerr << "target  \"\"\"" << visible_spaces(err, Serr.str()) << "\"\"\"" << endl;
       cerr << "current \"\"\"" << visible_spaces(Serr.str(), err) << "\"\"\"" << endl;
       cerr << endl;
       res = 'x';

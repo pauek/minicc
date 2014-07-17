@@ -35,24 +35,18 @@ string cmtl(CommentNode *cn) {
    return out.str();
 }
 
-/*
-template<typename T> string _cmt  (T* x, int i, bool missing) { return cmt(x->comment_nodes[i], true, false, missing); }
-template<typename T> string _cmt_ (T* x, int i, bool missing) { return cmt(x->comment_nodes[i], true, true,  missing); }
-template<typename T> string _cmt0_(T* x, int i)               { return cmt(x->comment_nodes[i], true, true,  false); }
-template<typename T> string _cmtl (T* x, int i)               { return cmtl(x->comment_nodes[i]); }
-*/
-
 ostream& operator<<(ostream& o, CommentNode* C) {
    if (C == 0) {
       return o;
    }
-   for (const Comment& c : C->comments) {
+   for (int i = 0; i < C->comments.size(); i++) {
+      const Comment& c = C->comments[i];
       if (c.type == Comment::multiline) {
          o << "/*" << c.text << "*/";
       } else {
          o << "//" << c.text;
       }
-      if (c.endl) {
+      if (c.endl and i < C->comments.size()-1) {
          o << endl;
       }
    }
