@@ -21,7 +21,7 @@ public:
    void visit_funcdecl(FuncDecl *x);
    void visit_stmt(Stmt *x);
    void visit_block(Block *x);
-   void visit_expr(Expr *x);
+   void visit_binaryexpr(BinaryExpr *x);
    void visit_declstmt(DeclStmt *x);
    void visit_exprstmt(ExprStmt *x);
    void visit_ifstmt(IfStmt *x);

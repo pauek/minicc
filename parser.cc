@@ -302,6 +302,10 @@ Stmt *Parser::parse_jumpstmt(JumpStmt::Type type) {
    return stmt;
 }
 
+Expr *Parser::parse_expr() {
+   return parse_binaryexpr();
+}
+
 Stmt *Parser::parse_exprstmt() {
    ExprStmt *stmt = new ExprStmt();
    stmt->ini = _in.pos();
@@ -315,26 +319,28 @@ Stmt *Parser::parse_exprstmt() {
    return stmt;
 }
 
-Expr *Parser::parse_expr(Expr::Type max) {
+BinaryExpr *Parser::parse_binaryexpr(BinaryExpr::Type max) {
    CommentNode *cn;
-   Expr *left;
+   BinaryExpr *left;
 
    // Left
    if (_in.curr() == '(') {
       _in.next();
-      left = parse_expr();
+      left = parse_binaryexpr();
       left->paren = true;
       if (!_in.expect(")")) {
          error(_in.pos().str() + ": Expected ')'");
       }
    } else {
-      left = new Expr();
+      left = new BinaryExpr();
       string tok = _in.next_token();
       if (tok == "") {
          error("Expression doesn't start with a token");
          return 0;
       }
-      left->type = (is_literal(tok) ? Expr::literal : Expr::identifier);
+      left->type = (is_literal(tok) 
+                    ? BinaryExpr::literal 
+                    : BinaryExpr::identifier);
       left->str = tok;
    }
    _skip(left);
@@ -348,19 +354,19 @@ Expr *Parser::parse_expr(Expr::Type max) {
    while (true) {
       _in.save();
       string op = _in.read_operator();
-      Expr::Type type = Expr::op2type(op);
+      BinaryExpr::Type type = BinaryExpr::op2type(op);
       if (op == "" or type > max) {
          _in.restore();
          break;
       }
-      Expr *e = new Expr();
+      BinaryExpr *e = new BinaryExpr();
       e->set(op);
       _skip(e);
-      Expr::Type submax = Expr::Type(type - 1);
-      if (type == Expr::assignment) {
+      BinaryExpr::Type submax = BinaryExpr::Type(type - 1);
+      if (type == BinaryExpr::assignment) {
          submax = type;
       }
-      Expr *right = parse_expr(submax);
+      Expr *right = parse_binaryexpr(submax);
       e->left = left;
       e->right = right;
       left = e;
@@ -376,7 +382,7 @@ void Parser::_parse_while_or_if(Stmt *stmt, string which) {
       error(_in.pos().str() + ": Expected '('");
    }
    _in.skip("\t\n "); // Comments here will disappear
-   stmt->expr = parse_expr();
+   stmt->expr = parse_binaryexpr();
    if (!_in.expect(")")) {
       error(_in.pos().str() + ": Expected ')')");
    }
@@ -393,12 +399,12 @@ Stmt *Parser::parse_for() {
    }
    _in.skip("\t\n "); // Comments here will disappear
    stmt->init = parse_for_init_stmt();
-   stmt->cond = parse_expr();
+   stmt->cond = parse_binaryexpr();
    if (!_in.expect(";")) {
       error(_in.pos().str() + ": Expected ';'");
    }
    _in.skip("\t\n "); // Comments here will disappear
-   stmt->post = parse_expr();
+   stmt->post = parse_binaryexpr();
    if (!_in.expect(")")) {
       error(_in.pos().str() + ": Expected ')'");
    }
@@ -424,7 +430,7 @@ Stmt *Parser::parse_while() {
       error(_in.pos().str() + ": Expected '('");
    }
    _in.skip("\t\n "); // Comments here will disappear
-   stmt->cond = parse_expr();
+   stmt->cond = parse_binaryexpr();
    if (!_in.expect(")")) {
       error(_in.pos().str() + ": Expected ')')");
    }

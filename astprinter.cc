@@ -82,15 +82,15 @@ void AstPrinter::visit_stmt(Stmt *x) {
    }
 }
 
-void AstPrinter::visit_expr(Expr *x) {
+void AstPrinter::visit_binaryexpr(BinaryExpr *x) {
    if (x->paren) {
       out() << "(";
    }
    switch (x->type) {
-   case Expr::identifier: 
+   case BinaryExpr::identifier: 
       out() << "id:'" << x->str << "'"; break;
 
-   case Expr::literal:
+   case BinaryExpr::literal:
       out() << "lit:'" << x->str << "'"; break;
 
    default:

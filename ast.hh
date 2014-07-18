@@ -169,26 +169,28 @@ struct Expr : public AstNode {
       bit_and, bit_xor, bit_or, logical_and, logical_or, conditional,
       assignment
    };
-   
-   Type type;
+   struct Op2TypeInitializer { Op2TypeInitializer(); }; // init _op2type
+
    bool paren;
+
+   Expr() : paren(false) {}
+
+   static std::map<std::string, Type> _op2type;
+   static Type op2type(std::string op);
+   static Op2TypeInitializer initializer;
+};
+
+struct BinaryExpr : public Expr {
+   Type type;
    std::string op;
    std::string str;
    Expr *left, *right;
 
-   Expr(Type _type = unknown) 
-      : type(_type), op(""), paren(false) {}
+   BinaryExpr(Type _type = unknown) 
+      : type(_type), op("") {}
 
    void visit(AstVisitor *v);
    void set(std::string op);
-
-   static std::map<std::string, Type> _op2type;
-   static Type op2type(std::string op);
-
-   struct Op2TypeInitializer {
-      Op2TypeInitializer();
-   };
-   static Op2TypeInitializer initializer;
 };
 
 struct Type : public AstNode {
@@ -224,7 +226,7 @@ public:
    virtual void visit_type(Type *) = 0;
    virtual void visit_stmt(Stmt *) = 0;
    virtual void visit_block(Block *) = 0;
-   virtual void visit_expr(Expr *) = 0;
+   virtual void visit_binaryexpr(BinaryExpr *) = 0;
    virtual void visit_declstmt(DeclStmt *) = 0;
    virtual void visit_exprstmt(ExprStmt *) = 0;
    virtual void visit_ifstmt(IfStmt *) = 0;
@@ -242,7 +244,7 @@ inline void FuncDecl::visit(AstVisitor* v)    { v->visit_funcdecl(this); }
 inline void Type::visit(AstVisitor *v)        { v->visit_type(this); }
 inline void Stmt::visit(AstVisitor *v)        { v->visit_stmt(this); }
 inline void Block::visit(AstVisitor *v)       { v->visit_block(this); }
-inline void Expr::visit(AstVisitor *v)        { v->visit_expr(this); }
+inline void BinaryExpr::visit(AstVisitor *v)  { v->visit_binaryexpr(this); }
 inline void DeclStmt::visit(AstVisitor *v)    { v->visit_declstmt(this); }
 inline void ExprStmt::visit(AstVisitor *v)    { v->visit_exprstmt(this); }
 inline void IfStmt::visit(AstVisitor *v)      { v->visit_ifstmt(this); }

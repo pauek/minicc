@@ -67,7 +67,7 @@ Expr::Op2TypeInitializer::Op2TypeInitializer() {
 }
 
 Expr::Type Expr::op2type(string op) {
-   map<string, Expr::Type>::const_iterator it = Expr::_op2type.find(op);
+   map<string, Expr::Type>::const_iterator it = _op2type.find(op);
    return (it != _op2type.end() ? it->second : Expr::unknown);
 }
 
@@ -117,7 +117,7 @@ ostream& operator<<(ostream& o, CommentNode* C) {
    return o;
 }
 
-void Expr::set(string _op) {
+void BinaryExpr::set(string _op) {
    op = _op;
    type = op2type(_op);
 }
