@@ -198,7 +198,12 @@ void Parser::parse_function(FuncDecl *fn) {
    CommentNode *cn;
    parse_parameter_list(fn->params);
    _skip(fn);
-   fn->block = parse_block();
+   if (_in.curr() == ';') {
+      fn->block = 0;
+      _in.next();
+   } else {
+      fn->block = parse_block();
+   }
    _skip(fn);
    fn->fin = _in.pos();
 }

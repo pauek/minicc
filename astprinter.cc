@@ -45,13 +45,16 @@ void AstPrinter::visit_funcdecl(FuncDecl *x) {
       out() << "\"" << x->params[i].name << "\": ";
       x->params[i].type->visit(this);
    }
-   out() << "}, {" << endl;
-   indent(+1);
-   out(beginl);
-   x->block->visit(this);
-   out() << endl;
-   indent(-1);
-   out(beginl) << "})" << endl;
+   if (x->block) {
+      out() << "}, {" << endl;
+      indent(+1);
+      out(beginl);
+      x->block->visit(this);
+      out() << endl;
+      indent(-1);
+      out(beginl);
+   }
+   out() << "})" << endl;
 }
 
 void AstPrinter::visit_block(Block *x) {

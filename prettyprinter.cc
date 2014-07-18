@@ -56,8 +56,13 @@ void PrettyPrinter::visit_funcdecl(FuncDecl *x) {
       out() << x->params[i].name;
       out() << _cmt0(&x->params[i], 2);
    }
-   out() << ") ";
-   x->block->visit(this);
+   out() << ")";
+   if (x->block) {
+      out() << " ";
+      x->block->visit(this);
+   } else {
+      out() << ";";
+   }
    out() << endl;
 }
 
