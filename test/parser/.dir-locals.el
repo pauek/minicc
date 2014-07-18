@@ -1,3 +1,1 @@
-((nil . ((auto-fill-mode . nil)
-         (mode . text)))
- . nil)
+((nil . ((fill-column . 400) (mode . text))) . nil)

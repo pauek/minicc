@@ -358,8 +358,35 @@ void Parser::_parse_while_or_if(Stmt *stmt, string which) {
 }
 
 Stmt *Parser::parse_for() {
-   error("UNIMPLEMENTED");
-   return 0;
+   IterStmt *stmt = new IterStmt();
+   _in.consume("for");
+   _skip(stmt);
+   if (!_in.expect("(")) {
+      error(_in.pos().str() + ": Expected '('");
+   }
+   _in.skip("\t\n "); // Comments here will disappear
+   stmt->init = parse_for_init_stmt();
+   stmt->cond = parse_expr();
+   if (!_in.expect(";")) {
+      error(_in.pos().str() + ": Expected ';'");
+   }
+   _in.skip("\t\n "); // Comments here will disappear
+   stmt->post = parse_expr();
+   if (!_in.expect(")")) {
+      error(_in.pos().str() + ": Expected ')'");
+   }
+   _skip(stmt);
+   stmt->substmt = parse_stmt();
+   return stmt;
+}
+
+Stmt *Parser::parse_for_init_stmt() {
+   string tok = _in.peek_token();
+   if (is_type(tok)) {
+      return parse_declstmt();
+   } else {
+      return parse_exprstmt();
+   }
 }
 
 Stmt *Parser::parse_while() {

@@ -36,39 +36,43 @@ void AstPrinter::visit_type(Type *x) {
 
 void AstPrinter::visit_funcdecl(FuncDecl *x) {
    out(beginl) << "FuncDecl(\"" << x->name << "\", ";
-   visit_type(x->return_type);
+   x->return_type->visit(this);
    out() << ", Params = {";
    for (int i = 0; i < x->params.size(); i++) {
       if (i > 0) {
          out() << ", ";
       }
       out() << "\"" << x->params[i].name << "\": ";
-      visit_type(x->params[i].type);
+      x->params[i].type->visit(this);
    }
    out() << "}, {" << endl;
    indent(+1);
+   out(beginl);
    x->block->visit(this);
+   out() << endl;
    indent(-1);
    out(beginl) << "})" << endl;
 }
 
 void AstPrinter::visit_block(Block *x) {
-   out(beginl) << "Block(";
+   out() << "Block(";
    if (x->stmts.empty()) {
-      out() << "{})" << endl;
+      out() << "{})";
       return;
    } 
    out() << "{" << endl;
    indent(+1);
    for (Stmt *s : x->stmts) {
+      out(beginl);
       s->visit(this);
+      out() << endl;
    }
    indent(-1);
-   out(beginl) << "})" << endl;
+   out(beginl) << "})";
 }
 
 void AstPrinter::visit_stmt(Stmt *x) {
-   out(beginl) << "Stmt(";
+   out() << "Stmt(";
    switch (x->type) {
    default:
       out(beginl) << "unimplemented)" << endl;
@@ -88,25 +92,25 @@ void AstPrinter::visit_expr(Expr *x) {
 
    case Expr::assignment:
       out() << Expr::op2char(x->op) << "(";
-      visit_expr(x->left);
+      x->left->visit(this);
       out() << ", ";
-      visit_expr(x->right);
+      x->right->visit(this);
       out() << ")";
       break;
 
    case Expr::additive:
       out() << Expr::op2char(x->op) << "(";
-      visit_expr(x->left);
+      x->left->visit(this);
       out() << ", ";
-      visit_expr(x->right);
+      x->right->visit(this);
       out() << ")";
       break;
       
    case Expr::multiplicative:
       out() << Expr::op2char(x->op) << "(";
-      visit_expr(x->left);
+      x->left->visit(this);
       out() << ", ";
-      visit_expr(x->right);
+      x->right->visit(this);
       out() << ")";
       break;
 
@@ -123,29 +127,31 @@ void AstPrinter::visit_declstmt(DeclStmt* x) {
 }
 
 void AstPrinter::visit_exprstmt(ExprStmt* x) {
-   out(beginl) << "Stmt(";
+   out() << "Stmt(";
    if (x->expr) {
       out() << "expr, ";
-      visit_expr(x->expr);
+      x->expr->visit(this);
    } else {
       out() << "empty";
    }
-   out() << ")" << endl;
+   out() << ")";
 }
 
 void AstPrinter::visit_ifstmt(IfStmt *x) {
-   out(beginl) << "If(";
-   visit_expr(x->expr);
+   out() << "IfStmt(";
+   x->cond->visit(this);
    out() << ", ";
-   visit_stmt(x->then);
-   out() << ", ";
-   visit_stmt(x->els);
-   out() << ")" << endl;
+   x->then->visit(this);
+   if (x->els) {
+      out() << ", ";
+      x->els->visit(this);
+   }
+   out() << ")";
 }
 
 void AstPrinter::visit_iterstmt(IterStmt *x) {
    if (x->is_for()) {
-      out(beginl) << "IterStmt<for>(";
+      out() << "IterStmt<for>(";
       x->init->visit(this);
       out() << ", ";
       x->cond->visit(this);
@@ -153,12 +159,14 @@ void AstPrinter::visit_iterstmt(IterStmt *x) {
       x->post->visit(this);
       out() << ", {" << endl;
    } else {
-      out(beginl) << "IterStmt<while>(";
+      out() << "IterStmt<while>(";
       x->cond->visit(this);
       out() << ", {" << endl;
    }
    indent(+1);
+   out(beginl);
    x->substmt->visit(this);
+   out() << endl;
    indent(-1);
-   out(beginl) << "})" << endl;
+   out(beginl) << "})";
 }
