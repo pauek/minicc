@@ -47,7 +47,7 @@ public:
       Stmt *parse_declstmt();
       Stmt *parse_jumpstmt(JumpStmt::Type type);
       Expr *parse_expr();
-BinaryExpr *parse_binaryexpr(BinaryExpr::Type max = BinaryExpr::assignment);
+      Expr *parse_binaryexpr(Expr::Type max = Expr::assignment);
 };
 
 #endif

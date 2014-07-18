@@ -180,6 +180,11 @@ struct Expr : public AstNode {
    static Op2TypeInitializer initializer;
 };
 
+struct Literal : public Expr {
+   std::string lit;
+   void visit(AstVisitor *v);
+};
+
 struct BinaryExpr : public Expr {
    Type type;
    std::string op;
@@ -226,6 +231,7 @@ public:
    virtual void visit_type(Type *) = 0;
    virtual void visit_stmt(Stmt *) = 0;
    virtual void visit_block(Block *) = 0;
+   virtual void visit_literal(Literal *) = 0;
    virtual void visit_binaryexpr(BinaryExpr *) = 0;
    virtual void visit_declstmt(DeclStmt *) = 0;
    virtual void visit_exprstmt(ExprStmt *) = 0;
@@ -244,6 +250,7 @@ inline void FuncDecl::visit(AstVisitor* v)    { v->visit_funcdecl(this); }
 inline void Type::visit(AstVisitor *v)        { v->visit_type(this); }
 inline void Stmt::visit(AstVisitor *v)        { v->visit_stmt(this); }
 inline void Block::visit(AstVisitor *v)       { v->visit_block(this); }
+inline void Literal::visit(AstVisitor *v)     { v->visit_literal(this); }
 inline void BinaryExpr::visit(AstVisitor *v)  { v->visit_binaryexpr(this); }
 inline void DeclStmt::visit(AstVisitor *v)    { v->visit_declstmt(this); }
 inline void ExprStmt::visit(AstVisitor *v)    { v->visit_exprstmt(this); }

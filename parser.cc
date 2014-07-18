@@ -319,9 +319,9 @@ Stmt *Parser::parse_exprstmt() {
    return stmt;
 }
 
-BinaryExpr *Parser::parse_binaryexpr(BinaryExpr::Type max) {
+Expr *Parser::parse_binaryexpr(BinaryExpr::Type max) {
    CommentNode *cn;
-   BinaryExpr *left;
+   Expr *left;
 
    // Left
    if (_in.curr() == '(') {
@@ -332,16 +332,21 @@ BinaryExpr *Parser::parse_binaryexpr(BinaryExpr::Type max) {
          error(_in.pos().str() + ": Expected ')'");
       }
    } else {
-      left = new BinaryExpr();
       string tok = _in.next_token();
       if (tok == "") {
          error("Expression doesn't start with a token");
          return 0;
       }
-      left->type = (is_literal(tok) 
-                    ? BinaryExpr::literal 
-                    : BinaryExpr::identifier);
-      left->str = tok;
+      if (is_literal(tok)) {
+         Literal *x = new Literal();
+         x->lit = tok;
+         left = x;
+      } else {
+         BinaryExpr *e = new BinaryExpr();
+         e->type = BinaryExpr::identifier;
+         e->str = tok;
+         left = e;
+      }
    }
    _skip(left);
 
