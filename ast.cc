@@ -121,3 +121,15 @@ void Expr::set(string _op) {
    op = _op;
    type = op2type(_op);
 }
+
+JumpStmt::Type JumpStmt::keyword2type(string s) {
+   if (s == "break") { 
+      return JumpStmt::_break; 
+   } else if (s == "continue") {
+      return JumpStmt::_continue;
+   } else if (s == "goto") {
+      return JumpStmt::_goto;
+   } else {
+      return JumpStmt::unknown;
+   }
+}

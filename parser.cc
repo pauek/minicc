@@ -263,6 +263,10 @@ Stmt* Parser::parse_stmt() {
       return parse_block();
    } else if (is_type(tok)) {
       return parse_declstmt();
+   }
+   JumpStmt::Type type = JumpStmt::keyword2type(tok);
+   if (type != JumpStmt::unknown) {
+      return parse_jumpstmt(type);
    } else if (tok == "while") {
       return parse_while();
    } else if (tok == "for") {
@@ -274,6 +278,23 @@ Stmt* Parser::parse_stmt() {
    } else  {
       return parse_exprstmt();
    }
+}
+
+Stmt *Parser::parse_jumpstmt(JumpStmt::Type type) {
+   string tok = _in.next_token();
+   JumpStmt *stmt = new JumpStmt;
+   stmt->type = type;
+   _skip(stmt);
+   if (type == JumpStmt::_goto) {
+      stmt->label = _in.next_token();
+      _skip(stmt);
+   }
+   if (!_in.expect(";")) {
+      warning(_in.pos().str() + ": Expected ';'");
+      _in.skip_to(";\n"); // resync...
+   }
+   _skip(stmt);
+   return stmt;
 }
 
 Stmt *Parser::parse_exprstmt() {

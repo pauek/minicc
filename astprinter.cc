@@ -154,3 +154,12 @@ void AstPrinter::visit_iterstmt(IterStmt *x) {
    indent(-1);
    out(beginl) << "})";
 }
+
+void AstPrinter::visit_jumpstmt(JumpStmt *x) {
+   string keyword[3] = { "break", "continue", "goto" };
+   out() << "JumpStmt<" << keyword[x->type] << ">(";
+   if (x->type == JumpStmt::_goto) {
+      out() << '"' << x->label << '"';
+   }
+   out() << ")";
+}

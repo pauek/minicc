@@ -136,10 +136,23 @@ struct DeclStmt : public Stmt {
       std::string name;
       Expr *init;
    };
+
    AstNode *type;
    std::vector<Decl> decls;
 
    void visit(AstVisitor *v);
+};
+
+struct JumpStmt : public Stmt {
+   enum Type { unknown = -1, _break = 0, _continue = 1, _goto = 2 };
+
+   Type type;
+   std::string label;
+
+   JumpStmt() : type(unknown) {}
+   void visit(AstVisitor *v);
+
+   static Type keyword2type(std::string s);
 };
 
 struct Block : public Stmt {
@@ -216,6 +229,7 @@ public:
    virtual void visit_exprstmt(ExprStmt *) = 0;
    virtual void visit_ifstmt(IfStmt *) = 0;
    virtual void visit_iterstmt(IterStmt *) = 0;
+   virtual void visit_jumpstmt(JumpStmt *) = 0;
 };
 
 // Visit implementations
@@ -233,6 +247,7 @@ inline void DeclStmt::visit(AstVisitor *v)    { v->visit_declstmt(this); }
 inline void ExprStmt::visit(AstVisitor *v)    { v->visit_exprstmt(this); }
 inline void IfStmt::visit(AstVisitor *v)      { v->visit_ifstmt(this); }
 inline void IterStmt::visit(AstVisitor *v)    { v->visit_iterstmt(this); }
+inline void JumpStmt::visit(AstVisitor *v)    { v->visit_jumpstmt(this); }
 
 // Comment helpers
 std::string cmt(CommentNode* cn, bool pre, bool post, bool missing);
