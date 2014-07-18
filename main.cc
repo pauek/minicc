@@ -12,9 +12,9 @@ int main(int argc, char *argv[]) {
    string filename;
    bool print_ast = false;
    if (argc > 1) {
-      if (string(argv[1]) == "--test-parser") {
+      if (string(argv[1]) == "--test-print") {
          if (argc < 3) {
-            cerr << "test-parser: missing filename" << endl;
+            cerr << "test-print: missing filename" << endl;
             return 1;
          }
          test_parser(argv[2]);

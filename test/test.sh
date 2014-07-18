@@ -2,7 +2,7 @@
 
 function test_dir() {
    dir=$(echo $1 | tr -d './');
-   printf "%16s  " $dir
+   printf "%10s  " $dir
    for ccfile in $(find $dir -name "*.cc" | sort); do
       ../minicc --test-${dir} $ccfile 2>> ${dir}-err
       code=$?
@@ -14,7 +14,7 @@ function test_dir() {
    echo
 }
 
-for dir in $(find -mindepth 1 -maxdepth 1 -type d); do
+for dir in $(find -mindepth 1 -maxdepth 1 -type d | sort); do
    test_dir $dir
 done
 for dir in $(find -mindepth 1 -maxdepth 1 -type d); do
