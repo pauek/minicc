@@ -70,15 +70,6 @@ void AstPrinter::visit_block(Block *x) {
 void AstPrinter::visit_stmt(Stmt *x) {
    out(beginl) << "Stmt(";
    switch (x->type) {
-   case Stmt::_empty: 
-      out() << "empty)" << endl; break;
-
-   case Stmt::_expr:
-      out() << "expr, ";
-      visit_expr(x->expr);
-      out() << ")" << endl;
-      break;
-
    case Stmt::_while:
       out() << "while, ";
       visit_expr(x->expr);
@@ -142,7 +133,22 @@ void AstPrinter::visit_declstmt(DeclStmt* x) {
 }
 
 void AstPrinter::visit_exprstmt(ExprStmt* x) {
-   out(beginl) << "Stmt(expr, ";
+   out(beginl) << "Stmt(";
+   if (x->expr) {
+      out() << "expr, ";
+      visit_expr(x->expr);
+   } else {
+      out() << "empty";
+   }
+   out() << ")" << endl;
+}
+
+void AstPrinter::visit_ifstmt(IfStmt *x) {
+   out(beginl) << "If(";
    visit_expr(x->expr);
+   out() << ", ";
+   visit_stmt(x->then);
+   out() << ", ";
+   visit_stmt(x->els);
    out() << ")" << endl;
 }

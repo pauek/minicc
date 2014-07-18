@@ -36,11 +36,11 @@ public:
       void  parse_parameter_list(std::vector<FuncDecl::Param>& params);
       bool  parse_param(FuncDecl::Param& p);
      Block *parse_block();
-      Stmt *parse_stmt();
       void  parse_colon(Stmt *stmt);
+      Stmt *parse_stmt();
       Stmt *parse_for();
       Stmt *parse_while();
-      Stmt *parse_if();
+      Stmt *parse_ifstmt();
       Stmt *parse_switch();
       Stmt *parse_exprstmt();
       Stmt *parse_declstmt();

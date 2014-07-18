@@ -93,15 +93,13 @@ struct FuncDecl : public AstNode {
 struct Expr;
 
 struct Stmt : public AstNode {
-   enum Type { _empty, _expr, _block, _for, _while, _if, _switch };
+   enum Type { _unknown, _block, _for, _while, _if, _switch };
 
    Type type;
    Expr *expr; 
    Stmt *sub_stmt[2];
 
-   Stmt(Type _type = _empty) 
-      : type(_type), expr(0)
-   {
+   Stmt(Type _type = _unknown) : type(_type), expr(0) {
       sub_stmt[0] = sub_stmt[1] = 0;
    }
 
@@ -110,6 +108,15 @@ struct Stmt : public AstNode {
 
 struct ExprStmt : public Stmt {
    Expr *expr;
+   ExprStmt() : expr(0) {}
+   void visit(AstVisitor *v);
+};
+
+struct IfStmt : public Stmt {
+   Expr *cond;
+   Stmt *then, *els;
+
+   IfStmt() : cond(0), then(0), els(0) {}
    void visit(AstVisitor *v);
 };
 
@@ -193,6 +200,7 @@ public:
    virtual void visit_expr(Expr *) = 0;
    virtual void visit_declstmt(DeclStmt *) = 0;
    virtual void visit_exprstmt(ExprStmt *) = 0;
+   virtual void visit_ifstmt(IfStmt *) = 0;
 };
 
 // Visit implementations
@@ -208,6 +216,7 @@ inline void Block::visit(AstVisitor *v)       { v->visit_block(this); }
 inline void Expr::visit(AstVisitor *v)        { v->visit_expr(this); }
 inline void DeclStmt::visit(AstVisitor *v)    { v->visit_declstmt(this); }
 inline void ExprStmt::visit(AstVisitor *v)    { v->visit_exprstmt(this); }
+inline void IfStmt::visit(AstVisitor *v)      { v->visit_ifstmt(this); }
 
 // Comment helpers
 std::string cmt(CommentNode* cn, bool pre, bool post, bool missing);

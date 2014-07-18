@@ -258,34 +258,21 @@ Block *Parser::parse_block() {
 }
 
 Stmt* Parser::parse_stmt() {
-   if (_in.curr() == ';') {
-      Stmt *stmt = new Stmt();
-      stmt->ini = _in.pos();
-      parse_colon(stmt);
-      return stmt;
-   } 
-   else if (_in.curr() == '{') {
+   string tok = _in.peek_token();
+   if (_in.curr() == '{') {
       return parse_block();
-   } 
-   else {
-      string tok = _in.peek_token();
-      if (is_type(tok)) {
-         return parse_declstmt();
-      } else {
-         Stmt *stmt = new Stmt();
-         stmt->ini = _in.pos();
-         if (tok == "while") {
-            return parse_while();
-         } else if (tok == "for") {
-            return parse_for();
-         } else if (tok == "if") {
-            return parse_if();
-         } else if (tok == "switch") {
-            return parse_switch();
-         } else  {
-            return parse_exprstmt();
-         }
-      }
+   } else if (is_type(tok)) {
+      return parse_declstmt();
+   } else if (tok == "while") {
+      return parse_while();
+   } else if (tok == "for") {
+      return parse_for();
+   } else if (tok == "if") {
+      return parse_ifstmt();
+   } else if (tok == "switch") {
+      return parse_switch();
+   } else  {
+      return parse_exprstmt();
    }
 }
 
@@ -300,7 +287,8 @@ void Parser::parse_colon(Stmt *stmt) {
 
 Stmt *Parser::parse_exprstmt() {
    ExprStmt *stmt = new ExprStmt();
-   stmt->expr = parse_expr();
+   stmt->ini = _in.pos();
+   stmt->expr = (_in.curr() == ';' ? 0 : parse_expr());
    parse_colon(stmt);
    return stmt;
 }
@@ -381,16 +369,27 @@ Stmt *Parser::parse_while() {
    return stmt;
 }
 
-Stmt *Parser::parse_if() {
-   Stmt *stmt= new Stmt();
-   stmt->type = Stmt::_if;
-   _parse_while_or_if(stmt, "if");
+Stmt *Parser::parse_ifstmt() {
+   IfStmt *stmt = new IfStmt();
+
+   _in.consume("if");
+   _skip(stmt);
+   if (!_in.expect("(")) {
+      error(_in.pos().str() + ": Expected '('");
+   }
+   _in.skip("\t\n "); // Comments here will disappear
+   stmt->cond = parse_expr();
+   if (!_in.expect(")")) {
+      error(_in.pos().str() + ": Expected ')')");
+   }
+   _skip(stmt);
+   stmt->then = parse_stmt();
    
    string tok = _in.peek_token();
    if (tok == "else") {
       _in.consume("else");
       _skip(stmt);
-      stmt->sub_stmt[1] = parse_stmt();
+      stmt->els = parse_stmt();
    }
    return stmt;
 }

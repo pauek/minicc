@@ -104,32 +104,6 @@ void PrettyPrinter::visit_expr(Expr *x) {
 
 void PrettyPrinter::visit_stmt(Stmt *x) {
    switch (x->type) {
-   case Stmt::_empty:
-      out() << ";" << _cmt0(x, 0);
-      break;
-
-   case Stmt::_expr:
-      visit_expr(x->expr);
-      out() << ";" << _cmt0(x, 0);
-      break;
-
-   case Stmt::_if:
-      out() << "if" << _cmt_(x, 0) << "(";
-      x->expr->visit(this);
-      out() << ")" << _cmt_(x, 1);
-      x->sub_stmt[0]->visit(this);
-      if (x->sub_stmt[1]) {
-         if (!x->sub_stmt[0]->is<Block>()) {
-            out() << endl;
-            out(beginl);
-         } else {
-            out() << ' ';
-         }
-         out() << "else" << _cmt(x, 1);
-         x->sub_stmt[1]->visit(this);
-      }
-      break;
-
    case Stmt::_while:
       out() << "while" << _cmt_(x, 0) << "(";
       x->expr->visit(this);
@@ -151,6 +125,25 @@ void PrettyPrinter::visit_declstmt(DeclStmt* x) {
 }
 
 void PrettyPrinter::visit_exprstmt(ExprStmt* x) {
-   visit_expr(x->expr);
+   if (x->expr) {
+      visit_expr(x->expr);
+   }
    out() << ";" << _cmt0(x, 0);
+}
+
+void PrettyPrinter::visit_ifstmt(IfStmt *x) {
+   out() << "if" << _cmt_(x, 0) << "(";
+   x->cond->visit(this);
+   out() << ")" << _cmt_(x, 1);
+   x->then->visit(this);
+   if (x->els) {
+      if (!x->then->is<Block>()) {
+         out() << endl;
+         out(beginl);
+      } else {
+         out() << ' ';
+      }
+      out() << "else" << _cmt(x, 1);
+      x->els->visit(this);
+   }
 }
