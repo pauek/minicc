@@ -25,6 +25,7 @@ public:
    void visit_declstmt(DeclStmt *x);
    void visit_exprstmt(ExprStmt *x);
    void visit_ifstmt(IfStmt *x);
+   void visit_iterstmt(IterStmt *x);
 };
 
 #endif

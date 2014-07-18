@@ -342,11 +342,6 @@ Expr *Parser::parse_expr(Expr::Type max) {
    return left;
 }
 
-Stmt *Parser::parse_for() {
-   error("UNIMPLEMENTED");
-   return 0;
-}
-
 void Parser::_parse_while_or_if(Stmt *stmt, string which) {
    _in.consume(which);
    _skip(stmt);
@@ -362,10 +357,25 @@ void Parser::_parse_while_or_if(Stmt *stmt, string which) {
    stmt->sub_stmt[0] = parse_stmt();
 }
 
+Stmt *Parser::parse_for() {
+   error("UNIMPLEMENTED");
+   return 0;
+}
+
 Stmt *Parser::parse_while() {
-   Stmt *stmt = new Stmt();
-   stmt->type = Stmt::_while;
-   _parse_while_or_if(stmt, "while");
+   IterStmt *stmt = new IterStmt();
+   _in.consume("while");
+   _skip(stmt);
+   if (!_in.expect("(")) {
+      error(_in.pos().str() + ": Expected '('");
+   }
+   _in.skip("\t\n "); // Comments here will disappear
+   stmt->cond = parse_expr();
+   if (!_in.expect(")")) {
+      error(_in.pos().str() + ": Expected ')')");
+   }
+   _skip(stmt);
+   stmt->substmt = parse_stmt();
    return stmt;
 }
 

@@ -5,7 +5,7 @@ void xxx(string s) {
 Program{
    FuncDecl("xxx", Type(void), Params = {"s": Type(string)}, {
       Block({
-         Stmt(while, =(id:'a', lit:'true'), {
+         IterStmt<while>(=(id:'a', lit:'true'), {
             Stmt(expr, =(id:'a', +(id:'a', lit:'2')))
          })
       })

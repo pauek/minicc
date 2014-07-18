@@ -38,8 +38,9 @@ public:
      Block *parse_block();
       void  parse_colon(Stmt *stmt);
       Stmt *parse_stmt();
-      Stmt *parse_for();
+      Stmt *parse_iterstmt(string which);
       Stmt *parse_while();
+      Stmt *parse_for();
       Stmt *parse_ifstmt();
       Stmt *parse_switch();
       Stmt *parse_exprstmt();

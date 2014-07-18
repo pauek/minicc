@@ -70,16 +70,6 @@ void AstPrinter::visit_block(Block *x) {
 void AstPrinter::visit_stmt(Stmt *x) {
    out(beginl) << "Stmt(";
    switch (x->type) {
-   case Stmt::_while:
-      out() << "while, ";
-      visit_expr(x->expr);
-      out() << ", {" << endl;
-      indent(+1);
-      x->sub_stmt[0]->visit(this);
-      indent(-1);
-      out(beginl) << "})" << endl;
-      break;      
-
    default:
       out(beginl) << "unimplemented)" << endl;
    }
@@ -151,4 +141,24 @@ void AstPrinter::visit_ifstmt(IfStmt *x) {
    out() << ", ";
    visit_stmt(x->els);
    out() << ")" << endl;
+}
+
+void AstPrinter::visit_iterstmt(IterStmt *x) {
+   if (x->is_for()) {
+      out(beginl) << "IterStmt<for>(";
+      x->init->visit(this);
+      out() << ", ";
+      x->cond->visit(this);
+      out() << ", ";
+      x->post->visit(this);
+      out() << ", {" << endl;
+   } else {
+      out(beginl) << "IterStmt<while>(";
+      x->cond->visit(this);
+      out() << ", {" << endl;
+   }
+   indent(+1);
+   x->substmt->visit(this);
+   indent(-1);
+   out(beginl) << "})" << endl;
 }

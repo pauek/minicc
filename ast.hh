@@ -120,6 +120,16 @@ struct IfStmt : public Stmt {
    void visit(AstVisitor *v);
 };
 
+struct IterStmt : public Stmt { // while + for
+   Stmt *init;
+   Expr *cond, *post;
+   Stmt *substmt;
+
+   IterStmt() : cond(0), init(0), substmt(0), post(0) {}
+   void visit(AstVisitor *v);
+   bool is_for() { return init != 0 and post != 0; }
+};
+
 struct DeclStmt : public Stmt {
    struct Decl {
       std::string name;
@@ -201,6 +211,7 @@ public:
    virtual void visit_declstmt(DeclStmt *) = 0;
    virtual void visit_exprstmt(ExprStmt *) = 0;
    virtual void visit_ifstmt(IfStmt *) = 0;
+   virtual void visit_iterstmt(IterStmt *) = 0;
 };
 
 // Visit implementations
@@ -217,6 +228,7 @@ inline void Expr::visit(AstVisitor *v)        { v->visit_expr(this); }
 inline void DeclStmt::visit(AstVisitor *v)    { v->visit_declstmt(this); }
 inline void ExprStmt::visit(AstVisitor *v)    { v->visit_exprstmt(this); }
 inline void IfStmt::visit(AstVisitor *v)      { v->visit_ifstmt(this); }
+inline void IterStmt::visit(AstVisitor *v)    { v->visit_iterstmt(this); }
 
 // Comment helpers
 std::string cmt(CommentNode* cn, bool pre, bool post, bool missing);

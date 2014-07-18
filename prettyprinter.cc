@@ -147,3 +147,19 @@ void PrettyPrinter::visit_ifstmt(IfStmt *x) {
       x->els->visit(this);
    }
 }
+
+void PrettyPrinter::visit_iterstmt(IterStmt *x) {
+   if (x->is_for()) {
+      out() << "for" << _cmt_(x, 0) << "(";
+      x->init->visit(this);
+      x->cond->visit(this);
+      out() << "; ";
+      x->post->visit(this);
+      out() << ")" << _cmt_(x, 1);
+   } else {
+      out() << "while" << _cmt_(x, 0) << "(";
+      x->cond->visit(this);
+      out() << ")" << _cmt_(x, 1);
+   }
+   x->substmt->visit(this);
+}
