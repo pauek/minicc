@@ -638,6 +638,7 @@ Overloading
 operator_function_id:
    "operator" operator
 operator: one of
+   "and" "or"
    "new"  "delete"  "new[]"  "delete[]"
    "+"  "_"  "*"  "/"  "%"  "^"  "&"  "|"  "~"
    "!"  "="  "<"  ">"  "+="  "-="  "*="  "/="  "%="

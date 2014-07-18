@@ -7,6 +7,67 @@ using namespace std;
 
 const int TAB_WIDTH = 3;
 
+map<string, Expr::Type> Expr::_op2type;
+Expr::Op2TypeInitializer Expr::initializer;
+
+Expr::Op2TypeInitializer::Op2TypeInitializer() {
+   struct { string op; Expr::Type type; } pairs[] = {
+      { "=",   Expr::assignment },
+      { "+=",  Expr::assignment },
+      { "-=",  Expr::assignment },
+      { "*=",  Expr::assignment },
+      { "/=",  Expr::assignment },
+      { "%=",  Expr::assignment },
+      { "<<=", Expr::assignment },
+      { ">>=", Expr::assignment },
+      { "&=",  Expr::assignment },
+      { "|=",  Expr::assignment },
+      { "^=",  Expr::assignment },
+
+      { "or",  Expr::logical_or },
+      { "||",  Expr::logical_or },
+
+      { "and", Expr::logical_and },
+      { "&&",  Expr::logical_and },
+
+      { "|",   Expr::bit_or },
+      { "^",   Expr::bit_xor },
+      { "&",   Expr::bit_and },
+
+      { "<",   Expr::relational },
+      { ">",   Expr::relational },
+      { ">=",  Expr::relational },
+      { "<=",  Expr::relational },
+      
+      { "<<",  Expr::shift },
+      { ">>",  Expr::shift },
+
+      { "+",   Expr::additive },
+      { "-",   Expr::additive },
+
+      { "*",   Expr::multiplicative },
+      { "/",   Expr::multiplicative },
+      { "%",   Expr::multiplicative },
+
+      // { "->*", Expr::multiplicative }, TODO
+      // { ".*", Expr::multiplicative }, TODO
+
+      { "+", Expr::additive },
+      { "-", Expr::additive },
+      { "END", Expr::unknown }
+   };
+   int i = 0;
+   while (pairs[i].op != "END") {
+      _op2type[pairs[i].op] = pairs[i].type;
+      i++;
+   }
+}
+
+Expr::Type Expr::op2type(string op) {
+   map<string, Expr::Type>::const_iterator it = Expr::_op2type.find(op);
+   return (it != _op2type.end() ? it->second : Expr::unknown);
+}
+
 std::ostream& AstVisitor::out(OutType typ) { 
    if (typ == beginl and _indent > 0) {
       *_out << string(_indent * TAB_WIDTH, ' ');
@@ -53,36 +114,7 @@ ostream& operator<<(ostream& o, CommentNode* C) {
    return o;
 }
 
-Expr::Type Expr::char2type(char c) {
-   switch (c) {
-   case '=': return assignment;
-   case '+': return additive;
-   case '-': return additive;
-   case '*': return multiplicative;
-   case '/': return multiplicative;
-   default: return unknown;
-   }
-}
-
-char Expr::op2char(Expr::Op op) {
-   switch (op) {
-   case assign: return '=';
-   case add:    return '+';
-   case sub:    return '-';
-   case mult:   return '*';
-   case div:    return '/';
-   default:     return ' ';
-   }
-}
-
-void Expr::set(char c) {
-   type = char2type(c);
-   switch (c) {
-   case '=': op = assign; break;
-   case '+': op = add;    break;
-   case '-': op = sub;    break;
-   case '*': op = mult;   break;
-   case '/': op = sub;    break;
-   default: assert(false);
-   }
+void Expr::set(string _op) {
+   op = _op;
+   type = op2type(_op);
 }

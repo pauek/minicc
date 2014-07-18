@@ -4,6 +4,7 @@
 #include <assert.h>
 #include <string>
 #include <vector>
+#include <map>
 #include "input.hh"
 
 class AstVisitor;
@@ -150,28 +151,31 @@ struct Block : public Stmt {
 struct Expr : public AstNode {
    enum Type { 
       unknown, identifier, literal, 
+      // pm_expression 
       multiplicative, additive, shift, relational, equality, 
       bit_and, bit_xor, bit_or, logical_and, logical_or, conditional,
       assignment
    };
-   enum Op { 
-      none, assign, add, sub, mult, div 
-   };
    
    Type type;
    bool paren;
-   Op op;
+   std::string op;
    std::string str;
    Expr *left, *right;
 
    Expr(Type _type = unknown) 
-      : type(_type), op(none), paren(false) {}
+      : type(_type), op(""), paren(false) {}
 
    void visit(AstVisitor *v);
+   void set(std::string op);
 
-   static Expr::Type char2type(char c);
-   static       char op2char(Expr::Op type);
-   void set(char op);
+   static std::map<std::string, Type> _op2type;
+   static Type op2type(std::string op);
+
+   struct Op2TypeInitializer {
+      Op2TypeInitializer();
+   };
+   static Op2TypeInitializer initializer;
 };
 
 struct Type : public AstNode {

@@ -1,5 +1,5 @@
 int f() {
-   if (a = b) {
+   if (a == b) {
       cout + x;
    }
 }
@@ -7,7 +7,7 @@ int f() {
 Program{
    FuncDecl("f", Type(int), Params = {}, {
       Block({
-         IfStmt(=(id:'a', id:'b'), Block({
+         IfStmt(==(id:'a', id:'b'), Block({
             Stmt(expr, +(id:'cout', id:'x'))
          }))
       })

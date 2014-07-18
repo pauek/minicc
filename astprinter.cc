@@ -90,32 +90,16 @@ void AstPrinter::visit_expr(Expr *x) {
    case Expr::literal:
       out() << "lit:'" << x->str << "'"; break;
 
-   case Expr::assignment:
-      out() << Expr::op2char(x->op) << "(";
-      x->left->visit(this);
-      out() << ", ";
-      x->right->visit(this);
-      out() << ")";
-      break;
-
-   case Expr::additive:
-      out() << Expr::op2char(x->op) << "(";
-      x->left->visit(this);
-      out() << ", ";
-      x->right->visit(this);
-      out() << ")";
-      break;
-      
-   case Expr::multiplicative:
-      out() << Expr::op2char(x->op) << "(";
-      x->left->visit(this);
-      out() << ", ";
-      x->right->visit(this);
-      out() << ")";
-      break;
-
    default:
-      out() << "<expr>";
+      out() << x->op << "(";
+      if (x->left) {
+         x->left->visit(this);
+      }
+      if (x->right) {
+         out() << ", ";
+         x->right->visit(this);
+      }
+      out() << ")";
    }
    if (x->paren) {
       out() << ") ";

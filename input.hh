@@ -61,6 +61,7 @@ class Input {
    int _curr;
    Pos _pos;
    std::vector<int> _linepos; // positions of line starts (ignoring position 0 since no line 0)
+   std::vector<std::pair<int, Pos>> _stack; // save/restore stack
 
    bool _seen_endl;
 
@@ -73,37 +74,37 @@ class Input {
    int _pos_to_idx(Pos p) const;
 
 public:
-   Input()                : _in(0), _linepos(1) { _reset(); }
-   Input(std::istream* i) : _in(i), _linepos(1) { _reset(); }
-   
-   bool next();
-   bool peek(int offset);
-   Pos  pos()           const { return _pos; }
-   char curr(int i = 0) const { return _text[_curr + i]; }
-   bool end()           const { return _curr >= _text.size(); }
-   bool curr_one_of(std::string set) const { 
-      return set.find(curr()) != std::string::npos; 
-   }
+                Input()                : _in(0), _linepos(1) { _reset(); }
+                Input(std::istream* i) : _in(i), _linepos(1) { _reset(); }
 
-   bool seen_endl()     const { return _seen_endl; }
-   void mark()                { _seen_endl = false; }
+          bool  next();
+          bool  peek(int offset);
+          Pos   pos()           const { return _pos; }
+          char  curr(int i = 0) const { return _text[_curr + i]; }
+          bool  end()           const { return _curr >= _text.size(); }
+          bool  curr_one_of(std::string set) const;
+   std::string  substr(const Pos& ini, const Pos& fin) const;
+          void  save();
+          void  restore();
 
-   void consume(char c);
-   void consume(std::string s);
+          bool  seen_endl()     const { return _seen_endl; }
+          void  mark()                { _seen_endl = false; }
+
+          void  consume(char c);
+          void  consume(std::string s);
    CommentNode *skip(std::string skip_set);
-   std::string skip_to(std::string stop_set);
-   std::string peek_to(std::string stop_set);
-   std::string skip_to_next_line();
-   std::string next_token() { return skip_to(separators); }
-   std::string peek_token() { return peek_to(separators); }
-   bool expect(std::string word);
+   std::string  skip_to(std::string stop_set);
+   std::string  peek_to(std::string stop_set);
+   std::string  skip_to_next_line();
+   std::string  next_token() { return skip_to(separators); }
+   std::string  peek_token() { return peek_to(separators); }
+          bool  expect(std::string word);
+   
+   std::string  read_operator();
+          void  read_singleline_comment(Comment& c);
+          void  read_multiline_comment(Comment& c);
 
-   void read_singleline_comment(Comment& c);
-   void read_multiline_comment(Comment& c);
-
-   std::string substr(const Pos& ini, const Pos& fin) const;
-
-   void error(std::string msg);
+          void  error(std::string msg);
 };
 
 bool is_space(std::string s);

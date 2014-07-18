@@ -3,8 +3,8 @@ using namespace std;
 
 double func(int a, int b, int c) {
    a = 1;
-   b = 2;
-   c = 3;
+   b += 2;
+   c /= 3;
 }
 
 string reverse(string s) {
@@ -22,8 +22,8 @@ Program{
    FuncDecl("func", Type(double), Params = {"a": Type(int), "b": Type(int), "c": Type(int)}, {
       Block({
          Stmt(expr, =(id:'a', lit:'1'))
-         Stmt(expr, =(id:'b', lit:'2'))
-         Stmt(expr, =(id:'c', lit:'3'))
+         Stmt(expr, +=(id:'b', lit:'2'))
+         Stmt(expr, /=(id:'c', lit:'3'))
       })
    })
    FuncDecl("reverse", Type(string), Params = {"s": Type(string)}, {

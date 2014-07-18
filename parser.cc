@@ -276,20 +276,16 @@ Stmt* Parser::parse_stmt() {
    }
 }
 
-void Parser::parse_colon(Stmt *stmt) {
+Stmt *Parser::parse_exprstmt() {
+   ExprStmt *stmt = new ExprStmt();
+   stmt->ini = _in.pos();
+   stmt->expr = (_in.curr() == ';' ? 0 : parse_expr());
    stmt->fin = _in.pos();
    if (!_in.expect(";")) {
       warning(_in.pos().str() + ": Expected ';'");
       _in.skip_to(";\n"); // resync...
    }
    _skip(stmt);
-}
-
-Stmt *Parser::parse_exprstmt() {
-   ExprStmt *stmt = new ExprStmt();
-   stmt->ini = _in.pos();
-   stmt->expr = (_in.curr() == ';' ? 0 : parse_expr());
-   parse_colon(stmt);
    return stmt;
 }
 
@@ -324,14 +320,15 @@ Expr *Parser::parse_expr(Expr::Type max) {
    }
 
    while (true) {
-      char op = _in.curr();
-      Expr::Type type = Expr::char2type(_in.curr()); // TODO: Properly read operator...
-      if (_in.curr_one_of(");{") or type > max) {
+      _in.save();
+      string op = _in.read_operator();
+      Expr::Type type = Expr::op2type(op);
+      if (op == "" or type > max) {
+         _in.restore();
          break;
       }
       Expr *e = new Expr();
-      e->set(_in.curr());
-      _in.next();
+      e->set(op);
       _skip(e);
       Expr *right = parse_expr(type);
       e->left = left;

@@ -90,7 +90,7 @@ void PrettyPrinter::visit_expr(Expr *x) {
    case Expr::additive:
    case Expr::multiplicative:
       visit_expr(x->left);
-      out() << " " << Expr::op2char(x->op) << _cmt_(x, 0);
+      out() << " " << x->op << _cmt_(x, 0);
       visit_expr(x->right);
       break;
 

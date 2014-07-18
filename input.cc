@@ -37,6 +37,10 @@ void Input::consume(string word) {
    }
 }
 
+bool Input::curr_one_of(std::string set) const { 
+   return set.find(curr()) != std::string::npos; 
+}
+
 CommentNode* Input::skip(string skip_set) {
    CommentNode *cn = 0;
    while (!end()) {
@@ -92,6 +96,59 @@ void Input::read_multiline_comment(Comment& c) {
    return;
 }
 
+string Input::read_operator() {
+   string op;
+   char x;
+   switch (curr()) {
+   case '+': case '&': case '|': // +, ++, +=, &, &&, &=, |, ||, |=
+      x = curr();
+      op += x; next();
+      if (curr() == '=' or curr() == x) {
+         op += curr(); next();
+      }
+      return op;
+
+   case '-': // -, --, -=, ->, ->*
+      op += '-'; next();
+      switch (curr()) {
+      case '=': case '-':
+         op += curr(); next();
+         return op;
+
+      case '>':
+         op += '>'; next();
+         if (curr() == '*') {
+            op += '*'; next();
+         }
+         return op;
+      }
+      return op;
+
+   case '*': case '/': case '%': case '=': case '!': case '^': // *, *=, /, /=, %, %=, =, ==, !, !=, ^, ^=
+      op += curr(); next();
+      if (curr() == '=') {
+         op += '='; next();
+      }
+      return op;
+      
+   case '<': case '>': // <, <=, <<, <<=, >, >=, >>, >>=
+      x = curr();
+      op += x; next();
+      if (curr() == x) {
+         op += x; next();
+      } 
+      if (curr() == '=') {
+         op += '='; next();
+      }
+      return op;
+
+   case ',': case '~':
+      op += curr(); next();
+      return op;
+   }
+   return "";
+}
+
 string Input::skip_to(string stop_set) {
    string s;
    while (!end() and (stop_set.find(curr()) == string::npos)) {
@@ -99,6 +156,18 @@ string Input::skip_to(string stop_set) {
       next();
    }
    return s;
+}
+
+void Input::save() {
+   _stack.push_back(make_pair(_curr, _pos));
+}
+
+void Input::restore() {
+   assert(!_stack.empty());
+   pair<int, Pos> top = _stack.back();
+   _curr = top.first;
+   _pos  = top.second;
+   _stack.pop_back();
 }
 
 string Input::peek_to(string stop_set) {
