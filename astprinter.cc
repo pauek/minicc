@@ -81,7 +81,7 @@ void AstPrinter::visit_stmt(Stmt *x) {
 
 void AstPrinter::visit_expr(Expr *x) {
    if (x->paren) {
-      out() << " (";
+      out() << "(";
    }
    switch (x->type) {
    case Expr::identifier: 
@@ -102,7 +102,7 @@ void AstPrinter::visit_expr(Expr *x) {
       out() << ")";
    }
    if (x->paren) {
-      out() << ") ";
+      out() << ")";
    }
 }
 

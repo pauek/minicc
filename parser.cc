@@ -330,7 +330,11 @@ Expr *Parser::parse_expr(Expr::Type max) {
       Expr *e = new Expr();
       e->set(op);
       _skip(e);
-      Expr *right = parse_expr(type);
+      Expr::Type submax = Expr::Type(type - 1);
+      if (type == Expr::assignment) {
+         submax = type;
+      }
+      Expr *right = parse_expr(submax);
       e->left = left;
       e->right = right;
       left = e;

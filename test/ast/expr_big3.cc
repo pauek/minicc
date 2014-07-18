@@ -1,11 +1,11 @@
 double    fn   (char c1 ,char   c2  )    {
-   (a+3)=(a+ 1) ;
+   cout << a + 1 << x < y << endl;
 }
 [[out]]------------------------------------
 Program{
    FuncDecl("fn", Type(double), Params = {"c1": Type(char), "c2": Type(char)}, {
       Block({
-         Stmt(expr, =((+(id:'a', lit:'3')), (+(id:'a', lit:'1'))))
+         Stmt(expr, <(<<(<<(id:'cout', +(id:'a', lit:'1')), id:'x'), <<(id:'y', id:'endl')))
       })
    })
 }

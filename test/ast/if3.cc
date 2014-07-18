@@ -6,7 +6,7 @@ int f() {
 Program{
    FuncDecl("f", Type(int), Params = {}, {
       Block({
-         IfStmt(==(id:'a', ==(id:'b', id:'c')), Block({
+         IfStmt(==(==(id:'a', id:'b'), id:'c'), Block({
             Stmt(expr, +(id:'cout', id:'x'))
          }), Block({
             Stmt(expr, +(lit:'10', lit:'1'))
