@@ -34,6 +34,9 @@ Expr::Op2TypeInitializer::Op2TypeInitializer() {
       { "^",   Expr::bit_xor },
       { "&",   Expr::bit_and },
 
+      { "==",  Expr::equality },
+      { "!=",  Expr::equality },
+
       { "<",   Expr::relational },
       { ">",   Expr::relational },
       { ">=",  Expr::relational },
