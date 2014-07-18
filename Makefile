@@ -1,8 +1,14 @@
 CXX=clang++
 OBJECTS=main.o input.o parser.o ast.o prettyprinter.o astprinter.o test.o
-CXXFLAGS=-std=c++11 -g3
+CXXFLAGS=-std=c++11
 
 all: minicc
+
+debug: CXXFLAGS += -g
+debug: minicc
+
+release: CXXFLAGS += -O3
+release: minicc
 
 minicc: $(OBJECTS)
 	clang++ -o minicc $(OBJECTS)
