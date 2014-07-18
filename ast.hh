@@ -163,7 +163,7 @@ struct Block : public Stmt {
 
 struct Expr : public AstNode {
    enum Type { 
-      unknown, identifier, literal, 
+      unknown,
       // pm_expression 
       multiplicative, additive, shift, relational, equality, 
       bit_and, bit_xor, bit_or, logical_and, logical_or, conditional,
@@ -182,6 +182,11 @@ struct Expr : public AstNode {
 
 struct Literal : public Expr {
    std::string lit;
+   void visit(AstVisitor *v);
+};
+
+struct Identifier : public Expr {
+   std::string id;
    void visit(AstVisitor *v);
 };
 
@@ -232,6 +237,7 @@ public:
    virtual void visit_stmt(Stmt *) = 0;
    virtual void visit_block(Block *) = 0;
    virtual void visit_literal(Literal *) = 0;
+   virtual void visit_identifier(Identifier *) = 0;
    virtual void visit_binaryexpr(BinaryExpr *) = 0;
    virtual void visit_declstmt(DeclStmt *) = 0;
    virtual void visit_exprstmt(ExprStmt *) = 0;
@@ -251,6 +257,7 @@ inline void Type::visit(AstVisitor *v)        { v->visit_type(this); }
 inline void Stmt::visit(AstVisitor *v)        { v->visit_stmt(this); }
 inline void Block::visit(AstVisitor *v)       { v->visit_block(this); }
 inline void Literal::visit(AstVisitor *v)     { v->visit_literal(this); }
+inline void Identifier::visit(AstVisitor *v)  { v->visit_identifier(this); }
 inline void BinaryExpr::visit(AstVisitor *v)  { v->visit_binaryexpr(this); }
 inline void DeclStmt::visit(AstVisitor *v)    { v->visit_declstmt(this); }
 inline void ExprStmt::visit(AstVisitor *v)    { v->visit_exprstmt(this); }

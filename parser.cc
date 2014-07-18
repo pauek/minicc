@@ -342,10 +342,9 @@ Expr *Parser::parse_binaryexpr(BinaryExpr::Type max) {
          x->lit = tok;
          left = x;
       } else {
-         BinaryExpr *e = new BinaryExpr();
-         e->type = BinaryExpr::identifier;
-         e->str = tok;
-         left = e;
+         Identifier *x = new Identifier();
+         x->id = tok;
+         left = x;
       }
    }
    _skip(left);

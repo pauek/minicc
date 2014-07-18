@@ -82,6 +82,10 @@ void AstPrinter::visit_stmt(Stmt *x) {
    }
 }
 
+void AstPrinter::visit_identifier(Identifier *x) {
+   out() << "id:'" << x->id << "'";
+}
+
 void AstPrinter::visit_literal(Literal *x) {
    if (x->paren) {
       out() << "(";
@@ -97,12 +101,6 @@ void AstPrinter::visit_binaryexpr(BinaryExpr *x) {
       out() << "(";
    }
    switch (x->type) {
-   case BinaryExpr::identifier: 
-      out() << "id:'" << x->str << "'"; break;
-
-   case BinaryExpr::literal:
-      out() << "<lit>"; break;
-
    default:
       out() << x->op << "(";
       if (x->left) {

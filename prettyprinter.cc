@@ -82,6 +82,10 @@ void PrettyPrinter::print_block(Block *x) {
    out(beginl) << "}" << _cmt0(x, 1);
 }
 
+void PrettyPrinter::visit_identifier(Identifier *x) {
+   out() << x->id << _cmt0(x, 0);
+}
+
 void PrettyPrinter::visit_literal(Literal *x) {
    if (x->paren) {
       out() << "(";
@@ -97,9 +101,6 @@ void PrettyPrinter::visit_binaryexpr(BinaryExpr *x) {
       out() << "(";
    }
    switch (x->type) {
-   case BinaryExpr::identifier:
-      out() << x->str << _cmt0(x, 0); break;
-
    case BinaryExpr::assignment:
    case BinaryExpr::additive:
    case BinaryExpr::multiplicative:
