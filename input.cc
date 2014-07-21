@@ -103,7 +103,7 @@ inline bool _isdigit(char c) { return c >= '0' and c <= '9'; }
 string Input::read_id() {
    string id;
    char c = curr();
-   if (!_isupper(c) or !_islower(c) or c != '_') {
+   if (!_isupper(c) and !_islower(c) and c != '_') {
       return "";
    }
    id += c;
