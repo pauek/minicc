@@ -18,7 +18,7 @@ class Parser {
    bool is_builtin_type(Token::Type t) const;
    bool is_literal(std::string s) const;
    
-   template<typename X> void _skip(X *n);
+   template<typename X> void _skip(X *n, std::string stopset = "\n\t ");
 
    void _parse_while_or_if(Stmt *stmt, string which);
 
@@ -31,7 +31,7 @@ public:
    AstNode *parse();
    AstNode *parse_macro();
    AstNode *parse_using_declaration();
-   AstNode *parse_func_or_var(std::string typ);
+   AstNode *parse_func_or_var();
       void  parse_function(FuncDecl *fn);
       void  parse_parameter_list(std::vector<FuncDecl::Param>& params);
       bool  parse_param(FuncDecl::Param& p);

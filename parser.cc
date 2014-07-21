@@ -48,44 +48,56 @@ void Parser::warning(string msg) {
 }
 
 template<typename X>
-void Parser::_skip(X *n) {
-   n->comment_nodes.push_back(_in.skip("\n\t "));
+void Parser::_skip(X *n, std::string stopset) {
+   n->comment_nodes.push_back(_in.skip(stopset));
 }
 
 AstNode* Parser::parse() {
-   Program *res = new Program();
+   Program *prog = new Program();
    _in.next();
    CommentNode *c = _in.skip("\n\t ");
    if (c != 0) {
-      res->add(c);
+      prog->add(c);
    }
    while (!_in.end()) {
       Pos pos = _in.pos();
       string tok;
       Token::Type t = _in.peek_token(tok);
-      if (t == Token::Sharp) {
-         res->add(parse_macro());
-      } else if (t == Token::Using) {
-         res->add(parse_using_declaration());
-      } else if (t == Token::Struct || t == Token::Typedef || t == Token::Class) {
-         error("'" + tok + "' is not supported yet");
-      } else if (is_builtin_type(t)) {
-         res->add(parse_func_or_var(tok));
-      } else if (t == Token::Empty) {
+      switch (t) {
+      case Token::Sharp: {
+         prog->add(parse_macro());
+         break;
+      }
+      case Token::Using: {
+         prog->add(parse_using_declaration());
+         break;
+      }
+      case Token::Struct:
+      case Token::Typedef:
+      case Token::Class: {
+         error("UNIMPLEMENTED");
+      }
+      case Token::Empty: {
          ostringstream msg;
          msg << pos << ": Unexpected character '" << _in.curr() << "'";
          error(msg.str());
-      } else {
-         ostringstream msg;
-         msg << pos << ": Unexpected token '" << tok << "'";
-         error(msg.str());
+      }
+      default: {
+         if (is_builtin_type(t)) {
+            prog->add(parse_func_or_var());
+         } else {
+            ostringstream msg;
+            msg << pos << ": Unexpected token '" << tok << "'";
+            error(msg.str());
+         }
+      }
       }
       c = _in.skip("\n\t ");
       if (c != 0) {
-         res->add(c);
+         prog->add(c);
       }
    }
-   return res;
+   return prog;
 }
 
 AstNode* Parser::parse_macro() {
@@ -149,38 +161,34 @@ AstNode* Parser::parse_macro() {
 }
 
 AstNode* Parser::parse_using_declaration() {
-   CommentNode *c[4] = { 0, 0, 0, 0 };
-   Pos ini = _in.pos();
+   Using *u = new Using();
+   u->ini = _in.pos();
    _in.consume("using");
-   c[0] = _in.skip("\t ");
+   _skip(u);
    if (!_in.expect("namespace")) {
-      error(ini.str() + ": expected 'namespace'");
+      error(u->ini.str() + ": expected 'namespace'");
    }
-   c[1] = _in.skip("\t ");
-   string namespc = _in.next_token();
-   c[2] = _in.skip("\t ");
-   Pos fin = _in.pos();
+   _skip(u);
+   u->namespc = _in.next_token();
+   _skip(u);
+   u->fin = _in.pos();
    if (!_in.expect(";")) {
-      warning(fin.str() + ": expected ';'");
+      warning(u->fin.str() + ": expected ';'");
    }
-   c[3] = _in.skip("\t ");
+   _skip(u, "\t ");
    Pos p = _in.pos();
    string rest = _in.skip_to("\n");
    if (!is_space(rest)) {
       warning(p.str() + ": extra text after 'using' declaration (\"" + rest + "\")");
    }
    _in.next();
-   Using *u = new Using(namespc);
-   u->comment_nodes.assign(c, c+4);
-   u->ini = ini;
-   u->fin = fin;
    return u;
 }
 
-AstNode *Parser::parse_func_or_var(string typ) {
+AstNode *Parser::parse_func_or_var() {
    CommentNode *c[2] = { 0, 0 };
    Pos ini = _in.pos();
-   _in.consume(typ);
+   string typ = _in.next_token();
    c[0] = _in.skip("\t ");
    string name = _in.next_token();
    c[1] = _in.skip("\t ");
@@ -192,7 +200,7 @@ AstNode *Parser::parse_func_or_var(string typ) {
       parse_function(fn);
       return fn;
    } else {
-      error("Variable declaration is unimplemented");
+      error("Global variables: UNIMPLEMENTED");
    }
    return NULL;
 }

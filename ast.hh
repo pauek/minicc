@@ -67,7 +67,6 @@ struct Macro : public AstNode {
 
 struct Using : public AstNode {
    std::string namespc;
-   Using(std::string _namespc) : namespc(_namespc) {}
    void visit(AstVisitor *v);
 };
 
