@@ -7,6 +7,7 @@ using namespace std;
 // Hay que dejarla antes que el _table...
 //
 struct { string tok; Token::Type type; } toktab[] = {
+   { "",         Token::Empty },
    { "{",        Token::LCurly },
    { "if",       Token::If },
    { "else",     Token::Else },

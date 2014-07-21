@@ -69,7 +69,7 @@ AstNode* Parser::parse() {
             error("'" + tok + "' is not supported yet");
          } else if (is_type(tok)) {
             res->add(parse_func_or_var(tok));
-         } else if (tok == "") {
+         } else if (t == Token::Empty) {
             ostringstream msg;
             msg << pos << ": Unexpected character '" << _in.curr() << "'";
             error(msg.str());

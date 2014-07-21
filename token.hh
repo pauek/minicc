@@ -7,7 +7,7 @@
 class Token {
 public:
    enum Type {
-      Unknown,
+      Unknown, Empty,
       LCurly,
       If, Else, While, For, Switch, 
       Break, Continue, Goto,
