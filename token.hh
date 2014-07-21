@@ -16,12 +16,21 @@ public:
       Typedef, Class, Struct, 
       Using, 
    };
+
+   enum Kind {
+      Literal, BasicType, None
+   };
    
-   static Type token2type(std::string tok);
+   static Token token2type(std::string tok);
+
+   Type t;
+   Kind k;
+
+   Token(Type _t = Unknown, Kind _k = None) : t(_t), k(_k) {}
 
 private:
    struct Table { 
-      std::map<std::string, Type> _map;
+      std::map<std::string, Token> _map;
       Table(); 
    };
    static Table _table;

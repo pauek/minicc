@@ -179,20 +179,13 @@ string Input::peek_to(string stop_set) {
    return res;
 }
 
-Token::Type Input::peek_token(string& tok) {
+Token Input::peek_token() {
    // TODO: Lexing eficiente y correcto.
    switch (curr()) {
-   case '{':
-      tok = "{";
-      return Token::LCurly;
-
-   case '#':
-      tok = "#";
-      return Token::Sharp;
-
+   case '{': return Token(Token::LCurly);
+   case '#': return Token(Token::Sharp);
    default:
-      tok = peek_to(separators); 
-      return Token::token2type(tok);
+      return Token::token2type(peek_to(separators));
    }
 }
 

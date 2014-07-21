@@ -6,47 +6,51 @@ using namespace std;
 // OJO: El orden de la tabla es importante!
 // Hay que dejarla antes que el _table...
 //
-struct { string tok; Token::Type type; } toktab[] = {
-   { "",         Token::Empty },
+struct { 
+   string      s; 
+   Token::Type t; 
+   Token::Kind k;
+} toktab[] = {
+   { "",         Token::Empty,    Token::None },
 
-   { "{",        Token::LCurly },
-   { "#",        Token::Sharp },
+   { "{",        Token::LCurly,   Token::None },
+   { "#",        Token::Sharp,    Token::None },
 
-   { "if",       Token::If },
-   { "else",     Token::Else },
-   { "while",    Token::While },
-   { "for",      Token::For },
-   { "switch",   Token::Switch },
-   { "break",    Token::Break },
-   { "continue", Token::Continue },
-   { "using",    Token::Using },
-   { "struct",   Token::Struct },
-   { "class",    Token::Class },
-   { "typedef",  Token::Typedef },
-   { "goto",     Token::Goto },
+   { "if",       Token::If,       Token::None },
+   { "else",     Token::Else,     Token::None },
+   { "while",    Token::While,    Token::None },
+   { "for",      Token::For,      Token::None },
+   { "switch",   Token::Switch,   Token::None },
+   { "break",    Token::Break,    Token::None },
+   { "continue", Token::Continue, Token::None },
+   { "using",    Token::Using,    Token::None },
+   { "struct",   Token::Struct,   Token::None },
+   { "class",    Token::Class,    Token::None },
+   { "typedef",  Token::Typedef,  Token::None },
+   { "goto",     Token::Goto,     Token::None },
 
-   { "void",     Token::Void },
-   { "int",      Token::Int },
-   { "bool",     Token::Bool },
-   { "char",     Token::Char },
-   { "float",    Token::Float },
-   { "double",   Token::Double },
-   { "string",   Token::String },
+   { "void",     Token::Void,     Token::BasicType },
+   { "int",      Token::Int,      Token::BasicType },
+   { "bool",     Token::Bool,     Token::BasicType },
+   { "char",     Token::Char,     Token::BasicType },
+   { "float",    Token::Float,    Token::BasicType },
+   { "double",   Token::Double,   Token::BasicType },
+   { "string",   Token::String,   Token::BasicType },
 
-   { "END",      Token::Unknown }
+   { "END",      Token::Unknown,  Token::None }
 };
 
 Token::Table Token::_table;
 
 Token::Table::Table() {
    int i = 0;
-   while (toktab[i].tok != "END") {
-      _table._map[toktab[i].tok] = toktab[i].type;
+   while (toktab[i].s != "END") {
+      _table._map[toktab[i].s] = Token(toktab[i].t, toktab[i].k);
       i++;
    }
 }
 
-Token::Type Token::token2type(std::string tok) {
+Token Token::token2type(std::string tok) {
    auto it = _table._map.find(tok);
    return (it != _table._map.end() ? it->second : Token::Unknown);
 }

@@ -61,9 +61,8 @@ AstNode* Parser::parse() {
    }
    while (!_in.end()) {
       Pos pos = _in.pos();
-      string tok;
-      Token::Type t = _in.peek_token(tok);
-      switch (t) {
+      Token tok = _in.peek_token();
+      switch (tok.t) {
       case Token::Sharp: {
          prog->add(parse_macro());
          break;
@@ -83,11 +82,11 @@ AstNode* Parser::parse() {
          error(msg.str());
       }
       default: {
-         if (is_builtin_type(t)) {
+         if (tok.k == Token::BasicType) {
             prog->add(parse_func_or_var());
          } else {
             ostringstream msg;
-            msg << pos << ": Unexpected token '" << tok << "'";
+            msg << pos << ": Unexpected token '" << tok.t << "'";
             error(msg.str());
          }
       }
@@ -274,9 +273,8 @@ Block *Parser::parse_block() {
 }
 
 Stmt* Parser::parse_stmt() {
-   string tok;
-   Token::Type t;
-   switch (t = _in.peek_token(tok)) {
+   Token t = _in.peek_token();
+   switch (t.t) {
    case Token::LCurly:  
       return parse_block();
 
@@ -296,7 +294,7 @@ Stmt* Parser::parse_stmt() {
       return parse_switch();
 
    default:
-      if (is_builtin_type(t)) {
+      if (t.k == Token::BasicType) {
          return parse_declstmt();
       } else  {
          return parse_exprstmt();
@@ -436,9 +434,8 @@ Stmt *Parser::parse_for() {
 }
 
 Stmt *Parser::parse_for_init_stmt() {
-   string tok;
-   Token::Type t = _in.peek_token(tok);
-   if (is_builtin_type(t)) {
+   Token tok = _in.peek_token();
+   if (tok.k == Token::BasicType) {
       return parse_declstmt();
    } else {
       return parse_exprstmt();
@@ -479,7 +476,7 @@ Stmt *Parser::parse_ifstmt() {
    stmt->then = parse_stmt();
    
    string tok;
-   if (_in.peek_token(tok) == Token::Else) {
+   if (_in.peek_token().t == Token::Else) {
       _in.consume("else");
       _skip(stmt);
       stmt->els = parse_stmt();
