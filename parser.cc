@@ -106,7 +106,7 @@ AstNode* Parser::parse_macro() {
    cmts.push_back(_in.skip("\t "));
    Pos macro_ini = _in.pos();
    if (!_in.expect("include")) {
-      string macro_name = _in.next_token();
+      string macro_name = _in.read_id();
       _in.skip_to("\n");
       Pos macro_fin = _in.pos();
       _in.next();
@@ -168,7 +168,7 @@ AstNode* Parser::parse_using_declaration() {
       error(u->ini.str() + ": expected 'namespace'");
    }
    _skip(u);
-   u->namespc = _in.next_token();
+   u->namespc = _in.read_id();
    _skip(u);
    u->fin = _in.pos();
    if (!_in.expect(";")) {
@@ -193,7 +193,7 @@ AstNode *Parser::parse_func_or_var() {
    Pos ini = _in.pos();
    Type *type = parse_type();
    c[0] = _in.skip("\t ");
-   string name = _in.next_token();
+   string name = _in.read_id();
    c[1] = _in.skip("\t ");
    if (_in.curr() == '(') {
       FuncDecl *fn = new FuncDecl(name);
@@ -234,7 +234,7 @@ void Parser::parse_parameter_list(vector<FuncDecl::Param*>& params) {
       }
       p->type = parse_type();
       _skip(p);
-      p->name = _in.next_token();
+      p->name = _in.read_id();
       _skip(p);
       params.push_back(p);
 
@@ -307,7 +307,7 @@ Stmt *Parser::parse_jumpstmt() {
    stmt->type = JumpStmt::keyword2type(tok);
    _skip(stmt);
    if (stmt->type == JumpStmt::_goto) {
-      stmt->label = _in.next_token();
+      stmt->label = _in.read_id();
       _skip(stmt);
    }
    if (!_in.expect(";")) {
@@ -494,7 +494,7 @@ Stmt *Parser::parse_declstmt() {
    stmt->type = parse_type();
    _skip(stmt);
    while (true) {
-      DeclStmt::Decl decl = { .name = _in.next_token(), .init = 0, .comment_node = 0 };
+      DeclStmt::Decl decl = { .name = _in.read_id(), .init = 0, .comment_node = 0 };
       decl.comment_node = _in.skip("\t ");
       if (_in.curr() == '=') {
          _in.next();
