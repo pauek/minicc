@@ -19,7 +19,8 @@ class Parser {
    bool is_type(std::string t) const;
    bool is_literal(std::string s) const;
    
-   void _skip(AstNode *n);
+   template<typename X> void _skip(X *n);
+
    void _parse_while_or_if(Stmt *stmt, string which);
 
 public:
@@ -47,7 +48,7 @@ public:
       Stmt *parse_declstmt();
       Stmt *parse_jumpstmt();
       Expr *parse_expr();
-      Expr *parse_binaryexpr(Expr::Type max = Expr::assignment);
+      Expr *parse_binaryexpr(Expr::Type max = Expr::comma);
 };
 
 #endif

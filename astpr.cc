@@ -118,7 +118,22 @@ void AstPrinter::visit_binaryexpr(BinaryExpr *x) {
 }
 
 void AstPrinter::visit_declstmt(DeclStmt* x) {
-   out() << "<declstmt>";
+   out() << "DeclStmt(";
+   x->type->visit(this);
+   out() << ", Vars = {";
+   bool first = true;
+   for (DeclStmt::Decl& decl : x->decls) {
+      if (!first) {
+         out() << ", ";
+      }
+      out() << '"' << decl.name << '"';
+      if (decl.init != 0) {
+         out() << " = ";
+         decl.init->visit(this);
+      }
+      first = false;
+   }
+   out() << "})";
 }
 
 void AstPrinter::visit_exprstmt(ExprStmt* x) {

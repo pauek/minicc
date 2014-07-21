@@ -135,6 +135,7 @@ struct DeclStmt : public Stmt {
    struct Decl {
       std::string name;
       Expr *init;
+      CommentNode *comment_node;
    };
 
    AstNode *type;
@@ -167,7 +168,7 @@ struct Expr : public AstNode {
       // pm_expression 
       multiplicative, additive, shift, relational, equality, 
       bit_and, bit_xor, bit_or, logical_and, logical_or, conditional,
-      assignment
+      assignment, comma
    };
    struct Op2TypeInitializer { Op2TypeInitializer(); }; // init _op2type
 
@@ -178,6 +179,7 @@ struct Expr : public AstNode {
    static std::map<std::string, Type> _op2type;
    static Type op2type(std::string op);
    static Op2TypeInitializer initializer;
+   static bool right_associative(Type t);
 };
 
 struct Literal : public Expr {

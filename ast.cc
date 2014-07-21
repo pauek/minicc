@@ -11,6 +11,8 @@ const int TAB_WIDTH = 3;
 // Hay que dejarla antes que el initializer y el map...
 //
 struct { string op; Expr::Type type; } pairs[] = {
+   { ",",   Expr::comma },
+
    { "=",   Expr::assignment },
    { "+=",  Expr::assignment },
    { "-=",  Expr::assignment },
@@ -73,6 +75,10 @@ Expr::Op2TypeInitializer::Op2TypeInitializer() {
 Expr::Type Expr::op2type(string op) {
    map<string, Expr::Type>::const_iterator it = _op2type.find(op);
    return (it != _op2type.end() ? it->second : Expr::unknown);
+}
+
+bool Expr::right_associative(Expr::Type t) {
+   return t == Expr::assignment;
 }
 
 std::ostream& AstVisitor::out(OutType typ) { 

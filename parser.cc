@@ -44,7 +44,8 @@ void Parser::warning(string msg) {
    (*_err) << msg << endl;
 }
 
-void Parser::_skip(AstNode *n) {
+template<typename X>
+void Parser::_skip(X *n) {
    n->comment_nodes.push_back(_in.skip("\n\t "));
 }
 
@@ -374,10 +375,9 @@ Expr *Parser::parse_binaryexpr(BinaryExpr::Type max) {
       BinaryExpr *e = new BinaryExpr();
       e->set(op);
       _skip(e);
-      BinaryExpr::Type submax = BinaryExpr::Type(type - 1);
-      if (type == BinaryExpr::assignment) {
-         submax = type;
-      }
+      BinaryExpr::Type submax = BinaryExpr::Type(Expr::right_associative(type) 
+                                                 ? type 
+                                                 : type - 1);
       Expr *right = parse_binaryexpr(submax);
       e->left = left;
       e->right = right;
@@ -483,6 +483,25 @@ Stmt *Parser::parse_switch() {
 }
 
 Stmt *Parser::parse_declstmt() {
-   error("UNIMPLEMENTED declstmt");
-   return 0;
+   DeclStmt *stmt = new DeclStmt();
+   stmt->type = new Type(_in.next_token());
+   _skip(stmt);
+   while (true) {
+      DeclStmt::Decl decl = { .name = _in.next_token(), .init = 0, .comment_node = 0 };
+      decl.comment_node = _in.skip("\t ");
+      if (_in.curr() == '=') {
+         _in.next();
+         _in.skip("\t ");
+         decl.init = parse_binaryexpr(Expr::assignment);
+      }
+      stmt->decls.push_back(decl);
+      if (_in.curr() != ',') {
+         break;
+      }
+      _in.next();
+      _in.skip("\t ");
+   }
+   _in.next();
+   _skip(stmt);
+   return stmt;
 }

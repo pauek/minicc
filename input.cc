@@ -180,12 +180,15 @@ string Input::peek_to(string stop_set) {
 }
 
 Token::Type Input::peek_token(string& tok) {
-   if (curr() == '{') {
+   switch (curr()) {
+   case '{':
       tok = "{";
       return Token::LCurly;
+
+   default:
+      tok = peek_to(separators); // TODO: Lexing eficiente y correcto.
+      return Token::token2type(tok);
    }
-   tok = peek_to(separators); // TODO: Lexing eficiente y correcto.
-   return Token::token2type(tok);
 }
 
 string Input::skip_to_next_line() {
