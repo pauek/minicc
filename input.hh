@@ -101,6 +101,7 @@ public:
          Token  peek_token();
           bool  expect(std::string word);
    
+   std::string  read_id();
    std::string  read_operator();
           void  read_singleline_comment(Comment& c);
           void  read_multiline_comment(Comment& c);

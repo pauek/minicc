@@ -9,6 +9,7 @@ public:
    enum Type {
       Unknown, Empty,
       Int, Void, Char, Double, Float, Bool, String,
+      True, False,
       Sharp,
       LCurly,
       If, Else, While, For, Switch, 

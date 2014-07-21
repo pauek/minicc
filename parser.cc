@@ -47,7 +47,7 @@ void Parser::warning(string msg) {
    (*_err) << msg << endl;
 }
 
-template<typename X>
+template<class X>
 void Parser::_skip(X *n, std::string stopset) {
    n->comment_nodes.push_back(_in.skip(stopset));
 }
@@ -184,21 +184,26 @@ AstNode* Parser::parse_using_declaration() {
    return u;
 }
 
+Type *Parser::parse_type() {
+   return new Type(_in.next_token());
+}
+
 AstNode *Parser::parse_func_or_var() {
    CommentNode *c[2] = { 0, 0 };
    Pos ini = _in.pos();
-   string typ = _in.next_token();
+   Type *type = parse_type();
    c[0] = _in.skip("\t ");
    string name = _in.next_token();
    c[1] = _in.skip("\t ");
    if (_in.curr() == '(') {
       FuncDecl *fn = new FuncDecl(name);
       fn->comment_nodes.assign(c, c+2);
-      fn->return_type = new Type(typ);
+      fn->return_type = type;
       fn->ini = ini;
       parse_function(fn);
       return fn;
    } else {
+      delete type;
       error("Global variables: UNIMPLEMENTED");
    }
    return NULL;
@@ -218,11 +223,21 @@ void Parser::parse_function(FuncDecl *fn) {
    fn->fin = _in.pos();
 }
 
-void Parser::parse_parameter_list(vector<FuncDecl::Param>& params) {
+void Parser::parse_parameter_list(vector<FuncDecl::Param*>& params) {
    _in.consume('(');
-   FuncDecl::Param p;
-   while (parse_param(p)) {
+   while (true) {
+      FuncDecl::Param *p = new FuncDecl::Param();
+      _skip(p);
+      if (_in.curr() == ')') {
+         delete p;
+         break;
+      }
+      p->type = parse_type();
+      _skip(p);
+      p->name = _in.next_token();
+      _skip(p);
       params.push_back(p);
+
       if (_in.curr() == ')') {
          break;
       } else if (_in.curr() == ',') {
@@ -232,22 +247,6 @@ void Parser::parse_parameter_list(vector<FuncDecl::Param>& params) {
       }
    }
    _in.consume(')');
-}
-
-bool Parser::parse_param(FuncDecl::Param& prm) {
-   prm.comment_nodes[0] = _in.skip("\t ");
-   if (_in.curr() == ')') {
-      return false;
-   }
-   string typ = _in.next_token();
-   if (typ == "") {
-      return false;
-   }
-   prm.type = new Type(typ);
-   prm.comment_nodes[1] = _in.skip("\t ");
-   prm.name = _in.next_token();
-   prm.comment_nodes[2] = _in.skip("\t ");
-   return !_in.end();
 }
 
 Block *Parser::parse_block() {
@@ -383,9 +382,10 @@ Expr *Parser::parse_binaryexpr(BinaryExpr::Type max) {
       BinaryExpr *e = new BinaryExpr();
       e->set(op);
       _skip(e);
-      BinaryExpr::Type submax = BinaryExpr::Type(Expr::right_associative(type) 
-                                                 ? type 
-                                                 : type - 1);
+      BinaryExpr::Type submax = 
+         BinaryExpr::Type(Expr::right_associative(type) 
+                          ? type 
+                          : type - 1);
       Expr *right = parse_binaryexpr(submax);
       e->left = left;
       e->right = right;
@@ -491,7 +491,7 @@ Stmt *Parser::parse_switch() {
 
 Stmt *Parser::parse_declstmt() {
    DeclStmt *stmt = new DeclStmt();
-   stmt->type = new Type(_in.next_token());
+   stmt->type = parse_type();
    _skip(stmt);
    while (true) {
       DeclStmt::Decl decl = { .name = _in.next_token(), .init = 0, .comment_node = 0 };

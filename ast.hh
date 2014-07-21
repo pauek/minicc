@@ -78,12 +78,12 @@ struct FuncDecl : public AstNode {
    struct Param {
       Type *type;
       std::string name;
-      CommentNode *comment_nodes[3];
+      std::vector<CommentNode *> comment_nodes;
    };
 
    Type *return_type;
    std::string name;
-   std::vector<Param> params;
+   std::vector<Param*> params;
    Block* block;
    
    FuncDecl(std::string _name) : name(_name) {}

@@ -96,6 +96,27 @@ void Input::read_multiline_comment(Comment& c) {
    return;
 }
 
+inline bool _isupper(char c) { return c >= 'A' and c <= 'Z'; }
+inline bool _islower(char c) { return c >= 'a' and c <= 'z'; }
+inline bool _isdigit(char c) { return c >= '0' and c <= '9'; }
+
+string Input::read_id() {
+   string id;
+   char c = curr();
+   if (!_isupper(c) or !_islower(c) or c != '_') {
+      return "";
+   }
+   id += c;
+   next();
+   c = curr();
+   while (_isupper(c) or _islower(c) or _isdigit(c) or c == '_') {
+      id += c;
+      next();
+      c = curr();
+   }
+   return id;
+}
+
 string Input::read_operator() {
    string op;
    char x;

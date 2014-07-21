@@ -37,6 +37,9 @@ struct {
    { "double",   Token::Double,   Token::BasicType },
    { "string",   Token::String,   Token::BasicType },
 
+   { "true",     Token::True,     Token::Literal },
+   { "false",    Token::False,    Token::Literal },
+
    { "END",      Token::Unknown,  Token::None }
 };
 

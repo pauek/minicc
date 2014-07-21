@@ -33,8 +33,7 @@ public:
    AstNode *parse_using_declaration();
    AstNode *parse_func_or_var();
       void  parse_function(FuncDecl *fn);
-      void  parse_parameter_list(std::vector<FuncDecl::Param>& params);
-      bool  parse_param(FuncDecl::Param& p);
+      void  parse_parameter_list(std::vector<FuncDecl::Param*>& params);
      Block *parse_block();
       Stmt *parse_stmt();
       Stmt *parse_iterstmt(string which);
@@ -46,6 +45,9 @@ public:
       Stmt *parse_exprstmt();
       Stmt *parse_declstmt();
       Stmt *parse_jumpstmt();
+
+      Type *parse_type();
+
       Expr *parse_expr();
       Expr *parse_binaryexpr(Expr::Type max = Expr::comma);
 };
