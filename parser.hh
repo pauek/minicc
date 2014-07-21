@@ -45,7 +45,7 @@ public:
       Stmt *parse_switch();
       Stmt *parse_exprstmt();
       Stmt *parse_declstmt();
-      Stmt *parse_jumpstmt(JumpStmt::Type type);
+      Stmt *parse_jumpstmt();
       Expr *parse_expr();
       Expr *parse_binaryexpr(Expr::Type max = Expr::assignment);
 };

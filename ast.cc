@@ -7,58 +7,62 @@ using namespace std;
 
 const int TAB_WIDTH = 3;
 
+// OJO: El orden de la tabla es importante!
+// Hay que dejarla antes que el initializer y el map...
+//
+struct { string op; Expr::Type type; } pairs[] = {
+   { "=",   Expr::assignment },
+   { "+=",  Expr::assignment },
+   { "-=",  Expr::assignment },
+   { "*=",  Expr::assignment },
+   { "/=",  Expr::assignment },
+   { "%=",  Expr::assignment },
+   { "<<=", Expr::assignment },
+   { ">>=", Expr::assignment },
+   { "&=",  Expr::assignment },
+   { "|=",  Expr::assignment },
+   { "^=",  Expr::assignment },
+
+   { "or",  Expr::logical_or },
+   { "||",  Expr::logical_or },
+
+   { "and", Expr::logical_and },
+   { "&&",  Expr::logical_and },
+
+   { "|",   Expr::bit_or },
+   { "^",   Expr::bit_xor },
+   { "&",   Expr::bit_and },
+
+   { "==",  Expr::equality },
+   { "!=",  Expr::equality },
+
+   { "<",   Expr::relational },
+   { ">",   Expr::relational },
+   { ">=",  Expr::relational },
+   { "<=",  Expr::relational },
+      
+   { "<<",  Expr::shift },
+   { ">>",  Expr::shift },
+
+   { "+",   Expr::additive },
+   { "-",   Expr::additive },
+
+   { "*",   Expr::multiplicative },
+   { "/",   Expr::multiplicative },
+   { "%",   Expr::multiplicative },
+
+   // { "->*", Expr::multiplicative }, TODO
+   // { ".*", Expr::multiplicative }, TODO
+
+   { "+", Expr::additive },
+   { "-", Expr::additive },
+   { "END", Expr::unknown }
+};
+
 map<string, Expr::Type> Expr::_op2type;
 Expr::Op2TypeInitializer Expr::initializer;
 
 Expr::Op2TypeInitializer::Op2TypeInitializer() {
-   struct { string op; Expr::Type type; } pairs[] = {
-      { "=",   Expr::assignment },
-      { "+=",  Expr::assignment },
-      { "-=",  Expr::assignment },
-      { "*=",  Expr::assignment },
-      { "/=",  Expr::assignment },
-      { "%=",  Expr::assignment },
-      { "<<=", Expr::assignment },
-      { ">>=", Expr::assignment },
-      { "&=",  Expr::assignment },
-      { "|=",  Expr::assignment },
-      { "^=",  Expr::assignment },
-
-      { "or",  Expr::logical_or },
-      { "||",  Expr::logical_or },
-
-      { "and", Expr::logical_and },
-      { "&&",  Expr::logical_and },
-
-      { "|",   Expr::bit_or },
-      { "^",   Expr::bit_xor },
-      { "&",   Expr::bit_and },
-
-      { "==",  Expr::equality },
-      { "!=",  Expr::equality },
-
-      { "<",   Expr::relational },
-      { ">",   Expr::relational },
-      { ">=",  Expr::relational },
-      { "<=",  Expr::relational },
-      
-      { "<<",  Expr::shift },
-      { ">>",  Expr::shift },
-
-      { "+",   Expr::additive },
-      { "-",   Expr::additive },
-
-      { "*",   Expr::multiplicative },
-      { "/",   Expr::multiplicative },
-      { "%",   Expr::multiplicative },
-
-      // { "->*", Expr::multiplicative }, TODO
-      // { ".*", Expr::multiplicative }, TODO
-
-      { "+", Expr::additive },
-      { "-", Expr::additive },
-      { "END", Expr::unknown }
-   };
    int i = 0;
    while (pairs[i].op != "END") {
       _op2type[pairs[i].op] = pairs[i].type;

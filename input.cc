@@ -179,6 +179,15 @@ string Input::peek_to(string stop_set) {
    return res;
 }
 
+Token::Type Input::peek_token(string& tok) {
+   if (curr() == '{') {
+      tok = "{";
+      return Token::LCurly;
+   }
+   tok = peek_to(separators); // TODO: Lexing eficiente y correcto.
+   return Token::token2type(tok);
+}
+
 string Input::skip_to_next_line() {
    string s = skip_to("\n");
    next();

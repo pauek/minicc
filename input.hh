@@ -3,6 +3,7 @@
 
 #include <iostream>
 #include <vector>
+#include "token.hh"
 
 static const char* separators = ";,.[](){}+-*/=<>|&\n\t ";
 
@@ -97,7 +98,7 @@ public:
    std::string  peek_to(std::string stop_set);
    std::string  skip_to_next_line();
    std::string  next_token() { return skip_to(separators); }
-   std::string  peek_token() { return peek_to(separators); }
+   Token::Type  peek_token(std::string& tok);
           bool  expect(std::string word);
    
    std::string  read_operator();

@@ -6,11 +6,11 @@ using namespace std;
 
 #include "parser.hh"
 
+string BasicTypes[] = { "int", "char", "string", "void", "bool", "double", "float" };
 set<string> Parser::_types;
 
 Parser::Parser(istream *i, std::ostream* err) : _in(i), _err(err) {
-   string T[] = { "int", "char", "string", "void", "bool", "double", "float" };
-   for (string t : T) {
+   for (string t : BasicTypes) {
       _types.insert(t);
    }
 }
@@ -60,10 +60,11 @@ AstNode* Parser::parse() {
          res->add(parse_macro());
       } else {
          Pos pos = _in.pos();
-         string tok = _in.peek_token();
-         if (tok == "using") {
+         string tok;
+         Token::Type t = _in.peek_token(tok);
+         if (t == Token::Using) {
             res->add(parse_using_declaration());
-         } else if (tok == "struct" || tok == "typedef" || tok == "class") {
+         } else if (t == Token::Struct || t == Token::Typedef || t == Token::Class) {
             error("'" + tok + "' is not supported yet");
          } else if (is_type(tok)) {
             res->add(parse_func_or_var(tok));
@@ -263,34 +264,41 @@ Block *Parser::parse_block() {
 }
 
 Stmt* Parser::parse_stmt() {
-   string tok = _in.peek_token();
-   if (_in.curr() == '{') {
+   string tok;
+   switch (_in.peek_token(tok)) {
+   case Token::LCurly:  
       return parse_block();
-   } else if (is_type(tok)) {
-      return parse_declstmt();
-   }
-   JumpStmt::Type type = JumpStmt::keyword2type(tok);
-   if (type != JumpStmt::unknown) {
-      return parse_jumpstmt(type);
-   } else if (tok == "while") {
+
+   case Token::Break: case Token::Continue: case Token::Goto:
+      return parse_jumpstmt();
+
+   case Token::While:
       return parse_while();
-   } else if (tok == "for") {
+
+   case Token::For:
       return parse_for();
-   } else if (tok == "if") {
+
+   case Token::If:
       return parse_ifstmt();
-   } else if (tok == "switch") {
+
+   case Token::Switch:
       return parse_switch();
-   } else  {
-      return parse_exprstmt();
+
+   default:
+      if (is_type(tok)) {
+         return parse_declstmt();
+      } else  {
+         return parse_exprstmt();
+      }
    }
 }
 
-Stmt *Parser::parse_jumpstmt(JumpStmt::Type type) {
+Stmt *Parser::parse_jumpstmt() {
    string tok = _in.next_token();
    JumpStmt *stmt = new JumpStmt;
-   stmt->type = type;
+   stmt->type = JumpStmt::keyword2type(tok);
    _skip(stmt);
-   if (type == JumpStmt::_goto) {
+   if (stmt->type == JumpStmt::_goto) {
       stmt->label = _in.next_token();
       _skip(stmt);
    }
@@ -418,7 +426,8 @@ Stmt *Parser::parse_for() {
 }
 
 Stmt *Parser::parse_for_init_stmt() {
-   string tok = _in.peek_token();
+   string tok;
+   _in.peek_token(tok);
    if (is_type(tok)) {
       return parse_declstmt();
    } else {
@@ -459,8 +468,8 @@ Stmt *Parser::parse_ifstmt() {
    _skip(stmt);
    stmt->then = parse_stmt();
    
-   string tok = _in.peek_token();
-   if (tok == "else") {
+   string tok;
+   if (_in.peek_token(tok) == Token::Else) {
       _in.consume("else");
       _skip(stmt);
       stmt->els = parse_stmt();
@@ -469,11 +478,11 @@ Stmt *Parser::parse_ifstmt() {
 }
 
 Stmt *Parser::parse_switch() {
-   error("UNIMPLEMENTED");
+   error("UNIMPLEMENTED switch");
    return 0;
 }
 
 Stmt *Parser::parse_declstmt() {
-   error("UNIMPLEMENTED");
+   error("UNIMPLEMENTED declstmt");
    return 0;
 }
