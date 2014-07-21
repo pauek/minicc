@@ -6,17 +6,20 @@ using namespace std;
 
 #include "parser.hh"
 
-string BasicTypes[] = { "int", "char", "string", "void", "bool", "double", "float" };
-set<string> Parser::_types;
+Token::Type BasicTypes[] = { 
+   Token::Int, Token::Char, Token::String, Token::Void, 
+   Token::Bool, Token::Double, Token::Float 
+};
+set<Token::Type> Parser::_basic_types;
 
 Parser::Parser(istream *i, std::ostream* err) : _in(i), _err(err) {
-   for (string t : BasicTypes) {
-      _types.insert(t);
+   for (Token::Type t : BasicTypes) {
+      _basic_types.insert(t);
    }
 }
 
-bool Parser::is_type(string t) const {
-   return _types.find(t) != _types.end();
+bool Parser::is_builtin_type(Token::Type t) const {
+   return _basic_types.find(t) != _basic_types.end();
 }
 
 bool all_digits(string s) {
@@ -57,27 +60,25 @@ AstNode* Parser::parse() {
       res->add(c);
    }
    while (!_in.end()) {
-      if (_in.curr() == '#') {
+      Pos pos = _in.pos();
+      string tok;
+      Token::Type t = _in.peek_token(tok);
+      if (t == Token::Sharp) {
          res->add(parse_macro());
+      } else if (t == Token::Using) {
+         res->add(parse_using_declaration());
+      } else if (t == Token::Struct || t == Token::Typedef || t == Token::Class) {
+         error("'" + tok + "' is not supported yet");
+      } else if (is_builtin_type(t)) {
+         res->add(parse_func_or_var(tok));
+      } else if (t == Token::Empty) {
+         ostringstream msg;
+         msg << pos << ": Unexpected character '" << _in.curr() << "'";
+         error(msg.str());
       } else {
-         Pos pos = _in.pos();
-         string tok;
-         Token::Type t = _in.peek_token(tok);
-         if (t == Token::Using) {
-            res->add(parse_using_declaration());
-         } else if (t == Token::Struct || t == Token::Typedef || t == Token::Class) {
-            error("'" + tok + "' is not supported yet");
-         } else if (is_type(tok)) {
-            res->add(parse_func_or_var(tok));
-         } else if (t == Token::Empty) {
-            ostringstream msg;
-            msg << pos << ": Unexpected character '" << _in.curr() << "'";
-            error(msg.str());
-         } else {
-            ostringstream msg;
-            msg << pos << ": Unexpected token '" << tok << "'";
-            error(msg.str());
-         }
+         ostringstream msg;
+         msg << pos << ": Unexpected token '" << tok << "'";
+         error(msg.str());
       }
       c = _in.skip("\n\t ");
       if (c != 0) {
@@ -266,7 +267,8 @@ Block *Parser::parse_block() {
 
 Stmt* Parser::parse_stmt() {
    string tok;
-   switch (_in.peek_token(tok)) {
+   Token::Type t;
+   switch (t = _in.peek_token(tok)) {
    case Token::LCurly:  
       return parse_block();
 
@@ -286,7 +288,7 @@ Stmt* Parser::parse_stmt() {
       return parse_switch();
 
    default:
-      if (is_type(tok)) {
+      if (is_builtin_type(t)) {
          return parse_declstmt();
       } else  {
          return parse_exprstmt();
@@ -427,8 +429,8 @@ Stmt *Parser::parse_for() {
 
 Stmt *Parser::parse_for_init_stmt() {
    string tok;
-   _in.peek_token(tok);
-   if (is_type(tok)) {
+   Token::Type t = _in.peek_token(tok);
+   if (is_builtin_type(t)) {
       return parse_declstmt();
    } else {
       return parse_exprstmt();

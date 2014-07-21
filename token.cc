@@ -8,7 +8,10 @@ using namespace std;
 //
 struct { string tok; Token::Type type; } toktab[] = {
    { "",         Token::Empty },
+
    { "{",        Token::LCurly },
+   { "#",        Token::Sharp },
+
    { "if",       Token::If },
    { "else",     Token::Else },
    { "while",    Token::While },
@@ -21,6 +24,14 @@ struct { string tok; Token::Type type; } toktab[] = {
    { "class",    Token::Class },
    { "typedef",  Token::Typedef },
    { "goto",     Token::Goto },
+
+   { "void",     Token::Void },
+   { "int",      Token::Int },
+   { "bool",     Token::Bool },
+   { "char",     Token::Char },
+   { "float",    Token::Float },
+   { "double",   Token::Double },
+   { "string",   Token::String },
 
    { "END",      Token::Unknown }
 };

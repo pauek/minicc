@@ -14,9 +14,8 @@ class Parser {
    Input _in;
    std::ostream *_err;
 
-   static std::set<std::string> _types;
-
-   bool is_type(std::string t) const;
+   static set<Token::Type> _basic_types;
+   bool is_builtin_type(Token::Type t) const;
    bool is_literal(std::string s) const;
    
    template<typename X> void _skip(X *n);

@@ -8,6 +8,8 @@ class Token {
 public:
    enum Type {
       Unknown, Empty,
+      Int, Void, Char, Double, Float, Bool, String,
+      Sharp,
       LCurly,
       If, Else, While, For, Switch, 
       Break, Continue, Goto,

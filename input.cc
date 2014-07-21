@@ -186,6 +186,10 @@ Token::Type Input::peek_token(string& tok) {
       tok = "{";
       return Token::LCurly;
 
+   case '#':
+      tok = "#";
+      return Token::Sharp;
+
    default:
       tok = peek_to(separators); 
       return Token::token2type(tok);
