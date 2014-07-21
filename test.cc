@@ -3,8 +3,8 @@
 using namespace std;
 
 #include "parser.hh"
-#include "astprinter.hh"
-#include "prettyprinter.hh"
+#include "astpr.hh"
+#include "prettypr.hh"
 
 // Detect lines like:
 //

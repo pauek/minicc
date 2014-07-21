@@ -1,5 +1,5 @@
 CXX=clang++
-OBJECTS=main.o input.o parser.o ast.o prettyprinter.o astprinter.o test.o
+OBJECTS=main.o input.o parser.o ast.o prettypr.o astpr.o test.o
 CXXFLAGS=-std=c++11
 
 all: minicc
@@ -13,13 +13,13 @@ release: minicc
 minicc: $(OBJECTS)
 	clang++ -o minicc $(OBJECTS)
 
-input.o: input.hh
-ast.o: ast.hh
-parser.o: parser.hh ast.hh ast.o input.hh input.o
-astprinter.o: astprinter.hh ast.hh ast.o
-prettyprinter.o: prettyprinter.hh ast.hh ast.o
-test.o: parser.hh prettyprinter.hh prettyprinter.o astprinter.hh astprinter.o
-main.o: parser.hh ast.hh input.hh
+ast.o:      ast.hh input.hh
+input.o:    ast.hh input.hh
+parser.o:   ast.hh input.hh parser.hh
+astpr.o:    ast.hh astpr.hh
+prettypr.o: ast.hh prettypr.hh
+test.o:     ast.hh input.hh parser.hh astpr.hh prettypr.hh
+main.o:     ast.hh input.hh parser.hh astpr.hh prettypr.hh test.hh
 
 clean:
 	rm -f minicc $(OBJECTS)

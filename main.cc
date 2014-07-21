@@ -5,8 +5,8 @@ using namespace std;
 
 #include "parser.hh"
 #include "test.hh"
-#include "astprinter.hh"
-#include "prettyprinter.hh"
+#include "astpr.hh"
+#include "prettypr.hh"
 
 int main(int argc, char *argv[]) {
    string filename;

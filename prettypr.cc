@@ -1,6 +1,6 @@
 #include <sstream>
 #include "ast.hh"
-#include "prettyprinter.hh"
+#include "prettypr.hh"
 using namespace std;
 
 void PrettyPrinter::visit_program(Program* x) {

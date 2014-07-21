@@ -1,6 +1,6 @@
 #include <sstream>
 #include "ast.hh"
-#include "astprinter.hh"
+#include "astpr.hh"
 using namespace std;
 
 void AstPrinter::visit_program(Program* x) {
