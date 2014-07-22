@@ -102,8 +102,10 @@ void PrettyPrinter::visit_binaryexpr(BinaryExpr *x) {
    }
    switch (x->type) {
    case BinaryExpr::assignment:
-   case BinaryExpr::additive:
+   case BinaryExpr::equality:
+   case BinaryExpr::relational:
    case BinaryExpr::multiplicative:
+   case BinaryExpr::additive:
       x->left->visit(this);
       out() << " " << x->op << _cmt_(x, 0);
       x->right->visit(this);
