@@ -52,8 +52,10 @@ public:
           bool  end()           const { return _curr >= _text.size(); }
           bool  curr_one_of(std::string set) const;
    std::string  substr(const Pos& ini, const Pos& fin) const;
+   std::string  substr(const Token& t);
           void  save();
           void  restore();
+          void  discard();
 
           bool  seen_endl()     const { return _seen_endl; }
           void  mark()                { _seen_endl = false; }
@@ -70,7 +72,10 @@ public:
           bool  expect(std::string word);
    
    std::string  read_id();
-   std::string  read_operator();
+         Token  read_operator();
+         Token  read_number_literal();
+         Token  read_string_literal();
+         Token  read_char_literal();
           void  read_singleline_comment(Comment& c);
           void  read_multiline_comment(Comment& c);
 

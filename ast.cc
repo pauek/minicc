@@ -10,71 +10,81 @@ const int TAB_WIDTH = 3;
 // OJO: El orden de la tabla es importante!
 // Hay que dejarla antes que el initializer y el map...
 //
-struct { string op; Expr::Type type; } pairs[] = {
-   { ",",   Expr::comma },
+struct { 
+   string op; 
+   Token::Type toktype; 
+   Expr::Type type; 
+} pairs[] = {
+   { "",    Token::Empty,        Expr::unknown },
+   { ",",   Token::Comma,        Expr::comma },
 
-   { "=",   Expr::assignment },
-   { "+=",  Expr::assignment },
-   { "-=",  Expr::assignment },
-   { "*=",  Expr::assignment },
-   { "/=",  Expr::assignment },
-   { "%=",  Expr::assignment },
-   { "<<=", Expr::assignment },
-   { ">>=", Expr::assignment },
-   { "&=",  Expr::assignment },
-   { "|=",  Expr::assignment },
-   { "^=",  Expr::assignment },
+   { "=",   Token::Assign,       Expr::assignment },
+   { "+=",  Token::PlusAssign,   Expr::assignment },
+   { "-=",  Token::MinusAssign,  Expr::assignment },
+   { "*=",  Token::StarAssign,   Expr::assignment },
+   { "/=",  Token::SlashAssign,  Expr::assignment },
+   { "%=",  Token::DivAssign,    Expr::assignment },
+   { "<<=", Token::LShiftAssign, Expr::assignment },
+   { ">>=", Token::RShiftAssign, Expr::assignment },
+   { "&=",  Token::AndAssign,    Expr::assignment },
+   { "|=",  Token::OrAssign,     Expr::assignment },
+   { "^=",  Token::XorAssign,    Expr::assignment },
 
-   { "or",  Expr::logical_or },
-   { "||",  Expr::logical_or },
+   { "or",  Token::Or,           Expr::logical_or },
+   { "||",  Token::BarBar,       Expr::logical_or },
 
-   { "and", Expr::logical_and },
-   { "&&",  Expr::logical_and },
+   { "and", Token::And,          Expr::logical_and },
+   { "&&",  Token::AmpAmp,       Expr::logical_and },
 
-   { "|",   Expr::bit_or },
-   { "^",   Expr::bit_xor },
-   { "&",   Expr::bit_and },
+   { "|",   Token::Bar,          Expr::bit_or },
+   { "^",   Token::Circum,       Expr::bit_xor },
+   { "&",   Token::Amp,          Expr::bit_and },
 
-   { "==",  Expr::equality },
-   { "!=",  Expr::equality },
+   { "==",  Token::EqEq,         Expr::equality },
+   { "!=",  Token::NotEq,        Expr::equality },
 
-   { "<",   Expr::relational },
-   { ">",   Expr::relational },
-   { ">=",  Expr::relational },
-   { "<=",  Expr::relational },
+   { "<",   Token::LT,           Expr::relational },
+   { ">",   Token::GT,           Expr::relational },
+   { ">=",  Token::GE,           Expr::relational },
+   { "<=",  Token::LE,           Expr::relational },
       
-   { "<<",  Expr::shift },
-   { ">>",  Expr::shift },
+   { "<<",  Token::LShift,       Expr::shift },
+   { ">>",  Token::RShift,       Expr::shift },
 
-   { "+",   Expr::additive },
-   { "-",   Expr::additive },
+   { "+",   Token::Plus,         Expr::additive },
+   { "-",   Token::Minus,        Expr::additive },
 
-   { "*",   Expr::multiplicative },
-   { "/",   Expr::multiplicative },
-   { "%",   Expr::multiplicative },
+   { "*",   Token::Star,         Expr::multiplicative },
+   { "/",   Token::Slash,        Expr::multiplicative },
+   { "%",   Token::Div,          Expr::multiplicative },
 
    // { "->*", Expr::multiplicative }, TODO
    // { ".*", Expr::multiplicative }, TODO
 
-   { "+", Expr::additive },
-   { "-", Expr::additive },
-   { "END", Expr::unknown }
+   { "END", Token::Unknown,      Expr::unknown }
 };
 
-map<string, Expr::Type> Expr::_op2type;
+map<string, Expr::Type>      Expr::_op2type;
+map<Token::Type, Expr::Type> Expr::_tok2type;
 Expr::Op2TypeInitializer Expr::initializer;
 
 Expr::Op2TypeInitializer::Op2TypeInitializer() {
    int i = 0;
    while (pairs[i].op != "END") {
       _op2type[pairs[i].op] = pairs[i].type;
+      _tok2type[pairs[i].toktype] = pairs[i].type;
       i++;
    }
 }
 
 Expr::Type Expr::op2type(string op) {
-   map<string, Expr::Type>::const_iterator it = _op2type.find(op);
+   auto it = _op2type.find(op);
    return (it != _op2type.end() ? it->second : Expr::unknown);
+}
+
+Expr::Type Expr::tok2type(Token::Type toktyp) {
+   auto it = _tok2type.find(toktyp);
+   return (it != _tok2type.end() ? it->second : Expr::unknown);
 }
 
 bool Expr::right_associative(Expr::Type t) {
@@ -127,9 +137,8 @@ ostream& operator<<(ostream& o, CommentNode* C) {
    return o;
 }
 
-void BinaryExpr::set(string _op) {
-   op = _op;
-   type = op2type(_op);
+void BinaryExpr::set(Expr::Type _type) {
+   type = _type;
 }
 
 JumpStmt::Type JumpStmt::keyword2type(string s) {

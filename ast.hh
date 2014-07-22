@@ -176,7 +176,9 @@ struct Expr : public AstNode {
    Expr() : paren(false) {}
 
    static std::map<std::string, Type> _op2type;
+   static std::map<Token::Type, Type> _tok2type;
    static Type op2type(std::string op);
+   static Type tok2type(Token::Type toktyp);
    static Op2TypeInitializer initializer;
    static bool right_associative(Type t);
 };
@@ -203,7 +205,7 @@ struct BinaryExpr : public Expr {
       : type(_type), op("") {}
 
    void visit(AstVisitor *v);
-   void set(std::string op);
+   void set(Expr::Type _type);
 };
 
 struct UnaryExpr : public Expr {

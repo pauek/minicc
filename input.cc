@@ -37,6 +37,23 @@ void Input::consume(string word) {
    }
 }
 
+string Input::substr(const Token& t) {
+   string s;
+   if (t.ini != -1 and t.fin != -1) {
+      s = _text.substr(t.ini, t.fin - t.ini);
+   } 
+   return s;
+}
+
+string Input::substr(const Pos& ini, const Pos& fin) const {
+   const int i = _pos_to_idx(ini);
+   const int j = _pos_to_idx(fin);
+   if (i == -1 || j == -1) {
+      return "";
+   }
+   return _text.substr(i, j - i);
+}
+
 bool Input::curr_one_of(std::string set) const { 
    return set.find(curr()) != std::string::npos; 
 }
@@ -70,106 +87,6 @@ CommentNode* Input::skip(string skip_set) {
    return cn;
 }
 
-void Input::read_singleline_comment(Comment& c) {
-   consume("//");
-   while (!end() and curr() != '\n') {
-      c.text += curr();
-      next();
-   }
-   return;
-}
-
-void Input::read_multiline_comment(Comment& c) {
-   consume("/*");
-   while (!end()) {
-      if (curr() == '*') {
-         peek(1);
-         if (curr(1) == '/') {
-            consume("*/");
-            return;
-         }
-      }
-      c.text += curr();
-      next();
-   }
-   error(pos().str() + "unfinished comment");
-   return;
-}
-
-inline bool _isupper(char c) { return c >= 'A' and c <= 'Z'; }
-inline bool _islower(char c) { return c >= 'a' and c <= 'z'; }
-inline bool _isdigit(char c) { return c >= '0' and c <= '9'; }
-
-string Input::read_id() {
-   string id;
-   char c = curr();
-   if (!_isupper(c) and !_islower(c) and c != '_') {
-      return "";
-   }
-   id += c;
-   next();
-   c = curr();
-   while (_isupper(c) or _islower(c) or _isdigit(c) or c == '_') {
-      id += c;
-      next();
-      c = curr();
-   }
-   return id;
-}
-
-string Input::read_operator() {
-   string op;
-   char x;
-   switch (curr()) {
-   case '+': case '&': case '|': // +, ++, +=, &, &&, &=, |, ||, |=
-      x = curr();
-      op += x; next();
-      if (curr() == '=' or curr() == x) {
-         op += curr(); next();
-      }
-      return op;
-
-   case '-': // -, --, -=, ->, ->*
-      op += '-'; next();
-      switch (curr()) {
-      case '=': case '-':
-         op += curr(); next();
-         return op;
-
-      case '>':
-         op += '>'; next();
-         if (curr() == '*') {
-            op += '*'; next();
-         }
-         return op;
-      }
-      return op;
-
-   case '*': case '/': case '%': case '=': case '!': case '^': // *, *=, /, /=, %, %=, =, ==, !, !=, ^, ^=
-      op += curr(); next();
-      if (curr() == '=') {
-         op += '='; next();
-      }
-      return op;
-      
-   case '<': case '>': // <, <=, <<, <<=, >, >=, >>, >>=
-      x = curr();
-      op += x; next();
-      if (curr() == x) {
-         op += x; next();
-      } 
-      if (curr() == '=') {
-         op += '='; next();
-      }
-      return op;
-
-   case ',': case '~':
-      op += curr(); next();
-      return op;
-   }
-   return "";
-}
-
 string Input::skip_to(string stop_set) {
    string s;
    while (!end() and (stop_set.find(curr()) == string::npos)) {
@@ -191,6 +108,10 @@ void Input::restore() {
    _stack.pop_back();
 }
 
+void Input::discard() {
+   _stack.pop_back();
+}
+
 string Input::peek_to(string stop_set) {
    save();
    string res = skip_to(stop_set);
@@ -198,21 +119,44 @@ string Input::peek_to(string stop_set) {
    return res;
 }
 
-Token Input::next_token() {
-   // TODO: Lexing eficiente y correcto.
-   switch (curr()) {
-   case '.': return Token(Token::Dot);
-   case '(': return Token(Token::LParen);
-   case '[': return Token(Token::LBrack);
-   case '{': return Token(Token::LCurly);
-   case '#': return Token(Token::Sharp);
 
-   case '-': case '+': case '&': case '!': {
-      string op = read_operator();
-      return Token::token2type(op);
+Token Input::next_token() {
+   switch (curr()) {
+   case '.': case '(': case '[': case '{': case '#': {
+      string s(1, curr());
+      next();
+      return Token(Token::token2type(s));
+   }
+   case '+': case '&': case '!':
+   case '-':
+   case '*': case '/': case '%': case '=': case '^': 
+   case '<': case '>': 
+   case ',': case '~': {
+      return read_operator();
    }      
+   case '0': case '1': case '2': case '3': case '4':
+   case '5': case '6': case '7': case '8': case '9':
+      return read_number_literal();
+      
+   case 'u': case 'U': case 'l':
+
+   case 'L': // char-lit, string-lit, long
+      switch (curr(1)) {
+      case '\'': 
+         return read_char_literal();
+      case '"':  
+         return read_string_literal();
+      case '0': case '1': case '2': case '3': case '4':
+      case '5': case '6': case '7': case '8': case '9':
+         return read_number_literal();
+      default:
+         string id = read_id();
+         return Token(Token::token2type(id));
+      }
+
    default:
-      return Token::token2type(skip_to(separators));
+      string id = read_id();
+      return Token(Token::token2type(id));
    }
 }
 
@@ -308,11 +252,132 @@ bool Input::expect(string word) {
    return true;
 }
 
-string Input::substr(const Pos& ini, const Pos& fin) const {
-   const int i = _pos_to_idx(ini);
-   const int j = _pos_to_idx(fin);
-   if (i == -1 || j == -1) {
+// read_*
+
+void Input::read_singleline_comment(Comment& c) {
+   consume("//");
+   while (!end() and curr() != '\n') {
+      c.text += curr();
+      next();
+   }
+   return;
+}
+
+void Input::read_multiline_comment(Comment& c) {
+   consume("/*");
+   while (!end()) {
+      if (curr() == '*') {
+         peek(1);
+         if (curr(1) == '/') {
+            consume("*/");
+            return;
+         }
+      }
+      c.text += curr();
+      next();
+   }
+   error(pos().str() + "unfinished comment");
+   return;
+}
+
+inline bool _isupper(char c) { return c >= 'A' and c <= 'Z'; }
+inline bool _islower(char c) { return c >= 'a' and c <= 'z'; }
+inline bool _isdigit(char c) { return c >= '0' and c <= '9'; }
+
+string Input::read_id() {
+   string id;
+   char c = curr();
+   if (!_isupper(c) and !_islower(c) and c != '_') {
       return "";
    }
-   return _text.substr(i, j - i);
+   id += c;
+   next();
+   c = curr();
+   while (_isupper(c) or _islower(c) or _isdigit(c) or c == '_') {
+      id += c;
+      next();
+      c = curr();
+   }
+   return id;
+}
+
+Token Input::read_operator() {
+   string op;
+   char x;
+   int ini = _curr, fin = -1;
+   switch (curr()) {
+   case '+': case '&': case '|': // + ++ += & && &= | || |=
+      x = curr();
+      op += x; next();
+      if (curr() == '=' or curr() == x) {
+         op += curr(); next();
+      }
+      break;
+
+   case '-':                     // - -- -= -> ->*
+      op += '-'; next();
+      switch (curr()) {
+      case '=': case '-':
+         op += curr(); next();
+         break;
+
+      case '>':
+         op += '>'; next();
+         if (curr() == '*') {
+            op += '*'; next();
+         }
+         break;
+      }
+      break;
+
+   case '*': case '/': case '%': // * *= / /= % %= = == ! != ^ ^=
+   case '=': case '!': case '^': 
+      op += curr(); next();
+      if (curr() == '=') {
+         op += '='; next();
+      }
+      break;
+      
+   case '<': case '>':           // < <= << <<= > >= >> >>=
+      x = curr();
+      op += x; next();
+      if (curr() == x) {
+         op += x; next();
+      } 
+      if (curr() == '=') {
+         op += '='; next();
+      }
+      break;
+
+   case ',': case '~':           // , ~
+      op += curr(); next();
+      break;
+      
+   default:
+      break;
+   }
+   fin = _curr;
+   Token t(Token::token2type(op));
+   t.ini = ini;
+   t.fin = fin;
+   return t;
+}
+
+Token Input::read_string_literal() {
+   error("UNIMPLEMENTED 1");
+   return Token();
+}
+
+Token Input::read_number_literal() {
+   string num;
+   while (isdigit(curr())) {
+      num += curr();
+      next();
+   }
+   return Token(Token::IntLiteral);
+}
+
+Token Input::read_char_literal() {
+   error("UNIMPLEMENTED 3");
+   return Token();
 }

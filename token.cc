@@ -11,8 +11,36 @@ struct {
    Token::Type t; 
    Token::Kind k;
 } toktab[] = {
-   { "",         Token::Empty,    Token::None },
+   { "",           Token::Empty, Token::None },
 
+   { ",",          Token::Comma, Token::None },
+
+   { "||",        Token::BarBar, Token::None },
+   { "&&",        Token::AmpAmp, Token::None },
+   { "=",         Token::Assign, Token::None },
+   { "*=",    Token::StarAssign, Token::None },
+   { "-=",   Token::MinusAssign, Token::None },
+   { "+=",    Token::PlusAssign, Token::None },
+   { "/=",   Token::SlashAssign, Token::None },
+   { "%=",     Token::DivAssign, Token::None },
+   { "|=",      Token::OrAssign, Token::None },
+   { "&=",     Token::AndAssign, Token::None },
+   { "^=",     Token::XorAssign, Token::None },
+   { "<<=", Token::LShiftAssign, Token::None },
+   { ">>=", Token::RShiftAssign, Token::None },
+   { "or",            Token::Or, Token::None },
+   { "and",          Token::And, Token::None },
+
+   { "==",          Token::EqEq, Token::None },
+   { "!=",         Token::NotEq, Token::None },
+   { "<",             Token::LT, Token::None },
+   { ">",             Token::GT, Token::None },
+   { ">=",            Token::GE, Token::None },
+   { "<=",            Token::LE, Token::None },
+   { "<<",        Token::LShift, Token::None },
+   { ">>",        Token::RShift, Token::None },
+
+   { "#",        Token::Sharp,    Token::None },
    { ".",        Token::Dot,      Token::None },
    { "->",       Token::Arrow,    Token::None },
    { "{",        Token::LCurly,   Token::None },

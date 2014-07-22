@@ -350,17 +350,20 @@ Expr *Parser::parse_primary_expr() {
       }
       break;
 
+   case Token::True:
+   case Token::False:
+   case Token::IntLiteral:
+      e = new Literal(_in.next_token_old());
+      _skip(e);
+      break;
+
    default:
       string tok = _in.next_token_old();
       if (tok == "") {
          error("Expression doesn't start with a token");
          return 0;
       }
-      if (is_literal(tok)) {
-         e = new Literal(tok);
-      } else {
-         e = new Identifier(tok);
-      }
+      e = new Identifier(tok);
       _skip(e);
    }
    return e;
@@ -443,14 +446,16 @@ Expr *Parser::parse_expr(BinaryExpr::Type max) {
 
    while (true) {
       _in.save();
-      string op = _in.read_operator();
-      BinaryExpr::Type type = BinaryExpr::op2type(op);
-      if (op == "" or type > max) {
+      Token tok = _in.read_operator();
+      BinaryExpr::Type type = BinaryExpr::tok2type(tok.t);
+      if (tok.t == Token::Empty or type > max) {
          _in.restore();
          break;
       }
+      _in.discard();
       BinaryExpr *e = new BinaryExpr();
-      e->set(op);
+      e->op = _in.substr(tok);
+      e->set(type);
       _skip(e);
       BinaryExpr::Type submax = 
          BinaryExpr::Type(Expr::right_associative(type) 
