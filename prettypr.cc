@@ -213,3 +213,8 @@ void PrettyPrinter::visit_fieldexpr(FieldExpr *x) {
    out() << (x->pointer ? "->" : ".");
    x->field->visit(this);
 }
+
+void PrettyPrinter::visit_signexpr(SignExpr *x) {
+   out() << (x->type == SignExpr::Positive ? "+" : "-");
+   x->expr->visit(this);
+}

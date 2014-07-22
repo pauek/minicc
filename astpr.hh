@@ -32,6 +32,7 @@ public:
    void visit_callexpr(CallExpr *x);
    void visit_indexexpr(IndexExpr *x);
    void visit_fieldexpr(FieldExpr *x);
+   void visit_signexpr(SignExpr *x);
 };
 
 #endif

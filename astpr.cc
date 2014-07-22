@@ -219,3 +219,11 @@ void AstPrinter::visit_fieldexpr(FieldExpr *x) {
    x->field->visit(this);
    out() << ")";
 }
+
+void AstPrinter::visit_signexpr(SignExpr *x) {
+   out() << "SignExpr<";
+   out() << (x->type == SignExpr::Positive ? "+" : "-");
+   out() << ">(";
+   x->expr->visit(this);
+   out() << ")";
+}

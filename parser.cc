@@ -340,8 +340,19 @@ Expr *Parser::parse_unary_expr() {
       if (!_in.expect(")")) {
          error(_in.pos().str() + ": Expected ')'");
       }
-      return e;
+      break;
 
+   case Token::Plus:
+   case Token::Minus: {
+      SignExpr *se = new SignExpr(tok.t == Token::Plus 
+                       ? SignExpr::Positive 
+                       : SignExpr::Negative);
+      _in.next();
+      _skip(se);
+      se->expr = parse_unary_expr();
+      e = se;
+      break;
+   }
    default:
       string tok = _in.next_token();
       if (tok == "") {
@@ -353,6 +364,7 @@ Expr *Parser::parse_unary_expr() {
       } else {
          e = new Identifier(tok);
       }
+      break;
    }
    _skip(e);
    return e;

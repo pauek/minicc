@@ -206,6 +206,14 @@ struct BinaryExpr : public Expr {
    void set(std::string op);
 };
 
+struct SignExpr : public Expr {
+   Expr *expr;
+   enum Type { Positive, Negative };
+   Type type;
+   SignExpr(Type t) : type(t) {}
+   void visit(AstVisitor *v);
+};
+
 struct CallExpr : public Expr {
    Expr *func;
    std::vector<Expr *> args;
@@ -272,6 +280,7 @@ public:
    virtual void visit_callexpr(CallExpr *) = 0;
    virtual void visit_indexexpr(IndexExpr *) = 0;
    virtual void visit_fieldexpr(FieldExpr *) = 0;
+   virtual void visit_signexpr(SignExpr *) = 0;
 };
 
 // Visit implementations
@@ -295,6 +304,7 @@ inline void JumpStmt::visit(AstVisitor *v)    { v->visit_jumpstmt(this); }
 inline void CallExpr::visit(AstVisitor *v)    { v->visit_callexpr(this); }
 inline void IndexExpr::visit(AstVisitor *v)   { v->visit_indexexpr(this); }
 inline void FieldExpr::visit(AstVisitor *v)   { v->visit_fieldexpr(this); }
+inline void SignExpr::visit(AstVisitor *v)    { v->visit_signexpr(this); }
 
 // Comment helpers
 std::string cmt(CommentNode* cn, bool pre, bool post, bool missing);

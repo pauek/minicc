@@ -206,7 +206,7 @@ Token Input::peek_token() {
    case '[': return Token(Token::LBrack);
    case '{': return Token(Token::LCurly);
    case '#': return Token(Token::Sharp);
-   case '-': {
+   case '-': case '+': {
       save();
       string op = read_operator();
       restore();
