@@ -20,8 +20,6 @@ class Parser {
    
    template<typename X> void _skip(X *n, std::string stopset = "\n\t ");
 
-   void _parse_while_or_if(Stmt *stmt, string which);
-
 public:
    Parser(std::istream *in, std::ostream* err = &std::cerr);
 

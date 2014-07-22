@@ -395,21 +395,6 @@ Expr *Parser::parse_binaryexpr(BinaryExpr::Type max) {
    return left;
 }
 
-void Parser::_parse_while_or_if(Stmt *stmt, string which) {
-   _in.consume(which);
-   _skip(stmt);
-   if (!_in.expect("(")) {
-      error(_in.pos().str() + ": Expected '('");
-   }
-   _in.skip("\t\n "); // Comments here will disappear
-   stmt->expr = parse_binaryexpr();
-   if (!_in.expect(")")) {
-      error(_in.pos().str() + ": Expected ')')");
-   }
-   _skip(stmt);
-   stmt->sub_stmt[0] = parse_stmt();
-}
-
 Stmt *Parser::parse_for() {
    IterStmt *stmt = new IterStmt();
    _in.consume("for");
