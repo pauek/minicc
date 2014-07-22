@@ -206,6 +206,12 @@ Token Input::peek_token() {
    case '[': return Token(Token::LBrack);
    case '{': return Token(Token::LCurly);
    case '#': return Token(Token::Sharp);
+   case '-': {
+      save();
+      string op = read_operator();
+      restore();
+      return Token::token2type(op);
+   }      
    default:
       return Token::token2type(peek_to(separators));
    }
