@@ -107,6 +107,7 @@ void PrettyPrinter::visit_binaryexpr(BinaryExpr *x) {
    if (x->paren) {
       out() << ")";
    }
+   out() << _cmt0(x, -1);
 }
 
 void PrettyPrinter::visit_stmt(Stmt *x) {
@@ -183,14 +184,18 @@ void PrettyPrinter::visit_jumpstmt(JumpStmt *x) {
 
 void PrettyPrinter::visit_callexpr(CallExpr *x) {
    x->func->visit(this);
+   if (x->func->comment_nodes[0] != 0 and !x->func->comment_nodes[0]->endl()) {
+      out() << " ";
+   }
    out() << "(";
    for (int i = 0; i < x->args.size(); i++) {
       if (i > 0) {
          out() << ", ";
       }
+      out() << cmt0_(x, i);
       x->args[i]->visit(this);
    }
-   out() << ")";
+   out() << ")" << _cmt0_(x, x->args.size());
 }
 
 void PrettyPrinter::visit_indexexpr(IndexExpr *x) {
@@ -222,11 +227,11 @@ void PrettyPrinter::visit_increxpr(IncrExpr *x) {
 }
 
 void PrettyPrinter::visit_negexpr(NegExpr *x) {
-   out() << "!";
+   out() << "!" << _cmt0_(x, 0);
    x->expr->visit(this);
 }
 
 void PrettyPrinter::visit_addrexpr(AddrExpr *x) {
-   out() << "!";
+   out() << "&" << _cmt0_(x, 0);
    x->expr->visit(this);
 }

@@ -453,8 +453,8 @@ Expr *Parser::parse_expr(BinaryExpr::Type max) {
       e->left = left;
       e->right = right;
       left = e;
+      _skip(left);
    } 
-   _skip(left);
    return left;
 }
 
@@ -497,7 +497,7 @@ Expr *Parser::parse_fieldexpr(Expr *x, Token tok) {
    _in.consume(tok.t == Token::Arrow ? "->" : ".");
    _skip(e);
    e->field = new Identifier(_in.read_id());
-   _skip(e);
+   _skip(e->field);
    return e;
 }
 

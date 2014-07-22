@@ -336,10 +336,20 @@ inline void AddrExpr::visit(AstVisitor *v)    { v->visit_addrexpr(this); }
 std::string cmt(CommentNode* cn, bool pre, bool post, bool missing);
 std::string cmtl(CommentNode *cn);
 
-template<typename T> std::string _cmt  (T* x, int i) { return cmt(x->comment_nodes[i], 1, 0, 1); }
-template<typename T> std::string _cmt_ (T* x, int i) { return cmt(x->comment_nodes[i], 1, 1, 1); }
-template<typename T> std::string _cmt0 (T* x, int i) { return cmt(x->comment_nodes[i], 1, 0, 0); }
-template<typename T> std::string _cmt0_(T* x, int i) { return cmt(x->comment_nodes[i], 1, 1, 0); }
-template<typename T> std::string _cmtl (T* x, int i) { return cmtl(x->comment_nodes[i]); }
+template<typename T> 
+inline CommentNode *_at(T *x, int i) {
+   if (i < 0) {
+      const int sz = x->comment_nodes.size();
+      return x->comment_nodes[sz+i];
+   } else {
+      return x->comment_nodes[i];
+   }
+}
+template<typename T> std::string _cmt  (T* x, int i) { return cmt(_at(x, i), 1, 0, 1); }
+template<typename T> std::string _cmt_ (T* x, int i) { return cmt(_at(x, i), 1, 1, 1); }
+template<typename T> std::string _cmt0 (T* x, int i) { return cmt(_at(x, i), 1, 0, 0); }
+template<typename T> std::string _cmt0_(T* x, int i) { return cmt(_at(x, i), 1, 1, 0); }
+template<typename T> std::string  cmt0_(T* x, int i) { return cmt(_at(x, i), 0, 1, 0); }
+template<typename T> std::string _cmtl (T* x, int i) { return cmtl(_at(x, i)); }
 
 #endif
