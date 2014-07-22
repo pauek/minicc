@@ -35,6 +35,7 @@ public:
    void visit_fieldexpr(FieldExpr *x);
    void visit_signexpr(SignExpr *x);
    void visit_negexpr(NegExpr *x);
+   void visit_addrexpr(AddrExpr *x);
 };
 
 #endif

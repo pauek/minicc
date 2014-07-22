@@ -329,7 +329,8 @@ Stmt *Parser::parse_exprstmt() {
    return stmt;
 }
 
-Expr *Parser::parse_unary_expr() {
+
+Expr *Parser::parse_primary_expr() {
    Expr *e;
    Token tok = _in.peek_token();
    switch (tok.t) {
@@ -342,6 +343,51 @@ Expr *Parser::parse_unary_expr() {
       }
       break;
 
+   default:
+      string tok = _in.next_token();
+      if (tok == "") {
+         error("Expression doesn't start with a token");
+         return 0;
+      }
+      if (is_literal(tok)) {
+         e = new Literal(tok);
+      } else {
+         e = new Identifier(tok);
+      }
+   }
+   return e;
+}
+
+Expr *Parser::parse_postfix_expr(Expr *e = 0) {
+   if (e == 0) {
+      e = parse_primary_expr();
+   }
+ begin:
+   Token tok = _in.peek_token();
+   switch (tok.t) {
+   case Token::LParen:
+      e = parse_callexpr(e);
+      goto begin;
+      
+   case Token::LBrack:
+      e = parse_indexexpr(e);
+      goto begin;
+      
+   case Token::Dot:
+   case Token::Arrow:
+      e = parse_fieldexpr(e, tok);
+      goto begin;
+      
+   default:
+      break;
+   }
+   return e;
+}
+
+Expr *Parser::parse_unary_expr() {
+   Expr *e;
+   Token tok = _in.peek_token();
+   switch (tok.t) {
    case Token::Not: {
       NegExpr *ne = new NegExpr();
       _in.next();
@@ -361,17 +407,16 @@ Expr *Parser::parse_unary_expr() {
       e = se;
       break;
    }
+   case Token::Amp: {
+      AddrExpr *ae = new AddrExpr();
+      _in.next();
+      _skip(ae);
+      ae->expr = parse_unary_expr();
+      e = ae;
+      break;
+   }      
    default:
-      string tok = _in.next_token();
-      if (tok == "") {
-         error("Expression doesn't start with a token");
-         return 0;
-      }
-      if (is_literal(tok)) {
-         e = new Literal(tok);
-      } else {
-         e = new Identifier(tok);
-      }
+      e = parse_postfix_expr();
       break;
    }
    _skip(e);
@@ -382,26 +427,6 @@ Expr *Parser::parse_expr(BinaryExpr::Type max) {
    CommentNode *cn;
 
    Expr *left = parse_unary_expr();
-
- postfix:
-   Token tok = _in.peek_token();
-   switch (tok.t) {
-   case Token::LParen:
-      left = parse_callexpr(left);
-      goto postfix;
-      
-   case Token::LBrack:
-      left = parse_indexexpr(left);
-      goto postfix;
-      
-   case Token::Dot:
-   case Token::Arrow:
-      left = parse_fieldexpr(left, tok);
-      goto postfix;
-
-   default:
-      break;
-   }
 
    while (true) {
       _in.save();

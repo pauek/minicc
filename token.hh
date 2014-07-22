@@ -10,7 +10,7 @@ public:
       Unknown, Empty,
       Int, Void, Char, Double, Float, Bool, String,
       True, False,
-      Sharp, Not,
+      Sharp, Not, Amp,
       Plus, Minus, PlusPlus, MinusMinus,
       LCurly, LParen, LBrack, Dot, Arrow,
       If, Else, While, For, Switch, 

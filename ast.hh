@@ -222,6 +222,10 @@ struct NegExpr : public UnaryExpr {
    void visit(AstVisitor *v);
 };
 
+struct AddrExpr : public UnaryExpr { 
+   void visit(AstVisitor *v);
+};
+
 struct CallExpr : public Expr {
    Expr *func;
    std::vector<Expr *> args;
@@ -290,6 +294,7 @@ public:
    virtual void visit_fieldexpr(FieldExpr *) = 0;
    virtual void visit_signexpr(SignExpr *) = 0;
    virtual void visit_negexpr(NegExpr *) = 0;
+   virtual void visit_addrexpr(AddrExpr *) = 0;
 };
 
 // Visit implementations
@@ -315,6 +320,7 @@ inline void IndexExpr::visit(AstVisitor *v)   { v->visit_indexexpr(this); }
 inline void FieldExpr::visit(AstVisitor *v)   { v->visit_fieldexpr(this); }
 inline void SignExpr::visit(AstVisitor *v)    { v->visit_signexpr(this); }
 inline void NegExpr::visit(AstVisitor *v)     { v->visit_negexpr(this); }
+inline void AddrExpr::visit(AstVisitor *v)    { v->visit_addrexpr(this); }
 
 // Comment helpers
 std::string cmt(CommentNode* cn, bool pre, bool post, bool missing);

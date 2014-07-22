@@ -233,3 +233,9 @@ void AstPrinter::visit_negexpr(NegExpr *x) {
    x->expr->visit(this);
    out() << ")";
 }
+
+void AstPrinter::visit_addrexpr(AddrExpr *x) {
+   out() << "AddrExpr(";
+   x->expr->visit(this);
+   out() << ")";
+}

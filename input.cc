@@ -201,13 +201,13 @@ string Input::peek_to(string stop_set) {
 Token Input::peek_token() {
    // TODO: Lexing eficiente y correcto.
    switch (curr()) {
-   case '!': return Token(Token::Not);
    case '.': return Token(Token::Dot);
    case '(': return Token(Token::LParen);
    case '[': return Token(Token::LBrack);
    case '{': return Token(Token::LCurly);
    case '#': return Token(Token::Sharp);
-   case '-': case '+': {
+
+   case '-': case '+': case '&': case '!': {
       save();
       string op = read_operator();
       restore();

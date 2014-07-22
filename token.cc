@@ -21,6 +21,7 @@ struct {
    { "#",        Token::Sharp,    Token::None },
 
    { "!",        Token::Not,        Token::None },
+   { "&",        Token::Amp,        Token::None },
    { "+",        Token::Plus,       Token::None },
    { "-",        Token::Minus,      Token::None },
    { "++",       Token::PlusPlus,   Token::None },

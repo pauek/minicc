@@ -46,6 +46,8 @@ public:
       Type *parse_type();
 
       Expr *parse_expr(Expr::Type max = Expr::comma);
+      Expr *parse_primary_expr();
+      Expr *parse_postfix_expr(Expr *);
       Expr *parse_unary_expr();
       Expr *parse_callexpr(Expr *);
       Expr *parse_indexexpr(Expr *);

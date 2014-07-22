@@ -223,3 +223,8 @@ void PrettyPrinter::visit_negexpr(NegExpr *x) {
    out() << "!";
    x->expr->visit(this);
 }
+
+void PrettyPrinter::visit_addrexpr(AddrExpr *x) {
+   out() << "!";
+   x->expr->visit(this);
+}
