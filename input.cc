@@ -192,11 +192,9 @@ void Input::restore() {
 }
 
 string Input::peek_to(string stop_set) {
-   Pos saved_pos = _pos;
-   int saved_curr = _curr;
+   save();
    string res = skip_to(stop_set);
-   _pos = saved_pos;
-   _curr = saved_curr;
+   restore();
    return res;
 }
 
