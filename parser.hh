@@ -47,9 +47,9 @@ public:
 
       Expr *parse_expr();
       Expr *parse_binaryexpr(Expr::Type max = Expr::comma);
-      Expr *parse_call(Expr *);
-      Expr *parse_array_access(Expr *);
-      Expr *parse_struct_access(Expr *, Token);
+      Expr *parse_callexpr(Expr *);
+      Expr *parse_indexexpr(Expr *);
+      Expr *parse_fieldexpr(Expr *, Token);
 };
 
 #endif

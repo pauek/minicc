@@ -363,16 +363,16 @@ Expr *Parser::parse_binaryexpr(BinaryExpr::Type max) {
    Token tok = _in.peek_token();
    switch (tok.t) {
    case Token::LParen:
-      left = parse_call(left);
+      left = parse_callexpr(left);
       goto postfix;
       
    case Token::LBrack:
-      left = parse_array_access(left);
+      left = parse_indexexpr(left);
       goto postfix;
       
    case Token::Dot:
    case Token::Arrow:
-      left = parse_struct_access(left, tok);
+      left = parse_fieldexpr(left, tok);
       goto postfix;
 
    default:
@@ -403,7 +403,7 @@ Expr *Parser::parse_binaryexpr(BinaryExpr::Type max) {
    return left;
 }
 
-Expr *Parser::parse_call(Expr *x) {
+Expr *Parser::parse_callexpr(Expr *x) {
    CallExpr *e = new CallExpr();
    e->func = x;
    _in.consume('(');
@@ -423,7 +423,7 @@ Expr *Parser::parse_call(Expr *x) {
    return e;
 }
 
-Expr *Parser::parse_array_access(Expr *x) {
+Expr *Parser::parse_indexexpr(Expr *x) {
    IndexExpr *e = new IndexExpr();
    e->base = x;
    _in.consume('[');
@@ -435,7 +435,7 @@ Expr *Parser::parse_array_access(Expr *x) {
    return e;
 }
 
-Expr *Parser::parse_struct_access(Expr *x, Token tok) {
+Expr *Parser::parse_fieldexpr(Expr *x, Token tok) {
    FieldExpr *e = new FieldExpr();
    e->base = x;
    e->pointer = (tok.t == Token::Arrow);
@@ -445,7 +445,6 @@ Expr *Parser::parse_struct_access(Expr *x, Token tok) {
    _skip(e);
    return e;
 }
-
 
 Stmt *Parser::parse_for() {
    IterStmt *stmt = new IterStmt();
