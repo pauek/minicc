@@ -367,7 +367,7 @@ Expr *Parser::parse_binaryexpr(BinaryExpr::Type max) {
    Token tok = _in.peek_token();
    switch (tok.t) {
    case Token::LParen:
-      left = parse_funcall(left);
+      left = parse_call(left);
       goto postfix;
       
    case Token::LBrack:
@@ -407,7 +407,7 @@ Expr *Parser::parse_binaryexpr(BinaryExpr::Type max) {
    return left;
 }
 
-Expr *Parser::parse_funcall(Expr *func) {
+Expr *Parser::parse_call(Expr *func) {
    CallExpr *e = new CallExpr();
    e->func = func;
    _in.consume('(');
