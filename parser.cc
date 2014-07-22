@@ -363,10 +363,24 @@ Expr *Parser::parse_binaryexpr(BinaryExpr::Type max) {
    }
    _skip(left);
 
-   // Function call?
-   if (_in.curr() == '(') {
-      error("UNIMPLEMENTED");
-      return 0;
+ postfix:
+   Token tok = _in.peek_token();
+   switch (tok.t) {
+   case Token::LParen:
+      left = parse_funcall(left);
+      goto postfix;
+      
+   case Token::LBrack:
+      left = parse_array_access(left);
+      goto postfix;
+      
+   case Token::Dot:
+   case Token::Arrow:
+      left = parse_struct_access(left, tok);
+      goto postfix;
+
+   default:
+      break;
    }
 
    while (true) {
@@ -392,6 +406,35 @@ Expr *Parser::parse_binaryexpr(BinaryExpr::Type max) {
    _skip(left);
    return left;
 }
+
+Expr *Parser::parse_funcall(Expr *func) {
+   CallExpr *e = new CallExpr();
+   e->func = func;
+   _in.consume('(');
+   _skip(e);
+   if (_in.curr() != ')') {
+      e->args.push_back(parse_expr());
+      while (_in.curr() == ',') {
+         e->args.push_back(parse_expr());
+      }
+   }
+   if (!_in.expect(")")) {
+      error(_in.pos().str() + ": Esperaba ')'");
+   }
+   _skip(e);
+   return e;
+}
+
+Expr *Parser::parse_array_access(Expr *e) {
+   error("UNIMPLEMENTED");
+   return 0;
+}
+
+Expr *Parser::parse_struct_access(Expr *e, Token tok) {
+   error("UNIMPLEMENTED");
+   return 0;
+}
+
 
 Stmt *Parser::parse_for() {
    IterStmt *stmt = new IterStmt();

@@ -188,3 +188,15 @@ void PrettyPrinter::visit_jumpstmt(JumpStmt *x) {
       out() << ";" << _cmt0(x, 1);
    }
 }
+
+void PrettyPrinter::visit_callexpr(CallExpr *x) {
+   x->func->visit(this);
+   out() << "(";
+   for (int i = 0; i < x->args.size(); i++) {
+      if (i > 0) {
+         out() << ", ";
+      }
+      x->args[i]->visit(this);
+   }
+   out() << ")";
+}

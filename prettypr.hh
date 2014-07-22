@@ -30,6 +30,7 @@ public:
    void visit_ifstmt(IfStmt *x);
    void visit_iterstmt(IterStmt *x);
    void visit_jumpstmt(JumpStmt *x);
+   void visit_callexpr(CallExpr *x);
 };
 
 #endif

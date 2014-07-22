@@ -204,6 +204,13 @@ struct BinaryExpr : public Expr {
    void set(std::string op);
 };
 
+struct CallExpr : public Expr {
+   Expr *func;
+   std::vector<Expr *> args;
+   CallExpr() : func(0) {}
+   void visit(AstVisitor *v);
+};
+
 struct Type : public AstNode {
    std::string name;
    Type(std::string _name) : name(_name) {}
@@ -245,6 +252,7 @@ public:
    virtual void visit_ifstmt(IfStmt *) = 0;
    virtual void visit_iterstmt(IterStmt *) = 0;
    virtual void visit_jumpstmt(JumpStmt *) = 0;
+   virtual void visit_callexpr(CallExpr *) = 0;
 };
 
 // Visit implementations
@@ -265,15 +273,16 @@ inline void ExprStmt::visit(AstVisitor *v)    { v->visit_exprstmt(this); }
 inline void IfStmt::visit(AstVisitor *v)      { v->visit_ifstmt(this); }
 inline void IterStmt::visit(AstVisitor *v)    { v->visit_iterstmt(this); }
 inline void JumpStmt::visit(AstVisitor *v)    { v->visit_jumpstmt(this); }
+inline void CallExpr::visit(AstVisitor *v)    { v->visit_callexpr(this); }
 
 // Comment helpers
 std::string cmt(CommentNode* cn, bool pre, bool post, bool missing);
 std::string cmtl(CommentNode *cn);
 
-template<typename T> std::string _cmt  (T* x, int i) { return cmt(x->comment_nodes[i], true, false, true); }
-template<typename T> std::string _cmt_ (T* x, int i) { return cmt(x->comment_nodes[i], true, true,  true); }
-template<typename T> std::string _cmt0 (T* x, int i) { return cmt(x->comment_nodes[i], true, false, false); }
-template<typename T> std::string _cmt0_(T* x, int i) { return cmt(x->comment_nodes[i], true, true,  false); }
+template<typename T> std::string _cmt  (T* x, int i) { return cmt(x->comment_nodes[i], 1, 0, 1); }
+template<typename T> std::string _cmt_ (T* x, int i) { return cmt(x->comment_nodes[i], 1, 1, 1); }
+template<typename T> std::string _cmt0 (T* x, int i) { return cmt(x->comment_nodes[i], 1, 0, 0); }
+template<typename T> std::string _cmt0_(T* x, int i) { return cmt(x->comment_nodes[i], 1, 1, 0); }
 template<typename T> std::string _cmtl (T* x, int i) { return cmtl(x->comment_nodes[i]); }
 
 #endif

@@ -189,3 +189,16 @@ void AstPrinter::visit_jumpstmt(JumpStmt *x) {
    }
    out() << ")";
 }
+
+void AstPrinter::visit_callexpr(CallExpr *x) {
+   out() << "CallExpr(";
+   x->func->visit(this);
+   out() << ", Args = {";
+   for (int i = 0; i < x->args.size(); i++) {
+      if (i > 0) {
+         out() << ", ";
+      }
+      x->args[i]->visit(this);
+   }
+   out() << "})";
+}

@@ -211,21 +211,21 @@ class_or_namespace_name:
    namespace_name
 postfix_expression:
    primary_expression
-   postfix_expression "[" expression "]"
-   postfix_expression "(" [expression_list] ")"
+   postfix_expression    "[" expression "]"
+   postfix_expression    "(" [expression_list] ")"
    simple_type_specifier "(" [expression_list] ")"
    typename ["::"] nested_name_specifier identifier "(" [expression_list] ")"
    typename ["::"] nested_name_specifier [template] template_id "(" [expression_list] ")"
-   postfix_expression . [template] ["::"] id_expression
-   postfix_expression -> [template] ["::"] id_expression
-   postfix_expression . pseudo_destructor_name
-   postfix_expression -> pseudo_destructor_name
-   postfix_expression ++
-   postfix_expression --
-   dynamic_cast < type_id > "(" expression ")"
-   static_cast < type_id > "(" expression ")"
-   reinterpret_cast < type_id > "(" expression ")"
-   const_cast < type_id > "(" expression ")"
+   postfix_expression "."  ["template"] ["::"] id_expression
+   postfix_expression "->" ["template"] ["::"] id_expression
+   postfix_expression "."  pseudo_destructor_name
+   postfix_expression "->" pseudo_destructor_name
+   postfix_expression "++"
+   postfix_expression "--"
+   "dynamic_cast"     "<" type_id ">" "(" expression ")"
+   "static_cast"      "<" type_id ">" "(" expression ")"
+   "reinterpret_cast" "<" type_id ">" "(" expression ")"
+   "const_cast"       "<" type_id ">" "(" expression ")"
    typeid "(" expression ")"
    typeid "(" type_id ")"
 expression_list:
@@ -237,8 +237,8 @@ pseudo_destructor_name:
    ["::"] [nested_name_specifier] "~" type_name
 unary_expression:
    postfix_expression
-   "++"  cast_expression
-   "--"  cast_expression
+   "++" cast_expression
+   "--" cast_expression
    unary_operator cast_expression
    "sizeof" unary_expression
    "sizeof" "(" type_id ")"

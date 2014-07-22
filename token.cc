@@ -13,7 +13,11 @@ struct {
 } toktab[] = {
    { "",         Token::Empty,    Token::None },
 
+   { ".",        Token::Dot,      Token::None },
+   { "->",       Token::Arrow,    Token::None },
    { "{",        Token::LCurly,   Token::None },
+   { "[",        Token::LBrack,   Token::None },
+   { "(",        Token::LParen,   Token::None },
    { "#",        Token::Sharp,    Token::None },
 
    { "if",       Token::If,       Token::None },
