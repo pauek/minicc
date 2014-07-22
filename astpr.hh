@@ -33,6 +33,7 @@ public:
    void visit_indexexpr(IndexExpr *x);
    void visit_fieldexpr(FieldExpr *x);
    void visit_signexpr(SignExpr *x);
+   void visit_negexpr(NegExpr *x);
 };
 
 #endif

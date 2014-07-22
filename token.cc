@@ -20,10 +20,11 @@ struct {
    { "(",        Token::LParen,   Token::None },
    { "#",        Token::Sharp,    Token::None },
 
-   { "+",  Token::Plus,       Token::None },
-   { "-",  Token::Minus,      Token::None },
-   { "++", Token::PlusPlus,   Token::None },
-   { "--", Token::MinusMinus, Token::None },
+   { "!",        Token::Not,        Token::None },
+   { "+",        Token::Plus,       Token::None },
+   { "-",        Token::Minus,      Token::None },
+   { "++",       Token::PlusPlus,   Token::None },
+   { "--",       Token::MinusMinus, Token::None },
 
    { "if",       Token::If,       Token::None },
    { "else",     Token::Else,     Token::None },

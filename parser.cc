@@ -342,11 +342,19 @@ Expr *Parser::parse_unary_expr() {
       }
       break;
 
+   case Token::Not: {
+      NegExpr *ne = new NegExpr();
+      _in.next();
+      _skip(ne);
+      ne->expr = parse_unary_expr();
+      e = ne;
+      break;
+   }
    case Token::Plus:
    case Token::Minus: {
       SignExpr *se = new SignExpr(tok.t == Token::Plus 
-                       ? SignExpr::Positive 
-                       : SignExpr::Negative);
+                                  ? SignExpr::Positive
+                                  : SignExpr::Negative);
       _in.next();
       _skip(se);
       se->expr = parse_unary_expr();

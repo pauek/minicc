@@ -218,3 +218,8 @@ void PrettyPrinter::visit_signexpr(SignExpr *x) {
    out() << (x->type == SignExpr::Positive ? "+" : "-");
    x->expr->visit(this);
 }
+
+void PrettyPrinter::visit_negexpr(NegExpr *x) {
+   out() << "!";
+   x->expr->visit(this);
+}

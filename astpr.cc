@@ -227,3 +227,9 @@ void AstPrinter::visit_signexpr(SignExpr *x) {
    x->expr->visit(this);
    out() << ")";
 }
+
+void AstPrinter::visit_negexpr(NegExpr *x) {
+   out() << "NegExpr(";
+   x->expr->visit(this);
+   out() << ")";
+}
