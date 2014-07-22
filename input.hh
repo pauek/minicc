@@ -13,39 +13,6 @@ struct Pos {
    std::string str() const;
 };
 
-inline std::ostream& operator<<(std::ostream& o, const Pos& pos) {
-   o << pos.lin << ":" << pos.col;
-   return o;
-}
-
-inline bool operator==(const Pos& a, const Pos& b) {
-   return a.lin == b.lin && a.col == b.col;
-}
-
-inline bool operator<(const Pos& a, const Pos& b) {
-   if (a.lin != b.lin) {
-      return a.lin < b.lin;
-   } else {
-      return a.col < b.col;
-   }
-}
-
-inline bool operator>(const Pos& a, const Pos& b) {
-   if (a.lin != b.lin) {
-      return a.lin > b.lin;
-   } else {
-      return a.col > b.col;
-   }
-}
-
-inline bool operator<=(const Pos& a, const Pos& b) { 
-   return operator<(a, b) || operator==(a, b); 
-}
-
-inline bool operator>=(const Pos& a, const Pos& b) { 
-   return operator>(a, b) || operator==(a, b); 
-}
-
 struct Range {
    Pos ini, fin;
    Range(Pos i, Pos f) : ini(i), fin(f) {}
@@ -110,5 +77,38 @@ public:
 };
 
 bool is_space(std::string s);
+
+inline std::ostream& operator<<(std::ostream& o, const Pos& pos) {
+   o << pos.lin << ":" << pos.col;
+   return o;
+}
+
+inline bool operator==(const Pos& a, const Pos& b) {
+   return a.lin == b.lin && a.col == b.col;
+}
+
+inline bool operator<(const Pos& a, const Pos& b) {
+   if (a.lin != b.lin) {
+      return a.lin < b.lin;
+   } else {
+      return a.col < b.col;
+   }
+}
+
+inline bool operator>(const Pos& a, const Pos& b) {
+   if (a.lin != b.lin) {
+      return a.lin > b.lin;
+   } else {
+      return a.col > b.col;
+   }
+}
+
+inline bool operator<=(const Pos& a, const Pos& b) { 
+   return operator<(a, b) || operator==(a, b); 
+}
+
+inline bool operator>=(const Pos& a, const Pos& b) { 
+   return operator>(a, b) || operator==(a, b); 
+}
 
 #endif
