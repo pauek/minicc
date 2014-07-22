@@ -218,6 +218,14 @@ struct SignExpr : public UnaryExpr {
    void visit(AstVisitor *v);
 };
 
+struct IncrExpr : public UnaryExpr {
+   enum Type { Positive, Negative };
+   Type type;
+   bool preincr;
+   IncrExpr(Type t, bool pre = false) : type(t), preincr(pre) {}
+   void visit(AstVisitor *v);
+};
+
 struct NegExpr : public UnaryExpr { 
    void visit(AstVisitor *v);
 };
@@ -293,6 +301,7 @@ public:
    virtual void visit_indexexpr(IndexExpr *) = 0;
    virtual void visit_fieldexpr(FieldExpr *) = 0;
    virtual void visit_signexpr(SignExpr *) = 0;
+   virtual void visit_increxpr(IncrExpr *) = 0;
    virtual void visit_negexpr(NegExpr *) = 0;
    virtual void visit_addrexpr(AddrExpr *) = 0;
 };
@@ -319,6 +328,7 @@ inline void CallExpr::visit(AstVisitor *v)    { v->visit_callexpr(this); }
 inline void IndexExpr::visit(AstVisitor *v)   { v->visit_indexexpr(this); }
 inline void FieldExpr::visit(AstVisitor *v)   { v->visit_fieldexpr(this); }
 inline void SignExpr::visit(AstVisitor *v)    { v->visit_signexpr(this); }
+inline void IncrExpr::visit(AstVisitor *v)    { v->visit_increxpr(this); }
 inline void NegExpr::visit(AstVisitor *v)     { v->visit_negexpr(this); }
 inline void AddrExpr::visit(AstVisitor *v)    { v->visit_addrexpr(this); }
 

@@ -52,6 +52,7 @@ public:
       Expr *parse_callexpr(Expr *);
       Expr *parse_indexexpr(Expr *);
       Expr *parse_fieldexpr(Expr *, Token);
+      Expr *parse_increxpr(Expr *, Token);
 };
 
 #endif

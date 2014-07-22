@@ -377,6 +377,11 @@ Expr *Parser::parse_postfix_expr(Expr *e = 0) {
    case Token::Arrow:
       e = parse_fieldexpr(e, tok);
       goto begin;
+
+   case Token::PlusPlus:
+   case Token::MinusMinus:
+      e = parse_increxpr(e, tok);
+      goto begin;
       
    default:
       break;
@@ -491,6 +496,14 @@ Expr *Parser::parse_fieldexpr(Expr *x, Token tok) {
    _in.consume(tok.t == Token::Arrow ? "->" : ".");
    _skip(e);
    e->field = new Identifier(_in.read_id());
+   _skip(e);
+   return e;
+}
+
+Expr *Parser::parse_increxpr(Expr *x, Token tok) {
+   IncrExpr *e = new IncrExpr(Token::PlusPlus ? IncrExpr::Positive : IncrExpr::Negative);
+   e->expr = x;
+   _in.consume(tok.t == Token::PlusPlus ? "++" : "--");
    _skip(e);
    return e;
 }
