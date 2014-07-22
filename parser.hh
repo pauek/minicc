@@ -31,7 +31,6 @@ public:
    AstNode *parse_using_declaration();
    AstNode *parse_func_or_var();
       void  parse_function(FuncDecl *fn);
-      void  parse_parameter_list(std::vector<FuncDecl::Param*>& params);
      Block *parse_block();
       Stmt *parse_stmt();
       Stmt *parse_iterstmt(string which);

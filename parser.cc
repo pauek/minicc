@@ -211,19 +211,8 @@ AstNode *Parser::parse_func_or_var() {
 
 void Parser::parse_function(FuncDecl *fn) {
    CommentNode *cn;
-   parse_parameter_list(fn->params);
-   _skip(fn);
-   if (_in.curr() == ';') {
-      fn->block = 0;
-      _in.next();
-   } else {
-      fn->block = parse_block();
-   }
-   _skip(fn);
-   fn->fin = _in.pos();
-}
 
-void Parser::parse_parameter_list(vector<FuncDecl::Param*>& params) {
+   // parameter list
    _in.consume('(');
    while (true) {
       FuncDecl::Param *p = new FuncDecl::Param();
@@ -236,7 +225,7 @@ void Parser::parse_parameter_list(vector<FuncDecl::Param*>& params) {
       _skip(p);
       p->name = _in.read_id();
       _skip(p);
-      params.push_back(p);
+      fn->params.push_back(p);
 
       if (_in.curr() == ')') {
          break;
@@ -247,6 +236,15 @@ void Parser::parse_parameter_list(vector<FuncDecl::Param*>& params) {
       }
    }
    _in.consume(')');
+   _skip(fn);
+   if (_in.curr() == ';') {
+      fn->block = 0;
+      _in.next();
+   } else {
+      fn->block = parse_block();
+   }
+   _skip(fn);
+   fn->fin = _in.pos();
 }
 
 Block *Parser::parse_block() {
