@@ -354,6 +354,7 @@ Expr *Parser::parse_primary_expr() {
       } else {
          e = new Identifier(tok);
       }
+      _skip(e);
    }
    return e;
 }
