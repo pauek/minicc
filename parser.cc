@@ -352,13 +352,9 @@ Expr *Parser::parse_binaryexpr(BinaryExpr::Type max) {
          return 0;
       }
       if (is_literal(tok)) {
-         Literal *x = new Literal();
-         x->lit = tok;
-         left = x;
+         left = new Literal(tok);
       } else {
-         Identifier *x = new Identifier();
-         x->id = tok;
-         left = x;
+         left = new Identifier(tok);
       }
    }
    _skip(left);
@@ -439,9 +435,15 @@ Expr *Parser::parse_array_access(Expr *x) {
    return e;
 }
 
-Expr *Parser::parse_struct_access(Expr *e, Token tok) {
-   error("UNIMPLEMENTED");
-   return 0;
+Expr *Parser::parse_struct_access(Expr *x, Token tok) {
+   FieldExpr *e = new FieldExpr();
+   e->base = x;
+   e->pointer = (tok.t == Token::Arrow);
+   _in.consume(tok.t == Token::Arrow ? "->" : ".");
+   _skip(e);
+   e->field = new Identifier(_in.read_id());
+   _skip(e);
+   return e;
 }
 
 

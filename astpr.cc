@@ -207,3 +207,15 @@ void AstPrinter::visit_indexexpr(IndexExpr *x) {
    x->index->visit(this);
    out() << ")";
 }
+
+void AstPrinter::visit_fieldexpr(FieldExpr *x) {
+   out() << "FieldExpr";
+   if (x->pointer) {
+      out() << "[pointer]";
+   }
+   out() << "(";
+   x->base->visit(this);
+   out() << ", ";
+   x->field->visit(this);
+   out() << ")";
+}

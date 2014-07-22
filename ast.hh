@@ -183,11 +183,13 @@ struct Expr : public AstNode {
 
 struct Literal : public Expr {
    std::string lit;
+   Literal(std::string _lit = "") : lit(_lit) {}
    void visit(AstVisitor *v);
 };
 
 struct Identifier : public Expr {
    std::string id;
+   Identifier(std::string _id = "") : id(_id) {}
    void visit(AstVisitor *v);
 };
 
@@ -214,6 +216,15 @@ struct CallExpr : public Expr {
 struct IndexExpr : public Expr {
    Expr *base, *index;
    IndexExpr() : base(0), index(0) {}
+   void visit(AstVisitor *v);
+};
+
+struct FieldExpr : public Expr {
+   Expr *base;
+   Identifier *field;
+   bool pointer;
+
+   FieldExpr() : base(0), field(0) {}
    void visit(AstVisitor *v);
 };
 
@@ -260,6 +271,7 @@ public:
    virtual void visit_jumpstmt(JumpStmt *) = 0;
    virtual void visit_callexpr(CallExpr *) = 0;
    virtual void visit_indexexpr(IndexExpr *) = 0;
+   virtual void visit_fieldexpr(FieldExpr *) = 0;
 };
 
 // Visit implementations
@@ -282,6 +294,7 @@ inline void IterStmt::visit(AstVisitor *v)    { v->visit_iterstmt(this); }
 inline void JumpStmt::visit(AstVisitor *v)    { v->visit_jumpstmt(this); }
 inline void CallExpr::visit(AstVisitor *v)    { v->visit_callexpr(this); }
 inline void IndexExpr::visit(AstVisitor *v)   { v->visit_indexexpr(this); }
+inline void FieldExpr::visit(AstVisitor *v)   { v->visit_fieldexpr(this); }
 
 // Comment helpers
 std::string cmt(CommentNode* cn, bool pre, bool post, bool missing);

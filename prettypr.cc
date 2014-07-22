@@ -207,3 +207,9 @@ void PrettyPrinter::visit_indexexpr(IndexExpr *x) {
    x->index->visit(this);
    out() << "]";
 }
+
+void PrettyPrinter::visit_fieldexpr(FieldExpr *x) {
+   x->base->visit(this);
+   out() << (x->pointer ? "->" : ".");
+   x->field->visit(this);
+}
