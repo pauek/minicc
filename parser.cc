@@ -185,7 +185,7 @@ AstNode* Parser::parse_using_declaration() {
 }
 
 Type *Parser::parse_type() {
-   return new Type(_in.next_token());
+   return new Type(_in.next_token_old());
 }
 
 AstNode *Parser::parse_func_or_var() {
@@ -300,9 +300,16 @@ Stmt* Parser::parse_stmt() {
 }
 
 Stmt *Parser::parse_jumpstmt() {
-   string tok = _in.next_token();
-   JumpStmt *stmt = new JumpStmt;
-   stmt->type = JumpStmt::keyword2type(tok);
+   JumpStmt *stmt = new JumpStmt();
+   stmt->ini = _in.pos();
+   Token tok = _in.next_token();
+   switch (tok.t) {
+   case Token::Break:    stmt->type = JumpStmt::_break; break;
+   case Token::Continue: stmt->type = JumpStmt::_continue; break;
+   case Token::Goto:     stmt->type = JumpStmt::_goto; break;
+   default:
+      break;
+   }
    _skip(stmt);
    if (stmt->type == JumpStmt::_goto) {
       stmt->label = _in.read_id();
@@ -344,7 +351,7 @@ Expr *Parser::parse_primary_expr() {
       break;
 
    default:
-      string tok = _in.next_token();
+      string tok = _in.next_token_old();
       if (tok == "") {
          error("Expression doesn't start with a token");
          return 0;

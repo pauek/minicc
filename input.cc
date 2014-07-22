@@ -198,7 +198,7 @@ string Input::peek_to(string stop_set) {
    return res;
 }
 
-Token Input::peek_token() {
+Token Input::next_token() {
    // TODO: Lexing eficiente y correcto.
    switch (curr()) {
    case '.': return Token(Token::Dot);
@@ -208,14 +208,19 @@ Token Input::peek_token() {
    case '#': return Token(Token::Sharp);
 
    case '-': case '+': case '&': case '!': {
-      save();
       string op = read_operator();
-      restore();
       return Token::token2type(op);
    }      
    default:
-      return Token::token2type(peek_to(separators));
+      return Token::token2type(skip_to(separators));
    }
+}
+
+Token Input::peek_token() {
+   save();
+   Token tok = next_token();
+   restore();
+   return tok;
 }
 
 string Input::skip_to_next_line() {

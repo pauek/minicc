@@ -64,7 +64,8 @@ public:
    std::string  skip_to(std::string stop_set);
    std::string  peek_to(std::string stop_set);
    std::string  skip_to_next_line();
-   std::string  next_token() { return skip_to(separators); }
+   std::string  next_token_old() { return skip_to(separators); }
+         Token  next_token();
          Token  peek_token();
           bool  expect(std::string word);
    
