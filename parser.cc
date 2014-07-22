@@ -413,9 +413,11 @@ Expr *Parser::parse_funcall(Expr *func) {
    _in.consume('(');
    _skip(e);
    if (_in.curr() != ')') {
-      e->args.push_back(parse_expr());
+      e->args.push_back(parse_binaryexpr(Expr::assignment));
       while (_in.curr() == ',') {
-         e->args.push_back(parse_expr());
+         _in.next();
+         _skip(e);
+         e->args.push_back(parse_binaryexpr(Expr::assignment));
       }
    }
    if (!_in.expect(")")) {
