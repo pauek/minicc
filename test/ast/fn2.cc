@@ -21,14 +21,14 @@ Program{
    Using(std)
    FuncDecl("func", Type(double), Params = {"a": Type(int), "b": Type(int), "c": Type(int)}, {
       Block({
-         Stmt(expr, =(id:'a', lit:'1'))
-         Stmt(expr, +=(id:'b', lit:'2'))
-         Stmt(expr, /=(id:'c', lit:'3'))
+         ExprStmt(=(id:'a', lit:'1'))
+         ExprStmt(+=(id:'b', lit:'2'))
+         ExprStmt(/=(id:'c', lit:'3'))
       })
    })
    FuncDecl("reverse", Type(string), Params = {"s": Type(string)}, {
       Block({
-         Stmt(expr, =(id:'r', id:'s'))
+         ExprStmt(=(id:'r', id:'s'))
       })
    })
    FuncDecl("main", Type(int), Params = {}, {

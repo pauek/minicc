@@ -8,7 +8,7 @@ Program{
       Block({
          IterStmt<while>(=(id:'a', lit:'true'), {
             IterStmt<while>(=(id:'a', lit:'true'), {
-               Stmt(expr, =(id:'a', +(id:'a', lit:'2')))
+               ExprStmt(=(id:'a', +(id:'a', lit:'2')))
             })
          })
       })

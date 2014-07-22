@@ -9,7 +9,7 @@ Program{
       Block({
          IterStmt<for>(DeclStmt(Type(int), Vars = {"i" = lit:'1'}), <(id:'i', lit:'100'), =(id:'i', +(id:'i', lit:'1')), {
             Block({
-               Stmt(expr, <<(<<(id:'cout', id:'i'), id:'endl'))
+               ExprStmt(<<(<<(id:'cout', id:'i'), id:'endl'))
             })
          })
       })

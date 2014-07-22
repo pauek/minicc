@@ -5,7 +5,7 @@ double    fn   (char c1 ,char   c2  )    {
 Program{
    FuncDecl("fn", Type(double), Params = {"c1": Type(char), "c2": Type(char)}, {
       Block({
-         Stmt(expr, =(||(id:'a', lit:'false'), &&(+(*(id:'b', id:'c'), id:'d'), ^(id:'x', id:'y'))))
+         ExprStmt(=(||(id:'a', lit:'false'), &&(+(*(id:'b', id:'c'), id:'d'), ^(id:'x', id:'y'))))
       })
    })
 }

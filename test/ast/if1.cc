@@ -8,7 +8,7 @@ Program{
    FuncDecl("f", Type(int), Params = {}, {
       Block({
          IfStmt(==(id:'a', id:'b'), Block({
-            Stmt(expr, +(id:'cout', id:'x'))
+            ExprStmt(+(id:'cout', id:'x'))
          }))
       })
    })

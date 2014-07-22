@@ -5,7 +5,7 @@ int f() {
 Program{
    FuncDecl("f", Type(int), Params = {}, {
       Block({
-         Stmt(expr, ,(=(id:'a', lit:'1'), =(id:'b', lit:'2')))
+         ExprStmt(,(=(id:'a', lit:'1'), =(id:'b', lit:'2')))
       })
    })
 }

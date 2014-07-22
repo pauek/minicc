@@ -10,8 +10,8 @@ Program{
       Block({
          IterStmt<while>(>=(id:'a', lit:'20'), {
             Block({
-               Stmt(expr, =(id:'a', +(id:'a', lit:'2')))
-               Stmt(expr, =(id:'i', id:'a'))
+               ExprStmt(=(id:'a', +(id:'a', lit:'2')))
+               ExprStmt(=(id:'i', id:'a'))
             })
          })
       })

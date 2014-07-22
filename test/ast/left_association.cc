@@ -3,7 +3,7 @@ void f() { a + b + c; }
 Program{
    FuncDecl("f", Type(void), Params = {}, {
       Block({
-         Stmt(expr, +(+(id:'a', id:'b'), id:'c'))
+         ExprStmt(+(+(id:'a', id:'b'), id:'c'))
       })
    })
 }

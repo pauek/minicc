@@ -5,7 +5,7 @@ double fn( ){
 Program{
    FuncDecl("fn", Type(double), Params = {}, {
       Block({
-         Stmt(empty)
+         ExprStmt()
       })
    })
 }

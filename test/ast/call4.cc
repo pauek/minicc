@@ -5,7 +5,7 @@ void f() {
 Program{
    FuncDecl("f", Type(void), Params = {}, {
       Block({
-         Stmt(expr, CallExpr(id:'g', Args = {+(id:'a', lit:'1'), +(id:'b', lit:'2')}))
+         ExprStmt(CallExpr(id:'g', Args = {+(id:'a', lit:'1'), +(id:'b', lit:'2')}))
       })
    })
 }

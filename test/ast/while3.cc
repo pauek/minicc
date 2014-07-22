@@ -7,10 +7,10 @@ Program{
    FuncDecl("xxx", Type(void), Params = {"s": Type(string)}, {
       Block({
          IterStmt<while>(=(id:'a', lit:'true'), {
-            Stmt(expr, =(id:'a', +(id:'a', lit:'2')))
+            ExprStmt(=(id:'a', +(id:'a', lit:'2')))
          })
          IterStmt<while>(=(id:'a', lit:'true'), {
-            Stmt(expr, =(id:'a', +(id:'a', lit:'2')))
+            ExprStmt(=(id:'a', +(id:'a', lit:'2')))
          })
       })
    })

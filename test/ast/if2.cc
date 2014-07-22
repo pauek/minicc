@@ -10,9 +10,9 @@ Program{
    FuncDecl("f", Type(int), Params = {}, {
       Block({
          IfStmt(!=(id:'a', id:'b'), Block({
-            Stmt(expr, +(id:'cout', id:'x'))
+            ExprStmt(+(id:'cout', id:'x'))
          }), Block({
-            Stmt(expr, +(lit:'1', lit:'10'))
+            ExprStmt(+(lit:'1', lit:'10'))
          }))
       })
    })

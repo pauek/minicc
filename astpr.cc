@@ -137,13 +137,10 @@ void AstPrinter::visit_declstmt(DeclStmt* x) {
 }
 
 void AstPrinter::visit_exprstmt(ExprStmt* x) {
-   out() << "Stmt(";
+   out() << "ExprStmt(";
    if (x->expr) {
-      out() << "expr, ";
       x->expr->visit(this);
-   } else {
-      out() << "empty";
-   }
+   } 
    out() << ")";
 }
 
