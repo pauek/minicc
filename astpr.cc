@@ -202,3 +202,11 @@ void AstPrinter::visit_callexpr(CallExpr *x) {
    }
    out() << "})";
 }
+
+void AstPrinter::visit_indexexpr(IndexExpr *x) {
+   out() << "IndexExpr(";
+   x->base->visit(this);
+   out() << ", ";
+   x->index->visit(this);
+   out() << ")";
+}

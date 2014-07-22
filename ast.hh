@@ -211,6 +211,12 @@ struct CallExpr : public Expr {
    void visit(AstVisitor *v);
 };
 
+struct IndexExpr : public Expr {
+   Expr *base, *index;
+   IndexExpr() : base(0), index(0) {}
+   void visit(AstVisitor *v);
+};
+
 struct Type : public AstNode {
    std::string name;
    Type(std::string _name) : name(_name) {}
@@ -253,6 +259,7 @@ public:
    virtual void visit_iterstmt(IterStmt *) = 0;
    virtual void visit_jumpstmt(JumpStmt *) = 0;
    virtual void visit_callexpr(CallExpr *) = 0;
+   virtual void visit_indexexpr(IndexExpr *) = 0;
 };
 
 // Visit implementations
@@ -274,6 +281,7 @@ inline void IfStmt::visit(AstVisitor *v)      { v->visit_ifstmt(this); }
 inline void IterStmt::visit(AstVisitor *v)    { v->visit_iterstmt(this); }
 inline void JumpStmt::visit(AstVisitor *v)    { v->visit_jumpstmt(this); }
 inline void CallExpr::visit(AstVisitor *v)    { v->visit_callexpr(this); }
+inline void IndexExpr::visit(AstVisitor *v)   { v->visit_indexexpr(this); }
 
 // Comment helpers
 std::string cmt(CommentNode* cn, bool pre, bool post, bool missing);

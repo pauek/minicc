@@ -407,9 +407,9 @@ Expr *Parser::parse_binaryexpr(BinaryExpr::Type max) {
    return left;
 }
 
-Expr *Parser::parse_call(Expr *func) {
+Expr *Parser::parse_call(Expr *x) {
    CallExpr *e = new CallExpr();
-   e->func = func;
+   e->func = x;
    _in.consume('(');
    _skip(e);
    if (_in.curr() != ')') {
@@ -427,9 +427,16 @@ Expr *Parser::parse_call(Expr *func) {
    return e;
 }
 
-Expr *Parser::parse_array_access(Expr *e) {
-   error("UNIMPLEMENTED");
-   return 0;
+Expr *Parser::parse_array_access(Expr *x) {
+   IndexExpr *e = new IndexExpr();
+   e->base = x;
+   _in.consume('[');
+   e->index = parse_expr();
+   if (!_in.expect("]")) {
+      error(_in.pos().str() + ": Esperaba ']'");
+   }
+   _skip(e);
+   return e;
 }
 
 Expr *Parser::parse_struct_access(Expr *e, Token tok) {
