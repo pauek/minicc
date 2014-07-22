@@ -316,10 +316,6 @@ Stmt *Parser::parse_jumpstmt() {
    return stmt;
 }
 
-Expr *Parser::parse_expr() {
-   return parse_binaryexpr();
-}
-
 Stmt *Parser::parse_exprstmt() {
    ExprStmt *stmt = new ExprStmt();
    stmt->ini = _in.pos();
@@ -333,31 +329,39 @@ Stmt *Parser::parse_exprstmt() {
    return stmt;
 }
 
-Expr *Parser::parse_binaryexpr(BinaryExpr::Type max) {
-   CommentNode *cn;
-   Expr *left;
-
-   // Left
-   if (_in.curr() == '(') {
+Expr *Parser::parse_unary_expr() {
+   Expr *e;
+   Token tok = _in.peek_token();
+   switch (tok.t) {
+   case Token::LParen:
       _in.next();
-      left = parse_binaryexpr();
-      left->paren = true;
+      e = parse_expr();
+      e->paren = true;
       if (!_in.expect(")")) {
          error(_in.pos().str() + ": Expected ')'");
       }
-   } else {
+      return e;
+
+   default:
       string tok = _in.next_token();
       if (tok == "") {
          error("Expression doesn't start with a token");
          return 0;
       }
       if (is_literal(tok)) {
-         left = new Literal(tok);
+         e = new Literal(tok);
       } else {
-         left = new Identifier(tok);
+         e = new Identifier(tok);
       }
    }
-   _skip(left);
+   _skip(e);
+   return e;
+}
+
+Expr *Parser::parse_expr(BinaryExpr::Type max) {
+   CommentNode *cn;
+
+   Expr *left = parse_unary_expr();
 
  postfix:
    Token tok = _in.peek_token();
@@ -394,7 +398,7 @@ Expr *Parser::parse_binaryexpr(BinaryExpr::Type max) {
          BinaryExpr::Type(Expr::right_associative(type) 
                           ? type 
                           : type - 1);
-      Expr *right = parse_binaryexpr(submax);
+      Expr *right = parse_expr(submax);
       e->left = left;
       e->right = right;
       left = e;
@@ -409,11 +413,11 @@ Expr *Parser::parse_callexpr(Expr *x) {
    _in.consume('(');
    _skip(e);
    if (_in.curr() != ')') {
-      e->args.push_back(parse_binaryexpr(Expr::assignment));
+      e->args.push_back(parse_expr(Expr::assignment));
       while (_in.curr() == ',') {
          _in.next();
          _skip(e);
-         e->args.push_back(parse_binaryexpr(Expr::assignment));
+         e->args.push_back(parse_expr(Expr::assignment));
       }
    }
    if (!_in.expect(")")) {
@@ -455,12 +459,12 @@ Stmt *Parser::parse_for() {
    }
    _in.skip("\t\n "); // Comments here will disappear
    stmt->init = parse_for_init_stmt();
-   stmt->cond = parse_binaryexpr();
+   stmt->cond = parse_expr();
    if (!_in.expect(";")) {
       error(_in.pos().str() + ": Expected ';'");
    }
    _in.skip("\t\n "); // Comments here will disappear
-   stmt->post = parse_binaryexpr();
+   stmt->post = parse_expr();
    if (!_in.expect(")")) {
       error(_in.pos().str() + ": Expected ')'");
    }
@@ -486,7 +490,7 @@ Stmt *Parser::parse_while() {
       error(_in.pos().str() + ": Expected '('");
    }
    _in.skip("\t\n "); // Comments here will disappear
-   stmt->cond = parse_binaryexpr();
+   stmt->cond = parse_expr();
    if (!_in.expect(")")) {
       error(_in.pos().str() + ": Expected ')')");
    }
@@ -535,7 +539,7 @@ Stmt *Parser::parse_declstmt() {
       if (_in.curr() == '=') {
          _in.next();
          _in.skip("\t ");
-         decl.init = parse_binaryexpr(Expr::assignment);
+         decl.init = parse_expr(Expr::assignment);
       }
       stmt->decls.push_back(decl);
       if (_in.curr() != ',') {

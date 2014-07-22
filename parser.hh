@@ -45,8 +45,8 @@ public:
 
       Type *parse_type();
 
-      Expr *parse_expr();
-      Expr *parse_binaryexpr(Expr::Type max = Expr::comma);
+      Expr *parse_expr(Expr::Type max = Expr::comma);
+      Expr *parse_unary_expr();
       Expr *parse_callexpr(Expr *);
       Expr *parse_indexexpr(Expr *);
       Expr *parse_fieldexpr(Expr *, Token);
