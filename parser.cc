@@ -593,11 +593,11 @@ Stmt *Parser::parse_declstmt() {
    stmt->type = parse_type();
    _skip(stmt);
    while (true) {
-      DeclStmt::Decl decl = { .name = _in.read_id(), .init = 0, .comment_node = 0 };
-      decl.comment_node = _in.skip("\t ");
+      DeclStmt::Decl decl(_in.read_id());
+      _skip(stmt);
       if (_in.curr() == '=') {
          _in.next();
-         _in.skip("\t ");
+         _skip(stmt);
          decl.init = parse_expr(Expr::assignment);
       }
       stmt->decls.push_back(decl);
@@ -605,9 +605,11 @@ Stmt *Parser::parse_declstmt() {
          break;
       }
       _in.next();
-      _in.skip("\t ");
+      _skip(stmt);
    }
-   _in.next();
+   if (!_in.expect(";")) {
+      error(_in.pos().str() + ": Esperaba un ';'");
+   }
    _skip(stmt);
    return stmt;
 }

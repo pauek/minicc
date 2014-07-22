@@ -130,19 +130,20 @@ void PrettyPrinter::visit_block(Block *x) {
 
 void PrettyPrinter::visit_declstmt(DeclStmt* x) {
    x->type->visit(this);
-   out() << " ";
+   int c = 0;
    for (int i = 0; i < x->decls.size(); i++) {
       if (i > 0) {
-         out() << ", ";
+         out() << ",";
       }
+      out() << _cmt_(x, c++);
       const DeclStmt::Decl& d = x->decls[i];
-      out() << d.name;
+      out() << d.name << _cmt0(x, c++);
       if (d.init) {
-         out() << " = ";
+         out() << " =" << _cmt_(x, c++);
          d.init->visit(this);
       }
    }
-   out() << ";";
+   out() << ";" << _cmt0(x, c);
 }
 
 void PrettyPrinter::visit_exprstmt(ExprStmt* x) {

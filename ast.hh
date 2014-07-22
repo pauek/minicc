@@ -134,7 +134,7 @@ struct DeclStmt : public Stmt {
    struct Decl {
       std::string name;
       Expr *init;
-      CommentNode *comment_node;
+      Decl(std::string n) : name(n), init(0) {}
    };
 
    AstNode *type;
