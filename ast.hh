@@ -172,15 +172,15 @@ struct Expr : public AstNode {
 
 struct Literal : public Expr {
    enum Type { Bool, Int, String, Char, Float, Double };
+   struct StringData {
+      std::string *s;
+      bool L;
+   };
    union Data {
-      bool        as_bool;
-      int         as_int;
-      double      as_double;
-      struct {
-         std::string *s;
-         bool L;
-      } as_string;
-      Data() {}
+      bool       as_bool;
+      int        as_int;
+      double     as_double;
+      StringData as_string;
    };
    Type type;
    Data val;
