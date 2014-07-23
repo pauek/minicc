@@ -15,7 +15,7 @@ std::ostream& operator<<(std::ostream& o, CommentSeq* C);
 
 struct AstNode {
    Pos ini, fin;
-   std::vector<CommentSeq*> comment_nodes;
+   std::vector<CommentSeq*> comments;
    virtual ~AstNode() {}
    virtual int num_children()    const { return 0; }
    virtual AstNode* child(int n) const { return 0; }
@@ -78,7 +78,7 @@ struct FuncDecl : public AstNode {
    struct Param {
       Type *type;
       std::string name;
-      std::vector<CommentSeq *> comment_nodes;
+      std::vector<CommentSeq *> comments;
    };
 
    Type *return_type;
@@ -349,10 +349,10 @@ std::string cmtl(CommentSeq *cn);
 template<typename T> 
 inline CommentSeq *_at(T *x, int i) {
    if (i < 0) {
-      const int sz = x->comment_nodes.size();
-      return x->comment_nodes[sz+i];
+      const int sz = x->comments.size();
+      return x->comments[sz+i];
    } else {
-      return x->comment_nodes[i];
+      return x->comments[i];
    }
 }
 template<typename T> std::string _cmt  (T* x, int i) { return cmt(_at(x, i), 1, 0, 1); }

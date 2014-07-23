@@ -191,7 +191,7 @@ void PrettyPrinter::visit_jumpstmt(JumpStmt *x) {
 
 void PrettyPrinter::visit_callexpr(CallExpr *x) {
    x->func->visit(this);
-   if (x->func->comment_nodes[0] != 0 and !x->func->comment_nodes[0]->endl()) {
+   if (x->func->comments[0] != 0 and !x->func->comments[0]->endl()) {
       out() << " ";
    }
    out() << "(";

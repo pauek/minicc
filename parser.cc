@@ -49,7 +49,7 @@ void Parser::warning(string msg) {
 
 template<class X>
 void Parser::_skip(X *n, std::string stopset) {
-   n->comment_nodes.push_back(_in.skip(stopset));
+   n->comments.push_back(_in.skip(stopset));
 }
 
 void Parser::_skip(string stopset) {
@@ -159,7 +159,7 @@ AstNode* Parser::parse_macro() {
       _in.next();
    }
    AstNode* inc = new Include(filename, is_global);
-   inc->comment_nodes = cmts;
+   inc->comments = cmts;
    inc->ini = ini;
    inc->fin = fin;
    return inc;
@@ -227,7 +227,7 @@ AstNode *Parser::parse_func_or_var() {
    c[1] = _in.skip("\t ");
    if (_in.curr() == '(') {
       FuncDecl *fn = new FuncDecl(name);
-      fn->comment_nodes.assign(c, c+2);
+      fn->comments.assign(c, c+2);
       fn->return_type = type;
       fn->ini = ini;
       parse_function(fn);
