@@ -106,7 +106,8 @@ AstNode* Parser::parse_macro() {
    cmts.push_back(_in.skip("\t "));
    Pos macro_ini = _in.pos();
    if (!_in.expect("include")) {
-      string macro_name = _in.read_id();
+      Token tok = _in.read_id();
+      string macro_name = _in.substr(tok);
       _in.skip_to("\n");
       Pos macro_fin = _in.pos();
       _in.next();
@@ -168,7 +169,8 @@ AstNode* Parser::parse_using_declaration() {
       error(u->ini.str() + ": expected 'namespace'");
    }
    _skip(u);
-   u->namespc = _in.read_id();
+   Token tok = _in.read_id();
+   u->namespc = _in.substr(tok);
    _skip(u);
    u->fin = _in.pos();
    if (!_in.expect(";")) {
@@ -193,7 +195,8 @@ AstNode *Parser::parse_func_or_var() {
    Pos ini = _in.pos();
    Type *type = parse_type();
    c[0] = _in.skip("\t ");
-   string name = _in.read_id();
+   Token tok = _in.read_id();
+   string name = _in.substr(tok);
    c[1] = _in.skip("\t ");
    if (_in.curr() == '(') {
       FuncDecl *fn = new FuncDecl(name);
@@ -223,7 +226,8 @@ void Parser::parse_function(FuncDecl *fn) {
       }
       p->type = parse_type();
       _skip(p);
-      p->name = _in.read_id();
+      Token tok = _in.read_id();
+      p->name = _in.substr(tok);
       _skip(p);
       fn->params.push_back(p);
 
@@ -312,7 +316,8 @@ Stmt *Parser::parse_jumpstmt() {
    }
    _skip(stmt);
    if (stmt->type == JumpStmt::_goto) {
-      stmt->label = _in.read_id();
+      Token tok = _in.read_id();
+      stmt->label = _in.substr(tok);
       _skip(stmt);
    }
    if (!_in.expect(";")) {
@@ -509,7 +514,8 @@ Expr *Parser::parse_fieldexpr(Expr *x, Token tok) {
    e->pointer = (tok.t == Token::Arrow);
    _in.consume(tok.t == Token::Arrow ? "->" : ".");
    _skip(e);
-   e->field = new Identifier(_in.read_id());
+   Token id = _in.read_id();
+   e->field = new Identifier(_in.substr(id));
    _skip(e->field);
    return e;
 }
@@ -606,7 +612,8 @@ Stmt *Parser::parse_declstmt() {
    stmt->type = parse_type();
    _skip(stmt);
    while (true) {
-      DeclStmt::Decl decl(_in.read_id());
+      Token id = _in.read_id();
+      DeclStmt::Decl decl(_in.substr(id));
       _skip(stmt);
       if (_in.curr() == '=') {
          _in.next();

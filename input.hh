@@ -71,7 +71,7 @@ public:
          Token  peek_token();
           bool  expect(std::string word);
    
-   std::string  read_id();
+         Token  read_id();
          Token  read_operator();
          Token  read_number_literal();
          Token  read_string_or_char_literal(char delim);

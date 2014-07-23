@@ -149,14 +149,7 @@ Token Input::next_token() {
       case '5': case '6': case '7': case '8': case '9':
          return read_number_literal();
       default:
-         Token t;
-         t.ini = _curr;
-         string id = read_id();
-         t.fin = _curr;
-         Token x = Token::token2type(id);
-         t.t = x.t;
-         t.k = x.k;
-         return t;
+         return read_id();
       }
 
    case '"':
@@ -166,14 +159,7 @@ Token Input::next_token() {
       return read_string_or_char_literal('\'');
 
    default: {
-      Token t;
-      t.ini = _curr;
-      string id = read_id();
-      t.fin = _curr;
-      Token x = Token::token2type(id);
-      t.t = x.t;
-      t.k = x.k;
-      return t;
+      return read_id();
    }
    }
 }
@@ -302,21 +288,24 @@ inline bool _isupper(char c) { return c >= 'A' and c <= 'Z'; }
 inline bool _islower(char c) { return c >= 'a' and c <= 'z'; }
 inline bool _isdigit(char c) { return c >= '0' and c <= '9'; }
 
-string Input::read_id() {
-   string id;
+Token Input::read_id() {
+   Token t;
+   t.ini = _curr;
    char c = curr();
    if (!_isupper(c) and !_islower(c) and c != '_') {
-      return "";
+      return Token();
    }
-   id += c;
    next();
    c = curr();
    while (_isupper(c) or _islower(c) or _isdigit(c) or c == '_') {
-      id += c;
       next();
       c = curr();
    }
-   return id;
+   t.fin = _curr;
+   Token x = Token::token2type(substr(t));
+   t.t = x.t;
+   t.k = x.k;
+   return t;
 }
 
 Token Input::read_operator() {
