@@ -139,24 +139,42 @@ Token Input::next_token() {
       return read_number_literal();
       
    case 'u': case 'U': case 'l':
-
    case 'L': // char-lit, string-lit, long
       switch (curr(1)) {
       case '\'': 
-         return read_char_literal();
+         return read_string_or_char_literal('\'');
       case '"':  
-         return read_string_literal();
+         return read_string_or_char_literal('"');
       case '0': case '1': case '2': case '3': case '4':
       case '5': case '6': case '7': case '8': case '9':
          return read_number_literal();
       default:
+         Token t;
+         t.ini = _curr;
          string id = read_id();
-         return Token(Token::token2type(id));
+         t.fin = _curr;
+         Token x = Token::token2type(id);
+         t.t = x.t;
+         t.k = x.k;
+         return t;
       }
 
-   default:
+   case '"':
+      return read_string_or_char_literal('"');
+      
+   case '\'':
+      return read_string_or_char_literal('\'');
+
+   default: {
+      Token t;
+      t.ini = _curr;
       string id = read_id();
-      return Token(Token::token2type(id));
+      t.fin = _curr;
+      Token x = Token::token2type(id);
+      t.t = x.t;
+      t.k = x.k;
+      return t;
+   }
    }
 }
 
@@ -363,21 +381,59 @@ Token Input::read_operator() {
    return t;
 }
 
-Token Input::read_string_literal() {
-   error("UNIMPLEMENTED 1");
-   return Token();
+Token Input::read_string_or_char_literal(char delim) {
+   string str;
+   Token t;
+   t.ini = _curr+1;
+   if (curr() == 'L') {
+      next(); // TODO: Handle 'L'
+   }
+   consume(delim);
+   while (curr() != delim) {
+      if (curr() == '\\') {
+         next();
+         switch (curr()) {
+         case 'a': str += '\a'; break;
+         case 'b': str += '\b'; break;
+         case 'f': str += '\f'; break;
+         case 'n': str += '\n'; break;
+         case 'r': str += '\r'; break;
+         case 't': str += '\t'; break;
+         case 'v': str += '\v'; break;
+         case '\'': str += '\''; break;
+         case '\"': str += '\"'; break;
+         case '\?': str += '\?'; break;
+         case '\\': str += '\\'; break;
+         default: 
+            cerr << "warning: unknown escape sequence '\\" 
+                 << curr() << "'" << endl;
+            str += curr();
+         }
+      } else if (curr() == '\n') {
+         error(pos().str() + ": string inacabado");
+         break;
+      } else {
+         str += curr();
+      }
+      next();
+   }
+   t.fin = _curr;
+   if (curr() == delim) {
+      consume(delim);
+   }
+   t.t = (delim == '"' ? Token::StringLiteral : Token::CharLiteral);
+   return t;
 }
 
 Token Input::read_number_literal() {
    string num;
+   Token t;
+   t.ini = _curr;
    while (isdigit(curr())) {
       num += curr();
       next();
    }
-   return Token(Token::IntLiteral);
-}
-
-Token Input::read_char_literal() {
-   error("UNIMPLEMENTED 3");
-   return Token();
+   t.fin = _curr;
+   t.t = Token::IntLiteral;
+   return t;
 }

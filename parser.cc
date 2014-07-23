@@ -339,10 +339,10 @@ Stmt *Parser::parse_exprstmt() {
 
 Expr *Parser::parse_primary_expr() {
    Expr *e;
-   Token tok = _in.peek_token();
+   _in.save();
+   Token tok = _in.next_token();
    switch (tok.t) {
    case Token::LParen:
-      _in.next();
       e = parse_expr();
       e->paren = true;
       if (!_in.expect(")")) {
@@ -353,17 +353,18 @@ Expr *Parser::parse_primary_expr() {
    case Token::True:
    case Token::False:
    case Token::IntLiteral:
-      e = new Literal(_in.next_token_old());
+   case Token::CharLiteral:
+   case Token::StringLiteral:
+      e = new Literal(_in.substr(tok));
       _skip(e);
       break;
 
    default:
-      string tok = _in.next_token_old();
-      if (tok == "") {
+      if (tok.t == Token::Empty) {
          error("Expression doesn't start with a token");
          return 0;
       }
-      e = new Identifier(tok);
+      e = new Identifier(_in.substr(tok));
       _skip(e);
    }
    return e;

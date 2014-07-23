@@ -22,7 +22,7 @@ public:
       Comma, Assign, PlusAssign, MinusAssign,
       AndAssign, OrAssign, XorAssign, 
       EqEq, NotEq, LT, GT, LE, GE, LShift, RShift,
-      IntLiteral      
+      IntLiteral, CharLiteral, StringLiteral, RealLiteral
    };
 
    enum Kind {
