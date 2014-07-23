@@ -9,11 +9,11 @@ Program{
          IfStmt(==(==(id:'a', id:'b'), id:'c'), Block({
             ExprStmt(+(id:'cout', id:'x'))
          }), Block({
-            ExprStmt(+(lit:'10', lit:'1'))
+            ExprStmt(+(Int<10>, Int<1>))
             IfStmt(=(id:'a', id:'b'), Block({
                ExprStmt(+(id:'cout', id:'x'))
             }), Block({
-               ExprStmt(+(lit:'1', lit:'10'))
+               ExprStmt(+(Int<1>, Int<10>))
             }))
          }))
       })

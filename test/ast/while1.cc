@@ -8,9 +8,9 @@ void xxx(string s) {
 Program{
    FuncDecl("xxx", Type(void), Params = {"s": Type(string)}, {
       Block({
-         IterStmt<while>(>=(id:'a', lit:'20'), {
+         IterStmt<while>(>=(id:'a', Int<20>), {
             Block({
-               ExprStmt(=(id:'a', +(id:'a', lit:'2')))
+               ExprStmt(=(id:'a', +(id:'a', Int<2>)))
                ExprStmt(=(id:'i', id:'a'))
             })
          })

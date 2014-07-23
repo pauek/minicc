@@ -5,7 +5,7 @@ int f() {
 Program{
    FuncDecl("f", Type(int), Params = {}, {
       Block({
-         ExprStmt(=(IndexExpr(id:'a', lit:'1'), lit:'0'))
+         ExprStmt(=(IndexExpr(id:'a', Int<1>), Int<0>))
       })
    })
 }

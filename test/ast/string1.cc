@@ -5,7 +5,7 @@ string f() {
 Program{
    FuncDecl("f", Type(string), Params = {}, {
       Block({
-         ExprStmt(+(+(lit:'abc\"', id:'d'), lit:'\"efg'))
+         ExprStmt(+(+(String<abc\">, id:'d'), String<\"efg>))
       })
    })
 }

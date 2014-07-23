@@ -357,14 +357,34 @@ Expr *Parser::parse_primary_expr() {
       break;
 
    case Token::True:
-   case Token::False:
-   case Token::IntLiteral:
-   case Token::CharLiteral:
-   case Token::StringLiteral:
-      e = new Literal(_in.substr(tok));
-      _skip(e);
+   case Token::False: {
+      Literal* lit = new Literal(Literal::Bool);
+      lit->val.as_bool = (tok.t == Token::True);
+      _skip(lit);
+      e = lit;
       break;
-
+   }
+   case Token::IntLiteral: {
+      Literal* lit = new Literal(Literal::Int);
+      lit->val.as_int = atoi(_in.substr(tok).c_str());
+      _skip(lit);
+      e = lit;
+      break;
+   }
+   case Token::CharLiteral: {
+      Literal* lit = new Literal(Literal::Char);
+      lit->val.as_string.s = new string(_in.substr(tok));
+      _skip(lit);
+      e = lit;
+      break;
+   }
+   case Token::StringLiteral: {
+      Literal* lit = new Literal(Literal::String);
+      lit->val.as_string.s = new string(_in.substr(tok));
+      _skip(lit);
+      e = lit;
+      break;
+   }
    default:
       if (tok.t == Token::Empty) {
          error("Expression doesn't start with a token");

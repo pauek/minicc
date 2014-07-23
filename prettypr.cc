@@ -90,7 +90,14 @@ void PrettyPrinter::visit_literal(Literal *x) {
    if (x->paren) {
       out() << "(";
    }
-   out() << x->lit << _cmt0(x, 0);
+   switch (x->type) {
+   case Literal::Bool:   out() << (x->val.as_bool ? "true" : "false"); break;
+   case Literal::Int:    out() << x->val.as_int; break;
+   case Literal::String: out() << '"' << x->val.as_string.s << '"'; break;
+   case Literal::Char:   out() << "'" << x->val.as_string.s << "'"; break;
+   default:              out() << "<literal>"; break;
+   }
+   out() << _cmt0(x, 0);
    if (x->paren) {
       out() << ")";
    }

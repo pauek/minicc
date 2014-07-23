@@ -184,8 +184,22 @@ struct Expr : public AstNode {
 };
 
 struct Literal : public Expr {
-   std::string lit;
-   Literal(std::string _lit = "") : lit(_lit) {}
+   enum Type { Bool, Int, String, Char, Float, Double };
+   union Data {
+      bool        as_bool;
+      int         as_int;
+      double      as_double;
+      struct {
+         std::string *s;
+         bool L;
+      } as_string;
+      Data() {}
+   };
+   Type type;
+   Data val;
+   bool L; // for strings
+
+   Literal(Type t) : type(t) {}
    void visit(AstVisitor *v);
 };
 
@@ -291,7 +305,6 @@ public:
    virtual void visit_type(Type *) = 0;
    virtual void visit_stmt(Stmt *) = 0;
    virtual void visit_block(Block *) = 0;
-   virtual void visit_literal(Literal *) = 0;
    virtual void visit_identifier(Identifier *) = 0;
    virtual void visit_binaryexpr(BinaryExpr *) = 0;
    virtual void visit_declstmt(DeclStmt *) = 0;
@@ -306,33 +319,34 @@ public:
    virtual void visit_increxpr(IncrExpr *) = 0;
    virtual void visit_negexpr(NegExpr *) = 0;
    virtual void visit_addrexpr(AddrExpr *) = 0;
+   virtual void visit_literal(Literal *) = 0;
 };
 
 // Visit implementations
-inline void Program::visit(AstVisitor *v)     { v->visit_program(this); }
-inline void CommentNode::visit(AstVisitor *v) { v->visit_comment(this); }
-inline void Include::visit(AstVisitor *v)     { v->visit_include(this); }
-inline void Macro::visit(AstVisitor *v)       { v->visit_macro(this); }
-inline void Using::visit(AstVisitor *v)       { v->visit_using(this); }
-inline void FuncDecl::visit(AstVisitor* v)    { v->visit_funcdecl(this); }
-inline void Type::visit(AstVisitor *v)        { v->visit_type(this); }
-inline void Stmt::visit(AstVisitor *v)        { v->visit_stmt(this); }
-inline void Block::visit(AstVisitor *v)       { v->visit_block(this); }
-inline void Literal::visit(AstVisitor *v)     { v->visit_literal(this); }
-inline void Identifier::visit(AstVisitor *v)  { v->visit_identifier(this); }
-inline void BinaryExpr::visit(AstVisitor *v)  { v->visit_binaryexpr(this); }
-inline void DeclStmt::visit(AstVisitor *v)    { v->visit_declstmt(this); }
-inline void ExprStmt::visit(AstVisitor *v)    { v->visit_exprstmt(this); }
-inline void IfStmt::visit(AstVisitor *v)      { v->visit_ifstmt(this); }
-inline void IterStmt::visit(AstVisitor *v)    { v->visit_iterstmt(this); }
-inline void JumpStmt::visit(AstVisitor *v)    { v->visit_jumpstmt(this); }
-inline void CallExpr::visit(AstVisitor *v)    { v->visit_callexpr(this); }
-inline void IndexExpr::visit(AstVisitor *v)   { v->visit_indexexpr(this); }
-inline void FieldExpr::visit(AstVisitor *v)   { v->visit_fieldexpr(this); }
-inline void SignExpr::visit(AstVisitor *v)    { v->visit_signexpr(this); }
-inline void IncrExpr::visit(AstVisitor *v)    { v->visit_increxpr(this); }
-inline void NegExpr::visit(AstVisitor *v)     { v->visit_negexpr(this); }
-inline void AddrExpr::visit(AstVisitor *v)    { v->visit_addrexpr(this); }
+inline void Program::visit(AstVisitor *v)       { v->visit_program(this); }
+inline void CommentNode::visit(AstVisitor *v)   { v->visit_comment(this); }
+inline void Include::visit(AstVisitor *v)       { v->visit_include(this); }
+inline void Macro::visit(AstVisitor *v)         { v->visit_macro(this); }
+inline void Using::visit(AstVisitor *v)         { v->visit_using(this); }
+inline void FuncDecl::visit(AstVisitor* v)      { v->visit_funcdecl(this); }
+inline void Type::visit(AstVisitor *v)          { v->visit_type(this); }
+inline void Stmt::visit(AstVisitor *v)          { v->visit_stmt(this); }
+inline void Block::visit(AstVisitor *v)         { v->visit_block(this); }
+inline void Identifier::visit(AstVisitor *v)    { v->visit_identifier(this); }
+inline void BinaryExpr::visit(AstVisitor *v)    { v->visit_binaryexpr(this); }
+inline void DeclStmt::visit(AstVisitor *v)      { v->visit_declstmt(this); }
+inline void ExprStmt::visit(AstVisitor *v)      { v->visit_exprstmt(this); }
+inline void IfStmt::visit(AstVisitor *v)        { v->visit_ifstmt(this); }
+inline void IterStmt::visit(AstVisitor *v)      { v->visit_iterstmt(this); }
+inline void JumpStmt::visit(AstVisitor *v)      { v->visit_jumpstmt(this); }
+inline void CallExpr::visit(AstVisitor *v)      { v->visit_callexpr(this); }
+inline void IndexExpr::visit(AstVisitor *v)     { v->visit_indexexpr(this); }
+inline void FieldExpr::visit(AstVisitor *v)     { v->visit_fieldexpr(this); }
+inline void SignExpr::visit(AstVisitor *v)      { v->visit_signexpr(this); }
+inline void IncrExpr::visit(AstVisitor *v)      { v->visit_increxpr(this); }
+inline void NegExpr::visit(AstVisitor *v)       { v->visit_negexpr(this); }
+inline void AddrExpr::visit(AstVisitor *v)      { v->visit_addrexpr(this); }
+inline void Literal::visit(AstVisitor *v)       { v->visit_literal(this); }
 
 // Comment helpers
 std::string cmt(CommentNode* cn, bool pre, bool post, bool missing);

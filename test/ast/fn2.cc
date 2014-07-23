@@ -21,9 +21,9 @@ Program{
    Using(std)
    FuncDecl("func", Type(double), Params = {"a": Type(int), "b": Type(int), "c": Type(int)}, {
       Block({
-         ExprStmt(=(id:'a', lit:'1'))
-         ExprStmt(+=(id:'b', lit:'2'))
-         ExprStmt(/=(id:'c', lit:'3'))
+         ExprStmt(=(id:'a', Int<1>))
+         ExprStmt(+=(id:'b', Int<2>))
+         ExprStmt(/=(id:'c', Int<3>))
       })
    })
    FuncDecl("reverse", Type(string), Params = {"s": Type(string)}, {

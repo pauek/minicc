@@ -5,7 +5,7 @@ void f() {
 Program{
    FuncDecl("f", Type(void), Params = {}, {
       Block({
-         DeclStmt(Type(int), Vars = {"a" = lit:'2', "b"})
+         DeclStmt(Type(int), Vars = {"a" = Int<2>, "b"})
       })
    })
 }

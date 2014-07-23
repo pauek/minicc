@@ -5,7 +5,7 @@ int f() {
 Program{
    FuncDecl("f", Type(int), Params = {}, {
       Block({
-         ExprStmt(=(FieldExpr<pointer>((+(id:'a', id:'b')), id:'c'), lit:'7'))
+         ExprStmt(=(FieldExpr<pointer>((+(id:'a', id:'b')), id:'c'), Int<7>))
       })
    })
 }

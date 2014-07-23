@@ -6,7 +6,7 @@ int f() {
 Program{
    FuncDecl("f", Type(int), Params = {}, {
       Block({
-         IfStmt(lit:'true', ExprStmt(+(id:'a', lit:'1')), ExprStmt(+(id:'bla', lit:'2')))
+         IfStmt(Bool<true>, ExprStmt(+(id:'a', Int<1>)), ExprStmt(+(id:'bla', Int<2>)))
       })
    })
 }

@@ -7,7 +7,7 @@ void print() {
 Program{
    FuncDecl("print", Type(void), Params = {}, {
       Block({
-         IterStmt<for>(DeclStmt(Type(int), Vars = {"i" = lit:'1', "j" = id:'i'}), &&(<(id:'i', lit:'100'), <(id:'j', lit:'100')), ,(=(id:'i', +(id:'i', lit:'1')), =(id:'j', +(id:'j', lit:'1'))), {
+         IterStmt<for>(DeclStmt(Type(int), Vars = {"i" = Int<1>, "j" = id:'i'}), &&(<(id:'i', Int<100>), <(id:'j', Int<100>)), ,(=(id:'i', +(id:'i', Int<1>)), =(id:'j', +(id:'j', Int<1>))), {
             Block({
                ExprStmt(<<(<<(id:'cout', id:'i'), id:'endl'))
             })

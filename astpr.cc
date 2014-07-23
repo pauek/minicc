@@ -87,13 +87,16 @@ void AstPrinter::visit_identifier(Identifier *x) {
 }
 
 void AstPrinter::visit_literal(Literal *x) {
-   if (x->paren) {
-      out() << "(";
+   if (x->paren) { out() << "("; }
+   switch (x->type) {
+   case Literal::Int:    out() << "Int<" << x->val.as_int << ">"; break;
+   case Literal::Bool:   out() << "Bool<" << (x->val.as_bool ? "true" : "false") << ">"; break;
+   case Literal::String: out() << "String<" << *(x->val.as_string.s) << ">"; break;
+   case Literal::Char:   out() << "Char<" << *(x->val.as_string.s) << ">"; break;
+   default:
+      out() << "Literal<>"; break;
    }
-   out() << "lit:'" << x->lit << "'";
-   if (x->paren) {
-      out() << ")";
-   }
+   if (x->paren) { out() << ")"; }
 }
 
 void AstPrinter::visit_binaryexpr(BinaryExpr *x) {

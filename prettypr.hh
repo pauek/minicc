@@ -22,7 +22,6 @@ public:
    void visit_funcdecl(FuncDecl *x);
    void visit_stmt(Stmt *x);
    void visit_block(Block *x);
-   void visit_literal(Literal *x);
    void visit_identifier(Identifier *x);
    void visit_binaryexpr(BinaryExpr *x);
    void visit_declstmt(DeclStmt *x);
@@ -37,6 +36,7 @@ public:
    void visit_increxpr(IncrExpr *x);
    void visit_negexpr(NegExpr *x);
    void visit_addrexpr(AddrExpr *x);
+   void visit_literal(Literal *x);
 };
 
 #endif
