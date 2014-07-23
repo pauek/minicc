@@ -126,6 +126,9 @@ ostream& operator<<(ostream& o, CommentNode* C) {
    for (int i = 0; i < C->comments.size(); i++) {
       const Comment& c = C->comments[i];
       if (c.type == Comment::multiline) {
+         if (i > 0 and !C->comments[i].endl) {
+            o << ' ';
+         }
          o << "/*" << c.text << "*/";
       } else {
          o << "//" << c.text;

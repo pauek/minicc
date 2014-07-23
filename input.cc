@@ -61,7 +61,7 @@ bool Input::curr_one_of(std::string set) const {
 CommentNode* Input::skip(string skip_set) {
    CommentNode *cn = 0;
    while (!end()) {
-      if (curr() == '/') {
+      while (curr() == '/') {
          peek(1);
          if (cn == 0) {
             cn = new CommentNode();
