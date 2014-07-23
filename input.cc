@@ -112,14 +112,6 @@ void Input::discard() {
    _stack.pop_back();
 }
 
-string Input::peek_to(string stop_set) {
-   save();
-   string res = skip_to(stop_set);
-   restore();
-   return res;
-}
-
-
 Token Input::next_token() {
    switch (curr()) {
    case '.': case '(': case '[': case '{': case '#': {
@@ -169,12 +161,6 @@ Token Input::peek_token() {
    Token tok = next_token();
    restore();
    return tok;
-}
-
-string Input::skip_to_next_line() {
-   string s = skip_to("\n");
-   next();
-   return s;
 }
 
 int Input::_pos_to_idx(Pos p) const {

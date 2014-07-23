@@ -51,6 +51,7 @@ public:
           bool  curr_one_of(std::string set) const;
    std::string  substr(const Pos& ini, const Pos& fin) const;
    std::string  substr(const Token& t);
+
           void  save();
           void  restore();
           void  discard();
@@ -63,8 +64,6 @@ public:
           void  consume(std::string s);
    CommentNode *skip(std::string skip_set);
    std::string  skip_to(std::string stop_set);
-   std::string  peek_to(std::string stop_set);
-   std::string  skip_to_next_line();
 
          Token  next_token();
          Token  peek_token();
@@ -90,19 +89,11 @@ inline bool operator==(const Pos& a, const Pos& b) {
 }
 
 inline bool operator<(const Pos& a, const Pos& b) {
-   if (a.lin != b.lin) {
-      return a.lin < b.lin;
-   } else {
-      return a.col < b.col;
-   }
+   return (a.lin != b.lin ? a.lin < b.lin : a.col < b.col);
 }
 
 inline bool operator>(const Pos& a, const Pos& b) {
-   if (a.lin != b.lin) {
-      return a.lin > b.lin;
-   } else {
-      return a.col > b.col;
-   }
+   return (a.lin != b.lin ? a.lin > b.lin : a.col > b.col);
 }
 
 inline bool operator<=(const Pos& a, const Pos& b) { 
