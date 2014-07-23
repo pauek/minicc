@@ -5,8 +5,6 @@
 #include <vector>
 #include "token.hh"
 
-static const char* separators = ";,.[](){}+-*/=<>|&\n\t ";
-
 struct Pos { 
    int lin, col; 
    Pos() : lin(1), col(0) {}
@@ -60,17 +58,16 @@ public:
           bool  seen_endl()     const { return _seen_endl; }
           void  mark()                { _seen_endl = false; }
 
+          bool  expect(std::string word);
           void  consume(char c);
           void  consume(std::string s);
    CommentNode *skip(std::string skip_set);
    std::string  skip_to(std::string stop_set);
    std::string  peek_to(std::string stop_set);
    std::string  skip_to_next_line();
-   std::string  next_token_old() { return skip_to(separators); }
+
          Token  next_token();
          Token  peek_token();
-          bool  expect(std::string word);
-   
          Token  read_id();
          Token  read_operator();
          Token  read_number_literal();

@@ -187,7 +187,8 @@ AstNode* Parser::parse_using_declaration() {
 }
 
 Type *Parser::parse_type() {
-   return new Type(_in.next_token_old());
+   Token id = _in.read_id();
+   return new Type(_in.substr(id));
 }
 
 AstNode *Parser::parse_func_or_var() {
