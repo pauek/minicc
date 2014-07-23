@@ -281,9 +281,11 @@ Token Input::read_id() {
    if (!_isupper(c) and !_islower(c) and c != '_') {
       return Token();
    }
+   t.str += c;
    next();
    c = curr();
    while (_isupper(c) or _islower(c) or _isdigit(c) or c == '_') {
+      t.str += c;
       next();
       c = curr();
    }
@@ -368,27 +370,27 @@ Token Input::read_string_or_char_literal(char delim) {
       if (curr() == '\\') {
          next();
          switch (curr()) {
-         case 'a': str += '\a'; break;
-         case 'b': str += '\b'; break;
-         case 'f': str += '\f'; break;
-         case 'n': str += '\n'; break;
-         case 'r': str += '\r'; break;
-         case 't': str += '\t'; break;
-         case 'v': str += '\v'; break;
-         case '\'': str += '\''; break;
-         case '\"': str += '\"'; break;
-         case '\?': str += '\?'; break;
-         case '\\': str += '\\'; break;
+         case 'a':  t.str += '\a'; break;
+         case 'b':  t.str += '\b'; break;
+         case 'f':  t.str += '\f'; break;
+         case 'n':  t.str += '\n'; break;
+         case 'r':  t.str += '\r'; break;
+         case 't':  t.str += '\t'; break;
+         case 'v':  t.str += '\v'; break;
+         case '\'': t.str += '\''; break;
+         case '\"': t.str += '\"'; break;
+         case '\?': t.str += '\?'; break;
+         case '\\': t.str += '\\'; break;
          default: 
             cerr << "warning: unknown escape sequence '\\" 
                  << curr() << "'" << endl;
-            str += curr();
+            t.str += curr();
          }
       } else if (curr() == '\n') {
          error(pos().str() + ": string inacabado");
          break;
       } else {
-         str += curr();
+         t.str += curr();
       }
       next();
    }

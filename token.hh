@@ -34,6 +34,7 @@ public:
    int ini, fin;
    Type t;
    Kind k;
+   std::string str;
 
    Token(Type _t = Unknown, Kind _k = None) : t(_t), k(_k), ini(-1), fin(-1) {}
 

@@ -152,3 +152,24 @@ JumpStmt::Type JumpStmt::keyword2type(string s) {
       return JumpStmt::unknown;
    }
 }
+
+string Literal::escape(string s) {
+   string r;
+   for (char c : s) {
+      switch (c) {
+      case '\a': r += "\\a"; break;
+      case '\b': r += "\\b"; break;
+      case '\f': r += "\\f"; break;
+      case '\n': r += "\\n"; break;
+      case '\r': r += "\\r"; break;
+      case '\t': r += "\\t"; break;
+      case '\v': r += "\\v"; break;
+      case '\'': r += "\\\'"; break;
+      case '\"': r += "\\\""; break;
+      case '\?': r += "\\?"; break;
+      case '\\': r += "\\\\"; break;
+      default:   r += c; break;
+      }
+   }
+   return r;
+}

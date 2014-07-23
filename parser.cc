@@ -107,7 +107,7 @@ AstNode* Parser::parse_macro() {
    Pos macro_ini = _in.pos();
    if (!_in.expect("include")) {
       Token tok = _in.read_id();
-      string macro_name = _in.substr(tok);
+      string macro_name = tok.str;
       _in.skip_to("\n");
       Pos macro_fin = _in.pos();
       _in.next();
@@ -170,7 +170,7 @@ AstNode* Parser::parse_using_declaration() {
    }
    _skip(u);
    Token tok = _in.read_id();
-   u->namespc = _in.substr(tok);
+   u->namespc = tok.str;
    _skip(u);
    u->fin = _in.pos();
    if (!_in.expect(";")) {
@@ -188,7 +188,7 @@ AstNode* Parser::parse_using_declaration() {
 
 Type *Parser::parse_type() {
    Token id = _in.read_id();
-   return new Type(_in.substr(id));
+   return new Type(id.str);
 }
 
 AstNode *Parser::parse_func_or_var() {
@@ -197,7 +197,7 @@ AstNode *Parser::parse_func_or_var() {
    Type *type = parse_type();
    c[0] = _in.skip("\t ");
    Token tok = _in.read_id();
-   string name = _in.substr(tok);
+   string name = tok.str;
    c[1] = _in.skip("\t ");
    if (_in.curr() == '(') {
       FuncDecl *fn = new FuncDecl(name);
@@ -228,7 +228,7 @@ void Parser::parse_function(FuncDecl *fn) {
       p->type = parse_type();
       _skip(p);
       Token tok = _in.read_id();
-      p->name = _in.substr(tok);
+      p->name = tok.str;
       _skip(p);
       fn->params.push_back(p);
 
@@ -318,7 +318,7 @@ Stmt *Parser::parse_jumpstmt() {
    _skip(stmt);
    if (stmt->type == JumpStmt::_goto) {
       Token tok = _in.read_id();
-      stmt->label = _in.substr(tok);
+      stmt->label = tok.str;
       _skip(stmt);
    }
    if (!_in.expect(";")) {
@@ -373,14 +373,14 @@ Expr *Parser::parse_primary_expr() {
    }
    case Token::CharLiteral: {
       Literal* lit = new Literal(Literal::Char);
-      lit->val.as_string.s = new string(_in.substr(tok));
+      lit->val.as_string.s = new string(tok.str);
       _skip(lit);
       e = lit;
       break;
    }
    case Token::StringLiteral: {
       Literal* lit = new Literal(Literal::String);
-      lit->val.as_string.s = new string(_in.substr(tok));
+      lit->val.as_string.s = new string(tok.str);
       _skip(lit);
       e = lit;
       break;
@@ -536,7 +536,7 @@ Expr *Parser::parse_fieldexpr(Expr *x, Token tok) {
    _in.consume(tok.t == Token::Arrow ? "->" : ".");
    _skip(e);
    Token id = _in.read_id();
-   e->field = new Identifier(_in.substr(id));
+   e->field = new Identifier(id.str);
    _skip(e->field);
    return e;
 }
@@ -634,7 +634,7 @@ Stmt *Parser::parse_declstmt() {
    _skip(stmt);
    while (true) {
       Token id = _in.read_id();
-      DeclStmt::Decl decl(_in.substr(id));
+      DeclStmt::Decl decl(id.str);
       _skip(stmt);
       if (_in.curr() == '=') {
          _in.next();
