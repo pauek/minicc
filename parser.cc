@@ -67,7 +67,7 @@ AstNode* Parser::parse() {
    while (!_in.end()) {
       Pos pos = _in.pos();
       Token tok = _in.peek_token();
-      switch (tok.t) {
+      switch (tok.type) {
       case Token::Sharp: {
          prog->add(parse_macro());
          break;
@@ -87,11 +87,11 @@ AstNode* Parser::parse() {
          error(msg.str());
       }
       default: {
-         if (tok.k & Token::TypeSpec) {
+         if (tok.kind & Token::TypeSpec) {
             prog->add(parse_func_or_var());
          } else {
             ostringstream msg;
-            msg << pos << ": Unexpected token '" << tok.t << "'";
+            msg << pos << ": Unexpected token '" << tok.type << "'";
             error(msg.str());
          }
       }
@@ -196,17 +196,17 @@ Type *Parser::parse_type() {
 
    while (true) {
       Token tok = _in.peek_token();
-      if (tok.k & Token::TypeQual) {
+      if (tok.kind & Token::TypeQual) {
          _in.next_token();
-         switch (tok.t) {
+         switch (tok.type) {
          case Token::Const:   type->qual |= Type::Const; break;
          case Token::Auto:    type->qual |= Type::Auto;  break;
          case Token::Mutable: type->qual |= Type::Mutable;  break;
          default: /* TODO: acabar! */ break;
          }
          _skip(type);
-      } else if (tok.k & Token::BasicType or
-                 (type->id == 0 and (tok.k & Token::Identifier))) {
+      } else if (tok.kind & Token::BasicType or
+                 (type->id == 0 and (tok.kind & Token::Identifier))) {
          _in.next_token();
          type->id = new Identifier(tok.str);
          _skip(type->id);
@@ -302,7 +302,7 @@ Block *Parser::parse_block() {
 
 Stmt* Parser::parse_stmt() {
    Token tok1 = _in.peek_token();
-   switch (tok1.t) {
+   switch (tok1.type) {
    case Token::LParen:
       return parse_exprstmt();
 
@@ -325,7 +325,7 @@ Stmt* Parser::parse_stmt() {
       return parse_switch();
 
    default:
-      if (tok1.k == Token::Operator) {
+      if (tok1.kind == Token::Operator) {
          return parse_exprstmt();
       }
       return parse_decl_or_expr_stmt();
@@ -338,7 +338,7 @@ Stmt *Parser::parse_decl_or_expr_stmt() {
    _skip();
    Token tok2 = _in.next_token();
    _in.restore();
-   if (tok2.k & Token::TypeSpec or tok2.k & Token::Identifier) {
+   if (tok2.kind & Token::TypeSpec or tok2.kind & Token::Identifier) {
       return parse_declstmt();
    } else {
       return parse_exprstmt();
@@ -349,7 +349,7 @@ Stmt *Parser::parse_jumpstmt() {
    JumpStmt *stmt = new JumpStmt();
    stmt->ini = _in.pos();
    Token tok = _in.next_token();
-   switch (tok.t) {
+   switch (tok.type) {
    case Token::Break:    stmt->type = JumpStmt::_break; break;
    case Token::Continue: stmt->type = JumpStmt::_continue; break;
    case Token::Goto:     stmt->type = JumpStmt::_goto; break;
@@ -386,7 +386,7 @@ Stmt *Parser::parse_exprstmt() {
 Expr *Parser::parse_primary_expr() {
    Expr *e;
    Token tok = _in.next_token();
-   switch (tok.t) {
+   switch (tok.type) {
    case Token::LParen:
       e = parse_expr();
       e->paren = true;
@@ -398,7 +398,7 @@ Expr *Parser::parse_primary_expr() {
    case Token::True:
    case Token::False: {
       Literal* lit = new Literal(Literal::Bool);
-      lit->val.as_bool = (tok.t == Token::True);
+      lit->val.as_bool = (tok.type == Token::True);
       _skip(lit);
       e = lit;
       break;
@@ -432,7 +432,7 @@ Expr *Parser::parse_primary_expr() {
 }
 
 Expr *Parser::parse_identifier(Token tok) {
-   if (tok.t == Token::Empty) {
+   if (tok.type == Token::Empty) {
       error("Expression doesn't start with a token");
       return 0;
    }
@@ -447,7 +447,7 @@ Expr *Parser::parse_postfix_expr(Expr *e = 0) {
    }
  begin:
    Token tok = _in.peek_token();
-   switch (tok.t) {
+   switch (tok.type) {
    case Token::LParen:
       e = parse_callexpr(e);
       goto begin;
@@ -475,7 +475,7 @@ Expr *Parser::parse_postfix_expr(Expr *e = 0) {
 Expr *Parser::parse_unary_expr() {
    Expr *e;
    Token tok = _in.peek_token();
-   switch (tok.t) {
+   switch (tok.type) {
    case Token::Not: {
       NegExpr *ne = new NegExpr();
       _in.next();
@@ -486,7 +486,7 @@ Expr *Parser::parse_unary_expr() {
    }
    case Token::Plus:
    case Token::Minus: {
-      SignExpr *se = new SignExpr(tok.t == Token::Plus 
+      SignExpr *se = new SignExpr(tok.type == Token::Plus 
                                   ? SignExpr::Positive
                                   : SignExpr::Negative);
       _in.next();
@@ -519,8 +519,8 @@ Expr *Parser::parse_expr(BinaryExpr::Type max) {
    while (true) {
       _in.save();
       Token tok = _in.read_operator();
-      BinaryExpr::Type type = BinaryExpr::tok2type(tok.t);
-      if (tok.t == Token::Empty or type > max) {
+      BinaryExpr::Type type = BinaryExpr::tok2type(tok.type);
+      if (tok.type == Token::Empty or type > max) {
          _in.restore();
          break;
       }
@@ -577,8 +577,8 @@ Expr *Parser::parse_indexexpr(Expr *x) {
 Expr *Parser::parse_fieldexpr(Expr *x, Token tok) {
    FieldExpr *e = new FieldExpr();
    e->base = x;
-   e->pointer = (tok.t == Token::Arrow);
-   _in.consume(tok.t == Token::Arrow ? "->" : ".");
+   e->pointer = (tok.type == Token::Arrow);
+   _in.consume(tok.type == Token::Arrow ? "->" : ".");
    _skip(e);
    Token id = _in.read_id();
    e->field = new Identifier(id.str);
@@ -589,7 +589,7 @@ Expr *Parser::parse_fieldexpr(Expr *x, Token tok) {
 Expr *Parser::parse_increxpr(Expr *x, Token tok) {
    IncrExpr *e = new IncrExpr(Token::PlusPlus ? IncrExpr::Positive : IncrExpr::Negative);
    e->expr = x;
-   _in.consume(tok.t == Token::PlusPlus ? "++" : "--");
+   _in.consume(tok.type == Token::PlusPlus ? "++" : "--");
    _skip(e);
    return e;
 }
@@ -651,7 +651,7 @@ Stmt *Parser::parse_ifstmt() {
    stmt->then = parse_stmt();
    
    string tok;
-   if (_in.peek_token().t == Token::Else) {
+   if (_in.peek_token().type == Token::Else) {
       _in.consume("else");
       _skip(stmt);
       stmt->els = parse_stmt();

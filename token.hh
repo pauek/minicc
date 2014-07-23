@@ -37,11 +37,12 @@ public:
    static Token token2type(std::string tok);
 
    int ini, fin;
-   Type t;
-   int k;
+   Type type;
+   int  kind;
    std::string str;
 
-   Token(Type _t = Unknown, int _k = None) : t(_t), k(_k), ini(-1), fin(-1) {}
+   Token(Type _t = Unknown, int _k = None) 
+      : type(_t), kind(_k), ini(-1), fin(-1) {}
 
 private:
    struct Table { 

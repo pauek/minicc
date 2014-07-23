@@ -291,8 +291,8 @@ Token Input::read_id() {
    }
    t.fin = _curr;
    Token x = Token::token2type(substr(t));
-   t.t = x.t;
-   t.k = x.k;
+   t.type = x.type;
+   t.kind = x.kind;
    return t;
 }
 
@@ -398,7 +398,7 @@ Token Input::read_string_or_char_literal(char delim) {
    if (curr() == delim) {
       consume(delim);
    }
-   t.t = (delim == '"' ? Token::StringLiteral : Token::CharLiteral);
+   t.type = (delim == '"' ? Token::StringLiteral : Token::CharLiteral);
    return t;
 }
 
@@ -411,6 +411,6 @@ Token Input::read_number_literal() {
       next();
    }
    t.fin = _curr;
-   t.t = Token::IntLiteral;
+   t.type = Token::IntLiteral;
    return t;
 }
