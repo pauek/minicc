@@ -307,16 +307,20 @@ Stmt* Parser::parse_stmt() {
       if (tok1.k == Token::Operator) {
          return parse_exprstmt();
       }
-      _in.save();
-      Token tok1 = _in.next_token();
-      _skip();
-      Token tok2 = _in.next_token();
-      _in.restore();
-      if (tok2.k == Token::TypeSpec or tok2.k == Token::Identifier) {
-         return parse_declstmt();
-      } else {
-         return parse_exprstmt();
-      }
+      return parse_decl_or_expr_stmt();
+   }
+}
+
+Stmt *Parser::parse_decl_or_expr_stmt() {
+   _in.save();
+   Token tok1 = _in.next_token();
+   _skip();
+   Token tok2 = _in.next_token();
+   _in.restore();
+   if (tok2.k == Token::TypeSpec or tok2.k == Token::Identifier) {
+      return parse_declstmt();
+   } else {
+      return parse_exprstmt();
    }
 }
 
@@ -577,7 +581,7 @@ Stmt *Parser::parse_for() {
       error(_in.pos().str() + ": Expected '('");
    }
    _in.skip("\t\n "); // Comments here will disappear
-   stmt->init = parse_for_init_stmt();
+   stmt->init = parse_decl_or_expr_stmt();
    stmt->cond = parse_expr();
    if (!_in.expect(";")) {
       error(_in.pos().str() + ": Expected ';'");
@@ -590,15 +594,6 @@ Stmt *Parser::parse_for() {
    _skip(stmt);
    stmt->substmt = parse_stmt();
    return stmt;
-}
-
-Stmt *Parser::parse_for_init_stmt() {
-   Token tok = _in.peek_token();
-   if (tok.k == Token::TypeSpec) {
-      return parse_declstmt();
-   } else {
-      return parse_exprstmt();
-   }
 }
 
 Stmt *Parser::parse_while() {
