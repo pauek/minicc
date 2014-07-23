@@ -196,12 +196,7 @@ Type *Parser::parse_type() {
 
    while (true) {
       Token tok = _in.peek_token();
-      if (tok.k & Token::BasicType or
-          (type->id == 0 and (tok.k & Token::Identifier))) {
-         _in.next_token();
-         type->id = new Identifier(tok.str);
-         _skip(type->id);
-      } else if (tok.k & Token::TypeQual) {
+      if (tok.k & Token::TypeQual) {
          _in.next_token();
          switch (tok.t) {
          case Token::Const:   type->qual |= Type::Const; break;
@@ -210,6 +205,11 @@ Type *Parser::parse_type() {
          default: /* TODO: acabar! */ break;
          }
          _skip(type);
+      } else if (tok.k & Token::BasicType or
+                 (type->id == 0 and (tok.k & Token::Identifier))) {
+         _in.next_token();
+         type->id = new Identifier(tok.str);
+         _skip(type->id);
       } else {
          break;
       }
