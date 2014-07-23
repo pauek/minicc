@@ -123,17 +123,17 @@ ostream& operator<<(ostream& o, CommentSeq* C) {
    if (C == 0) {
       return o;
    }
-   for (int i = 0; i < C->comments.size(); i++) {
-      const Comment& c = C->comments[i];
+   for (int i = 0; i < C->items.size(); i++) {
+      const Comment& c = C->items[i];
       if (c.type == Comment::multiline) {
-         if (i > 0 and !C->comments[i].endl) {
+         if (i > 0 and !C->items[i].endl) {
             o << ' ';
          }
          o << "/*" << c.text << "*/";
       } else {
          o << "//" << c.text;
       }
-      if (c.endl and i < C->comments.size()-1) {
+      if (c.endl and i < C->items.size()-1) {
          o << endl;
       }
    }

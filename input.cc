@@ -59,32 +59,32 @@ bool Input::curr_one_of(std::string set) const {
 }
 
 CommentSeq* Input::skip(string skip_set) {
-   CommentSeq *cn = 0;
+   CommentSeq *cs = 0;
    while (!end()) {
       while (curr() == '/') {
          peek(1);
-         if (cn == 0) {
-            cn = new CommentSeq();
+         if (cs == 0) {
+            cs = new CommentSeq();
          }
          if (curr(1) == '*') {
-            cn->comments.push_back(Comment(Comment::multiline));
-            read_multiline_comment(cn->comments.back());
+            cs->items.push_back(Comment(Comment::multiline));
+            read_multiline_comment(cs->items.back());
          } else if (curr(1) == '/') {
-            cn->comments.push_back(Comment(Comment::singleline));
-            read_singleline_comment(cn->comments.back());
+            cs->items.push_back(Comment(Comment::singleline));
+            read_singleline_comment(cs->items.back());
          } else {
             break;
          }
       }
-      if (cn != 0 and curr() == '\n') {
-         cn->comments.back().endl = true;
+      if (cs != 0 and curr() == '\n') {
+         cs->items.back().endl = true;
       }
       if (skip_set.find(curr()) == string::npos) {
          break;
       }
       next();
    }
-   return cn;
+   return cs;
 }
 
 string Input::skip_to(string stop_set) {

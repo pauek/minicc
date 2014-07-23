@@ -35,9 +35,9 @@ struct Comment {
 };
 
 struct CommentSeq : public AstNode {
-   std::vector<Comment> comments;
+   std::vector<Comment> items;
    void visit(AstVisitor* v);
-   bool endl() const { return !comments.empty() and comments.back().endl; }
+   bool endl() const { return !items.empty() and items.back().endl; }
 };
 
 struct Program : public AstNode {
