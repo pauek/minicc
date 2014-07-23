@@ -92,19 +92,7 @@ struct FuncDecl : public AstNode {
 
 struct Expr;
 
-struct Stmt : public AstNode {
-   enum Type { _unknown, _block, _for, _while, _if, _switch };
-
-   Type type;
-   Expr *expr; 
-   Stmt *sub_stmt[2];
-
-   Stmt(Type _type = _unknown) : type(_type), expr(0) {
-      sub_stmt[0] = sub_stmt[1] = 0;
-   }
-
-   void visit(AstVisitor *v);
-};
+struct Stmt : public AstNode {};
 
 struct ExprStmt : public Stmt {
    Expr *expr;
@@ -157,7 +145,6 @@ struct JumpStmt : public Stmt {
 
 struct Block : public Stmt {
    std::vector<Stmt*> stmts;
-   Block() : Stmt(Stmt::_block) {}
    void visit(AstVisitor *v);
 };
 
@@ -312,7 +299,6 @@ public:
    virtual void visit_using(Using *) = 0;
    virtual void visit_funcdecl(FuncDecl *) = 0;
    virtual void visit_type(Type *) = 0;
-   virtual void visit_stmt(Stmt *) = 0;
    virtual void visit_block(Block *) = 0;
    virtual void visit_identifier(Identifier *) = 0;
    virtual void visit_binaryexpr(BinaryExpr *) = 0;
@@ -339,7 +325,6 @@ inline void Macro::visit(AstVisitor *v)         { v->visit_macro(this); }
 inline void Using::visit(AstVisitor *v)         { v->visit_using(this); }
 inline void FuncDecl::visit(AstVisitor* v)      { v->visit_funcdecl(this); }
 inline void Type::visit(AstVisitor *v)          { v->visit_type(this); }
-inline void Stmt::visit(AstVisitor *v)          { v->visit_stmt(this); }
 inline void Block::visit(AstVisitor *v)         { v->visit_block(this); }
 inline void Identifier::visit(AstVisitor *v)    { v->visit_identifier(this); }
 inline void BinaryExpr::visit(AstVisitor *v)    { v->visit_binaryexpr(this); }

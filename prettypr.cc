@@ -117,20 +117,6 @@ void PrettyPrinter::visit_binaryexpr(BinaryExpr *x) {
    out() << _cmt0(x, -1);
 }
 
-void PrettyPrinter::visit_stmt(Stmt *x) {
-   switch (x->type) {
-   case Stmt::_while:
-      out() << "while" << _cmt_(x, 0) << "(";
-      x->expr->visit(this);
-      out() << ")" << _cmt_(x, 1);
-      x->sub_stmt[0]->visit(this);
-      break;
-
-   default:
-      out() << "<stmt>;";
-   }
-}
-
 void PrettyPrinter::visit_block(Block *x) {
    print_block(x);
 }

@@ -83,14 +83,6 @@ void AstPrinter::visit_block(Block *x) {
    out(beginl) << "})";
 }
 
-void AstPrinter::visit_stmt(Stmt *x) {
-   out() << "Stmt(";
-   switch (x->type) {
-   default:
-      out(beginl) << "unimplemented)" << endl;
-   }
-}
-
 void AstPrinter::visit_identifier(Identifier *x) {
    out() << "id:'" << x->id << "'";
 }
