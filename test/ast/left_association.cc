@@ -1,7 +1,7 @@
 void f() { a + b + c; }
 [[out]]--------------------------------------------------
 Program{
-   FuncDecl("f", Type(void), Params = {}, {
+   FuncDecl("f", Type(id:'void'), Params = {}, {
       Block({
          ExprStmt(+(+(id:'a', id:'b'), id:'c'))
       })

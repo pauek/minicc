@@ -19,19 +19,19 @@ int main() {
 Program{
    Include(<iostream>)
    Using(std)
-   FuncDecl("func", Type(double), Params = {"a": Type(int), "b": Type(int), "c": Type(int)}, {
+   FuncDecl("func", Type(id:'double'), Params = {"a": Type(id:'int'), "b": Type(id:'int'), "c": Type(id:'int')}, {
       Block({
          ExprStmt(=(id:'a', Int<1>))
          ExprStmt(+=(id:'b', Int<2>))
          ExprStmt(/=(id:'c', Int<3>))
       })
    })
-   FuncDecl("reverse", Type(string), Params = {"s": Type(string)}, {
+   FuncDecl("reverse", Type(id:'string'), Params = {"s": Type(id:'string')}, {
       Block({
          ExprStmt(=(id:'r', id:'s'))
       })
    })
-   FuncDecl("main", Type(int), Params = {}, {
+   FuncDecl("main", Type(id:'int'), Params = {}, {
       Block({})
    })
 }

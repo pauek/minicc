@@ -15,7 +15,7 @@ int main()
 Program{
    Include(<iostream>)
    Using(std)
-   FuncDecl("main", Type(int), Params = {}, {
+   FuncDecl("main", Type(id:'int'), Params = {}, {
       Block({})
    })
 }

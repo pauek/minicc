@@ -6,7 +6,7 @@ void xxx(string s) {
 }
 [[out]]--------------------------------------------------
 Program{
-   FuncDecl("xxx", Type(void), Params = {"s": Type(string)}, {
+   FuncDecl("xxx", Type(id:'void'), Params = {"s": Type(id:'string')}, {
       Block({
          IterStmt<for>(ExprStmt(=(id:'a', Int<1>)), <(id:'a', Int<100>), =(id:'a', +(id:'a', Int<1>)), {
             Block({

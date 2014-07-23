@@ -30,17 +30,18 @@ public:
    };
 
    enum Kind {
-      Literal, TypeSpec, Identifier, Operator, Control, None
+      None = 0, Literal = 1, TypeSpec = 2, Identifier = 4, 
+      Operator = 8, Control = 16, BasicType = 32, TypeQual = 64
    };
    
    static Token token2type(std::string tok);
 
    int ini, fin;
    Type t;
-   Kind k;
+   int k;
    std::string str;
 
-   Token(Type _t = Unknown, Kind _k = None) : t(_t), k(_k), ini(-1), fin(-1) {}
+   Token(Type _t = Unknown, int _k = None) : t(_t), k(_k), ini(-1), fin(-1) {}
 
 private:
    struct Table { 

@@ -3,7 +3,7 @@ void f() {
 }
 [[out]]--------------------------------------------------
 Program{
-   FuncDecl("f", Type(void), Params = {}, {
+   FuncDecl("f", Type(id:'void'), Params = {}, {
       Block({
          ExprStmt(SignExpr<->(IncrExpr<++, post>(id:'a')))
       })

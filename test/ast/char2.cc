@@ -3,7 +3,7 @@ string f() {
 }
 [[out]]--------------------------------------------------
 Program{
-   FuncDecl("f", Type(string), Params = {}, {
+   FuncDecl("f", Type(id:'string'), Params = {}, {
       Block({
          ExprStmt(CallExpr(id:'main', Args = {Char<bla>, Char< >, Char<r>}))
       })

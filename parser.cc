@@ -87,7 +87,7 @@ AstNode* Parser::parse() {
          error(msg.str());
       }
       default: {
-         if (tok.k == Token::TypeSpec) {
+         if (tok.k & Token::TypeSpec) {
             prog->add(parse_func_or_var());
          } else {
             ostringstream msg;
@@ -192,8 +192,28 @@ AstNode* Parser::parse_using_declaration() {
 }
 
 Type *Parser::parse_type() {
-   Token id = _in.read_id();
-   return new Type(id.str);
+   Type *type = new Type();
+
+   while (true) {
+      Token tok = _in.peek_token();
+      if (tok.k & Token::BasicType or
+          (type->id == 0 and (tok.k & Token::Identifier))) {
+         _in.next_token();
+         type->id = new Identifier(tok.str);
+         _skip(type->id);
+      } else if (tok.k & Token::TypeQual) {
+         switch (tok.t) {
+         case Token::Const:   type->qual &= Type::Const; break;
+         case Token::Auto:    type->qual &= Type::Auto;  break;
+         case Token::Mutable: type->qual &= Type::Mutable;  break;
+         default: /* TODO: acabar! */ break;
+         }
+         _skip(type);
+      } else {
+         break;
+      }
+   }
+   return type;
 }
 
 AstNode *Parser::parse_func_or_var() {

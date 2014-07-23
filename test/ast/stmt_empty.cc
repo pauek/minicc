@@ -3,7 +3,7 @@ double fn( ){
 }
 [[out]]------------------------------------
 Program{
-   FuncDecl("fn", Type(double), Params = {}, {
+   FuncDecl("fn", Type(id:'double'), Params = {}, {
       Block({
          ExprStmt()
       })

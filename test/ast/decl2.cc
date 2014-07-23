@@ -3,9 +3,9 @@ void f() {
 }
 [[out]]--------------------------------------------------
 Program{
-   FuncDecl("f", Type(void), Params = {}, {
+   FuncDecl("f", Type(id:'void'), Params = {}, {
       Block({
-         DeclStmt(Type(int), Vars = {"a", "b" = +(id:'a', id:'c')})
+         DeclStmt(Type(id:'int'), Vars = {"a", "b" = +(id:'a', id:'c')})
       })
    })
 }

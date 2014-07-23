@@ -31,7 +31,9 @@ void AstPrinter::visit_using(Using* x) {
 }
 
 void AstPrinter::visit_type(Type *x) {
-   out() << "Type(" << x->name << ")";
+   out() << "Type(";
+   x->id->visit(this);
+   out() << ")";
 }
 
 void AstPrinter::visit_funcdecl(FuncDecl *x) {

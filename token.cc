@@ -9,7 +9,7 @@ using namespace std;
 struct { 
    string      s; 
    Token::Type t; 
-   Token::Kind k;
+   int         k;
 } toktab[] = {
    { "",           Token::Empty, Token::None },
 
@@ -72,28 +72,29 @@ struct {
    { "typedef",  Token::Typedef,  Token::None },
 
    // simple_type_specifier
-   { "void",     Token::Void,     Token::TypeSpec },
-   { "int",      Token::Int,      Token::TypeSpec },
-   { "short",    Token::Short,    Token::TypeSpec },
-   { "long",     Token::Long,     Token::TypeSpec },
-   { "bool",     Token::Bool,     Token::TypeSpec },
-   { "char",     Token::Char,     Token::TypeSpec },
-   { "float",    Token::Float,    Token::TypeSpec },
-   { "double",   Token::Double,   Token::TypeSpec },
-   { "string",   Token::String,   Token::TypeSpec },
+   { "void",     Token::Void,     Token::TypeSpec | Token::BasicType },
+   { "int",      Token::Int,      Token::TypeSpec | Token::BasicType },
+   { "short",    Token::Short,    Token::TypeSpec | Token::BasicType },
+   { "long",     Token::Long,     Token::TypeSpec | Token::BasicType },
+   { "bool",     Token::Bool,     Token::TypeSpec | Token::BasicType },
+   { "char",     Token::Char,     Token::TypeSpec | Token::BasicType },
+   { "float",    Token::Float,    Token::TypeSpec | Token::BasicType },
+   { "double",   Token::Double,   Token::TypeSpec | Token::BasicType },
+   { "string",   Token::String,   Token::TypeSpec | Token::BasicType },
+
    { "signed",   Token::Signed,   Token::TypeSpec },
    { "unsigned", Token::Unsigned, Token::TypeSpec },
 
-   { "const",    Token::Const,    Token::TypeSpec },
-   { "long",     Token::Long,     Token::TypeSpec },
-   { "volatile", Token::Volatile, Token::TypeSpec },
+   { "const",    Token::Const,    Token::TypeSpec | Token::TypeQual },
+   { "long",     Token::Long,     Token::TypeSpec | Token::TypeQual },
+   { "volatile", Token::Volatile, Token::TypeSpec | Token::TypeQual },
 
    // storage_class_specifier
-   { "auto",     Token::Const,    Token::TypeSpec },
-   { "register", Token::Long,     Token::TypeSpec },
-   { "static",   Token::Volatile, Token::TypeSpec },
-   { "extern",   Token::Extern,   Token::TypeSpec },
-   { "mutable",  Token::Extern,   Token::TypeSpec },
+   { "auto",     Token::Const,    Token::TypeSpec | Token::TypeQual },
+   { "register", Token::Long,     Token::TypeSpec | Token::TypeQual },
+   { "static",   Token::Volatile, Token::TypeSpec | Token::TypeQual },
+   { "extern",   Token::Extern,   Token::TypeSpec | Token::TypeQual },
+   { "mutable",  Token::Extern,   Token::TypeSpec | Token::TypeQual },
 
    // function_specifier
    { "inline",   Token::Extern,   Token::TypeSpec },

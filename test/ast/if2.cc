@@ -7,7 +7,7 @@ int f() {
 }
 [[out]]--------------------------------------------------
 Program{
-   FuncDecl("f", Type(int), Params = {}, {
+   FuncDecl("f", Type(id:'int'), Params = {}, {
       Block({
          IfStmt(!=(id:'a', id:'b'), Block({
             ExprStmt(+(id:'cout', id:'x'))

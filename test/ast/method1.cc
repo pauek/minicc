@@ -3,7 +3,7 @@ int f() {
 }
 [[out]]--------------------------------------------------
 Program{
-   FuncDecl("f", Type(int), Params = {}, {
+   FuncDecl("f", Type(id:'int'), Params = {}, {
       Block({
          ExprStmt(CallExpr(FieldExpr(id:'map', id:'find'), Args = {String<x>}))
       })

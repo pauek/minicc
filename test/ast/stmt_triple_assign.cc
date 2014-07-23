@@ -3,7 +3,7 @@ double    fn   (char c1 ,float x  )    {
 }
 [[out]]------------------------------------
 Program{
-   FuncDecl("fn", Type(double), Params = {"c1": Type(char), "x": Type(float)}, {
+   FuncDecl("fn", Type(id:'double'), Params = {"c1": Type(id:'char'), "x": Type(id:'float')}, {
       Block({
          ExprStmt(=(id:'a', =(id:'b', =(id:'c', Int<1>))))
       })

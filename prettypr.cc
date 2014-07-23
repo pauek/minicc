@@ -39,7 +39,7 @@ void PrettyPrinter::visit_using(Using* x) {
 }
 
 void PrettyPrinter::visit_type(Type *x) {
-   out() << x->name;
+   x->id->visit(this);
 }
 
 void PrettyPrinter::visit_funcdecl(FuncDecl *x) {

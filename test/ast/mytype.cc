@@ -4,9 +4,9 @@ int f() {
 }
 [[out]]--------------------------------------------------
 Program{
-   FuncDecl("f", Type(int), Params = {}, {
+   FuncDecl("f", Type(id:'int'), Params = {}, {
       Block({
-         DeclStmt(Type(MyType), Vars = {"x", "y"})
+         DeclStmt(Type(id:'MyType'), Vars = {"x", "y"})
          ExprStmt(CallExpr(FieldExpr(id:'x', id:'set'), Args = {Int<3>}))
       })
    })

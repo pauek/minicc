@@ -3,7 +3,7 @@ void f() {
 }
 [[out]]--------------------------------------------------
 Program{
-   FuncDecl("f", Type(void), Params = {}, {
+   FuncDecl("f", Type(id:'void'), Params = {}, {
       Block({
          ExprStmt(CallExpr((+(id:'a', id:'b')), Args = {Int<1>}))
       })

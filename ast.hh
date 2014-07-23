@@ -275,8 +275,15 @@ struct FieldExpr : public Expr {
 };
 
 struct Type : public AstNode {
-   std::string name;
-   Type(std::string _name) : name(_name) {}
+   enum Qualifiers {
+      None = 0, Const = 1, Volatile = 2, Mutable = 4, 
+      Register = 8, Auto = 16, Extern = 32
+   };
+
+   Identifier *id;
+   int qual;
+
+   Type() : id(0), qual(None) {}
    void visit(AstVisitor *v);
 };
 
