@@ -19,7 +19,7 @@ struct Range {
 // Input /////////////////////////////////////////////////////////////
 
 struct Comment;
-struct CommentNode;
+struct CommentSeq;
 
 class Input {
    std::istream* _in;
@@ -62,7 +62,7 @@ public:
           bool  expect(std::string word);
           void  consume(char c);
           void  consume(std::string s);
-   CommentNode *skip(std::string skip_set);
+   CommentSeq *skip(std::string skip_set);
    std::string  skip_to(std::string stop_set);
 
          Token  next_token();

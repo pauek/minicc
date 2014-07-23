@@ -58,13 +58,13 @@ bool Input::curr_one_of(std::string set) const {
    return set.find(curr()) != std::string::npos; 
 }
 
-CommentNode* Input::skip(string skip_set) {
-   CommentNode *cn = 0;
+CommentSeq* Input::skip(string skip_set) {
+   CommentSeq *cn = 0;
    while (!end()) {
       while (curr() == '/') {
          peek(1);
          if (cn == 0) {
-            cn = new CommentNode();
+            cn = new CommentSeq();
          }
          if (curr(1) == '*') {
             cn->comments.push_back(Comment(Comment::multiline));

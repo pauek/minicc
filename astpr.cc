@@ -13,7 +13,7 @@ void AstPrinter::visit_program(Program* x) {
    out(beginl) << "}" << endl;
 }
 
-void AstPrinter::visit_comment(CommentNode* cn) {
+void AstPrinter::visit_comment(CommentSeq* cn) {
    out() << cn;
 }
 

@@ -98,7 +98,7 @@ std::ostream& AstVisitor::out(OutType typ) {
    return *_out; 
 }
 
-string cmt(CommentNode* cn, bool pre, bool post, bool missing) {
+string cmt(CommentSeq* cn, bool pre, bool post, bool missing) {
    ostringstream out;
    if (cn != 0) {
       out << (pre ? " " : "") << cn << (post ? " " : "");
@@ -108,7 +108,7 @@ string cmt(CommentNode* cn, bool pre, bool post, bool missing) {
    return out.str();
 }
 
-string cmtl(CommentNode *cn) {
+string cmtl(CommentSeq *cn) {
    ostringstream out;
    if (cn) {
       out << ' ' << cn;
@@ -119,7 +119,7 @@ string cmtl(CommentNode *cn) {
    return out.str();
 }
 
-ostream& operator<<(ostream& o, CommentNode* C) {
+ostream& operator<<(ostream& o, CommentSeq* C) {
    if (C == 0) {
       return o;
    }

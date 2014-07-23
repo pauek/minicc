@@ -9,13 +9,13 @@
 
 class AstVisitor;
 
-struct CommentNode;
+struct CommentSeq;
 
-std::ostream& operator<<(std::ostream& o, CommentNode* C);
+std::ostream& operator<<(std::ostream& o, CommentSeq* C);
 
 struct AstNode {
    Pos ini, fin;
-   std::vector<CommentNode*> comment_nodes;
+   std::vector<CommentSeq*> comment_nodes;
    virtual ~AstNode() {}
    virtual int num_children()    const { return 0; }
    virtual AstNode* child(int n) const { return 0; }
@@ -34,7 +34,7 @@ struct Comment {
    Comment(Type t) : type(t), endl(false) {}
 };
 
-struct CommentNode : public AstNode {
+struct CommentSeq : public AstNode {
    std::vector<Comment> comments;
    void visit(AstVisitor* v);
    bool endl() const { return !comments.empty() and comments.back().endl; }
@@ -78,7 +78,7 @@ struct FuncDecl : public AstNode {
    struct Param {
       Type *type;
       std::string name;
-      std::vector<CommentNode *> comment_nodes;
+      std::vector<CommentSeq *> comment_nodes;
    };
 
    Type *return_type;
@@ -292,7 +292,7 @@ protected:
 public:
    AstVisitor(std::ostream *o) : _indent(0), _out(o) {}
 
-   virtual void visit_comment(CommentNode*) = 0;
+   virtual void visit_comment(CommentSeq*) = 0;
    virtual void visit_program(Program*) = 0;
    virtual void visit_include(Include*) = 0;
    virtual void visit_macro(Macro *) = 0;
@@ -319,7 +319,7 @@ public:
 
 // Visit implementations
 inline void Program::visit(AstVisitor *v)       { v->visit_program(this); }
-inline void CommentNode::visit(AstVisitor *v)   { v->visit_comment(this); }
+inline void CommentSeq::visit(AstVisitor *v)   { v->visit_comment(this); }
 inline void Include::visit(AstVisitor *v)       { v->visit_include(this); }
 inline void Macro::visit(AstVisitor *v)         { v->visit_macro(this); }
 inline void Using::visit(AstVisitor *v)         { v->visit_using(this); }
@@ -343,11 +343,11 @@ inline void AddrExpr::visit(AstVisitor *v)      { v->visit_addrexpr(this); }
 inline void Literal::visit(AstVisitor *v)       { v->visit_literal(this); }
 
 // Comment helpers
-std::string cmt(CommentNode* cn, bool pre, bool post, bool missing);
-std::string cmtl(CommentNode *cn);
+std::string cmt(CommentSeq* cn, bool pre, bool post, bool missing);
+std::string cmtl(CommentSeq *cn);
 
 template<typename T> 
-inline CommentNode *_at(T *x, int i) {
+inline CommentSeq *_at(T *x, int i) {
    if (i < 0) {
       const int sz = x->comment_nodes.size();
       return x->comment_nodes[sz+i];

@@ -12,7 +12,7 @@ public:
 
    void print(AstNode* x) { x->visit(this); }
 
-   void visit_comment(CommentNode *x);
+   void visit_comment(CommentSeq *x);
    void visit_include(Include *x);
    void visit_macro(Macro *x);
    void visit_program(Program *x);

@@ -53,14 +53,14 @@ void Parser::_skip(X *n, std::string stopset) {
 }
 
 void Parser::_skip(string stopset) {
-   CommentNode *cn = _in.skip(stopset);
+   CommentSeq *cn = _in.skip(stopset);
    if (cn != 0) delete cn;
 }
 
 AstNode* Parser::parse() {
    Program *prog = new Program();
    _in.next();
-   CommentNode *c = _in.skip("\n\t ");
+   CommentSeq *c = _in.skip("\n\t ");
    if (c != 0) {
       prog->add(c);
    }
@@ -107,7 +107,7 @@ AstNode* Parser::parse() {
 AstNode* Parser::parse_macro() {
    Pos ini = _in.pos();
    _in.consume('#');
-   vector<CommentNode*> cmts;
+   vector<CommentSeq*> cmts;
    cmts.push_back(_in.skip("\t "));
    Pos macro_ini = _in.pos();
    if (!_in.expect("include")) {
@@ -146,7 +146,7 @@ AstNode* Parser::parse_macro() {
          break;
       }
    }
-   CommentNode *c3 = 0;
+   CommentSeq *c3 = 0;
    if (_in.curr() == close) {
       _in.next();
       c3 = _in.skip("\t ");
@@ -218,7 +218,7 @@ Type *Parser::parse_type() {
 }
 
 AstNode *Parser::parse_func_or_var() {
-   CommentNode *c[2] = { 0, 0 };
+   CommentSeq *c[2] = { 0, 0 };
    Pos ini = _in.pos();
    Type *type = parse_type();
    c[0] = _in.skip("\t ");
@@ -240,7 +240,7 @@ AstNode *Parser::parse_func_or_var() {
 }
 
 void Parser::parse_function(FuncDecl *fn) {
-   CommentNode *cn;
+   CommentSeq *cn;
 
    // parameter list
    _in.consume('(');
@@ -512,7 +512,7 @@ Expr *Parser::parse_unary_expr() {
 }
 
 Expr *Parser::parse_expr(BinaryExpr::Type max) {
-   CommentNode *cn;
+   CommentSeq *cn;
 
    Expr *left = parse_unary_expr();
 

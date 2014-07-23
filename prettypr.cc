@@ -10,13 +10,13 @@ void PrettyPrinter::visit_program(Program* x) {
          out() << endl;
       }
       n->visit(this);
-      if (n->is<CommentNode>()) {
+      if (n->is<CommentSeq>()) {
          out() << endl;
       }
    }
 }
 
-void PrettyPrinter::visit_comment(CommentNode* cn) {
+void PrettyPrinter::visit_comment(CommentSeq* cn) {
    out() << cn;
 }
 
