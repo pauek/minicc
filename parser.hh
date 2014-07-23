@@ -47,6 +47,7 @@ public:
 
       Expr *parse_expr(Expr::Type max = Expr::comma);
       Expr *parse_primary_expr();
+      Expr *parse_identifier(Token tok);
       Expr *parse_postfix_expr(Expr *);
       Expr *parse_unary_expr();
       Expr *parse_callexpr(Expr *);

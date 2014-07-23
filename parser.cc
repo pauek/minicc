@@ -342,10 +342,8 @@ Stmt *Parser::parse_exprstmt() {
    return stmt;
 }
 
-
 Expr *Parser::parse_primary_expr() {
    Expr *e;
-   _in.save();
    Token tok = _in.next_token();
    switch (tok.t) {
    case Token::LParen:
@@ -386,13 +384,19 @@ Expr *Parser::parse_primary_expr() {
       break;
    }
    default:
-      if (tok.t == Token::Empty) {
-         error("Expression doesn't start with a token");
-         return 0;
-      }
-      e = new Identifier(_in.substr(tok));
-      _skip(e);
+      e = parse_identifier(tok);
+      break;
    }
+   return e;
+}
+
+Expr *Parser::parse_identifier(Token tok) {
+   if (tok.t == Token::Empty) {
+      error("Expression doesn't start with a token");
+      return 0;
+   }
+   Identifier *e = new Identifier(_in.substr(tok));
+   _skip(e);
    return e;
 }
 
