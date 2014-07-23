@@ -33,6 +33,13 @@ void AstPrinter::visit_using(Using* x) {
 void AstPrinter::visit_type(Type *x) {
    out() << "Type(";
    x->id->visit(this);
+   if (x->qual != 0) {
+      out() << ", {";
+      if (x->qual & Type::Const) {
+         out() << "const";
+      }
+      out() << "}";
+   }
    out() << ")";
 }
 

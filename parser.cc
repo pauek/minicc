@@ -202,10 +202,11 @@ Type *Parser::parse_type() {
          type->id = new Identifier(tok.str);
          _skip(type->id);
       } else if (tok.k & Token::TypeQual) {
+         _in.next_token();
          switch (tok.t) {
-         case Token::Const:   type->qual &= Type::Const; break;
-         case Token::Auto:    type->qual &= Type::Auto;  break;
-         case Token::Mutable: type->qual &= Type::Mutable;  break;
+         case Token::Const:   type->qual |= Type::Const; break;
+         case Token::Auto:    type->qual |= Type::Auto;  break;
+         case Token::Mutable: type->qual |= Type::Mutable;  break;
          default: /* TODO: acabar! */ break;
          }
          _skip(type);
@@ -337,7 +338,7 @@ Stmt *Parser::parse_decl_or_expr_stmt() {
    _skip();
    Token tok2 = _in.next_token();
    _in.restore();
-   if (tok2.k == Token::TypeSpec or tok2.k == Token::Identifier) {
+   if (tok2.k & Token::TypeSpec or tok2.k & Token::Identifier) {
       return parse_declstmt();
    } else {
       return parse_exprstmt();
