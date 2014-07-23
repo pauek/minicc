@@ -7,7 +7,7 @@
 class Token {
 public:
    enum Type {
-      Unknown, Empty,
+      Empty,
       Int, Void, Char, Double, Float, Bool, String,
       True, False,
       Sharp, Not, Amp, Star, Slash, Div,
@@ -22,11 +22,15 @@ public:
       Comma, Assign, PlusAssign, MinusAssign,
       AndAssign, OrAssign, XorAssign, 
       EqEq, NotEq, LT, GT, LE, GE, LShift, RShift,
-      IntLiteral, CharLiteral, StringLiteral, RealLiteral
+      IntLiteral, CharLiteral, StringLiteral, RealLiteral,
+      Signed, Unsigned, Volatile, Const, Short, Long,
+      Inline, Virtual, Explicit,
+      Auto, Register, Static, Extern, Mutable,
+      Unknown
    };
 
    enum Kind {
-      Literal, BasicType, None
+      Literal, TypeSpec, Identifier, Operator, Control, None
    };
    
    static Token token2type(std::string tok);

@@ -52,6 +52,11 @@ void Parser::_skip(X *n, std::string stopset) {
    n->comment_nodes.push_back(_in.skip(stopset));
 }
 
+void Parser::_skip(string stopset) {
+   CommentNode *cn = _in.skip(stopset);
+   if (cn != 0) delete cn;
+}
+
 AstNode* Parser::parse() {
    Program *prog = new Program();
    _in.next();
@@ -82,7 +87,7 @@ AstNode* Parser::parse() {
          error(msg.str());
       }
       default: {
-         if (tok.k == Token::BasicType) {
+         if (tok.k == Token::TypeSpec) {
             prog->add(parse_func_or_var());
          } else {
             ostringstream msg;
@@ -275,8 +280,11 @@ Block *Parser::parse_block() {
 }
 
 Stmt* Parser::parse_stmt() {
-   Token t = _in.peek_token();
-   switch (t.t) {
+   Token tok1 = _in.peek_token();
+   switch (tok1.t) {
+   case Token::LParen:
+      return parse_exprstmt();
+
    case Token::LCurly:  
       return parse_block();
 
@@ -296,9 +304,17 @@ Stmt* Parser::parse_stmt() {
       return parse_switch();
 
    default:
-      if (t.k == Token::BasicType) {
+      if (tok1.k == Token::Operator) {
+         return parse_exprstmt();
+      }
+      _in.save();
+      Token tok1 = _in.next_token();
+      _skip();
+      Token tok2 = _in.next_token();
+      _in.restore();
+      if (tok2.k == Token::TypeSpec or tok2.k == Token::Identifier) {
          return parse_declstmt();
-      } else  {
+      } else {
          return parse_exprstmt();
       }
    }
@@ -578,7 +594,7 @@ Stmt *Parser::parse_for() {
 
 Stmt *Parser::parse_for_init_stmt() {
    Token tok = _in.peek_token();
-   if (tok.k == Token::BasicType) {
+   if (tok.k == Token::TypeSpec) {
       return parse_declstmt();
    } else {
       return parse_exprstmt();

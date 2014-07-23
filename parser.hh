@@ -18,7 +18,10 @@ class Parser {
    bool is_builtin_type(Token::Type t) const;
    bool is_literal(std::string s) const;
    
-   template<typename X> void _skip(X *n, std::string stopset = "\n\t ");
+   template<typename X> 
+   void _skip(X *n, std::string stopset = "\n\t ");
+   
+   void _skip(std::string stopset = "\n\t ");
 
 public:
    Parser(std::istream *in, std::ostream* err = &std::cerr);
