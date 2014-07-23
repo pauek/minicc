@@ -5,6 +5,7 @@ using namespace std;
 #include "parser.hh"
 #include "astpr.hh"
 #include "prettypr.hh"
+#include "walker.hh"
 
 // Detect lines like:
 //
@@ -75,18 +76,20 @@ void test_visitor(string filename, VisitorType vtype) {
    istringstream Scode(code);
    Parser P(&Scode, &Serr);
    AstNode *program;
-   try {
-      program = P.parse();
-      AstVisitor *v;
-      switch (vtype) {
-      case pretty_printer: v = new PrettyPrinter(&Sout); break;
-      case ast_printer:    v = new AstPrinter(&Sout); break;
-      }
-      program->visit(v);
-   } 
-   catch (ParseError *e) {
+
+   program = P.parse();
+   AstVisitor *v;
+   switch (vtype) {
+   case pretty_printer: v = new PrettyPrinter(&Sout); break;
+   case ast_printer:    v = new AstPrinter(&Sout); break;
+   }
+   program->visit(v);
+   vector<Error*> ve;
+   collect_errors(program, ve);
+   for (Error *e : ve) {
       Serr << e->msg << endl;
    }
+
    char res = '.';
    string sep((82 - filename.size()) / 2, '-');
    string header = sep + " " + filename + " " + sep + "\n";

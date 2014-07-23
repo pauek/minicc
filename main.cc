@@ -7,6 +7,7 @@ using namespace std;
 #include "test.hh"
 #include "astpr.hh"
 #include "prettypr.hh"
+#include "walker.hh"
 
 int main(int argc, char *argv[]) {
    string filename;
@@ -52,6 +53,11 @@ int main(int argc, char *argv[]) {
          v = new PrettyPrinter(&cout);
       }
       program->visit(v);
+      vector<Error*> ve;
+      collect_errors(program, ve);
+      for (Error *e : ve) {
+         cerr << e->msg << endl;
+      }
    } catch (ParseError *e) {
       cerr << e->msg << endl;
    }

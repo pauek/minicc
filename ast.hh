@@ -9,13 +9,16 @@
 
 class AstVisitor;
 
+struct Error;
 struct CommentSeq;
 
 std::ostream& operator<<(std::ostream& o, CommentSeq* C);
 
 struct AstNode {
    Pos ini, fin;
+   std::vector<Error*>      errors;
    std::vector<CommentSeq*> comments;
+
    virtual ~AstNode() {}
    virtual int num_children()    const { return 0; }
    virtual AstNode* child(int n) const { return 0; }
@@ -23,6 +26,12 @@ struct AstNode {
 
    template<typename X>
    bool is() { return dynamic_cast<X*>(this) != 0; }
+};
+
+struct Error {
+   Pos pos;
+   std::string msg;
+   Error(Pos p, std::string m) : pos(p), msg(m) {}
 };
 
 struct Comment {
@@ -53,7 +62,7 @@ struct Include : public AstNode {
    std::string filename;
    bool global;
 
-   Include(std::string _filename, bool _global) 
+   Include(std::string _filename = "", bool _global = false) 
       : filename(_filename), global(_global) {}
 
    void visit(AstVisitor* v);
@@ -92,7 +101,15 @@ struct FuncDecl : public AstNode {
 
 struct Expr;
 
-struct Stmt : public AstNode {};
+struct Stmt : public AstNode {
+   void visit(AstVisitor *v);
+   struct Error;
+};
+
+struct Stmt::Error : public Stmt {
+   std::string code;
+   void visit(AstVisitor *v);
+};
 
 struct ExprStmt : public Stmt {
    Expr *expr;
@@ -168,6 +185,13 @@ struct Expr : public AstNode {
    static Type tok2type(Token::Type toktyp);
    static Op2TypeInitializer initializer;
    static bool right_associative(Type t);
+
+   struct Error;
+};
+
+struct Expr::Error : public Expr {
+   std::string code;
+   void visit(AstVisitor *v);
 };
 
 struct Literal : public Expr {
@@ -315,6 +339,9 @@ public:
    virtual void visit_negexpr(NegExpr *) = 0;
    virtual void visit_addrexpr(AddrExpr *) = 0;
    virtual void visit_literal(Literal *) = 0;
+
+   virtual void visit_errorstmt(Stmt::Error *) = 0;
+   virtual void visit_errorexpr(Expr::Error *) = 0;
 };
 
 // Visit implementations
@@ -341,6 +368,11 @@ inline void IncrExpr::visit(AstVisitor *v)      { v->visit_increxpr(this); }
 inline void NegExpr::visit(AstVisitor *v)       { v->visit_negexpr(this); }
 inline void AddrExpr::visit(AstVisitor *v)      { v->visit_addrexpr(this); }
 inline void Literal::visit(AstVisitor *v)       { v->visit_literal(this); }
+
+inline void Stmt::Error::visit(AstVisitor *v)   { v->visit_errorstmt(this); }
+inline void Expr::Error::visit(AstVisitor *v)   { v->visit_errorexpr(this); }
+
+inline void Stmt::visit(AstVisitor *v)          { assert(false); }
 
 // Comment helpers
 std::string cmt(CommentSeq* cn, bool pre, bool post, bool missing);

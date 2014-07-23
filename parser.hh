@@ -23,11 +23,13 @@ class Parser {
    
    void _skip(std::string stopset = "\n\t ");
 
+   void error(AstNode *n, std::string msg);
+
+   template<class Node>
+   typename Node::Error *error(std::string msg);
+
 public:
    Parser(std::istream *in, std::ostream* err = &std::cerr);
-
-   void error(std::string msg);
-   void warning(std::string msg);
 
    AstNode *parse();
    AstNode *parse_macro();

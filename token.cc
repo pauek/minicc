@@ -14,6 +14,7 @@ struct {
    { "",           Token::Empty, Token::None },
 
    { ",",          Token::Comma, Token::None },
+   { ";",      Token::SemiColon, Token::None },
 
    { "||",        Token::BarBar, Token::Operator },
    { "&&",        Token::AmpAmp, Token::Operator },

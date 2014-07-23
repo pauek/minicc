@@ -1,16 +1,16 @@
-#ifndef ASTPRINT_HH
-#define ASTPRINT_HH
+#ifndef WALKER_HH
+#define WALKER_HH
 
 #include <assert.h>
 #include <iostream>
 #include "ast.hh"
 
-class AstPrinter : public AstVisitor {
+class Walker : public AstVisitor {
    
 public:
-   AstPrinter(std::ostream *o = &std::cout) : AstVisitor(o) {}
+   Walker(std::ostream *o = &std::cout) : AstVisitor(o) {}
 
-   void print(AstNode* x) { x->visit(this); }
+   virtual void walk(AstNode *n) = 0;
 
    void visit_comment(CommentSeq *x);
    void visit_include(Include *x);
@@ -39,5 +39,21 @@ public:
    void visit_errorstmt(Stmt::Error *x);
    void visit_errorexpr(Expr::Error *x);
 };
+
+struct ErrorCollector : public Walker {
+   std::vector<Error*>& errors;
+   
+   ErrorCollector(std::vector<Error*>& v) : errors(v) {}
+   
+   void walk(AstNode *n) {
+      const std::vector<Error*>& ve = n->errors;
+      errors.insert(errors.end(), ve.begin(), ve.end());
+   }
+};
+
+inline void collect_errors(AstNode *x, std::vector<Error*>& v) {
+   ErrorCollector e(v);
+   x->visit(&e);
+}
 
 #endif

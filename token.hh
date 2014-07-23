@@ -26,6 +26,7 @@ public:
       Signed, Unsigned, Volatile, Const, Short, Long,
       Inline, Virtual, Explicit,
       Auto, Register, Static, Extern, Mutable,
+      SemiColon,
       Unknown
    };
 

@@ -242,3 +242,12 @@ void PrettyPrinter::visit_addrexpr(AddrExpr *x) {
    out() << "&" << _cmt0_(x, 0);
    x->expr->visit(this);
 }
+
+void PrettyPrinter::visit_errorstmt(Stmt::Error *x) {
+   out() << "/* ErrorStmt: \"" << x->code << "\" */";
+}
+
+void PrettyPrinter::visit_errorexpr(Expr::Error *x) {
+   out() << "/* ErrorExpr: \"" << x->code << "\" */";
+}
+
