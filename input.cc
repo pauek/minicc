@@ -293,8 +293,8 @@ Token Input::read_id() {
    }
    t.fin = _curr;
    Token x = Token::token2type(substr(t));
-   t.type = x.type;
-   t.kind = x.kind;
+   t.type  = x.type;
+   t.group = x.group;
    return t;
 }
 

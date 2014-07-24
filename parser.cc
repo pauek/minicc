@@ -96,7 +96,7 @@ AstNode* Parser::parse() {
          break;
       }
       default: {
-         if (tok.kind & Token::TypeSpec) {
+         if (tok.group & Token::TypeSpec) {
             prog->add(parse_func_or_var());
          } else {
             ostringstream msg;
@@ -211,7 +211,7 @@ Type *Parser::parse_type() {
 
    while (true) {
       Token tok = _in.peek_token();
-      if (tok.kind & Token::TypeQual) {
+      if (tok.group & Token::TypeQual) {
          _in.next_token();
          switch (tok.type) {
          case Token::Const:   type->qual |= Type::Const; break;
@@ -220,8 +220,8 @@ Type *Parser::parse_type() {
          default: /* TODO: acabar! */ break;
          }
          _skip(type);
-      } else if (tok.kind & Token::BasicType or
-                 (type->id == 0 and (tok.kind & Token::Identifier))) {
+      } else if (tok.group & Token::BasicType or
+                 (type->id == 0 and (tok.group & Token::Identifier))) {
          _in.next_token();
          type->id = new Identifier(tok.str);
          _skip(type->id);
@@ -342,7 +342,7 @@ Stmt* Parser::parse_stmt() {
       return parse_switch();
 
    default:
-      if (tok1.kind == Token::Operator) {
+      if (tok1.group == Token::Operator) {
          return parse_exprstmt();
       }
       return parse_decl_or_expr_stmt();
@@ -355,7 +355,7 @@ Stmt *Parser::parse_decl_or_expr_stmt() {
    _skip();
    Token tok2 = _in.next_token();
    _in.restore();
-   if (tok2.kind & Token::TypeSpec or tok2.kind & Token::Identifier) {
+   if (tok2.group & Token::TypeSpec or tok2.group & Token::Identifier) {
       return parse_declstmt();
    } else {
       return parse_exprstmt();

@@ -30,7 +30,7 @@ public:
       Unknown
    };
 
-   enum Kind {
+   enum Group {
       None = 0, Literal = 1, TypeSpec = 2, Identifier = 4, 
       Operator = 8, Control = 16, BasicType = 32, TypeQual = 64
    };
@@ -39,11 +39,11 @@ public:
 
    int ini, fin;
    Type type;
-   int  kind;
+   int  group;
    std::string str;
 
    Token(Type _t = Unknown, int _k = None) 
-      : type(_t), kind(_k), ini(-1), fin(-1) {}
+      : type(_t), group(_k), ini(-1), fin(-1) {}
 
 private:
    struct Table { 
