@@ -311,7 +311,13 @@ void Parser::parse_function(FuncDecl *fn) {
       }
       p->type = parse_type();
       _skip(p);
-      Token tok = _in.read_id();
+      Token tok = _in.peek_token();
+      if (tok.type == Token::Amp) {
+         p->ref = true;
+         _in.next_token();
+         _skip(p);
+      }
+      tok = _in.read_id();
       p->name = tok.str;
       _skip(p);
       fn->params.push_back(p);

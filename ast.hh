@@ -299,6 +299,8 @@ struct FuncDecl : public AstNode {
       Type *type;
       std::string name;
       std::vector<CommentSeq *> comments;
+      bool ref;
+      Param() : type(0), ref(false) {}
    };
 
    Type *return_type;
