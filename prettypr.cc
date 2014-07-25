@@ -108,7 +108,10 @@ void PrettyPrinter::visit_binaryexpr(BinaryExpr *x) {
       out() << "(";
    }
    x->left->visit(this);
-   out() << " " << x->op << _cmt_(x, 0);
+   if (x->op != ",") {
+      out() << " ";
+   }
+   out() << x->op << _cmt_(x, 0);
    x->right->visit(this);
 
    if (x->paren) {
@@ -241,7 +244,7 @@ void PrettyPrinter::visit_condexpr(CondExpr *x) {
       out() << "(";
    }
    x->cond->visit(this);
-   out() << " ? " << _cmt0_(x, 0);
+   out() << " ?" << _cmt_(x, 0);
    x->then->visit(this);
    out() << " : " << _cmt0_(x, 1);
    x->els->visit(this);
