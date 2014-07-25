@@ -95,7 +95,8 @@ struct Stmt::Error : public Stmt {
 
 struct ExprStmt : public Stmt {
    Expr *expr;
-   ExprStmt() : expr(0) {}
+   bool is_return;
+   ExprStmt() : expr(0), is_return(false) {}
    void visit(AstVisitor *v);
 };
 

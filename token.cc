@@ -70,6 +70,7 @@ struct {
    { "break",    Token::Break,    Token::Control },
    { "continue", Token::Continue, Token::Control },
    { "goto",     Token::Goto,     Token::Control },
+   { "return",   Token::Return,   Token::Control },
 
    { "using",    Token::Using,    Token::None },
    { "struct",   Token::Struct,   Token::None },

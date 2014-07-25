@@ -14,7 +14,7 @@ public:
       Plus, Minus, PlusPlus, MinusMinus,
       LCurly, RCurly, LParen, LBrack, Dot, Arrow,
       If, Else, While, For, Switch, 
-      Break, Continue, Goto,
+      Break, Continue, Goto, Return,
       Typedef, Class, Struct, 
       Using, 
       StarAssign, SlashAssign, DivAssign, LShiftAssign, RShiftAssign,

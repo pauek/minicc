@@ -43,7 +43,7 @@ public:
       Stmt *parse_for();
       Stmt *parse_ifstmt();
       Stmt *parse_switch();
-      Stmt *parse_exprstmt();
+  ExprStmt *parse_exprstmt(bool is_return = false);
   DeclStmt *parse_declstmt();
       Stmt *parse_decl_or_expr_stmt();
       Stmt *parse_jumpstmt();

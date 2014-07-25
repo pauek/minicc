@@ -188,7 +188,7 @@ void AstPrinter::visit_declstmt(DeclStmt* x) {
 }
 
 void AstPrinter::visit_exprstmt(ExprStmt* x) {
-   out() << "ExprStmt(";
+   out() << "ExprStmt" << (x->is_return ? "<return>" : "") << "(";
    if (x->expr) {
       x->expr->visit(this);
    } 

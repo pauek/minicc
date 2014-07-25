@@ -166,6 +166,9 @@ void PrettyPrinter::visit_declstmt(DeclStmt* x) {
 }
 
 void PrettyPrinter::visit_exprstmt(ExprStmt* x) {
+   if (x->is_return) {
+      out() << "return ";
+   }
    if (x->expr) {
       x->expr->visit(this);
    }

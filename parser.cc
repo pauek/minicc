@@ -384,6 +384,11 @@ Stmt* Parser::parse_stmt() {
    case Token::Switch:
       return parse_switch();
 
+   case Token::Return: {
+      ExprStmt *stmt = parse_exprstmt(true);
+      stmt->is_return = true;
+      return stmt;
+   }
    default:
       if (tok1.group == Token::Operator) {
          return parse_exprstmt();
@@ -429,9 +434,14 @@ Stmt *Parser::parse_jumpstmt() {
    return stmt;
 }
 
-Stmt *Parser::parse_exprstmt() {
+ExprStmt *Parser::parse_exprstmt(bool is_return) {
    ExprStmt *stmt = new ExprStmt();
    stmt->ini = _in.pos();
+   if (is_return) {
+      Token tok = _in.next_token();
+      assert(tok.type == Token::Return);
+      _skip(stmt);
+   }
    stmt->expr = (_in.curr() == ';' ? 0 : parse_expr());
    stmt->fin = _in.pos();
    if (!_in.expect(";")) {
