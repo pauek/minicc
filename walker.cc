@@ -22,7 +22,9 @@ void Walker::visit_program(Program* x) {
 
 void Walker::visit_type(Type *x) {
    walk(x);
-   x->id->visit(this);
+   for (auto id : x->nested_ids) {
+      id->visit(this);
+   }
 }
 
 void Walker::visit_funcdecl(FuncDecl *x) {

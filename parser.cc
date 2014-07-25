@@ -208,11 +208,11 @@ AstNode* Parser::parse_using_declaration() {
 
 Type *Parser::parse_type() {
    Type *type = new Type();
-
    while (true) {
-      Token tok = _in.peek_token();
+      _in.save();
+      Token tok = _in.next_token();
       if (tok.group & Token::TypeQual) {
-         _in.next_token();
+         _in.discard();
          switch (tok.type) {
          case Token::Const:   type->qual |= Type::Const; break;
          case Token::Auto:    type->qual |= Type::Auto;  break;
@@ -220,16 +220,55 @@ Type *Parser::parse_type() {
          default: /* TODO: acabar! */ break;
          }
          _skip(type);
-      } else if (tok.group & Token::BasicType or
-                 (type->id == 0 and (tok.group & Token::Identifier))) {
-         _in.next_token();
-         type->id = new Identifier(tok.str);
-         _skip(type->id);
+      } else if (tok.group & Token::BasicType) {
+         _in.discard();
+         Identifier *id = new Identifier(tok.str);
+         _skip(id);
+         if (!type->nested_ids.empty()) {
+            error(type, "Los tipos básicos no deben estar anidados");
+         }
+         type->nested_ids.push_back(id);
+
+      } else if (type->nested_ids.empty() and (tok.group & Token::Identifier)) {
+         _in.discard();
+         parse_type_id(type, tok);
       } else {
+         _in.restore();
          break;
       }
    }
    return type;
+}
+
+void Parser::parse_type_id(Type *type, Token tok) {
+   while (true) {
+      Identifier *id = new Identifier(tok.str);
+      _skip(id);
+      _in.save();
+      Token tok2 = _in.next_token();
+      if (tok2.type == Token::LT) { // template_id
+         _in.discard();
+         id->subtype = parse_type();
+         Token tok3 = _in.next_token();
+         if (tok3.type != Token::GT) {
+            error(id, "Esperaba un '>' aquí");
+         }
+         _skip(id);
+      } else {
+         _in.restore();
+      }
+      type->nested_ids.push_back(id);
+      tok = _in.peek_token();
+      if (tok.type != Token::ColonColon) {
+         break;
+      } else {
+         _in.next_token();
+         tok = _in.next_token();
+         if (!(tok.group & Token::Identifier)) {
+            error(type, "Esperaba un identificador aquí");
+         }
+      }
+   }
 }
 
 AstNode *Parser::parse_func_or_var() {
@@ -351,11 +390,10 @@ Stmt* Parser::parse_stmt() {
 
 Stmt *Parser::parse_decl_or_expr_stmt() {
    _in.save();
-   Token tok1 = _in.next_token();
-   _skip();
-   Token tok2 = _in.next_token();
+   Type *type = parse_type();
+   Token tok = _in.next_token();
    _in.restore();
-   if (tok2.group & Token::TypeSpec or tok2.group & Token::Identifier) {
+   if (tok.group & Token::Identifier) {
       return parse_declstmt();
    } else {
       return parse_exprstmt();

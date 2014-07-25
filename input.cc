@@ -122,11 +122,24 @@ Token Input::next_token() {
       tok.str = s;
       return tok;
    }
+
+   case ':': {
+      next();
+      Token tok(Token::Colon);
+      tok.str = ":";
+      if (curr() == ':') {
+         next();
+         tok.type = Token::ColonColon;
+         tok.str = "::";
+      } 
+      return tok;
+   }
+
    case '+': case '&': case '!':
    case '-':
    case '*': case '/': case '%': case '=': case '^': 
    case '<': case '>': 
-   case ',': case '~': case '?': case ':': {
+   case ',': case '~': case '?': {
       return read_operator();
    }      
    case '0': case '1': case '2': case '3': case '4':

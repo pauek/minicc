@@ -49,6 +49,7 @@ public:
       Stmt *parse_jumpstmt();
 
       Type *parse_type();
+      void  parse_type_id(Type *, Token);
 
       Expr *parse_expr(Expr::Type max = Expr::comma);
       Expr *parse_primary_expr();

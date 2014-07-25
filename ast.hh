@@ -218,7 +218,8 @@ struct Literal : public Expr {
 
 struct Identifier : public Expr {
    std::string id;
-   Identifier(std::string _id = "") : id(_id) {}
+   ::Type *subtype; // for templates
+   Identifier(std::string _id = "") : id(_id), subtype(0) {}
    void visit(AstVisitor *v);
 };
 
@@ -297,10 +298,10 @@ struct Type : public AstNode {
       Register = 8, Auto = 16, Extern = 32
    };
 
-   Identifier *id;
    int qual;
+   std::vector<Identifier *> nested_ids;
 
-   Type() : id(0), qual(None) {}
+   Type() : qual(None) {}
    void visit(AstVisitor *v);
 };
 

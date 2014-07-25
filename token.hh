@@ -26,7 +26,7 @@ public:
       Signed, Unsigned, Volatile, Const, Short, Long,
       Inline, Virtual, Explicit,
       Auto, Register, Static, Extern, Mutable,
-      Colon, SemiColon, QMark,
+      Colon, ColonColon, SemiColon, QMark,
       Unknown
    };
 

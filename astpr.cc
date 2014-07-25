@@ -32,7 +32,18 @@ void AstPrinter::visit_using(Using* x) {
 
 void AstPrinter::visit_type(Type *x) {
    out() << "Type(";
-   x->id->visit(this);
+   if (x->nested_ids.size() == 1) {
+      x->nested_ids[0]->visit(this);
+   } else {
+      out() << "[";
+      for (int i = 0; i < x->nested_ids.size(); i++) {
+         if (i > 0) {
+            out() << ", ";
+         }
+         x->nested_ids[i]->visit(this);
+      }
+      out() << "]";
+   }
    if (x->qual != 0) {
       out() << ", {";
       if (x->qual & Type::Const) {
@@ -84,7 +95,13 @@ void AstPrinter::visit_block(Block *x) {
 }
 
 void AstPrinter::visit_identifier(Identifier *x) {
-   out() << "id:'" << x->id << "'";
+   if (x->subtype) {
+      out() << "Template(id:'" << x->id << "', Args = {";
+      x->subtype->visit(this);
+      out() << "})";
+   } else {
+      out() << "id:'" << x->id << "'";
+   }
 }
 
 void AstPrinter::visit_literal(Literal *x) {

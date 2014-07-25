@@ -39,7 +39,16 @@ void PrettyPrinter::visit_using(Using* x) {
 }
 
 void PrettyPrinter::visit_type(Type *x) {
-   x->id->visit(this);
+   if (x->nested_ids.size() == 1) {
+      x->nested_ids[0]->visit(this);
+   } else {
+      for (int i = 0; i < x->nested_ids.size(); i++) {
+         if (i > 0) {
+            out() << "::";
+         }
+         x->nested_ids[i]->visit(this);
+      }
+   }
 }
 
 void PrettyPrinter::visit_funcdecl(FuncDecl *x) {
