@@ -249,9 +249,10 @@ void Parser::parse_type_id(Type *type, Token tok) {
       if (tok2.type == Token::LT) { // template_id
          _in.discard();
          id->subtype = parse_type();
-         Token tok3 = _in.next_token();
-         if (tok3.type != Token::GT) {
+         if (_in.curr() != '>') { // Do NOT call next_token here, since it will return ">>"
             error(id, "Esperaba un '>' aquí");
+         } else {
+            _in.next();
          }
          _skip(id);
       } else {
