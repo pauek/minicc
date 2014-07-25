@@ -79,25 +79,7 @@ struct Using : public AstNode {
    void visit(AstVisitor *v);
 };
 
-struct Type;
-struct Stmt;
-struct Block;
-
-struct FuncDecl : public AstNode {
-   struct Param {
-      Type *type;
-      std::string name;
-      std::vector<CommentSeq *> comments;
-   };
-
-   Type *return_type;
-   std::string name;
-   std::vector<Param*> params;
-   Block* block;
-   
-   FuncDecl(std::string _name) : name(_name) {}
-   void visit(AstVisitor *v);
-};
+// Statements //////////////////////////////////////////////
 
 struct Expr;
 
@@ -165,6 +147,8 @@ struct Block : public Stmt {
    void visit(AstVisitor *v);
 };
 
+// Expressions /////////////////////////////////////////////
+
 struct Expr : public AstNode {
    enum Type { 
       unknown,
@@ -215,6 +199,8 @@ struct Literal : public Expr {
 
    static std::string escape(std::string s);
 };
+
+struct Type;
 
 struct Identifier : public Expr {
    std::string id;
@@ -305,6 +291,32 @@ struct Type : public AstNode {
    void visit(AstVisitor *v);
 };
 
+// Declarations ////////////////////////////////////////////
+
+struct FuncDecl : public AstNode {
+   struct Param {
+      Type *type;
+      std::string name;
+      std::vector<CommentSeq *> comments;
+   };
+
+   Type *return_type;
+   std::string name;
+   std::vector<Param*> params;
+   Block* block;
+   
+   FuncDecl(std::string _name) : name(_name) {}
+   void visit(AstVisitor *v);
+};
+
+struct StructDecl : public AstNode {
+   Identifier *id;
+   std::vector<DeclStmt *> decls;
+   
+   StructDecl() : id(0) {}
+   void visit(AstVisitor *v);
+};
+
 // AstVisitor
 
 class AstVisitor {
@@ -329,6 +341,7 @@ public:
    virtual void visit_macro(Macro *) = 0;
    virtual void visit_using(Using *) = 0;
    virtual void visit_funcdecl(FuncDecl *) = 0;
+   virtual void visit_structdecl(StructDecl *) = 0;
    virtual void visit_type(Type *) = 0;
    virtual void visit_block(Block *) = 0;
    virtual void visit_identifier(Identifier *) = 0;
@@ -354,11 +367,12 @@ public:
 
 // Visit implementations
 inline void Program::visit(AstVisitor *v)       { v->visit_program(this); }
-inline void CommentSeq::visit(AstVisitor *v)   { v->visit_comment(this); }
+inline void CommentSeq::visit(AstVisitor *v)    { v->visit_comment(this); }
 inline void Include::visit(AstVisitor *v)       { v->visit_include(this); }
 inline void Macro::visit(AstVisitor *v)         { v->visit_macro(this); }
 inline void Using::visit(AstVisitor *v)         { v->visit_using(this); }
 inline void FuncDecl::visit(AstVisitor* v)      { v->visit_funcdecl(this); }
+inline void StructDecl::visit(AstVisitor* v)    { v->visit_structdecl(this); }
 inline void Type::visit(AstVisitor *v)          { v->visit_type(this); }
 inline void Block::visit(AstVisitor *v)         { v->visit_block(this); }
 inline void Identifier::visit(AstVisitor *v)    { v->visit_identifier(this); }

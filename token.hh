@@ -12,7 +12,7 @@ public:
       True, False,
       Sharp, Not, Amp, Star, Slash, Div,
       Plus, Minus, PlusPlus, MinusMinus,
-      LCurly, LParen, LBrack, Dot, Arrow,
+      LCurly, RCurly, LParen, LBrack, Dot, Arrow,
       If, Else, While, For, Switch, 
       Break, Continue, Goto,
       Typedef, Class, Struct, 

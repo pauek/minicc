@@ -114,7 +114,7 @@ void Input::discard() {
 
 Token Input::next_token() {
    switch (curr()) {
-   case '.': case '(': case '[': case '{': 
+   case '.': case '(': case '[': case '{': case '}':
    case '#': case ';': {
       string s(1, curr());
       Token tok(Token::token2type(s));

@@ -82,6 +82,9 @@ AstNode* Parser::parse() {
          break;
       }
       case Token::Struct:
+         prog->add(parse_struct());
+         break;
+
       case Token::Typedef:
       case Token::Class: {
          prog->add(error<Stmt>("UNIMPLEMENTED"));
@@ -733,7 +736,7 @@ Stmt *Parser::parse_switch() {
    return error<Stmt>("UNIMPLEMENTED switch");
 }
 
-Stmt *Parser::parse_declstmt() {
+DeclStmt *Parser::parse_declstmt() {
    DeclStmt *stmt = new DeclStmt();
    stmt->type = parse_type();
    _skip(stmt);
@@ -758,4 +761,39 @@ Stmt *Parser::parse_declstmt() {
    }
    _skip(stmt);
    return stmt;
+}
+
+AstNode *Parser::parse_struct() {
+   Token tok = _in.next_token();
+   assert(tok.type == Token::Struct);
+
+   StructDecl *decl = new StructDecl();
+   _skip(decl);
+
+   decl->id = new Identifier(_in.read_id().str);
+   _skip(decl);
+   
+   tok = _in.next_token();
+   if (tok.type != Token::LCurly) {
+      error(decl, "Esperaba un '{' aquí");
+      _in.skip_to("};");
+      return decl;
+   }
+   _skip(decl);
+   
+   tok = _in.peek_token();
+   while (!_in.end() and tok.type != Token::RCurly) {
+      decl->decls.push_back(parse_declstmt());
+      _skip(decl);
+      tok = _in.peek_token();      
+   }
+   if (tok.type != Token::RCurly) {
+      error(decl, _in.pos().str() + ": Esperaba un '}' aquí");
+   }
+   _in.next_token();
+   tok = _in.next_token();
+   if (tok.type != Token::SemiColon) {
+      error(decl, _in.pos().str() + ": Esperaba un ';' aquí");
+   }
+   return decl;   
 }

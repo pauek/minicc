@@ -54,6 +54,20 @@ void AstPrinter::visit_type(Type *x) {
    out() << ")";
 }
 
+void AstPrinter::visit_structdecl(StructDecl *x) {
+   out(beginl) << "StructDecl(";
+   x->id->visit(this);
+   out() << ", {" << endl;
+   indent(+1);
+   for (DeclStmt *decl : x->decls) {
+      out(beginl);
+      decl->visit(this);
+      out() << endl;
+   }
+   indent(-1);
+   out(beginl) << "})" << endl;
+}
+
 void AstPrinter::visit_funcdecl(FuncDecl *x) {
    out(beginl) << "FuncDecl(\"" << x->name << "\", ";
    x->return_type->visit(this);

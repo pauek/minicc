@@ -51,6 +51,20 @@ void PrettyPrinter::visit_type(Type *x) {
    }
 }
 
+void PrettyPrinter::visit_structdecl(StructDecl *x) {
+   out() << "struct ";
+   x->id->visit(this);
+   out() << " {";
+   indent(+1);
+   for (DeclStmt *decl : x->decls) {
+      out(beginl);
+      decl->visit(this);
+      out() << endl;
+   }
+   indent(-1);
+   out(beginl) << "};";
+}
+
 void PrettyPrinter::visit_funcdecl(FuncDecl *x) {
    visit_type(x->return_type);
    out() << _cmt_(x, 0) << x->name << _cmt0_(x, 1) << "(";

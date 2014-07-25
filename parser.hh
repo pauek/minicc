@@ -44,12 +44,14 @@ public:
       Stmt *parse_ifstmt();
       Stmt *parse_switch();
       Stmt *parse_exprstmt();
-      Stmt *parse_declstmt();
+  DeclStmt *parse_declstmt();
       Stmt *parse_decl_or_expr_stmt();
       Stmt *parse_jumpstmt();
 
       Type *parse_type();
       void  parse_type_id(Type *, Token);
+
+   AstNode *parse_struct();
 
       Expr *parse_expr(Expr::Type max = Expr::comma);
       Expr *parse_primary_expr();

@@ -58,6 +58,7 @@ struct {
 
    { "#",        Token::Sharp,    Token::None },
    { "{",        Token::LCurly,   Token::None },
+   { "}",        Token::RCurly,   Token::None },
    { "[",        Token::LBrack,   Token::None },
    { "(",        Token::LParen,   Token::None },
 
