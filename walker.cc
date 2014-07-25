@@ -108,6 +108,13 @@ void Walker::visit_fieldexpr(FieldExpr *x) {
    x->field->visit(this);
 }
 
+void Walker::visit_condexpr(CondExpr *x) {
+   walk(x);
+   x->cond->visit(this);
+   x->then->visit(this);
+   x->els->visit(this);
+}
+
 void Walker::visit_signexpr(SignExpr *x) {
    walk(x);
    x->expr->visit(this);

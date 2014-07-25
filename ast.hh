@@ -171,7 +171,7 @@ struct Expr : public AstNode {
       // pm_expression 
       multiplicative, additive, shift, relational, equality, 
       bit_and, bit_xor, bit_or, logical_and, logical_or, conditional,
-      assignment, comma
+      assignment, comma, infinite
    };
    struct Op2TypeInitializer { Op2TypeInitializer(); }; // init _op2type
 
@@ -285,6 +285,12 @@ struct FieldExpr : public Expr {
    void visit(AstVisitor *v);
 };
 
+struct CondExpr : public Expr {
+   Expr *cond, *then, *els;
+   CondExpr() : cond(0), then(0), els(0) {}
+   void visit(AstVisitor *v);
+};
+
 struct Type : public AstNode {
    enum Qualifiers {
       None = 0, Const = 1, Volatile = 2, Mutable = 4, 
@@ -334,6 +340,7 @@ public:
    virtual void visit_callexpr(CallExpr *) = 0;
    virtual void visit_indexexpr(IndexExpr *) = 0;
    virtual void visit_fieldexpr(FieldExpr *) = 0;
+   virtual void visit_condexpr(CondExpr *) = 0;
    virtual void visit_signexpr(SignExpr *) = 0;
    virtual void visit_increxpr(IncrExpr *) = 0;
    virtual void visit_negexpr(NegExpr *) = 0;
@@ -363,6 +370,7 @@ inline void JumpStmt::visit(AstVisitor *v)      { v->visit_jumpstmt(this); }
 inline void CallExpr::visit(AstVisitor *v)      { v->visit_callexpr(this); }
 inline void IndexExpr::visit(AstVisitor *v)     { v->visit_indexexpr(this); }
 inline void FieldExpr::visit(AstVisitor *v)     { v->visit_fieldexpr(this); }
+inline void CondExpr::visit(AstVisitor *v)      { v->visit_condexpr(this); }
 inline void SignExpr::visit(AstVisitor *v)      { v->visit_signexpr(this); }
 inline void IncrExpr::visit(AstVisitor *v)      { v->visit_increxpr(this); }
 inline void NegExpr::visit(AstVisitor *v)       { v->visit_negexpr(this); }

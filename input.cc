@@ -114,7 +114,8 @@ void Input::discard() {
 
 Token Input::next_token() {
    switch (curr()) {
-   case '.': case '(': case '[': case '{': case '#': case ';': {
+   case '.': case '(': case '[': case '{': 
+   case '#': case ';': {
       string s(1, curr());
       Token tok(Token::token2type(s));
       next();
@@ -125,7 +126,7 @@ Token Input::next_token() {
    case '-':
    case '*': case '/': case '%': case '=': case '^': 
    case '<': case '>': 
-   case ',': case '~': {
+   case ',': case '~': case '?': case ':': {
       return read_operator();
    }      
    case '0': case '1': case '2': case '3': case '4':
@@ -346,7 +347,7 @@ Token Input::read_operator() {
       }
       break;
 
-   case ',': case '~':           // , ~
+   case ',': case '~': case '?': case ':': // , ~ ? :
       op += curr(); next();
       break;
       
@@ -357,6 +358,7 @@ Token Input::read_operator() {
    Token t(Token::token2type(op));
    t.ini = ini;
    t.fin = fin;
+   t.str = op;
    return t;
 }
 

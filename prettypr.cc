@@ -190,6 +190,9 @@ void PrettyPrinter::visit_jumpstmt(JumpStmt *x) {
 }
 
 void PrettyPrinter::visit_callexpr(CallExpr *x) {
+   if (x->paren) {
+      out() << "(";
+   }
    x->func->visit(this);
    if (x->func->comments[0] != 0 and !x->func->comments[0]->endl()) {
       out() << " ";
@@ -203,27 +206,65 @@ void PrettyPrinter::visit_callexpr(CallExpr *x) {
       x->args[i]->visit(this);
    }
    out() << ")" << _cmt0_(x, x->args.size());
+   if (x->paren) {
+      out() << ")";
+   }
 }
 
 void PrettyPrinter::visit_indexexpr(IndexExpr *x) {
+   if (x->paren) {
+      out() << "(";
+   }
    x->base->visit(this);
    out() << "[";
    x->index->visit(this);
    out() << "]";
+   if (x->paren) {
+      out() << ")";
+   }
 }
 
 void PrettyPrinter::visit_fieldexpr(FieldExpr *x) {
+   if (x->paren) {
+      out() << "(";
+   }
    x->base->visit(this);
    out() << (x->pointer ? "->" : ".");
    x->field->visit(this);
+   if (x->paren) {
+      out() << ")";
+   }
+}
+
+void PrettyPrinter::visit_condexpr(CondExpr *x) {
+   if (x->paren) {
+      out() << "(";
+   }
+   x->cond->visit(this);
+   out() << " ? " << _cmt0_(x, 0);
+   x->then->visit(this);
+   out() << " : " << _cmt0_(x, 1);
+   x->els->visit(this);
+   if (x->paren) {
+      out() << ")";
+   }
 }
 
 void PrettyPrinter::visit_signexpr(SignExpr *x) {
+   if (x->paren) {
+      out() << "(";
+   }
    out() << (x->type == SignExpr::Positive ? "+" : "-");
    x->expr->visit(this);
+   if (x->paren) {
+      out() << ")";
+   }
 }
 
 void PrettyPrinter::visit_increxpr(IncrExpr *x) {
+   if (x->paren) {
+      out() << "(";
+   }
    if (x->preincr) {
       out() << (x->type == IncrExpr::Positive ? "++" : "--");
       x->expr->visit(this);
@@ -231,16 +272,31 @@ void PrettyPrinter::visit_increxpr(IncrExpr *x) {
       x->expr->visit(this);
       out() << (x->type == IncrExpr::Positive ? "++" : "--");
    }
+   if (x->paren) {
+      out() << ")";
+   }
 }
 
 void PrettyPrinter::visit_negexpr(NegExpr *x) {
+   if (x->paren) {
+      out() << "(";
+   }
    out() << "!" << _cmt0_(x, 0);
    x->expr->visit(this);
+   if (x->paren) {
+      out() << ")";
+   }
 }
 
 void PrettyPrinter::visit_addrexpr(AddrExpr *x) {
+   if (x->paren) {
+      out() << "(";
+   }
    out() << "&" << _cmt0_(x, 0);
    x->expr->visit(this);
+   if (x->paren) {
+      out() << ")";
+   }
 }
 
 void PrettyPrinter::visit_errorstmt(Stmt::Error *x) {

@@ -30,6 +30,9 @@ struct {
    { "|=",  Token::OrAssign,     Expr::assignment },
    { "^=",  Token::XorAssign,    Expr::assignment },
 
+   { ":",   Token::Colon,        Expr::infinite },
+   { "?",   Token::QMark,        Expr::conditional },
+
    { "or",  Token::Or,           Expr::logical_or },
    { "||",  Token::BarBar,       Expr::logical_or },
 

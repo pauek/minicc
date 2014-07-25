@@ -541,18 +541,32 @@ Expr *Parser::parse_expr(BinaryExpr::Type max) {
          break;
       }
       _in.discard();
-      BinaryExpr *e = new BinaryExpr();
-      e->op = _in.substr(tok);
-      e->set(type);
-      _skip(e);
-      BinaryExpr::Type submax = 
-         BinaryExpr::Type(Expr::right_associative(type) 
-                          ? type 
-                          : type - 1);
-      Expr *right = parse_expr(submax);
-      e->left = left;
-      e->right = right;
-      left = e;
+      if (tok.type == Token::QMark) { // (... ? ... : ...)
+         CondExpr *e = new CondExpr();
+         e->cond = left;
+         _skip(e);
+         e->then = parse_expr(Expr::assignment); // Expr::comma?
+         Token colon = _in.read_operator();
+         if (colon.type != Token::Colon) {
+            error(e, "Esperaba un ':' aquí");
+         }
+         _skip(e);
+         e->els = parse_expr(Expr::assignment);
+         left = e;
+      } else {
+         BinaryExpr *e = new BinaryExpr();
+         e->op = _in.substr(tok);
+         e->set(type);
+         _skip(e);
+         Expr::Type submax = 
+            Expr::Type(Expr::right_associative(type) 
+                       ? type 
+                       : type - 1);
+         Expr *right = parse_expr(submax);
+         e->left = left;
+         e->right = right;
+         left = e;
+      }
       _skip(left);
    } 
    return left;

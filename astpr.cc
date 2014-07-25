@@ -240,6 +240,22 @@ void AstPrinter::visit_fieldexpr(FieldExpr *x) {
    out() << ")";
 }
 
+void AstPrinter::visit_condexpr(CondExpr *x) {
+   if (x->paren) { 
+      out() << "("; 
+   }
+   out() << "CondExpr(";
+   x->cond->visit(this);
+   out() << ", ";
+   x->then->visit(this);
+   out() << ", ";
+   x->els->visit(this);
+   out() << ")";
+   if (x->paren) { 
+      out() << ")"; 
+   }
+}
+
 void AstPrinter::visit_signexpr(SignExpr *x) {
    out() << "SignExpr<";
    out() << (x->type == SignExpr::Positive ? "+" : "-");
