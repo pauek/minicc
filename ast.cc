@@ -159,7 +159,7 @@ JumpStmt::Type JumpStmt::keyword2type(string s) {
    }
 }
 
-string Literal::escape(string s) {
+string Literal::escape(string s, char delim) {
    string r;
    for (char c : s) {
       switch (c) {
@@ -170,10 +170,10 @@ string Literal::escape(string s) {
       case '\r': r += "\\r"; break;
       case '\t': r += "\\t"; break;
       case '\v': r += "\\v"; break;
-      case '\'': r += "\\\'"; break;
-      case '\"': r += "\\\""; break;
       case '\?': r += "\\?"; break;
       case '\\': r += "\\\\"; break;
+      case '\"': r += (delim == '"' ? "\\\"" : "\""); break;
+      case '\'': r += (delim == '\'' ? "\\'" : "'"); break;
       default:   r += c; break;
       }
    }

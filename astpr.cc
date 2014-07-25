@@ -135,11 +135,11 @@ void AstPrinter::visit_literal(Literal *x) {
       break;
 
    case Literal::String: 
-      out() << "String<" << Literal::escape(*(x->val.as_string.s)) << ">"; 
+      out() << "String<" << Literal::escape(*(x->val.as_string.s), '"') << ">"; 
       break;
 
    case Literal::Char:   
-      out() << "Char<" << Literal::escape(*(x->val.as_string.s)) << ">"; 
+      out() << "Char<" << Literal::escape(*(x->val.as_string.s), '\'') << ">"; 
       break;
 
    default:

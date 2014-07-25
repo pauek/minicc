@@ -198,7 +198,7 @@ struct Literal : public Expr {
    Literal(Type t) : type(t) {}
    void visit(AstVisitor *v);
 
-   static std::string escape(std::string s);
+   static std::string escape(std::string s, char delim);
 };
 
 struct Type;
