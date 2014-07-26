@@ -39,6 +39,23 @@ void PrettyPrinter::visit_using(Using* x) {
 }
 
 void PrettyPrinter::visit_type(Type *x) {
+   int i = 0, numquals = 0;
+   static const string names[] = { 
+      "const", "volatile", "mutable", "register", "auto", "extern"
+   };
+   while (Type::Qualifiers(1 << i) <= Type::Extern) {
+      if (x->qual & Type::Qualifiers(1 << i)) {
+         if (numquals > 0) {
+            out() << " ";
+         }
+         out() << names[i];
+         numquals++;
+      }
+      i++;
+   }
+   if (numquals > 0) {
+      out() << " ";
+   }
    if (x->nested_ids.size() == 1) {
       x->nested_ids[0]->visit(this);
    } else {
@@ -110,6 +127,11 @@ void PrettyPrinter::print_block(Block *x) {
 
 void PrettyPrinter::visit_identifier(Identifier *x) {
    out() << x->id << _cmt0(x, 0);
+   if (x->subtype) {
+      out() << "<";
+      x->subtype->visit(this);
+      out() << ">";
+   }
 }
 
 void PrettyPrinter::visit_literal(Literal *x) {
