@@ -577,6 +577,14 @@ Expr *Parser::parse_unary_expr() {
       e = ae;
       break;
    }      
+   case Token::Star: {
+      DerefExpr *ae = new DerefExpr();
+      _in.next();
+      _skip(ae);
+      ae->expr = parse_unary_expr();
+      e = ae;
+      break;
+   }      
    default:
       e = parse_postfix_expr();
       break;

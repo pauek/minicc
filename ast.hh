@@ -251,6 +251,10 @@ struct AddrExpr : public UnaryExpr {
    void visit(AstVisitor *v);
 };
 
+struct DerefExpr : public UnaryExpr { 
+   void visit(AstVisitor *v);
+};
+
 struct CallExpr : public Expr {
    Expr *func;
    std::vector<Expr *> args;
@@ -362,6 +366,7 @@ public:
    virtual void visit_increxpr(IncrExpr *) = 0;
    virtual void visit_negexpr(NegExpr *) = 0;
    virtual void visit_addrexpr(AddrExpr *) = 0;
+   virtual void visit_derefexpr(DerefExpr *) = 0;
    virtual void visit_literal(Literal *) = 0;
 
    virtual void visit_errorstmt(Stmt::Error *) = 0;
@@ -393,6 +398,7 @@ inline void SignExpr::visit(AstVisitor *v)      { v->visit_signexpr(this); }
 inline void IncrExpr::visit(AstVisitor *v)      { v->visit_increxpr(this); }
 inline void NegExpr::visit(AstVisitor *v)       { v->visit_negexpr(this); }
 inline void AddrExpr::visit(AstVisitor *v)      { v->visit_addrexpr(this); }
+inline void DerefExpr::visit(AstVisitor *v)     { v->visit_derefexpr(this); }
 inline void Literal::visit(AstVisitor *v)       { v->visit_literal(this); }
 
 inline void Stmt::Error::visit(AstVisitor *v)   { v->visit_errorstmt(this); }

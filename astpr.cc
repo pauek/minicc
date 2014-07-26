@@ -319,6 +319,12 @@ void AstPrinter::visit_addrexpr(AddrExpr *x) {
    out() << ")";
 }
 
+void AstPrinter::visit_derefexpr(DerefExpr *x) {
+   out() << "DerefExpr(";
+   x->expr->visit(this);
+   out() << ")";
+}
+
 void AstPrinter::visit_errorstmt(Stmt::Error *x) {
    out() << "ErrorStmt(\"" << x->code << "\")";
 }

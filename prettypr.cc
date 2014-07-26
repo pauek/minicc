@@ -354,6 +354,17 @@ void PrettyPrinter::visit_addrexpr(AddrExpr *x) {
    }
 }
 
+void PrettyPrinter::visit_derefexpr(DerefExpr *x) {
+   if (x->paren) {
+      out() << "(";
+   }
+   out() << "*" << _cmt0_(x, 0);
+   x->expr->visit(this);
+   if (x->paren) {
+      out() << ")";
+   }
+}
+
 void PrettyPrinter::visit_errorstmt(Stmt::Error *x) {
    out() << "/* ErrorStmt: \"" << x->code << "\" */";
 }

@@ -144,3 +144,8 @@ void Walker::visit_addrexpr(AddrExpr *x) {
    walk(x);
    x->expr->visit(this);
 }
+
+void Walker::visit_derefexpr(DerefExpr *x) {
+   walk(x);
+   x->expr->visit(this);
+}
