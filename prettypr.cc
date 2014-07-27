@@ -185,6 +185,16 @@ void PrettyPrinter::visit_declstmt(DeclStmt* x) {
       out() << _cmt_(x, c++);
       const DeclStmt::Decl& d = x->decls[i];
       out() << d.name << _cmt0(x, c++);
+      if (!d.args.empty()) {
+         out() << "(";
+         for (int i = 0; i < d.args.size(); i++) {
+            if (i > 0) {
+               out() << ", ";
+            }
+            d.args[i]->visit(this);
+         }
+         out() << ")";
+      }
       if (d.init) {
          out() << " =" << _cmt_(x, c++);
          d.init->visit(this);
