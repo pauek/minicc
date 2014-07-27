@@ -117,7 +117,11 @@ void AstPrinter::visit_ident(Ident *x) {
       x->subtype->visit(this);
       out() << "})";
    } else {
-      out() << "id:'" << x->id << "'";
+      out() << "id:'";
+      for (Ident *i : x->prefix) {
+         out() << i->id << "::";
+      }
+      out() << x->id << "'";
    }
 }
 

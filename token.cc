@@ -86,7 +86,7 @@ struct {
    { "char",     Token::Char,     Token::TypeSpec | Token::BasicType },
    { "float",    Token::Float,    Token::TypeSpec | Token::BasicType },
    { "double",   Token::Double,   Token::TypeSpec | Token::BasicType },
-   { "string",   Token::String,   Token::TypeSpec | Token::BasicType },
+   { "string",   Token::String,   Token::TypeSpec | Token::BasicType | Token::Ident },
 
    { "signed",   Token::Signed,   Token::TypeSpec },
    { "unsigned", Token::Unsigned, Token::TypeSpec },

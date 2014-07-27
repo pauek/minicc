@@ -126,6 +126,9 @@ void PrettyPrinter::print_block(Block *x) {
 }
 
 void PrettyPrinter::visit_ident(Ident *x) {
+   for (Ident *pre : x->prefix) {
+      out() << pre->id << "::";
+   }
    out() << x->id << _cmt0(x, 0);
    if (x->subtype) {
       out() << "<";

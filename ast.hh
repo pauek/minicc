@@ -215,10 +215,18 @@ struct Type;
 struct Ident : public Expr {
    std::string id;
    ::Type *subtype; // for templates
+   std::
+vector<Ident *> prefix; // for classes & namespaces;
+
    Ident(std::string _id = "") : id(_id), subtype(0) {}
    void visit(AstVisitor *v);
    bool has_errors() const;
    std::string str() const;
+
+   void shift(std::string new_id) {
+      prefix.push_back(new Ident(id));
+      id = new_id;
+   }
 };
 
 struct BinaryExpr : public Expr {

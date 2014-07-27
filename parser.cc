@@ -489,12 +489,25 @@ Expr *Parser::parse_primary_expr() {
 }
 
 Expr *Parser::parse_ident(Token tok) {
-   if (tok.type == Token::Empty) {
-      return error<Expr>("Expression doesn't start with a token");
+   if (!(tok.group & Token::Ident)) {
+      return error<Expr>(_in.pos().str() + ": Expected identifier");
    }
-   Ident *e = new Ident(_in.substr(tok));
-   _skip(e);
-   return e;
+   Ident *id = new Ident(tok.str);
+   _skip(id);
+   tok = _in.peek_token();
+   if (tok.type == Token::ColonColon) {
+      _in.next_token();
+      _skip(id);
+      tok = _in.next_token();
+      if (!(tok.group & Token::Ident)) {
+         error(id, _in.pos().str() + ": Esperaba un identificador aquí");
+      }
+      id->shift(tok.str);
+      _skip(id);
+      tok = _in.peek_token();
+   }
+   _skip(id);
+   return id;
 }
 
 Expr *Parser::parse_postfix_expr(Expr *e = 0) {
@@ -745,11 +758,6 @@ Stmt *Parser::parse_switch() {
 DeclStmt *Parser::parse_declstmt() {
    DeclStmt *stmt = new DeclStmt();
    Type *type = parse_type();
-   /*
-   if (!_type_exists(type)) {
-      error(stmt, "El tipo '" + type->str() + "' no está declarado");
-   }
-   */
    stmt->type = type;
    _skip(stmt);
    while (true) {
