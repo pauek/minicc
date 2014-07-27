@@ -5,19 +5,15 @@
 #include "ast.hh"
 #include "input.hh"
 
-struct ParseError {
-   std::string msg;
-   ParseError(std::string _msg) : msg(_msg) {}
-};
+struct ParseError {};
 
 class Parser {
    Input _in;
    std::ostream *_err;
 
-   static set<Token::Type> _basic_types;
-   bool is_builtin_type(Token::Type t) const;
-   bool is_literal(std::string s) const;
-   
+   set<std::string> _types; // things known as types
+   bool _type_exists(Type *);
+
    template<typename X> 
    void _skip(X *n, std::string stopset = "\n\t ");
    
@@ -55,7 +51,7 @@ public:
 
       Expr *parse_expr(Expr::Type max = Expr::comma);
       Expr *parse_primary_expr();
-      Expr *parse_identifier(Token tok);
+      Expr *parse_ident(Token tok);
       Expr *parse_postfix_expr(Expr *);
       Expr *parse_unary_expr();
       Expr *parse_callexpr(Expr *);

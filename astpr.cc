@@ -111,7 +111,7 @@ void AstPrinter::visit_block(Block *x) {
    out(beginl) << "})";
 }
 
-void AstPrinter::visit_identifier(Identifier *x) {
+void AstPrinter::visit_ident(Ident *x) {
    if (x->subtype) {
       out() << "Template(id:'" << x->id << "', Args = {";
       x->subtype->visit(this);
@@ -179,6 +179,9 @@ void AstPrinter::visit_declstmt(DeclStmt* x) {
    for (DeclStmt::Decl& decl : x->decls) {
       if (!first) {
          out() << ", ";
+      }
+      if (decl.pointer) {
+         out() << "*";
       }
       out() << '"' << decl.name << '"';
       if (decl.init != 0) {

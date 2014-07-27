@@ -22,7 +22,7 @@ public:
    void visit_funcdecl(FuncDecl *x);
    void visit_structdecl(StructDecl *x);
    void visit_block(Block *x);
-   void visit_identifier(Identifier *x);
+   void visit_ident(Ident *x);
    void visit_binaryexpr(BinaryExpr *x);
    void visit_declstmt(DeclStmt *x);
    void visit_exprstmt(ExprStmt *x);

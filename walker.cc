@@ -7,7 +7,7 @@ void Walker::visit_comment(CommentSeq* cn)   { walk(cn); }
 void Walker::visit_include(Include* x)       { walk(x); }
 void Walker::visit_macro(Macro* x)           { walk(x); }
 void Walker::visit_using(Using* x)           { walk(x); }
-void Walker::visit_identifier(Identifier *x) { walk(x); }
+void Walker::visit_ident(Ident *x)           { walk(x); }
 void Walker::visit_literal(Literal *x)       { walk(x); }
 void Walker::visit_jumpstmt(JumpStmt *x)     { walk(x); }
 void Walker::visit_errorstmt(Stmt::Error *x) { walk(x); }

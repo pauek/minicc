@@ -44,21 +44,17 @@ int main(int argc, char *argv[]) {
       i = new ifstream(filename.c_str());
    }
    Parser P(i);
-   try {
-      AstNode *program = P.parse();
-      AstVisitor *v;
-      if (print_ast) {
-         v = new AstPrinter(&cout);
-      } else {
-         v = new PrettyPrinter(&cout);
-      }
-      program->visit(v);
-      vector<Error*> ve;
-      collect_errors(program, ve);
-      for (Error *e : ve) {
-         cerr << e->msg << endl;
-      }
-   } catch (ParseError *e) {
+   AstNode *program = P.parse();
+   AstVisitor *v;
+   if (print_ast) {
+      v = new AstPrinter(&cout);
+   } else {
+      v = new PrettyPrinter(&cout);
+   }
+   program->visit(v);
+   vector<Error*> ve;
+   collect_errors(program, ve);
+   for (Error *e : ve) {
       cerr << e->msg << endl;
    }
 }

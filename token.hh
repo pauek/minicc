@@ -31,7 +31,7 @@ public:
    };
 
    enum Group {
-      None = 0, Literal = 1, TypeSpec = 2, Identifier = 4, 
+      None = 0, Literal = 1, TypeSpec = 2, Ident = 4, 
       Operator = 8, Control = 16, BasicType = 32, TypeQual = 64
    };
    

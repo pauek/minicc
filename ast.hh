@@ -23,6 +23,7 @@ struct AstNode {
    virtual int num_children()    const { return 0; }
    virtual AstNode* child(int n) const { return 0; }
    virtual void visit(AstVisitor* v) = 0;
+   virtual bool has_errors()     const { return !errors.empty(); }
 
    template<typename X>
    bool is() { return dynamic_cast<X*>(this) != 0; }
@@ -56,6 +57,8 @@ struct Program : public AstNode {
    AstNode* child(int n)         { return nodes[n]; }
    void     add(AstNode* n)      { nodes.push_back(n); }
    void     visit(AstVisitor* v);
+
+   bool     has_errors() const;
 };
 
 struct Include : public AstNode {
@@ -98,6 +101,7 @@ struct ExprStmt : public Stmt {
    bool is_return;
    ExprStmt() : expr(0), is_return(false) {}
    void visit(AstVisitor *v);
+   bool has_errors() const;
 };
 
 struct IfStmt : public Stmt {
@@ -106,6 +110,7 @@ struct IfStmt : public Stmt {
 
    IfStmt() : cond(0), then(0), els(0) {}
    void visit(AstVisitor *v);
+   bool has_errors() const;
 };
 
 struct IterStmt : public Stmt { // while + for
@@ -116,19 +121,22 @@ struct IterStmt : public Stmt { // while + for
    IterStmt() : cond(0), init(0), substmt(0), post(0) {}
    void visit(AstVisitor *v);
    bool is_for() { return init != 0 and post != 0; }
+   bool has_errors() const;
 };
 
 struct DeclStmt : public Stmt {
    struct Decl {
       std::string name;
+      bool pointer;
       Expr *init;
-      Decl(std::string n) : name(n), init(0) {}
+      Decl(std::string n) : name(n), init(0), pointer(false) {}
    };
 
    AstNode *type;
    std::vector<Decl> decls;
 
    void visit(AstVisitor *v);
+   bool has_errors() const;
 };
 
 struct JumpStmt : public Stmt {
@@ -146,6 +154,7 @@ struct JumpStmt : public Stmt {
 struct Block : public Stmt {
    std::vector<Stmt*> stmts;
    void visit(AstVisitor *v);
+   bool has_errors() const;
 };
 
 // Expressions /////////////////////////////////////////////
@@ -203,11 +212,13 @@ struct Literal : public Expr {
 
 struct Type;
 
-struct Identifier : public Expr {
+struct Ident : public Expr {
    std::string id;
    ::Type *subtype; // for templates
-   Identifier(std::string _id = "") : id(_id), subtype(0) {}
+   Ident(std::string _id = "") : id(_id), subtype(0) {}
    void visit(AstVisitor *v);
+   bool has_errors() const;
+   std::string str() const;
 };
 
 struct BinaryExpr : public Expr {
@@ -221,11 +232,13 @@ struct BinaryExpr : public Expr {
 
    void visit(AstVisitor *v);
    void set(Expr::Type _type);
+   bool has_errors() const;
 };
 
 struct UnaryExpr : public Expr {
    Expr *expr;
    UnaryExpr() : expr(0) {}
+   bool has_errors() const;
 };
 
 struct SignExpr : public UnaryExpr {
@@ -260,27 +273,31 @@ struct CallExpr : public Expr {
    std::vector<Expr *> args;
    CallExpr() : func(0) {}
    void visit(AstVisitor *v);
+   bool has_errors() const;
 };
 
 struct IndexExpr : public Expr {
    Expr *base, *index;
    IndexExpr() : base(0), index(0) {}
    void visit(AstVisitor *v);
+   bool has_errors() const;
 };
 
 struct FieldExpr : public Expr {
    Expr *base;
-   Identifier *field;
+   Ident *field;
    bool pointer;
 
    FieldExpr() : base(0), field(0) {}
    void visit(AstVisitor *v);
+   bool has_errors() const;
 };
 
 struct CondExpr : public Expr {
    Expr *cond, *then, *els;
    CondExpr() : cond(0), then(0), els(0) {}
    void visit(AstVisitor *v);
+   bool has_errors() const;
 };
 
 struct Type : public AstNode {
@@ -290,10 +307,12 @@ struct Type : public AstNode {
    };
 
    int qual;
-   std::vector<Identifier *> nested_ids;
+   std::vector<Ident *> nested_ids;
 
    Type() : qual(None) {}
    void visit(AstVisitor *v);
+   bool has_errors() const;
+   std::string str() const;
 };
 
 // Declarations ////////////////////////////////////////////
@@ -314,14 +333,16 @@ struct FuncDecl : public AstNode {
    
    FuncDecl(std::string _name) : name(_name) {}
    void visit(AstVisitor *v);
+   bool has_errors() const;
 };
 
 struct StructDecl : public AstNode {
-   Identifier *id;
+   Ident *id;
    std::vector<DeclStmt *> decls;
    
    StructDecl() : id(0) {}
    void visit(AstVisitor *v);
+   bool has_errors() const;
 };
 
 // AstVisitor
@@ -351,7 +372,7 @@ public:
    virtual void visit_structdecl(StructDecl *) = 0;
    virtual void visit_type(Type *) = 0;
    virtual void visit_block(Block *) = 0;
-   virtual void visit_identifier(Identifier *) = 0;
+   virtual void visit_ident(Ident *) = 0;
    virtual void visit_binaryexpr(BinaryExpr *) = 0;
    virtual void visit_declstmt(DeclStmt *) = 0;
    virtual void visit_exprstmt(ExprStmt *) = 0;
@@ -383,7 +404,7 @@ inline void FuncDecl::visit(AstVisitor* v)      { v->visit_funcdecl(this); }
 inline void StructDecl::visit(AstVisitor* v)    { v->visit_structdecl(this); }
 inline void Type::visit(AstVisitor *v)          { v->visit_type(this); }
 inline void Block::visit(AstVisitor *v)         { v->visit_block(this); }
-inline void Identifier::visit(AstVisitor *v)    { v->visit_identifier(this); }
+inline void Ident::visit(AstVisitor *v)         { v->visit_ident(this); }
 inline void BinaryExpr::visit(AstVisitor *v)    { v->visit_binaryexpr(this); }
 inline void DeclStmt::visit(AstVisitor *v)      { v->visit_declstmt(this); }
 inline void ExprStmt::visit(AstVisitor *v)      { v->visit_exprstmt(this); }

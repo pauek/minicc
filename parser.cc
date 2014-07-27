@@ -6,37 +6,19 @@ using namespace std;
 
 #include "parser.hh"
 
-Token::Type BasicTypes[] = { 
-   Token::Int, Token::Char, Token::String, Token::Void, 
-   Token::Bool, Token::Double, Token::Float 
-};
-set<Token::Type> Parser::_basic_types;
-
 Parser::Parser(istream *i, std::ostream* err) : _in(i), _err(err) {
-   for (Token::Type t : BasicTypes) {
-      _basic_types.insert(t);
+   static const char *basic_types[] = {
+      "int", "char", "string", "double", "float", "short", "long", "bool", "void",
+      "vector",
+   };
+   for (int i = 0; i < sizeof(basic_types) / sizeof(char*); i++) {
+      _types.insert(basic_types[i]);
    }
 }
 
-bool Parser::is_builtin_type(Token::Type t) const {
-   return _basic_types.find(t) != _basic_types.end();
-}
-
-bool all_digits(string s) {
-   for (char c : s) {
-      if (!(c >= '0' and c <= '9')) {
-         return false;
-      }
-   }
-   return true;
-}
-
-bool is_bool_literal(string s) {
-   return s == "true" or s == "false";
-}
-
-bool Parser::is_literal(string s) const {
-   return all_digits(s) || is_bool_literal(s);
+bool Parser::_type_exists(Type *t) {
+   auto it = _types.find(t->str());
+   return it != _types.end();
 }
 
 void Parser::error(AstNode *n, string msg) {
@@ -225,14 +207,14 @@ Type *Parser::parse_type() {
          _skip(type);
       } else if (tok.group & Token::BasicType) {
          _in.discard();
-         Identifier *id = new Identifier(tok.str);
+         Ident *id = new Ident(tok.str);
          _skip(id);
          if (!type->nested_ids.empty()) {
             error(type, "Los tipos básicos no deben estar anidados");
          }
          type->nested_ids.push_back(id);
 
-      } else if (type->nested_ids.empty() and (tok.group & Token::Identifier)) {
+      } else if (type->nested_ids.empty() and (tok.group & Token::Ident)) {
          _in.discard();
          parse_type_id(type, tok);
       } else {
@@ -245,7 +227,7 @@ Type *Parser::parse_type() {
 
 void Parser::parse_type_id(Type *type, Token tok) {
    while (true) {
-      Identifier *id = new Identifier(tok.str);
+      Ident *id = new Ident(tok.str);
       _skip(id);
       _in.save();
       Token tok2 = _in.next_token();
@@ -268,7 +250,7 @@ void Parser::parse_type_id(Type *type, Token tok) {
       } else {
          _in.next_token();
          tok = _in.next_token();
-         if (!(tok.group & Token::Identifier)) {
+         if (!(tok.group & Token::Ident)) {
             error(type, "Esperaba un identificador aquí");
          }
       }
@@ -405,13 +387,13 @@ Stmt* Parser::parse_stmt() {
 
 Stmt *Parser::parse_decl_or_expr_stmt() {
    _in.save();
-   Type *type = parse_type();
-   Token tok = _in.next_token();
-   _in.restore();
-   if (tok.group & Token::Identifier) {
-      return parse_declstmt();
-   } else {
+   DeclStmt *decl = parse_declstmt();
+   if (decl->has_errors()) {
+      _in.restore(); // backtracking
       return parse_exprstmt();
+   } else {
+      _in.discard();
+      return decl;
    }
 }
 
@@ -500,17 +482,17 @@ Expr *Parser::parse_primary_expr() {
       break;
    }
    default:
-      e = parse_identifier(tok);
+      e = parse_ident(tok);
       break;
    }
    return e;
 }
 
-Expr *Parser::parse_identifier(Token tok) {
+Expr *Parser::parse_ident(Token tok) {
    if (tok.type == Token::Empty) {
       return error<Expr>("Expression doesn't start with a token");
    }
-   Identifier *e = new Identifier(_in.substr(tok));
+   Ident *e = new Ident(_in.substr(tok));
    _skip(e);
    return e;
 }
@@ -677,7 +659,7 @@ Expr *Parser::parse_fieldexpr(Expr *x, Token tok) {
    _in.consume(tok.type == Token::Arrow ? "->" : ".");
    _skip(e);
    Token id = _in.read_id();
-   e->field = new Identifier(id.str);
+   e->field = new Ident(id.str);
    _skip(e->field);
    return e;
 }
@@ -762,11 +744,27 @@ Stmt *Parser::parse_switch() {
 
 DeclStmt *Parser::parse_declstmt() {
    DeclStmt *stmt = new DeclStmt();
-   stmt->type = parse_type();
+   Type *type = parse_type();
+   /*
+   if (!_type_exists(type)) {
+      error(stmt, "El tipo '" + type->str() + "' no está declarado");
+   }
+   */
+   stmt->type = type;
    _skip(stmt);
    while (true) {
-      Token id = _in.read_id();
+      Token id = _in.next_token();
       DeclStmt::Decl decl(id.str);
+      string name = id.str;
+      if (id.type == Token::Star) {
+         decl.pointer = true;
+         _skip(stmt);
+         id = _in.next_token();
+         decl.name = id.str;
+      }
+      if (id.group != Token::Ident) {
+         error(stmt, "Esperaba un identificador aquí");
+      }
       _skip(stmt);
       if (_in.curr() == '=') {
          _in.next();
@@ -794,7 +792,7 @@ AstNode *Parser::parse_struct() {
    StructDecl *decl = new StructDecl();
    _skip(decl);
 
-   decl->id = new Identifier(_in.read_id().str);
+   decl->id = new Ident(_in.read_id().str);
    _skip(decl);
    
    tok = _in.next_token();

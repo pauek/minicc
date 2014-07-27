@@ -179,3 +179,116 @@ string Literal::escape(string s, char delim) {
    }
    return r;
 }
+
+#define _ERRORS(x) \
+   if (x and x->has_errors()) return true;
+
+bool Program::has_errors() const {
+   for (AstNode *n : nodes) {
+      _ERRORS(n);
+   }
+   return AstNode::has_errors();
+}
+
+bool ExprStmt::has_errors() const {
+   _ERRORS(expr);
+   return AstNode::has_errors();
+}
+
+bool IfStmt::has_errors() const {
+   _ERRORS(cond); _ERRORS(then); _ERRORS(els);
+   return AstNode::has_errors();
+}
+
+bool IterStmt::has_errors() const {
+   _ERRORS(init); _ERRORS(cond); _ERRORS(post); _ERRORS(substmt);
+   return AstNode::has_errors();
+}
+
+bool DeclStmt::has_errors() const {
+   _ERRORS(type);
+   for (const Decl& d : decls) {
+      _ERRORS(d.init);
+   } 
+   return AstNode::has_errors();
+}
+
+bool Block::has_errors() const {
+   for (Stmt *s : stmts) {
+      _ERRORS(s);
+   }
+   return AstNode::has_errors();
+}
+
+bool Ident::has_errors() const {
+   _ERRORS(subtype);
+   return AstNode::has_errors();
+}
+
+bool BinaryExpr::has_errors() const {
+   _ERRORS(left); _ERRORS(right);
+   return AstNode::has_errors();
+}
+
+bool UnaryExpr::has_errors() const {
+   _ERRORS(expr);
+   return AstNode::has_errors();
+}
+
+bool CallExpr::has_errors() const {
+   _ERRORS(func);
+   return AstNode::has_errors();
+}
+
+bool IndexExpr::has_errors() const {
+   _ERRORS(base); _ERRORS(index);
+   return AstNode::has_errors();
+}
+
+bool FieldExpr::has_errors() const {
+   _ERRORS(base); _ERRORS(field);
+   return AstNode::has_errors();
+}
+
+bool CondExpr::has_errors() const {
+   _ERRORS(cond); _ERRORS(then); _ERRORS(els);
+   return AstNode::has_errors();
+}
+
+bool Type::has_errors() const {
+   for (Ident *id : nested_ids) {
+      _ERRORS(id);
+   }
+   return AstNode::has_errors();
+}
+
+bool FuncDecl::has_errors() const {
+   _ERRORS(return_type); _ERRORS(block);
+   for (Param* p : params) {
+      _ERRORS(p->type);
+   }
+   return AstNode::has_errors();
+}
+
+bool StructDecl::has_errors() const {
+   _ERRORS(id);
+   for (DeclStmt *d : decls) {
+      _ERRORS(d);
+   }
+   return AstNode::has_errors();
+}
+
+string Ident::str() const {
+   return id;
+}
+
+string Type::str() const {
+   string id;
+   for (int i = 0; i < nested_ids.size(); i++) {
+      if (i > 0) {
+         id += "::";
+      }
+      id += nested_ids[i]->id;
+   }
+   return id;
+}

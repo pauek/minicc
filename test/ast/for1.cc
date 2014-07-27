@@ -1,6 +1,6 @@
 void xxx(string s) {
    for (a = 1; a < 100; a = a + 1) {
-      cout * a;
+      cout << a;
       i = x;
    }
 }
@@ -10,7 +10,7 @@ Program{
       Block({
          IterStmt<for>(ExprStmt(=(id:'a', Int<1>)), <(id:'a', Int<100>), =(id:'a', +(id:'a', Int<1>)), {
             Block({
-               ExprStmt(*(id:'cout', id:'a'))
+               ExprStmt(<<(id:'cout', id:'a'))
                ExprStmt(=(id:'i', id:'x'))
             })
          })

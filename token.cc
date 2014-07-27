@@ -125,5 +125,5 @@ Token::Table::Table() {
 
 Token Token::token2type(std::string tok) {
    auto it = _table._map.find(tok);
-   return (it != _table._map.end() ? it->second : Token(Token::Unknown, Token::Identifier));
+   return (it != _table._map.end() ? it->second : Token(Token::Unknown, Token::Ident));
 }

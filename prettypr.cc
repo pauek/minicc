@@ -125,7 +125,7 @@ void PrettyPrinter::print_block(Block *x) {
    out(beginl) << "}" << _cmt0(x, 1);
 }
 
-void PrettyPrinter::visit_identifier(Identifier *x) {
+void PrettyPrinter::visit_ident(Ident *x) {
    out() << x->id << _cmt0(x, 0);
    if (x->subtype) {
       out() << "<";
