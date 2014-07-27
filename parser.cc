@@ -778,6 +778,19 @@ DeclStmt *Parser::parse_declstmt() {
          _in.next();
          _skip(stmt);
          decl.init = parse_expr(Expr::assignment);
+      } else if (_in.curr() == '(') {
+         _in.next();
+         _skip(stmt);
+         decl.args.push_back(parse_expr(Expr::assignment));
+         while (_in.curr() == ',') {
+            _in.next();
+            _skip(stmt);
+            decl.args.push_back(parse_expr(Expr::assignment));
+         }
+         if (!_in.expect(")")) {
+            error(stmt, _in.pos().str() + ": Esperaba un ')' aquí");
+            _in.skip_to("),;\n");
+         }
       }
       stmt->decls.push_back(decl);
       if (_in.curr() != ',') {

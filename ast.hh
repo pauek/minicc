@@ -129,6 +129,7 @@ struct DeclStmt : public Stmt {
       std::string name;
       bool pointer;
       Expr *init;
+      std::vector<Expr*> args;
       Decl(std::string n) : name(n), init(0), pointer(false) {}
    };
 

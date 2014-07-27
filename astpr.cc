@@ -192,6 +192,16 @@ void AstPrinter::visit_declstmt(DeclStmt* x) {
          out() << " = ";
          decl.init->visit(this);
       }
+      if (!decl.args.empty()) {
+         out() << ", Args = {";
+         for (int i = 0; i < decl.args.size(); i++) {
+            if (i > 0) {
+               out() << ", ";
+            }
+            decl.args[i]->visit(this);
+         }
+         out () << "}";
+      }
       first = false;
    }
    out() << "})";
