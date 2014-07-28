@@ -267,9 +267,9 @@ struct UnaryExpr : public Expr {
 };
 
 struct SignExpr : public UnaryExpr {
-   enum Type { Positive, Negative };
-   Type type;
-   SignExpr(Type t) : type(t) {}
+   enum Kind { Positive, Negative };
+   Kind kind;
+   SignExpr(Kind k) : kind(k) {}
    void visit(AstVisitor *v);
 };
 

@@ -359,7 +359,7 @@ void PrettyPrinter::visit_signexpr(SignExpr *x) {
    if (x->paren) {
       out() << "(";
    }
-   out() << (x->type == SignExpr::Positive ? "+" : "-");
+   out() << (x->kind == SignExpr::Positive ? "+" : "-");
    x->expr->visit(this);
    if (x->paren) {
       out() << ")";

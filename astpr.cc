@@ -355,7 +355,7 @@ void AstPrinter::visit_condexpr(CondExpr *x) {
 
 void AstPrinter::visit_signexpr(SignExpr *x) {
    out() << "SignExpr<";
-   out() << (x->type == SignExpr::Positive ? "+" : "-");
+   out() << (x->kind == SignExpr::Positive ? "+" : "-");
    out() << ">(";
    x->expr->visit(this);
    out() << ")";
