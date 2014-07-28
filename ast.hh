@@ -233,7 +233,7 @@ struct Literal : public Expr {
 
 struct Ident : public Expr {
    std::string id;
-   std::vector<::Type*> subtypes; // for templates
+   std::vector<Type*> subtypes; // for templates
    std::vector<Ident*> prefix;  // for classes & namespaces;
 
    Ident(std::string _id = "") : id(_id) {}
