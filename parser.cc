@@ -233,7 +233,7 @@ void Parser::parse_type_id(Type *type, Token tok) {
       Token tok2 = _in.next_token();
       if (tok2.type == Token::LT) { // template_id
          _in.discard();
-         id->subtype = parse_type();
+         parse_type_list(id, id->subtypes);
          if (_in.curr() != '>') { // Do NOT call next_token here, since it will return ">>"
             error(id, "Esperaba un '>' aquí");
          } else {
@@ -770,6 +770,16 @@ void Parser::parse_expr_list(AstNode *n, vector<Expr*>& exprs) {
       _in.next();
       _skip(n);
       exprs.push_back(parse_expr(Expr::assignment));
+   }
+}
+
+void Parser::parse_type_list(AstNode *n, vector<Type*>& v) {
+   v.push_back(parse_type());
+   _skip(n);
+   while (_in.curr() == ',') {
+      _in.next();
+      _skip(n);
+      v.push_back(parse_type());
    }
 }
 

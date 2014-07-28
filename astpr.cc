@@ -112,9 +112,14 @@ void AstPrinter::visit_block(Block *x) {
 }
 
 void AstPrinter::visit_ident(Ident *x) {
-   if (x->subtype) {
+   if (!x->subtypes.empty()) {
       out() << "Template(id:'" << x->id << "', Args = {";
-      x->subtype->visit(this);
+      for (int i = 0; i < x->subtypes.size(); i++) {
+         if (i > 0) {
+            out() << ", ";
+         }
+         x->subtypes[i]->visit(this);
+      }
       out() << "})";
    } else {
       out() << "id:'";

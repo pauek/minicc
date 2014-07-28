@@ -232,11 +232,10 @@ struct Literal : public Expr {
 
 struct Ident : public Expr {
    std::string id;
-   ::Type *subtype; // for templates
-   std::
-vector<Ident *> prefix; // for classes & namespaces;
+   std::vector<::Type*> subtypes; // for templates
+   std::vector<Ident*> prefix;  // for classes & namespaces;
 
-   Ident(std::string _id = "") : id(_id), subtype(0) {}
+   Ident(std::string _id = "") : id(_id) {}
    void visit(AstVisitor *v);
    bool has_errors() const;
    std::string str() const;

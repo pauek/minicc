@@ -25,6 +25,7 @@ class Parser {
    typename Node::Error *error(std::string msg);
 
    void parse_expr_list(AstNode *n, std::vector<Expr*>& v);
+   void parse_type_list(AstNode *n, std::vector<Type*>& v);
 
    Decl *_parse_vardecl(std::string name, bool pointer);
    Decl *_parse_arraydecl(std::string name, bool pointer);

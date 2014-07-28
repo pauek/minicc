@@ -221,7 +221,9 @@ bool Block::has_errors() const {
 }
 
 bool Ident::has_errors() const {
-   _ERRORS(subtype);
+   for (::Type *t : subtypes) {
+      _ERRORS(t);
+   }
    return AstNode::has_errors();
 }
 
