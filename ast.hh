@@ -37,12 +37,12 @@ struct Error {
 };
 
 struct Comment {
-   enum Type { singleline, multiline };
-   Type type;
+   enum Kind { singleline, multiline };
+   Kind kind;
    std::string text;
    bool endl;
 
-   Comment(Type t) : type(t), endl(false) {}
+   Comment(Kind k) : kind(k), endl(false) {}
 };
 
 struct CommentSeq : public AstNode {

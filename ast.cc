@@ -128,7 +128,7 @@ ostream& operator<<(ostream& o, CommentSeq* C) {
    }
    for (int i = 0; i < C->items.size(); i++) {
       const Comment& c = C->items[i];
-      if (c.type == Comment::multiline) {
+      if (c.kind == Comment::multiline) {
          if (i > 0 and !C->items[i].endl) {
             o << ' ';
          }
