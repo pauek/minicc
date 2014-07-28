@@ -474,6 +474,15 @@ Expr *Parser::parse_primary_expr() {
       e = lit;
       break;
    }
+   case Token::Dot:
+   case Token::RealLiteral: {
+      Literal* lit = new Literal(Literal::Double);
+      istringstream S(tok.str);
+      S >> lit->val.as_double;
+      _skip(lit);
+      e = lit;
+      break;
+   }
    case Token::StringLiteral: {
       Literal* lit = new Literal(Literal::String);
       lit->val.as_string.s = new string(tok.str);

@@ -114,7 +114,13 @@ void Input::discard() {
 
 Token Input::next_token() {
    switch (curr()) {
-   case '.': case '(': case '[': case '{': case '}':
+   case '.': 
+      if (isdigit(curr(1))) {
+         return read_number_literal();
+      }
+      // fallthrough ||  (NOT break;)
+      //             vv
+   case '(': case '[': case '{': case '}':
    case '#': case ';': {
       string s(1, curr());
       Token tok(Token::token2type(s));
@@ -437,11 +443,31 @@ Token Input::read_number_literal() {
    string num;
    Token t;
    t.ini = _curr;
-   while (isdigit(curr())) {
-      num += curr();
+   if (curr() == '.') {
       next();
+      t.str += '.';
+      return read_real_literal(t);
+   }
+   while (isdigit(curr())) {
+      t.str += curr();
+      next();
+   }
+   if (curr() == '.') {
+      next();
+      t.str += '.';
+      return read_real_literal(t);
    }
    t.fin = _curr;
    t.type = Token::IntLiteral;
+   return t;
+}
+
+Token Input::read_real_literal(Token t) {
+   while (isdigit(curr())) {
+      t.str += curr();
+      next();
+   }
+   t.fin = _curr;
+   t.type = Token::RealLiteral;
    return t;
 }

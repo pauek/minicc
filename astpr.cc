@@ -134,6 +134,10 @@ void AstPrinter::visit_literal(Literal *x) {
       out() << "Int<" << x->val.as_int << ">"; 
       break;
 
+   case Literal::Double:    
+      out() << "Double<" << x->val.as_double << ">"; 
+      break;
+
    case Literal::Bool:  
       out() << "Bool<" << (x->val.as_bool ? "true" : "false") << ">"; 
       break;

@@ -70,6 +70,7 @@ public:
          Token  read_id();
          Token  read_operator();
          Token  read_number_literal();
+         Token  read_real_literal(Token t);
          Token  read_string_or_char_literal(char delim);
           void  read_singleline_comment(Comment& c);
           void  read_multiline_comment(Comment& c);
