@@ -36,18 +36,7 @@ void AstPrinter::visit_type(Type *x) {
    };
 
    out() << "Type" << (x->reference ? "<&>" : "") << "(";
-   if (x->nested_ids.size() == 1) {
-      x->nested_ids[0]->visit(this);
-   } else {
-      out() << "[";
-      for (int i = 0; i < x->nested_ids.size(); i++) {
-         if (i > 0) {
-            out() << ", ";
-         }
-         x->nested_ids[i]->visit(this);
-      }
-      out() << "]";
-   }
+   x->id->visit(this);
    if (x->qual != 0) {
       out() << ", {";
       int i = 0, numquals = 0;
@@ -124,21 +113,27 @@ void AstPrinter::visit_block(Block *x) {
 }
 
 void AstPrinter::visit_ident(Ident *x) {
+   out() << "id:";
+   if (!x->prefix.empty()) {
+      out() << '[';
+      for (int i = 0; i < x->prefix.size(); i++) {
+         if (i > 0) {
+            out() << ", ";
+         }
+         x->prefix[i]->visit(this);
+      }
+      out() << ']';
+   }
+   out() << "'" << x->id << "'";
    if (!x->subtypes.empty()) {
-      out() << "Template(id:'" << x->id << "', Args = {";
+      out() << "<";
       for (int i = 0; i < x->subtypes.size(); i++) {
          if (i > 0) {
             out() << ", ";
          }
          x->subtypes[i]->visit(this);
       }
-      out() << "})";
-   } else {
-      out() << "id:'";
-      for (Ident *i : x->prefix) {
-         out() << i->id << "::";
-      }
-      out() << x->id << "'";
+      out() << ">";
    }
 }
 

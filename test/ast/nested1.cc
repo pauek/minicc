@@ -5,7 +5,7 @@ int f ( ) {
 Program{
    FuncDecl("f", Type(id:'int'), Params = {}, {
       Block({
-         DeclStmt(Type([id:'a', id:'b', id:'c']), Vars = {"x" = Int<1>})
+         DeclStmt(Type(id:[id:'a', id:'b']'c'), Vars = {"x" = Int<1>})
       })
    })
 }

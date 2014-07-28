@@ -52,7 +52,7 @@ public:
       Stmt *parse_jumpstmt();
 
       Type *parse_type();
-      void  parse_type_id(Type *, Token);
+     Ident *parse_id(Token tok);
 
    AstNode *parse_struct();
 

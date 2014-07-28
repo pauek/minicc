@@ -56,16 +56,7 @@ void PrettyPrinter::visit_type(Type *x) {
    if (numquals > 0) {
       out() << " ";
    }
-   if (x->nested_ids.size() == 1) {
-      x->nested_ids[0]->visit(this);
-   } else {
-      for (int i = 0; i < x->nested_ids.size(); i++) {
-         if (i > 0) {
-            out() << "::";
-         }
-         x->nested_ids[i]->visit(this);
-      }
-   }
+   x->id->visit(this);
    if (x->reference) {
       out() << _cmt0_(x, -2) << "&" << _cmt0_(x, -1);
    } else {
@@ -132,7 +123,8 @@ void PrettyPrinter::print_block(Block *x) {
 
 void PrettyPrinter::visit_ident(Ident *x) {
    for (Ident *pre : x->prefix) {
-      out() << pre->id << "::";
+      pre->visit(this);
+      out() << "::";
    }
    out() << x->id << _cmt0(x, 0);
    if (!x->subtypes.empty()) {

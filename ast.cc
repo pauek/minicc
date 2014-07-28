@@ -221,8 +221,11 @@ bool Block::has_errors() const {
 }
 
 bool Ident::has_errors() const {
-   for (::Type *t : subtypes) {
+   for (Type *t : subtypes) {
       _ERRORS(t);
+   }
+   for (Ident *id : prefix) {
+      _ERRORS(id);
    }
    return AstNode::has_errors();
 }
@@ -258,9 +261,7 @@ bool CondExpr::has_errors() const {
 }
 
 bool Type::has_errors() const {
-   for (Ident *id : nested_ids) {
-      _ERRORS(id);
-   }
+   _ERRORS(id);
    return AstNode::has_errors();
 }
 
@@ -281,16 +282,15 @@ bool StructDecl::has_errors() const {
 }
 
 string Ident::str() const {
-   return id;
+   string _id;
+   for (int i = 0; i < prefix.size(); i++) {
+      _id += prefix[i]->str();
+      _id += "::";
+   }
+   _id += id;
+   return _id;
 }
 
 string Type::str() const {
-   string id;
-   for (int i = 0; i < nested_ids.size(); i++) {
-      if (i > 0) {
-         id += "::";
-      }
-      id += nested_ids[i]->id;
-   }
-   return id;
+   return id->str();
 }

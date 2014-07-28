@@ -242,7 +242,11 @@ struct Ident : public Expr {
    std::string str() const;
 
    void shift(std::string new_id) {
-      prefix.push_back(new Ident(id));
+      Ident *pre = new Ident(id);
+      pre->subtypes.swap(subtypes);
+      pre->comments.swap(comments);
+      pre->errors.swap(errors);
+      prefix.push_back(pre);
       id = new_id;
    }
 };
@@ -334,9 +338,9 @@ struct Type : public AstNode {
 
    bool reference;
    int qual;
-   std::vector<Ident *> nested_ids;
+   Ident *id;
 
-   Type() : qual(None), reference(false) {}
+   Type() : id(0), qual(None), reference(false) {}
    void visit(AstVisitor *v);
    bool has_errors() const;
    std::string str() const;

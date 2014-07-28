@@ -5,7 +5,7 @@ int f ( ) {
 Program{
    FuncDecl("f", Type(id:'int'), Params = {}, {
       Block({
-         DeclStmt(Type([Template(id:'vector', Args = {Type(id:'int')}), id:'iterator']), Vars = {"it" = CallExpr(FieldExpr(id:'v', id:'begin'), Args = {})})
+         DeclStmt(Type(id:[id:'vector'<Type(id:'int')>]'iterator'), Vars = {"it" = CallExpr(FieldExpr(id:'v', id:'begin'), Args = {})})
       })
    })
 }

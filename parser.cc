@@ -191,6 +191,66 @@ AstNode* Parser::parse_using_declaration() {
    return u;
 }
 
+Expr *Parser::parse_ident(Token tok) {
+   if (!(tok.group & Token::Ident)) {
+      return error<Expr>(_in.pos().str() + ": Expected identifier");
+   }
+   Ident *id = new Ident(tok.str);
+   _skip(id);
+   tok = _in.peek_token();
+   if (tok.kind == Token::ColonColon) {
+      _in.next_token();
+      _skip(id);
+      tok = _in.next_token();
+      if (!(tok.group & Token::Ident)) {
+         error(id, _in.pos().str() + ": Esperaba un identificador aquí");
+      }
+      id->shift(tok.str);
+      _skip(id);
+      tok = _in.peek_token();
+   }
+   _skip(id);
+   return id;
+}
+
+Ident *Parser::parse_id(Token tok) {
+   Ident *id = 0;
+   while (true) {
+      if (id == 0) {
+         id = new Ident(tok.str);
+      } else {
+         id->shift(tok.str);
+      }
+      _skip(id);
+      _in.save();
+      Token tok2 = _in.next_token();
+      if (tok2.kind == Token::LT) { // template_id
+         _in.discard();
+         _skip(id);
+         parse_type_list(id, id->subtypes);
+         if (_in.curr() != '>') { // Do NOT call next_token here, since it will return ">>"
+            error(id, "Esperaba un '>' aquí");
+         } else {
+            _in.next();
+         }
+         _skip(id);
+      } else {
+         _in.restore();
+      }
+      tok = _in.peek_token();
+      if (tok.kind != Token::ColonColon) {
+         break;
+      } else {
+         _in.next_token();
+         tok = _in.next_token();
+         if (!(tok.group & Token::Ident)) {
+            error(id, "Esperaba un identificador aquí");
+         }
+      }
+   }
+   return id;
+}
+
 Type *Parser::parse_type() {
    Type *type = new Type();
    Token tok;
@@ -210,14 +270,12 @@ Type *Parser::parse_type() {
          _in.discard();
          Ident *id = new Ident(tok.str);
          _skip(id);
-         if (!type->nested_ids.empty()) {
+         if (type->id != 0) {
             error(type, "Los tipos básicos no deben estar anidados");
          }
-         type->nested_ids.push_back(id);
-
-      } else if (type->nested_ids.empty() and (tok.group & Token::Ident)) {
-         _in.discard();
-         parse_type_id(type, tok);
+         type->id = id;
+      } else if (type->id == 0 and (tok.group & Token::Ident)) {
+         type->id = parse_id(tok);
       } else if (tok.kind == Token::Amp) {
          type->reference = true;
          _skip(type);
@@ -230,38 +288,6 @@ Type *Parser::parse_type() {
    return type;
 }
 
-void Parser::parse_type_id(Type *type, Token tok) {
-   while (true) {
-      Ident *id = new Ident(tok.str);
-      _skip(id);
-      _in.save();
-      Token tok2 = _in.next_token();
-      if (tok2.kind == Token::LT) { // template_id
-         _in.discard();
-         _skip(id);
-         parse_type_list(id, id->subtypes);
-         if (_in.curr() != '>') { // Do NOT call next_token here, since it will return ">>"
-            error(id, "Esperaba un '>' aquí");
-         } else {
-            _in.next();
-         }
-         _skip(id);
-      } else {
-         _in.restore();
-      }
-      type->nested_ids.push_back(id);
-      tok = _in.peek_token();
-      if (tok.kind != Token::ColonColon) {
-         break;
-      } else {
-         _in.next_token();
-         tok = _in.next_token();
-         if (!(tok.group & Token::Ident)) {
-            error(type, "Esperaba un identificador aquí");
-         }
-      }
-   }
-}
 
 AstNode *Parser::parse_func_or_var() {
    CommentSeq *c[2] = { 0, 0 };
@@ -503,27 +529,6 @@ Expr *Parser::parse_primary_expr() {
    return e;
 }
 
-Expr *Parser::parse_ident(Token tok) {
-   if (!(tok.group & Token::Ident)) {
-      return error<Expr>(_in.pos().str() + ": Expected identifier");
-   }
-   Ident *id = new Ident(tok.str);
-   _skip(id);
-   tok = _in.peek_token();
-   if (tok.kind == Token::ColonColon) {
-      _in.next_token();
-      _skip(id);
-      tok = _in.next_token();
-      if (!(tok.group & Token::Ident)) {
-         error(id, _in.pos().str() + ": Esperaba un identificador aquí");
-      }
-      id->shift(tok.str);
-      _skip(id);
-      tok = _in.peek_token();
-   }
-   _skip(id);
-   return id;
-}
 
 Expr *Parser::parse_postfix_expr(Expr *e = 0) {
    if (e == 0) {

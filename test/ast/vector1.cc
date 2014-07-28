@@ -5,7 +5,7 @@ int f ( ) {
 Program{
    FuncDecl("f", Type(id:'int'), Params = {}, {
       Block({
-         DeclStmt(Type(Template(id:'vector', Args = {Type(id:'int')}), {const}), Vars = {"v"})
+         DeclStmt(Type(id:'vector'<Type(id:'int')>, {const}), Vars = {"v"})
       })
    })
 }
