@@ -12,7 +12,7 @@ class Parser {
    std::ostream *_err;
 
    set<std::string> _types; // things known as types
-   bool _type_exists(Type *);
+   bool _is_type(std::string);
 
    template<typename X> 
    void _skip(X *n, std::string stopset = "\n\t ");
@@ -52,13 +52,12 @@ public:
       Stmt *parse_jumpstmt();
 
       Type *parse_type();
-     Ident *parse_id(Token tok);
+     Ident *parse_ident(Token tok);
 
    AstNode *parse_struct();
 
       Expr *parse_expr(Expr::Kind max = Expr::Comma);
       Expr *parse_primary_expr();
-      Expr *parse_ident(Token tok);
       Expr *parse_postfix_expr(Expr *);
       Expr *parse_unary_expr();
       Expr *parse_callexpr(Expr *);
