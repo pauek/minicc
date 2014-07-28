@@ -147,15 +147,15 @@ void BinaryExpr::set(Expr::Type _type) {
    type = _type;
 }
 
-JumpStmt::Type JumpStmt::keyword2type(string s) {
+JumpStmt::Kind JumpStmt::keyword2type(string s) {
    if (s == "break") { 
-      return JumpStmt::_break; 
+      return JumpStmt::Break; 
    } else if (s == "continue") {
-      return JumpStmt::_continue;
+      return JumpStmt::Continue;
    } else if (s == "goto") {
-      return JumpStmt::_goto;
+      return JumpStmt::Goto;
    } else {
-      return JumpStmt::unknown;
+      return JumpStmt::Unknown;
    }
 }
 

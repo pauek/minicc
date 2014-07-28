@@ -408,14 +408,14 @@ Stmt *Parser::parse_jumpstmt() {
    stmt->ini = _in.pos();
    Token tok = _in.next_token();
    switch (tok.type) {
-   case Token::Break:    stmt->type = JumpStmt::_break; break;
-   case Token::Continue: stmt->type = JumpStmt::_continue; break;
-   case Token::Goto:     stmt->type = JumpStmt::_goto; break;
+   case Token::Break:    stmt->kind = JumpStmt::Break; break;
+   case Token::Continue: stmt->kind = JumpStmt::Continue; break;
+   case Token::Goto:     stmt->kind = JumpStmt::Goto; break;
    default:
       break;
    }
    _skip(stmt);
-   if (stmt->type == JumpStmt::_goto) {
+   if (stmt->kind == JumpStmt::Goto) {
       Token tok = _in.read_id();
       stmt->label = tok.str;
       _skip(stmt);

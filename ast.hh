@@ -161,15 +161,15 @@ struct DeclStmt : public Stmt {
 };
 
 struct JumpStmt : public Stmt {
-   enum Type { unknown = -1, _break = 0, _continue = 1, _goto = 2 };
+   enum Kind { Unknown = -1, Break = 0, Continue = 1, Goto = 2 };
 
-   Type type;
+   Kind kind;
    std::string label;
 
-   JumpStmt() : type(unknown) {}
+   JumpStmt() : kind(Unknown) {}
    void visit(AstVisitor *v);
 
-   static Type keyword2type(std::string s);
+   static Kind keyword2type(std::string s);
 };
 
 struct Block : public Stmt {

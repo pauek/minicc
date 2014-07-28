@@ -286,8 +286,8 @@ void PrettyPrinter::visit_iterstmt(IterStmt *x) {
 
 void PrettyPrinter::visit_jumpstmt(JumpStmt *x) {
    string keyword[3] = { "break", "continue", "goto" };
-   out() << keyword[x->type] << _cmt0(x, 0);
-   if (x->type == JumpStmt::_goto) {
+   out() << keyword[x->kind] << _cmt0(x, 0);
+   if (x->kind == JumpStmt::Goto) {
       out() << " " << x->label << _cmt0(x, 1) << ";" << _cmt0(x, 2);
    } else {
       out() << ";" << _cmt0(x, 1);
