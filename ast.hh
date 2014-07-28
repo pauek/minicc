@@ -126,6 +126,7 @@ struct IterStmt : public Stmt { // while + for
 };
 
 struct Decl : public AstNode {
+   enum Kind { Normal, Pointer };
    Type *type;
    std::string name;
    Decl() : type(0) {}
@@ -133,16 +134,16 @@ struct Decl : public AstNode {
 
 struct VarDecl : public Decl {
    Expr *init;
-   bool pointer;
-   VarDecl() : init(0), pointer(false) {}
+   Kind kind;
+   VarDecl() : init(0), kind(Normal) {}
    void visit(AstVisitor *v);
 };
 
 struct ArrayDecl : public Decl {
    Expr *size;
    std::vector<Expr *> init;
-   bool pointer;
-   ArrayDecl() : size(0), pointer(false) {}
+   Kind kind;
+   ArrayDecl() : size(0), kind(Normal) {}
    void visit(AstVisitor *v);
 };
 
@@ -327,14 +328,16 @@ struct CondExpr : public Expr {
 
 struct Type : public AstNode {
    enum Qualifiers {
-      None = 0, Const = 1, Volatile = 2, Mutable = 4, 
-      Register = 8, Auto = 16, Extern = 32
+      None = 0, 
+      Const = 1,    Volatile = 2, Mutable = 4, 
+      Register = 8, Auto = 16,    Extern = 32
    };
 
+   bool reference;
    int qual;
    std::vector<Ident *> nested_ids;
 
-   Type() : qual(None) {}
+   Type() : qual(None), reference(false) {}
    void visit(AstVisitor *v);
    bool has_errors() const;
    std::string str() const;
@@ -476,6 +479,7 @@ template<typename T> std::string _cmt_ (T* x, int i) { return cmt(_at(x, i), 1, 
 template<typename T> std::string _cmt0 (T* x, int i) { return cmt(_at(x, i), 1, 0, 0); }
 template<typename T> std::string _cmt0_(T* x, int i) { return cmt(_at(x, i), 1, 1, 0); }
 template<typename T> std::string  cmt0_(T* x, int i) { return cmt(_at(x, i), 0, 1, 0); }
+template<typename T> std::string  cmt0 (T* x, int i) { return cmt(_at(x, i), 0, 0, 0); }
 template<typename T> std::string _cmtl (T* x, int i) { return cmtl(_at(x, i)); }
 
 #endif

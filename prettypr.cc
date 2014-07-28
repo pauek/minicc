@@ -6,7 +6,7 @@ using namespace std;
 void PrettyPrinter::visit_program(Program* x) {
    for (int i = 0; i < x->nodes.size(); i++) {
       AstNode *n = x->nodes[i];
-      if (n->is<FuncDecl>() and i > 0) {
+      if ((n->is<FuncDecl>() or n->is<StructDecl>()) and i > 0) {
          out() << endl;
       }
       n->visit(this);
@@ -66,7 +66,11 @@ void PrettyPrinter::visit_type(Type *x) {
          x->nested_ids[i]->visit(this);
       }
    }
-   out() << _cmt0(x, -1);
+   if (x->reference) {
+      out() << _cmt0_(x, -2) << "&" << _cmt0_(x, -1);
+   } else {
+      out() << _cmt0_(x, -1);
+   }   
 }
 
 void PrettyPrinter::visit_structdecl(StructDecl *x) {
@@ -133,7 +137,12 @@ void PrettyPrinter::visit_ident(Ident *x) {
    out() << x->id << _cmt0(x, 0);
    if (!x->subtypes.empty()) {
       out() << "<";
-      x->subtypes[0]->visit(this);
+      for (int i = 0; i < x->subtypes.size(); i++) {
+         if (i > 0) {
+            out() << ", ";
+         }
+         x->subtypes[i]->visit(this);
+      }
       out() << ">";
    }
 }
@@ -177,6 +186,9 @@ void PrettyPrinter::visit_block(Block *x) {
 }
 
 void PrettyPrinter::visit_vardecl(VarDecl *x) {
+   if (x->kind == Decl::Pointer) {
+      out() << "*";
+   }
    out() << x->name << _cmt0(x, 0);
    if (x->init) {
       out() << " =" << _cmt_(x, 1);

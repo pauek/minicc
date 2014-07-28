@@ -193,9 +193,10 @@ AstNode* Parser::parse_using_declaration() {
 
 Type *Parser::parse_type() {
    Type *type = new Type();
+   Token tok;
    while (true) {
       _in.save();
-      Token tok = _in.next_token();
+      tok = _in.next_token();
       if (tok.group & Token::TypeQual) {
          _in.discard();
          switch (tok.type) {
@@ -217,6 +218,10 @@ Type *Parser::parse_type() {
       } else if (type->nested_ids.empty() and (tok.group & Token::Ident)) {
          _in.discard();
          parse_type_id(type, tok);
+      } else if (tok.type == Token::Amp) {
+         type->reference = true;
+         _skip(type);
+         break;
       } else {
          _in.restore();
          break;
@@ -233,6 +238,7 @@ void Parser::parse_type_id(Type *type, Token tok) {
       Token tok2 = _in.next_token();
       if (tok2.type == Token::LT) { // template_id
          _in.discard();
+         _skip(id);
          parse_type_list(id, id->subtypes);
          if (_in.curr() != '>') { // Do NOT call next_token here, since it will return ">>"
             error(id, "Esperaba un '>' aquí");
@@ -783,11 +789,11 @@ void Parser::parse_type_list(AstNode *n, vector<Type*>& v) {
    }
 }
 
-Decl *Parser::_parse_vardecl(string name, bool pointer) {
+Decl *Parser::_parse_vardecl(string name, Decl::Kind kind) {
    VarDecl *decl = new VarDecl();
    _skip(decl); // after the name
    decl->name = name;
-   decl->pointer = pointer;
+   decl->kind = kind;
    if (_in.curr() == '=') {
       _in.next();
       _skip(decl);
@@ -796,11 +802,11 @@ Decl *Parser::_parse_vardecl(string name, bool pointer) {
    return decl;
 }
 
-Decl *Parser::_parse_arraydecl(string name, bool pointer) {
+Decl *Parser::_parse_arraydecl(string name, Decl::Kind kind) {
    ArrayDecl *decl = new ArrayDecl();
    _skip(decl); // after the name
    decl->name = name;
-   decl->pointer = pointer;
+   decl->kind = kind;
    _in.consume("[");
    _skip(decl);
    decl->size = parse_expr(Expr::conditional);
@@ -846,9 +852,9 @@ DeclStmt *Parser::parse_declstmt() {
    while (true) {
       Token id = _in.next_token();
       string name = id.str;
-      bool pointer = false;
+      Decl::Kind kind = Decl::Normal;
       if (id.type == Token::Star) {
-         pointer = true;
+         kind = Decl::Pointer;
          _skip(stmt);
          id = _in.next_token();
          name = id.str;
@@ -860,9 +866,9 @@ DeclStmt *Parser::parse_declstmt() {
       if (_in.curr() == '(') {
          decl = _parse_objdecl(name);
       } else if (_in.curr() == '[') {
-         decl = _parse_arraydecl(name, pointer);
+         decl = _parse_arraydecl(name, kind);
       } else {
-         decl = _parse_vardecl(name, pointer);
+         decl = _parse_vardecl(name, kind);
       }
       stmt->decls.push_back(decl);
       if (_in.curr() != ',') {

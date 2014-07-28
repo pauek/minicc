@@ -96,16 +96,16 @@ struct {
    { "volatile", Token::Volatile, Token::TypeSpec | Token::TypeQual },
 
    // storage_class_specifier
-   { "auto",     Token::Const,    Token::TypeSpec | Token::TypeQual },
-   { "register", Token::Long,     Token::TypeSpec | Token::TypeQual },
-   { "static",   Token::Volatile, Token::TypeSpec | Token::TypeQual },
+   { "auto",     Token::Auto,     Token::TypeSpec | Token::TypeQual },
+   { "register", Token::Register, Token::TypeSpec | Token::TypeQual },
+   { "static",   Token::Static,   Token::TypeSpec | Token::TypeQual },
    { "extern",   Token::Extern,   Token::TypeSpec | Token::TypeQual },
-   { "mutable",  Token::Extern,   Token::TypeSpec | Token::TypeQual },
+   { "mutable",  Token::Mutable,  Token::TypeSpec | Token::TypeQual },
 
    // function_specifier
-   { "inline",   Token::Extern,   Token::TypeSpec },
-   { "virtual",  Token::Extern,   Token::TypeSpec },
-   { "explicit", Token::Extern,   Token::TypeSpec },
+   { "inline",   Token::Inline,   Token::TypeSpec },
+   { "virtual",  Token::Virtual,  Token::TypeSpec },
+   { "explicit", Token::Explicit, Token::TypeSpec },
 
    { "true",     Token::True,     Token::Literal },
    { "false",    Token::False,    Token::Literal },

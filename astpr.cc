@@ -31,7 +31,11 @@ void AstPrinter::visit_using(Using* x) {
 }
 
 void AstPrinter::visit_type(Type *x) {
-   out() << "Type(";
+   static const string names[] = { 
+      "const", "volatile", "mutable", "register", "auto", "extern"
+   };
+
+   out() << "Type" << (x->reference ? "<&>" : "") << "(";
    if (x->nested_ids.size() == 1) {
       x->nested_ids[0]->visit(this);
    } else {
@@ -46,8 +50,16 @@ void AstPrinter::visit_type(Type *x) {
    }
    if (x->qual != 0) {
       out() << ", {";
-      if (x->qual & Type::Const) {
-         out() << "const";
+      int i = 0, numquals = 0;
+      while (Type::Qualifiers(1 << i) <= Type::Extern) {
+         if (x->qual & Type::Qualifiers(1 << i)) {
+            if (numquals > 0) {
+               out() << "," << _cmt_(x, i);
+            }
+            out() << names[i];
+            numquals++;
+         }
+         i++;
       }
       out() << "}";
    }
@@ -185,7 +197,7 @@ void AstPrinter::visit_binaryexpr(BinaryExpr *x) {
 }
 
 void AstPrinter::visit_vardecl(VarDecl *x) {
-   if (x->pointer) {
+   if (x->kind == Decl::Pointer) {
       out() << "*";
    }
    out() << '"' << x->name << '"';
