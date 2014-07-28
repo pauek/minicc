@@ -54,7 +54,7 @@ AstNode* Parser::parse() {
    while (!_in.end()) {
       Pos pos = _in.pos();
       Token tok = _in.peek_token();
-      switch (tok.type) {
+      switch (tok.kind) {
       case Token::Sharp: {
          prog->add(parse_macro());
          break;
@@ -199,7 +199,7 @@ Type *Parser::parse_type() {
       tok = _in.next_token();
       if (tok.group & Token::TypeQual) {
          _in.discard();
-         switch (tok.type) {
+         switch (tok.kind) {
          case Token::Const:   type->qual |= Type::Const; break;
          case Token::Auto:    type->qual |= Type::Auto;  break;
          case Token::Mutable: type->qual |= Type::Mutable;  break;
@@ -218,7 +218,7 @@ Type *Parser::parse_type() {
       } else if (type->nested_ids.empty() and (tok.group & Token::Ident)) {
          _in.discard();
          parse_type_id(type, tok);
-      } else if (tok.type == Token::Amp) {
+      } else if (tok.kind == Token::Amp) {
          type->reference = true;
          _skip(type);
          break;
@@ -236,7 +236,7 @@ void Parser::parse_type_id(Type *type, Token tok) {
       _skip(id);
       _in.save();
       Token tok2 = _in.next_token();
-      if (tok2.type == Token::LT) { // template_id
+      if (tok2.kind == Token::LT) { // template_id
          _in.discard();
          _skip(id);
          parse_type_list(id, id->subtypes);
@@ -251,7 +251,7 @@ void Parser::parse_type_id(Type *type, Token tok) {
       }
       type->nested_ids.push_back(id);
       tok = _in.peek_token();
-      if (tok.type != Token::ColonColon) {
+      if (tok.kind != Token::ColonColon) {
          break;
       } else {
          _in.next_token();
@@ -300,7 +300,7 @@ void Parser::parse_function(FuncDecl *fn) {
       p->type = parse_type();
       _skip(p);
       Token tok = _in.peek_token();
-      if (tok.type == Token::Amp) {
+      if (tok.kind == Token::Amp) {
          p->ref = true;
          _in.next_token();
          _skip(p);
@@ -356,7 +356,7 @@ Block *Parser::parse_block() {
 
 Stmt* Parser::parse_stmt() {
    Token tok1 = _in.peek_token();
-   switch (tok1.type) {
+   switch (tok1.kind) {
    case Token::LParen:
       return parse_exprstmt();
 
@@ -407,7 +407,7 @@ Stmt *Parser::parse_jumpstmt() {
    JumpStmt *stmt = new JumpStmt();
    stmt->ini = _in.pos();
    Token tok = _in.next_token();
-   switch (tok.type) {
+   switch (tok.kind) {
    case Token::Break:    stmt->kind = JumpStmt::Break; break;
    case Token::Continue: stmt->kind = JumpStmt::Continue; break;
    case Token::Goto:     stmt->kind = JumpStmt::Goto; break;
@@ -433,7 +433,7 @@ ExprStmt *Parser::parse_exprstmt(bool is_return) {
    stmt->ini = _in.pos();
    if (is_return) {
       Token tok = _in.next_token();
-      assert(tok.type == Token::Return);
+      assert(tok.kind == Token::Return);
       _skip(stmt);
    }
    stmt->expr = (_in.curr() == ';' ? 0 : parse_expr());
@@ -449,7 +449,7 @@ ExprStmt *Parser::parse_exprstmt(bool is_return) {
 Expr *Parser::parse_primary_expr() {
    Expr *e;
    Token tok = _in.next_token();
-   switch (tok.type) {
+   switch (tok.kind) {
    case Token::LParen:
       e = parse_expr();
       e->paren = true;
@@ -461,7 +461,7 @@ Expr *Parser::parse_primary_expr() {
    case Token::True:
    case Token::False: {
       Literal* lit = new Literal(Literal::Bool);
-      lit->val.as_bool = (tok.type == Token::True);
+      lit->val.as_bool = (tok.kind == Token::True);
       _skip(lit);
       e = lit;
       break;
@@ -510,7 +510,7 @@ Expr *Parser::parse_ident(Token tok) {
    Ident *id = new Ident(tok.str);
    _skip(id);
    tok = _in.peek_token();
-   if (tok.type == Token::ColonColon) {
+   if (tok.kind == Token::ColonColon) {
       _in.next_token();
       _skip(id);
       tok = _in.next_token();
@@ -531,7 +531,7 @@ Expr *Parser::parse_postfix_expr(Expr *e = 0) {
    }
  begin:
    Token tok = _in.peek_token();
-   switch (tok.type) {
+   switch (tok.kind) {
    case Token::LParen:
       e = parse_callexpr(e);
       goto begin;
@@ -559,7 +559,7 @@ Expr *Parser::parse_postfix_expr(Expr *e = 0) {
 Expr *Parser::parse_unary_expr() {
    Expr *e;
    Token tok = _in.peek_token();
-   switch (tok.type) {
+   switch (tok.kind) {
    case Token::Not: {
       NegExpr *ne = new NegExpr();
       _in.next();
@@ -570,7 +570,7 @@ Expr *Parser::parse_unary_expr() {
    }
    case Token::Plus:
    case Token::Minus: {
-      SignExpr *se = new SignExpr(tok.type == Token::Plus 
+      SignExpr *se = new SignExpr(tok.kind == Token::Plus 
                                   ? SignExpr::Positive
                                   : SignExpr::Negative);
       _in.next();
@@ -603,7 +603,7 @@ Expr *Parser::parse_unary_expr() {
    return e;
 }
 
-Expr *Parser::parse_expr(BinaryExpr::Type max) {
+Expr *Parser::parse_expr(BinaryExpr::Kind max) {
    CommentSeq *cn;
 
    Expr *left = parse_unary_expr();
@@ -611,33 +611,33 @@ Expr *Parser::parse_expr(BinaryExpr::Type max) {
    while (true) {
       _in.save();
       Token tok = _in.read_operator();
-      BinaryExpr::Type type = BinaryExpr::tok2type(tok.type);
-      if (tok.type == Token::Empty or type > max) {
+      BinaryExpr::Kind kind = BinaryExpr::tok2kind(tok.kind);
+      if (tok.kind == Token::Empty or kind > max) {
          _in.restore();
          break;
       }
       _in.discard();
-      if (tok.type == Token::QMark) { // (... ? ... : ...)
+      if (tok.kind == Token::QMark) { // (... ? ... : ...)
          CondExpr *e = new CondExpr();
          e->cond = left;
          _skip(e);
-         e->then = parse_expr(Expr::assignment); // Expr::comma?
+         e->then = parse_expr(Expr::Assignment); // Expr::comma?
          Token colon = _in.read_operator();
-         if (colon.type != Token::Colon) {
+         if (colon.kind != Token::Colon) {
             error(e, "Esperaba un ':' aquí");
          }
          _skip(e);
-         e->els = parse_expr(Expr::assignment);
+         e->els = parse_expr(Expr::Assignment);
          left = e;
       } else {
          BinaryExpr *e = new BinaryExpr();
          e->op = _in.substr(tok);
-         e->set(type);
+         e->set(kind);
          _skip(e);
-         Expr::Type submax = 
-            Expr::Type(Expr::right_associative(type) 
-                       ? type 
-                       : type - 1);
+         Expr::Kind submax = 
+            Expr::Kind(Expr::right_associative(kind) 
+                       ? kind 
+                       : kind - 1);
          Expr *right = parse_expr(submax);
          e->left = left;
          e->right = right;
@@ -654,11 +654,11 @@ Expr *Parser::parse_callexpr(Expr *x) {
    _in.consume('(');
    _skip(e);
    if (_in.curr() != ')') {
-      e->args.push_back(parse_expr(Expr::assignment));
+      e->args.push_back(parse_expr(Expr::Assignment));
       while (_in.curr() == ',') {
          _in.next();
          _skip(e);
-         e->args.push_back(parse_expr(Expr::assignment));
+         e->args.push_back(parse_expr(Expr::Assignment));
       }
    }
    if (!_in.expect(")")) {
@@ -683,8 +683,8 @@ Expr *Parser::parse_indexexpr(Expr *x) {
 Expr *Parser::parse_fieldexpr(Expr *x, Token tok) {
    FieldExpr *e = new FieldExpr();
    e->base = x;
-   e->pointer = (tok.type == Token::Arrow);
-   _in.consume(tok.type == Token::Arrow ? "->" : ".");
+   e->pointer = (tok.kind == Token::Arrow);
+   _in.consume(tok.kind == Token::Arrow ? "->" : ".");
    _skip(e);
    Token id = _in.read_id();
    e->field = new Ident(id.str);
@@ -695,7 +695,7 @@ Expr *Parser::parse_fieldexpr(Expr *x, Token tok) {
 Expr *Parser::parse_increxpr(Expr *x, Token tok) {
    IncrExpr *e = new IncrExpr(Token::PlusPlus ? IncrExpr::Positive : IncrExpr::Negative);
    e->expr = x;
-   _in.consume(tok.type == Token::PlusPlus ? "++" : "--");
+   _in.consume(tok.kind == Token::PlusPlus ? "++" : "--");
    _skip(e);
    return e;
 }
@@ -758,7 +758,7 @@ Stmt *Parser::parse_ifstmt() {
    stmt->then = parse_stmt();
    
    string tok;
-   if (_in.peek_token().type == Token::Else) {
+   if (_in.peek_token().kind == Token::Else) {
       _in.consume("else");
       _skip(stmt);
       stmt->els = parse_stmt();
@@ -771,11 +771,11 @@ Stmt *Parser::parse_switch() {
 }
 
 void Parser::parse_expr_list(AstNode *n, vector<Expr*>& exprs) {
-   exprs.push_back(parse_expr(Expr::assignment));
+   exprs.push_back(parse_expr(Expr::Assignment));
    while (_in.curr() == ',') {
       _in.next();
       _skip(n);
-      exprs.push_back(parse_expr(Expr::assignment));
+      exprs.push_back(parse_expr(Expr::Assignment));
    }
 }
 
@@ -797,7 +797,7 @@ Decl *Parser::_parse_vardecl(string name, Decl::Kind kind) {
    if (_in.curr() == '=') {
       _in.next();
       _skip(decl);
-      decl->init = parse_expr(Expr::assignment);
+      decl->init = parse_expr(Expr::Assignment);
    }
    return decl;
 }
@@ -809,7 +809,7 @@ Decl *Parser::_parse_arraydecl(string name, Decl::Kind kind) {
    decl->kind = kind;
    _in.consume("[");
    _skip(decl);
-   decl->size = parse_expr(Expr::conditional);
+   decl->size = parse_expr(Expr::Conditional);
    if (!_in.expect("]")) {
       error(decl, _in.pos().str() + ": Esperaba un ']' aquí");
    }
@@ -853,7 +853,7 @@ DeclStmt *Parser::parse_declstmt() {
       Token id = _in.next_token();
       string name = id.str;
       Decl::Kind kind = Decl::Normal;
-      if (id.type == Token::Star) {
+      if (id.kind == Token::Star) {
          kind = Decl::Pointer;
          _skip(stmt);
          id = _in.next_token();
@@ -886,7 +886,7 @@ DeclStmt *Parser::parse_declstmt() {
 
 AstNode *Parser::parse_struct() {
    Token tok = _in.next_token();
-   assert(tok.type == Token::Struct);
+   assert(tok.kind == Token::Struct);
 
    StructDecl *decl = new StructDecl();
    _skip(decl);
@@ -895,7 +895,7 @@ AstNode *Parser::parse_struct() {
    _skip(decl);
    
    tok = _in.next_token();
-   if (tok.type != Token::LCurly) {
+   if (tok.kind != Token::LCurly) {
       error(decl, "Esperaba un '{' aquí");
       _in.skip_to("};");
       return decl;
@@ -903,17 +903,17 @@ AstNode *Parser::parse_struct() {
    _skip(decl);
    
    tok = _in.peek_token();
-   while (!_in.end() and tok.type != Token::RCurly) {
+   while (!_in.end() and tok.kind != Token::RCurly) {
       decl->decls.push_back(parse_declstmt());
       _skip(decl);
       tok = _in.peek_token();      
    }
-   if (tok.type != Token::RCurly) {
+   if (tok.kind != Token::RCurly) {
       error(decl, _in.pos().str() + ": Esperaba un '}' aquí");
    }
    _in.next_token();
    tok = _in.next_token();
-   if (tok.type != Token::SemiColon) {
+   if (tok.kind != Token::SemiColon) {
       error(decl, _in.pos().str() + ": Esperaba un ';' aquí");
    }
    return decl;   

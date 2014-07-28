@@ -179,7 +179,7 @@ void AstPrinter::visit_binaryexpr(BinaryExpr *x) {
    if (x->paren) {
       out() << "(";
    }
-   switch (x->type) {
+   switch (x->kind) {
    default:
       out() << x->op << "(";
       if (x->left) {

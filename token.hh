@@ -6,7 +6,7 @@
 
 class Token {
 public:
-   enum Type {
+   enum Kind {
       Empty,
       Int, Void, Char, Double, Float, Bool, String,
       True, False,
@@ -38,12 +38,12 @@ public:
    static Token token2type(std::string tok);
 
    int ini, fin;
-   Type type;
+   Kind kind;
    int  group;
    std::string str;
 
-   Token(Type _t = Unknown, int _k = None) 
-      : type(_t), group(_k), ini(-1), fin(-1) {}
+   Token(Kind _k = Unknown, int _g = None) 
+      : kind(_k), group(_g), ini(-1), fin(-1) {}
 
 private:
    struct Table { 

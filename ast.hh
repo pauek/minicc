@@ -181,25 +181,25 @@ struct Block : public Stmt {
 // Expressions /////////////////////////////////////////////
 
 struct Expr : public AstNode {
-   enum Type { 
-      unknown,
+   enum Kind { 
+      Unknown,
       // pm_expression 
-      multiplicative, additive, shift, relational, equality, 
-      bit_and, bit_xor, bit_or, logical_and, logical_or, conditional,
-      assignment, comma, infinite
+      Multiplicative, Additive, Shift, Relational, Equality, 
+      BitAnd, BitXor, BitOr, LogicalAnd, LogicalOr, Conditional,
+      Assignment, Comma, Infinite
    };
-   struct Op2TypeInitializer { Op2TypeInitializer(); }; // init _op2type
+   struct Op2KindInitializer { Op2KindInitializer(); }; // init _op2kind
 
    bool paren;
 
    Expr() : paren(false) {}
 
-   static std::map<std::string, Type> _op2type;
-   static std::map<Token::Type, Type> _tok2type;
-   static Type op2type(std::string op);
-   static Type tok2type(Token::Type toktyp);
-   static Op2TypeInitializer initializer;
-   static bool right_associative(Type t);
+   static std::map<std::string, Kind> _op2kind;
+   static std::map<Token::Kind, Kind> _tok2kind;
+   static Kind op2kind(std::string op);
+   static Kind tok2kind(Token::Kind toktyp);
+   static Op2KindInitializer initializer;
+   static bool right_associative(Kind t);
 
    struct Error;
 };
@@ -248,16 +248,15 @@ struct Ident : public Expr {
 };
 
 struct BinaryExpr : public Expr {
-   Type type;
+   Kind kind;
    std::string op;
    std::string str;
    Expr *left, *right;
 
-   BinaryExpr(Type _type = unknown) 
-      : type(_type), op("") {}
+   BinaryExpr(Kind k = Unknown) : kind(k), op("") {}
 
    void visit(AstVisitor *v);
-   void set(Expr::Type _type);
+   void set(Expr::Kind _kind);
    bool has_errors() const;
 };
 

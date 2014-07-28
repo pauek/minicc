@@ -56,7 +56,7 @@ public:
 
    AstNode *parse_struct();
 
-      Expr *parse_expr(Expr::Type max = Expr::comma);
+      Expr *parse_expr(Expr::Kind max = Expr::Comma);
       Expr *parse_primary_expr();
       Expr *parse_ident(Token tok);
       Expr *parse_postfix_expr(Expr *);
