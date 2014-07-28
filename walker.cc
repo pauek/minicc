@@ -12,6 +12,9 @@ void Walker::visit_literal(Literal *x)       { walk(x); }
 void Walker::visit_jumpstmt(JumpStmt *x)     { walk(x); }
 void Walker::visit_errorstmt(Stmt::Error *x) { walk(x); }
 void Walker::visit_errorexpr(Expr::Error *x) { walk(x); }
+void Walker::visit_vardecl(VarDecl *x)       { walk(x); }
+void Walker::visit_arraydecl(ArrayDecl *x)   { walk(x); }
+void Walker::visit_objdecl(ObjDecl *x)       { walk(x); }
 
 void Walker::visit_program(Program* x) {
    walk(x);
@@ -63,10 +66,8 @@ void Walker::visit_binaryexpr(BinaryExpr *x) {
 void Walker::visit_declstmt(DeclStmt* x) {
    walk(x);
    x->type->visit(this);
-   for (DeclStmt::Decl& decl : x->decls) {
-      if (decl.init != 0) {
-         decl.init->visit(this);
-      }
+   for (Decl *d : x->decls) {
+      d->visit(this);
    }
 }
 

@@ -24,6 +24,9 @@ public:
    void visit_binaryexpr(BinaryExpr *x);
    void visit_literal(Literal *x);
    void visit_ident(Ident *x);
+   void visit_vardecl(VarDecl *);
+   void visit_arraydecl(ArrayDecl *);
+   void visit_objdecl(ObjDecl *);
    void visit_declstmt(DeclStmt *x);
    void visit_exprstmt(ExprStmt *x);
    void visit_ifstmt(IfStmt *x);

@@ -46,7 +46,7 @@ void PrettyPrinter::visit_type(Type *x) {
    while (Type::Qualifiers(1 << i) <= Type::Extern) {
       if (x->qual & Type::Qualifiers(1 << i)) {
          if (numquals > 0) {
-            out() << " ";
+            out() << _cmt_(x, i);
          }
          out() << names[i];
          numquals++;
@@ -66,6 +66,7 @@ void PrettyPrinter::visit_type(Type *x) {
          x->nested_ids[i]->visit(this);
       }
    }
+   out() << _cmt0(x, -1);
 }
 
 void PrettyPrinter::visit_structdecl(StructDecl *x) {
@@ -175,32 +176,56 @@ void PrettyPrinter::visit_block(Block *x) {
    print_block(x);
 }
 
+void PrettyPrinter::visit_vardecl(VarDecl *x) {
+   out() << x->name << _cmt0(x, 0);
+   if (x->init) {
+      out() << " =" << _cmt_(x, 1);
+      x->init->visit(this);
+   }
+}
+
+void PrettyPrinter::visit_arraydecl(ArrayDecl *x) {
+   out() << x->name << _cmt0(x, 0);
+   out() << "[";
+   x->size->visit(this);
+   out() << "]";
+   if (!x->init.empty()) {
+      out() << " =" << _cmt_(x, 1) << "{";
+      for (int i = 0; i < x->init.size(); i++) {
+         if (i > 0) {
+            out() << ", ";
+         }
+         x->init[i]->visit(this);
+      }
+      out() << "}";
+   }
+}
+
+void PrettyPrinter::visit_objdecl(ObjDecl *x) {
+   out() << x->name << _cmt0(x, 0);
+   if (!x->args.empty()) {
+      out() << "(";
+      for (int i = 0; i < x->args.size(); i++) {
+         if (i > 0) {
+            out() << ",";
+         }
+         out() << _cmt0(x, i+1);
+         x->args[i]->visit(this);
+      }
+      out() << ")";
+   }
+}
+
 void PrettyPrinter::visit_declstmt(DeclStmt* x) {
    x->type->visit(this);
-   int c = 0;
+   out() << " ";
    for (int i = 0; i < x->decls.size(); i++) {
       if (i > 0) {
-         out() << ",";
+         out() << "," << _cmt_(x, i);
       }
-      out() << _cmt_(x, c++);
-      const DeclStmt::Decl& d = x->decls[i];
-      out() << d.name << _cmt0(x, c++);
-      if (!d.args.empty()) {
-         out() << "(";
-         for (int i = 0; i < d.args.size(); i++) {
-            if (i > 0) {
-               out() << ", ";
-            }
-            d.args[i]->visit(this);
-         }
-         out() << ")";
-      }
-      if (d.init) {
-         out() << " =" << _cmt_(x, c++);
-         d.init->visit(this);
-      }
+      x->decls[i]->visit(this);
    }
-   out() << ";" << _cmt0(x, c);
+   out() << ";" << _cmt0(x, -1);
 }
 
 void PrettyPrinter::visit_exprstmt(ExprStmt* x) {

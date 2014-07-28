@@ -207,8 +207,8 @@ bool IterStmt::has_errors() const {
 
 bool DeclStmt::has_errors() const {
    _ERRORS(type);
-   for (const Decl& d : decls) {
-      _ERRORS(d.init);
+   for (const Decl* d : decls) {
+      _ERRORS(d);
    } 
    return AstNode::has_errors();
 }

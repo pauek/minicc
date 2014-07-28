@@ -11,6 +11,7 @@ class AstVisitor;
 
 struct Error;
 struct CommentSeq;
+struct Type;
 
 std::ostream& operator<<(std::ostream& o, CommentSeq* C);
 
@@ -124,17 +125,35 @@ struct IterStmt : public Stmt { // while + for
    bool has_errors() const;
 };
 
-struct DeclStmt : public Stmt {
-   struct Decl {
-      std::string name;
-      bool pointer;
-      Expr *init;
-      std::vector<Expr*> args;
-      Decl(std::string n) : name(n), init(0), pointer(false) {}
-   };
+struct Decl : public AstNode {
+   Type *type;
+   std::string name;
+   Decl() : type(0) {}
+};
 
+struct VarDecl : public Decl {
+   Expr *init;
+   bool pointer;
+   VarDecl() : init(0), pointer(false) {}
+   void visit(AstVisitor *v);
+};
+
+struct ArrayDecl : public Decl {
+   Expr *size;
+   std::vector<Expr *> init;
+   bool pointer;
+   ArrayDecl() : size(0), pointer(false) {}
+   void visit(AstVisitor *v);
+};
+
+struct ObjDecl : public Decl {
+   std::vector<Expr *> args;
+   void visit(AstVisitor *v);
+};
+
+struct DeclStmt : public Stmt {
    AstNode *type;
-   std::vector<Decl> decls;
+   std::vector<Decl*> decls;
 
    void visit(AstVisitor *v);
    bool has_errors() const;
@@ -210,8 +229,6 @@ struct Literal : public Expr {
 
    static std::string escape(std::string s, char delim);
 };
-
-struct Type;
 
 struct Ident : public Expr {
    std::string id;
@@ -383,6 +400,9 @@ public:
    virtual void visit_block(Block *) = 0;
    virtual void visit_ident(Ident *) = 0;
    virtual void visit_binaryexpr(BinaryExpr *) = 0;
+   virtual void visit_vardecl(VarDecl *) = 0;
+   virtual void visit_arraydecl(ArrayDecl *) = 0;
+   virtual void visit_objdecl(ObjDecl *) = 0;
    virtual void visit_declstmt(DeclStmt *) = 0;
    virtual void visit_exprstmt(ExprStmt *) = 0;
    virtual void visit_ifstmt(IfStmt *) = 0;
@@ -415,6 +435,9 @@ inline void Type::visit(AstVisitor *v)          { v->visit_type(this); }
 inline void Block::visit(AstVisitor *v)         { v->visit_block(this); }
 inline void Ident::visit(AstVisitor *v)         { v->visit_ident(this); }
 inline void BinaryExpr::visit(AstVisitor *v)    { v->visit_binaryexpr(this); }
+inline void VarDecl::visit(AstVisitor *v)       { v->visit_vardecl(this); }
+inline void ArrayDecl::visit(AstVisitor *v)     { v->visit_arraydecl(this); }
+inline void ObjDecl::visit(AstVisitor *v)       { v->visit_objdecl(this); }
 inline void DeclStmt::visit(AstVisitor *v)      { v->visit_declstmt(this); }
 inline void ExprStmt::visit(AstVisitor *v)      { v->visit_exprstmt(this); }
 inline void IfStmt::visit(AstVisitor *v)        { v->visit_ifstmt(this); }
@@ -444,9 +467,9 @@ template<typename T>
 inline CommentSeq *_at(T *x, int i) {
    if (i < 0) {
       const int sz = x->comments.size();
-      return x->comments[sz+i];
+      return (sz+i >= 0 ? x->comments[sz+i] : 0);
    } else {
-      return x->comments[i];
+      return (i < x->comments.size() ? x->comments[i] : 0);
    }
 }
 template<typename T> std::string _cmt  (T* x, int i) { return cmt(_at(x, i), 1, 0, 1); }

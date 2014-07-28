@@ -755,6 +755,70 @@ Stmt *Parser::parse_switch() {
    return error<Stmt>("UNIMPLEMENTED switch");
 }
 
+void Parser::parse_expr_list(AstNode *n, vector<Expr*>& exprs) {
+   exprs.push_back(parse_expr(Expr::assignment));
+   while (_in.curr() == ',') {
+      _in.next();
+      _skip(n);
+      exprs.push_back(parse_expr(Expr::assignment));
+   }
+}
+
+Decl *Parser::_parse_vardecl(string name, bool pointer) {
+   VarDecl *decl = new VarDecl();
+   _skip(decl); // after the name
+   decl->name = name;
+   decl->pointer = pointer;
+   if (_in.curr() == '=') {
+      _in.next();
+      _skip(decl);
+      decl->init = parse_expr(Expr::assignment);
+   }
+   return decl;
+}
+
+Decl *Parser::_parse_arraydecl(string name, bool pointer) {
+   ArrayDecl *decl = new ArrayDecl();
+   _skip(decl); // after the name
+   decl->name = name;
+   decl->pointer = pointer;
+   _in.consume("[");
+   _skip(decl);
+   decl->size = parse_expr(Expr::conditional);
+   if (!_in.expect("]")) {
+      error(decl, _in.pos().str() + ": Esperaba un ']' aquí");
+   }
+   _skip(decl);
+   if (_in.curr() == '=') {
+      _in.next();
+      _skip(decl);
+      if (!_in.expect("{")) {
+         error(decl, _in.pos().str() + ": Esperaba un '{' aquí");
+      }
+      _in.next();
+      _skip(decl);
+      parse_expr_list(decl, decl->init);
+      if (!_in.expect("}")) {
+         error(decl, _in.pos().str() + ": Esperaba un '}' aquí");
+         _in.skip_to("},;\n");
+      }
+   }
+   return decl;
+}
+
+Decl *Parser::_parse_objdecl(string name) {
+   _in.consume("(");
+   ObjDecl *decl = new ObjDecl();
+   _skip(decl); // after the name
+   decl->name = name;
+   parse_expr_list(decl, decl->args);
+   if (!_in.expect(")")) {
+      error(decl, _in.pos().str() + ": Esperaba un ')' aquí");
+      _in.skip_to("),;\n");
+   }
+   return decl;
+}
+
 DeclStmt *Parser::parse_declstmt() {
    DeclStmt *stmt = new DeclStmt();
    Type *type = parse_type();
@@ -762,35 +826,24 @@ DeclStmt *Parser::parse_declstmt() {
    _skip(stmt);
    while (true) {
       Token id = _in.next_token();
-      DeclStmt::Decl decl(id.str);
       string name = id.str;
+      bool pointer = false;
       if (id.type == Token::Star) {
-         decl.pointer = true;
+         pointer = true;
          _skip(stmt);
          id = _in.next_token();
-         decl.name = id.str;
+         name = id.str;
       }
       if (id.group != Token::Ident) {
          error(stmt, "Esperaba un identificador aquí");
       }
-      _skip(stmt);
-      if (_in.curr() == '=') {
-         _in.next();
-         _skip(stmt);
-         decl.init = parse_expr(Expr::assignment);
-      } else if (_in.curr() == '(') {
-         _in.next();
-         _skip(stmt);
-         decl.args.push_back(parse_expr(Expr::assignment));
-         while (_in.curr() == ',') {
-            _in.next();
-            _skip(stmt);
-            decl.args.push_back(parse_expr(Expr::assignment));
-         }
-         if (!_in.expect(")")) {
-            error(stmt, _in.pos().str() + ": Esperaba un ')' aquí");
-            _in.skip_to("),;\n");
-         }
+      Decl *decl;
+      if (_in.curr() == '(') {
+         decl = _parse_objdecl(name);
+      } else if (_in.curr() == '[') {
+         decl = _parse_arraydecl(name, pointer);
+      } else {
+         decl = _parse_vardecl(name, pointer);
       }
       stmt->decls.push_back(decl);
       if (_in.curr() != ',') {

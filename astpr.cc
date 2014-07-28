@@ -175,33 +175,58 @@ void AstPrinter::visit_binaryexpr(BinaryExpr *x) {
    }
 }
 
+void AstPrinter::visit_vardecl(VarDecl *x) {
+   if (x->pointer) {
+      out() << "*";
+   }
+   out() << '"' << x->name << '"';
+   if (x->init) {
+      out() << " = ";
+      x->init->visit(this);
+   }
+}
+
+void AstPrinter::visit_arraydecl(ArrayDecl *x) {
+   out() << '"' << x->name << "\"(Size = ";
+   x->size->visit(this);
+   if (!x->init.empty()) {
+      out() << ", Init = {";
+      for (int i = 0; i < x->init.size(); i++) {
+         if (i > 0) {
+            out() << ", ";
+         }
+         x->init[i]->visit(this);
+      }
+      out() << "}";
+   }
+   out() << ")";
+}
+
+void AstPrinter::visit_objdecl(ObjDecl *x) {
+   out() << '"' << x->name << "\"(";
+   if (!x->args.empty()) {
+      out() << "Args = {";
+      for (int i = 0; i < x->args.size(); i++) {
+         if (i > 0) {
+            out() << ", ";
+         }
+         x->args[i]->visit(this);
+      }
+      out () << "}";
+   }
+   out() << ")";
+}
+
 void AstPrinter::visit_declstmt(DeclStmt* x) {
    out() << "DeclStmt(";
    x->type->visit(this);
    out() << ", Vars = {";
    bool first = true;
-   for (DeclStmt::Decl& decl : x->decls) {
+   for (Decl *d : x->decls) {
       if (!first) {
          out() << ", ";
       }
-      if (decl.pointer) {
-         out() << "*";
-      }
-      out() << '"' << decl.name << '"';
-      if (decl.init != 0) {
-         out() << " = ";
-         decl.init->visit(this);
-      }
-      if (!decl.args.empty()) {
-         out() << ", Args = {";
-         for (int i = 0; i < decl.args.size(); i++) {
-            if (i > 0) {
-               out() << ", ";
-            }
-            decl.args[i]->visit(this);
-         }
-         out () << "}";
-      }
+      d->visit(this);
       first = false;
    }
    out() << "})";

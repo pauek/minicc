@@ -24,6 +24,12 @@ class Parser {
    template<class Node>
    typename Node::Error *error(std::string msg);
 
+   void parse_expr_list(AstNode *n, std::vector<Expr*>& v);
+
+   Decl *_parse_vardecl(std::string name, bool pointer);
+   Decl *_parse_arraydecl(std::string name, bool pointer);
+   Decl *_parse_objdecl(std::string name);
+
 public:
    Parser(std::istream *in, std::ostream* err = &std::cerr);
 
