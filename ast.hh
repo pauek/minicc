@@ -274,10 +274,10 @@ struct SignExpr : public UnaryExpr {
 };
 
 struct IncrExpr : public UnaryExpr {
-   enum Type { Positive, Negative };
-   Type type;
+   enum Kind { Positive, Negative };
+   Kind kind;
    bool preincr;
-   IncrExpr(Type t, bool pre = false) : type(t), preincr(pre) {}
+   IncrExpr(Kind k, bool pre = false) : kind(k), preincr(pre) {}
    void visit(AstVisitor *v);
 };
 

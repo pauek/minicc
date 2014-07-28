@@ -363,7 +363,7 @@ void AstPrinter::visit_signexpr(SignExpr *x) {
 
 void AstPrinter::visit_increxpr(IncrExpr *x) {
    out() << "IncrExpr<";
-   out() << (x->type == IncrExpr::Positive ? "++" : "--") << ", ";
+   out() << (x->kind == IncrExpr::Positive ? "++" : "--") << ", ";
    out() << (x->preincr ? "pre" : "post");
    out() << ">(";
    x->expr->visit(this);
