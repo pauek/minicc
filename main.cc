@@ -57,4 +57,5 @@ int main(int argc, char *argv[]) {
    for (Error *e : ve) {
       cerr << e->msg << endl;
    }
+   return (ve.empty() ? 0 : 1);
 }

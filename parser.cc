@@ -271,12 +271,14 @@ Type *Parser::parse_type() {
 AstNode *Parser::parse_func_or_var() {
    CommentSeq *c[2] = { 0, 0 };
    Pos ini = _in.pos();
+   _in.save();
    Type *type = parse_type();
    c[0] = _in.skip("\t ");
    Token tok = _in.read_id();
    string name = tok.str;
    c[1] = _in.skip("\t ");
    if (_in.curr() == '(') {
+      _in.discard();
       FuncDecl *fn = new FuncDecl(name);
       fn->comments.assign(c, c+2);
       fn->return_type = type;
@@ -285,7 +287,8 @@ AstNode *Parser::parse_func_or_var() {
       return fn;
    } else {
       delete type;
-      return error<Stmt>("Global variables: UNIMPLEMENTED");
+      _in.restore();
+      return parse_declstmt();
    }
    return NULL;
 }
@@ -781,7 +784,18 @@ Decl *Parser::_parse_vardecl(string name, Decl::Kind kind) {
    if (_in.curr() == '=') {
       _in.next();
       _skip(decl);
-      decl->init.push_back(parse_expr(Expr::Assignment));
+      if (_in.curr() == '{') { // inicialización de tupla
+         _in.next();
+         _skip(decl);
+         decl->curly = true;
+         parse_expr_list(decl, decl->init);
+         if (!_in.expect("}")) {
+            error(decl, _in.pos().str() + ": Esperaba un '}' aquí");
+            _in.skip_to("},;\n");
+         }
+      } else {
+         decl->init.push_back(parse_expr(Expr::Assignment));
+      }
    }
    return decl;
 }
