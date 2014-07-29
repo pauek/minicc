@@ -120,7 +120,9 @@ Token Input::next_token() {
       }
       // fallthrough ||  (NOT break;)
       //             vv
-   case '(': case '[': case '{': case '}':
+   case '(': case ')': 
+   case '[': case ']':
+   case '{': case '}':
    case '#': case ';': {
       string s(1, curr());
       Token tok(Token::token2type(s));
@@ -141,7 +143,7 @@ Token Input::next_token() {
       return tok;
    }
 
-   case '+': case '&': case '!':
+   case '+': case '&': case '|': case '!':
    case '-':
    case '*': case '/': case '%': case '=': case '^': 
    case '<': case '>': 

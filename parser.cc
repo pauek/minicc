@@ -81,16 +81,15 @@ AstNode* Parser::parse() {
          _in.next_token();
          break;
       }
-      default: {
-         if (tok.group & Token::TypeSpec) {
+      default:
+         if (tok.group & Token::Ident or 
+             tok.group & Token::TypeSpec) {
             prog->add(parse_func_or_var());
-         } else {
-            ostringstream msg;
-            msg << pos << ": No esperaba '" << tok.str << "'";
-            prog->add(error<Stmt>(msg.str()));
-            _in.skip_to("\n");
+            break;
          }
-      }
+         error(prog, "No esperaba '" + tok.str + "' aquí");
+         _in.next_token();
+         break;
       }
       c = _in.skip("\n\t ");
       if (c != 0) {
