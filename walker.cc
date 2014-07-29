@@ -28,6 +28,11 @@ void Walker::visit_type(Type *x) {
    x->id->visit(this);
 }
 
+void Walker::visit_typedefdecl(TypedefDecl *x) {
+   walk(x);
+   x->decl->visit(this);
+}
+
 void Walker::visit_structdecl(StructDecl *x) {
    walk(x);
    x->id->visit(this);

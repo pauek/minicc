@@ -32,38 +32,39 @@ class Parser {
    Decl *_parse_objdecl(std::string name);
 
 public:
-   Parser(std::istream *in, std::ostream* err = &std::cerr);
+             Parser(std::istream *in, std::ostream* err = &std::cerr);
 
-   AstNode *parse();
-   AstNode *parse_macro();
-   AstNode *parse_using_declaration();
-   AstNode *parse_func_or_var();
-      void  parse_function(FuncDecl *fn);
-     Block *parse_block();
-      Stmt *parse_stmt();
-      Stmt *parse_iterstmt(string which);
-      Stmt *parse_while();
-      Stmt *parse_for();
-      Stmt *parse_ifstmt();
-      Stmt *parse_switch();
-  ExprStmt *parse_exprstmt(bool is_return = false);
-  DeclStmt *parse_declstmt();
-      Stmt *parse_decl_or_expr_stmt();
-      Stmt *parse_jumpstmt();
+    AstNode *parse();
+    AstNode *parse_macro();
+    AstNode *parse_using_declaration();
+    AstNode *parse_func_or_var();
+       void  parse_function(FuncDecl *fn);
+      Block *parse_block();
+       Stmt *parse_stmt();
+       Stmt *parse_iterstmt(string which);
+       Stmt *parse_while();
+       Stmt *parse_for();
+       Stmt *parse_ifstmt();
+       Stmt *parse_switch();
+   ExprStmt *parse_exprstmt(bool is_return = false);
+   DeclStmt *parse_declstmt(bool is_typedef = false);
+       Stmt *parse_decl_or_expr_stmt();
+       Stmt *parse_jumpstmt();
 
-      Type *parse_type();
-     Ident *parse_ident(Token tok);
+       Type *parse_type();
+      Ident *parse_ident(Token tok);
 
-StructDecl *parse_struct();
+ StructDecl *parse_struct();
+TypedefDecl *parse_typedef();
 
-      Expr *parse_expr(Expr::Kind max = Expr::Comma);
-      Expr *parse_primary_expr();
-      Expr *parse_postfix_expr(Expr *);
-      Expr *parse_unary_expr();
-      Expr *parse_callexpr(Expr *);
-      Expr *parse_indexexpr(Expr *);
-      Expr *parse_fieldexpr(Expr *, Token);
-      Expr *parse_increxpr(Expr *, Token);
+       Expr *parse_expr(Expr::Kind max = Expr::Comma);
+       Expr *parse_primary_expr();
+       Expr *parse_postfix_expr(Expr *);
+       Expr *parse_unary_expr();
+       Expr *parse_callexpr(Expr *);
+       Expr *parse_indexexpr(Expr *);
+       Expr *parse_fieldexpr(Expr *, Token);
+       Expr *parse_increxpr(Expr *, Token);
 };
 
 #endif

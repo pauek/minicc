@@ -154,7 +154,7 @@ struct ObjDecl : public Decl {
 };
 
 struct DeclStmt : public Stmt {
-   AstNode *type;
+   Type *type;
    std::vector<Decl*> decls;
 
    void visit(AstVisitor *v);
@@ -377,6 +377,13 @@ struct StructDecl : public AstNode {
    bool has_errors() const;
 };
 
+struct TypedefDecl : public AstNode {
+   Decl *decl;
+   TypedefDecl() : decl(0) {}
+   void visit(AstVisitor *v);
+   bool has_errors() const;
+};
+
 // AstVisitor
 
 class AstVisitor {
@@ -402,6 +409,7 @@ public:
    virtual void visit_using(Using *) = 0;
    virtual void visit_funcdecl(FuncDecl *) = 0;
    virtual void visit_structdecl(StructDecl *) = 0;
+   virtual void visit_typedefdecl(TypedefDecl *) = 0;
    virtual void visit_type(Type *) = 0;
    virtual void visit_block(Block *) = 0;
    virtual void visit_ident(Ident *) = 0;
@@ -437,6 +445,7 @@ inline void Macro::visit(AstVisitor *v)         { v->visit_macro(this); }
 inline void Using::visit(AstVisitor *v)         { v->visit_using(this); }
 inline void FuncDecl::visit(AstVisitor* v)      { v->visit_funcdecl(this); }
 inline void StructDecl::visit(AstVisitor* v)    { v->visit_structdecl(this); }
+inline void TypedefDecl::visit(AstVisitor* v)   { v->visit_typedefdecl(this); }
 inline void Type::visit(AstVisitor *v)          { v->visit_type(this); }
 inline void Block::visit(AstVisitor *v)         { v->visit_block(this); }
 inline void Ident::visit(AstVisitor *v)         { v->visit_ident(this); }

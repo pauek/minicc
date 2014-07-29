@@ -68,7 +68,12 @@ AstNode* Parser::parse() {
          prog->add(decl);
          break;
       }
-      case Token::Typedef:
+      case Token::Typedef: {
+         TypedefDecl *typdef = parse_typedef();
+         _types.insert(typdef->decl->name);
+         prog->add(typdef);
+         break;
+      }
       case Token::Class: {
          prog->add(error<Stmt>("UNIMPLEMENTED"));
          _in.skip_to(";");
@@ -851,7 +856,7 @@ Decl *Parser::_parse_objdecl(string name) {
    return decl;
 }
 
-DeclStmt *Parser::parse_declstmt() {
+DeclStmt *Parser::parse_declstmt(bool is_typedef) {
    DeclStmt *stmt = new DeclStmt();
    Type *type = parse_type();
    stmt->type = type;
@@ -870,15 +875,16 @@ DeclStmt *Parser::parse_declstmt() {
          error(stmt, "Esperaba un identificador aquí");
       }
       Decl *decl;
-      if (_in.curr() == '(') {
+      if (_in.curr() == '(' and !is_typedef) {
          decl = _parse_objdecl(name);
       } else if (_in.curr() == '[') {
          decl = _parse_arraydecl(name, kind);
       } else {
          decl = _parse_vardecl(name, kind);
       }
+      decl->type = stmt->type;
       stmt->decls.push_back(decl);
-      if (_in.curr() != ',') {
+      if (_in.curr() != ',' or is_typedef) {
          break;
       }
       _in.next();
@@ -889,6 +895,16 @@ DeclStmt *Parser::parse_declstmt() {
    }
    _skip(stmt);
    return stmt;
+}
+
+TypedefDecl *Parser::parse_typedef() {
+   _in.consume("typedef");
+   TypedefDecl *typdef = new TypedefDecl();
+   _skip(typdef);
+   DeclStmt *stmt = parse_declstmt(true);
+   typdef->decl = stmt->decls[0];
+   delete stmt;
+   return typdef;
 }
 
 StructDecl *Parser::parse_struct() {

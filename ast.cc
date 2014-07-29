@@ -281,6 +281,11 @@ bool StructDecl::has_errors() const {
    return AstNode::has_errors();
 }
 
+bool TypedefDecl::has_errors() const {
+   _ERRORS(decl);
+   return AstNode::has_errors();
+}
+
 string Ident::str() const {
    string _id;
    for (int i = 0; i < prefix.size(); i++) {
@@ -294,3 +299,4 @@ string Ident::str() const {
 string Type::str() const {
    return id->str();
 }
+
