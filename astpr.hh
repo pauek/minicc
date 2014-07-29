@@ -21,6 +21,7 @@ public:
    void visit_funcdecl(FuncDecl *x);
    void visit_structdecl(StructDecl *x);
    void visit_typedefdecl(TypedefDecl *x);
+   void visit_enumdecl(EnumDecl *x);
    void visit_block(Block *x);
    void visit_binaryexpr(BinaryExpr *x);
    void visit_literal(Literal *x);

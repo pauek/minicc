@@ -56,6 +56,7 @@ public:
 
  StructDecl *parse_struct();
 TypedefDecl *parse_typedef();
+   EnumDecl *parse_enum();
 
        Expr *parse_expr(Expr::Kind max = Expr::Comma);
        Expr *parse_primary_expr();

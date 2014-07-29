@@ -74,6 +74,12 @@ AstNode* Parser::parse() {
          prog->add(typdef);
          break;
       }
+      case Token::Enum: {
+         EnumDecl *enumdecl = parse_enum();
+         _types.insert(enumdecl->name);
+         prog->add(enumdecl);
+         break;
+      }
       case Token::Class: {
          prog->add(error<Stmt>("UNIMPLEMENTED"));
          _in.skip_to(";");
@@ -895,6 +901,50 @@ DeclStmt *Parser::parse_declstmt(bool is_typedef) {
    }
    _skip(stmt);
    return stmt;
+}
+
+EnumDecl *Parser::parse_enum() {
+   _in.consume("enum");
+   EnumDecl *decl = new EnumDecl();
+   _skip(decl);
+   Token tok = _in.next_token();
+   if (!(tok.group & Token::Ident)) {
+      error(decl, _in.pos().str() + ": Esperaba un identificador aquí");
+      _in.skip_to(";");
+      return decl;
+   }
+   decl->name = tok.str;
+   _skip(decl);
+   if (!_in.expect("{")) {
+      error(decl, _in.pos().str() + ": Esperaba un '{' aquí");
+      _in.skip_to("};");
+   }
+   _skip(decl);
+   while (true) {
+      Token tok = _in.next_token();
+      if (!(tok.group & Token::Ident)) {
+         error(decl, _in.pos().str() + ": Esperaba un identificador aquí");
+         _in.skip_to("}");
+         break;
+      }
+      EnumDecl::Value val(tok.str);
+      // TODO: " = <int>"
+      decl->values.push_back(val);
+      _skip(decl);
+      if (_in.curr() == ',') {
+         _in.next();
+         _skip(decl);
+      } else {
+         break;
+      }
+   }
+   if (!_in.expect("}")) {
+      error(decl, _in.pos().str() + ": Esperaba un '{' aquí");
+   }
+   if (!_in.expect(";")) {
+      error(decl, _in.pos().str() + ": Esperaba un ';' aquí");
+   }
+   return decl;
 }
 
 TypedefDecl *Parser::parse_typedef() {

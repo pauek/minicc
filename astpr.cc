@@ -57,6 +57,20 @@ void AstPrinter::visit_type(Type *x) {
    out() << ")";
 }
 
+void AstPrinter::visit_enumdecl(EnumDecl *x) {
+   out() << "EnumDecl(\"" << x->name << "\", {";
+   for (int i = 0; i < x->values.size(); i++) {
+      if (i > 0) {
+         out() << ", ";
+      }
+      out() << '"' << x->values[i].id << '"';
+      if (x->values[i].has_val) {
+         out() << " = " << x->values[i].val;
+      }
+   }
+   out() << "})";
+}
+
 void AstPrinter::visit_typedefdecl(TypedefDecl *x) {
    out() << "TypedefDecl(\"" << x->decl->name << "\" = ";
    x->decl->type->visit(this);

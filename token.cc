@@ -76,6 +76,7 @@ struct {
    { "struct",   Token::Struct,   Token::None },
    { "class",    Token::Class,    Token::None },
    { "typedef",  Token::Typedef,  Token::None },
+   { "enum",     Token::Enum,     Token::None },
 
    // simple_type_specifier
    { "void",     Token::Void,     Token::TypeSpec | Token::BasicType },

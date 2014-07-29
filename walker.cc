@@ -15,6 +15,7 @@ void Walker::visit_errorexpr(Expr::Error *x) { walk(x); }
 void Walker::visit_vardecl(VarDecl *x)       { walk(x); }
 void Walker::visit_arraydecl(ArrayDecl *x)   { walk(x); }
 void Walker::visit_objdecl(ObjDecl *x)       { walk(x); }
+void Walker::visit_enumdecl(EnumDecl *x)     { walk(x); }
 
 void Walker::visit_program(Program* x) {
    walk(x);

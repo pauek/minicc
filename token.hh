@@ -15,7 +15,7 @@ public:
       LCurly, RCurly, LParen, LBrack, Dot, Arrow,
       If, Else, While, For, Switch, 
       Break, Continue, Goto, Return,
-      Typedef, Class, Struct, 
+      Typedef, Class, Struct, Enum,
       Using, 
       StarAssign, SlashAssign, DivAssign, LShiftAssign, RShiftAssign,
       Or, BarBar, And, AmpAmp, Bar, Circum,
