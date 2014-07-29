@@ -582,6 +582,16 @@ Expr *Parser::parse_unary_expr() {
       e = ae;
       break;
    }      
+   case Token::MinusMinus:
+   case Token::PlusPlus: {
+      IncrExpr *ie = new IncrExpr(Token::PlusPlus ? IncrExpr::Positive : IncrExpr::Negative);
+      _in.consume(tok.kind == Token::PlusPlus ? "++" : "--");
+      ie->expr = parse_unary_expr();
+      ie->preincr = true;
+      _skip(ie);
+      e = ie;
+      break;
+   }
    default:
       e = parse_postfix_expr();
       break;
