@@ -43,12 +43,14 @@ void PrettyPrinter::visit_type(Type *x) {
    static const string names[] = { 
       "const", "volatile", "mutable", "register", "auto", "extern"
    };
+   int c = 0;
+   // Count Qualifiers
    while (Type::Qualifiers(1 << i) <= Type::Extern) {
       if (x->qual & Type::Qualifiers(1 << i)) {
          if (numquals > 0) {
-            out() << _cmt_(x, i);
+            out() << " ";
          }
-         out() << names[i];
+         out() << names[i] << _cmt0(x, c++);
          numquals++;
       }
       i++;
@@ -58,9 +60,9 @@ void PrettyPrinter::visit_type(Type *x) {
    }
    x->id->visit(this);
    if (x->reference) {
-      out() << _cmt0_(x, -2) << "&" << _cmt0_(x, -1);
+      out() << _cmt0_(x, c++) << "&" << _cmt0_(x, c);
    } else {
-      out() << _cmt0_(x, -1);
+      out() << _cmt0_(x, c);
    }   
 }
 
@@ -150,14 +152,14 @@ void PrettyPrinter::visit_ident(Ident *x) {
    }
    out() << x->id << _cmt0(x, 0);
    if (!x->subtypes.empty()) {
-      out() << "<";
+      out() << "<" << _cmt0(x, 1);
       for (int i = 0; i < x->subtypes.size(); i++) {
          if (i > 0) {
-            out() << ", ";
+            out() << "," << _cmt_(x, i+2);
          }
          x->subtypes[i]->visit(this);
       }
-      out() << ">";
+      out() << ">" << _cmt0(x, -1);
    }
 }
 

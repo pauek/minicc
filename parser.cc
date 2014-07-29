@@ -265,6 +265,7 @@ Type *Parser::parse_type() {
          type->id = id;
       } else if (type->id == 0 and (tok.group & Token::Ident)) {
          type->id = parse_ident(tok);
+         _skip(type);
       } else if (tok.kind == Token::Amp) {
          type->reference = true;
          _skip(type);
