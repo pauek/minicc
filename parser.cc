@@ -924,13 +924,25 @@ EnumDecl *Parser::parse_enum() {
       Token tok = _in.next_token();
       if (!(tok.group & Token::Ident)) {
          error(decl, _in.pos().str() + ": Esperaba un identificador aquí");
-         _in.skip_to("}");
+         _in.skip_to(",}");
          break;
       }
-      EnumDecl::Value val(tok.str);
-      // TODO: " = <int>"
-      decl->values.push_back(val);
+      EnumDecl::Value v(tok.str);
       _skip(decl);
+      if (_in.curr() == '=') {
+         _in.next();
+         _skip(decl);
+         Token num = _in.read_number_literal();
+         if (num.kind != Token::IntLiteral) {
+            error(decl, _in.pos().str() + ": Esperaba un entero aquí");
+            _in.skip_to(",};");
+         }
+         v.has_val = true;
+         istringstream S(num.str);
+         S >> v.val;
+         _skip(decl);
+      }
+      decl->values.push_back(v);
       if (_in.curr() == ',') {
          _in.next();
          _skip(decl);

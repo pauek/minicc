@@ -389,7 +389,7 @@ struct EnumDecl : public AstNode {
       std::string id;
       bool has_val;
       int val;
-      Value(std::string _id) : id(_id) {}
+      Value(std::string _id) : id(_id), has_val(false) {}
    };
 
    std::string name;
