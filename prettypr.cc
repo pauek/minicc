@@ -75,7 +75,7 @@ void PrettyPrinter::visit_enumdecl(EnumDecl *x) {
          out() << " = " << x->values[i].val;
       }
    }
-   out() << " };";
+   out() << " };" << endl;
 }
 
 void PrettyPrinter::visit_typedefdecl(TypedefDecl *x) {
