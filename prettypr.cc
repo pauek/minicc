@@ -182,9 +182,9 @@ void PrettyPrinter::visit_vardecl(VarDecl *x) {
       out() << "*";
    }
    out() << x->name << _cmt0(x, 0);
-   if (x->init) {
+   if (!x->init.empty()) {
       out() << " =" << _cmt_(x, 1);
-      x->init->visit(this);
+      x->init[0]->visit(this);
    }
 }
 

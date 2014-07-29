@@ -9,7 +9,7 @@ using namespace std;
 Parser::Parser(istream *i, std::ostream* err) : _in(i), _err(err) {
    static const char *basic_types[] = {
       "int", "char", "string", "double", "float", "short", "long", "bool", "void",
-      "vector", "list", "map", "set"
+      "vector", "list", "map", "set", "pair"
    };
    for (int i = 0; i < sizeof(basic_types) / sizeof(char*); i++) {
       _types.insert(basic_types[i]);
@@ -62,10 +62,12 @@ AstNode* Parser::parse() {
          prog->add(parse_using_declaration());
          break;
       }
-      case Token::Struct:
-         prog->add(parse_struct());
+      case Token::Struct: {
+         StructDecl *decl = parse_struct();
+         _types.insert(decl->id->id);
+         prog->add(decl);
          break;
-
+      }
       case Token::Typedef:
       case Token::Class: {
          prog->add(error<Stmt>("UNIMPLEMENTED"));
@@ -779,7 +781,7 @@ Decl *Parser::_parse_vardecl(string name, Decl::Kind kind) {
    if (_in.curr() == '=') {
       _in.next();
       _skip(decl);
-      decl->init = parse_expr(Expr::Assignment);
+      decl->init.push_back(parse_expr(Expr::Assignment));
    }
    return decl;
 }
@@ -866,7 +868,7 @@ DeclStmt *Parser::parse_declstmt() {
    return stmt;
 }
 
-AstNode *Parser::parse_struct() {
+StructDecl *Parser::parse_struct() {
    Token tok = _in.next_token();
    assert(tok.kind == Token::Struct);
 

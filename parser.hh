@@ -54,7 +54,7 @@ public:
       Type *parse_type();
      Ident *parse_ident(Token tok);
 
-   AstNode *parse_struct();
+StructDecl *parse_struct();
 
       Expr *parse_expr(Expr::Kind max = Expr::Comma);
       Expr *parse_primary_expr();

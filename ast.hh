@@ -133,9 +133,9 @@ struct Decl : public AstNode {
 };
 
 struct VarDecl : public Decl {
-   Expr *init;
    Kind kind;
-   VarDecl() : init(0), kind(Normal) {}
+   std::vector<Expr *> init;
+   VarDecl() : kind(Normal) {}
    void visit(AstVisitor *v);
 };
 

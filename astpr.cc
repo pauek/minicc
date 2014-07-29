@@ -196,9 +196,9 @@ void AstPrinter::visit_vardecl(VarDecl *x) {
       out() << "*";
    }
    out() << '"' << x->name << '"';
-   if (x->init) {
+   if (!x->init.empty()) {
       out() << " = ";
-      x->init->visit(this);
+      x->init[0]->visit(this);
    }
 }
 
