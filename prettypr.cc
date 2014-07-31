@@ -10,9 +10,7 @@ void PrettyPrinter::visit_program(Program* x) {
          out() << endl;
       }
       n->visit(this);
-      if (n->is<CommentSeq>()) {
-         out() << endl;
-      }
+      out() << endl;
    }
 }
 
@@ -26,16 +24,16 @@ void PrettyPrinter::visit_include(Include* x) {
       delim = "<>";
    }
    out() << "#" << _cmt0_(x, 0) << "include" << _cmt_(x, 1)
-         << delim[0] << x->filename << delim[1] << _cmt0(x, 2) << endl;
+         << delim[0] << x->filename << delim[1] << _cmt0(x, 2);
 }
 
 void PrettyPrinter::visit_macro(Macro* x) {
-   out() << "#" << x->macro << endl;
+   out() << "#" << x->macro;
 }
 
 void PrettyPrinter::visit_using(Using* x) {
    out() << "using" << _cmt_(x, 0) << "namespace" << _cmt_(x, 1)
-         << x->namespc << _cmt0_(x, 2) << ";" << _cmt0(x, 3) << endl;
+         << x->namespc << _cmt0_(x, 2) << ";" << _cmt0(x, 3);
 }
 
 void PrettyPrinter::visit_type(Type *x) {
@@ -77,7 +75,7 @@ void PrettyPrinter::visit_enumdecl(EnumDecl *x) {
          out() << " = " << x->values[i].val;
       }
    }
-   out() << " };" << endl;
+   out() << " };";
 }
 
 void PrettyPrinter::visit_typedefdecl(TypedefDecl *x) {
@@ -99,7 +97,7 @@ void PrettyPrinter::visit_structdecl(StructDecl *x) {
       out() << endl;
    }
    indent(-1);
-   out(beginl) << "};" << endl; 
+   out(beginl) << "};"; 
 }
 
 void PrettyPrinter::visit_funcdecl(FuncDecl *x) {
@@ -126,7 +124,6 @@ void PrettyPrinter::visit_funcdecl(FuncDecl *x) {
    } else {
       out() << ";";
    }
-   out() << endl;
 }
 
 void PrettyPrinter::print_block(Block *x) {
