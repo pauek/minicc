@@ -5,6 +5,7 @@ using namespace std;
 #include "parser.hh"
 #include "astpr.hh"
 #include "prettypr.hh"
+#include "interpreter.hh"
 #include "walker.hh"
 
 // Detect lines like:
@@ -54,7 +55,7 @@ string visible_spaces(string output, string compare = "") {
    return res;
 }
 
-enum VisitorType { pretty_printer, ast_printer };
+enum VisitorType { pretty_printer, ast_printer, interpreter };
 
 void test_visitor(string filename, VisitorType vtype) {
    ifstream F(filename);
@@ -82,12 +83,17 @@ void test_visitor(string filename, VisitorType vtype) {
    switch (vtype) {
    case pretty_printer: v = new PrettyPrinter(&Sout); break;
    case ast_printer:    v = new AstPrinter(&Sout); break;
+   case interpreter:    v = new Interpreter(&Sout); break;
    }
-   program->visit(v);
-   vector<Error*> ve;
-   collect_errors(program, ve);
-   for (Error *e : ve) {
-      Serr << e->msg << endl;
+   try {
+      program->visit(v);
+      vector<Error*> ve;
+      collect_errors(program, ve);
+      for (Error *e : ve) {
+         Serr << e->msg << endl;
+      }
+   } catch (EvalError* e) {
+      Serr << "Aborted: EvalError: " << e->msg << endl;
    }
 
    char res = '.';
@@ -111,5 +117,14 @@ void test_visitor(string filename, VisitorType vtype) {
    cout << res << flush;
 }
 
-void test_parser(string filename) { test_visitor(filename, pretty_printer); }
-void test_ast   (string filename) { test_visitor(filename,    ast_printer); }
+void test(string kind, string filename) {
+   VisitorType vtype;
+   if (kind == "ast") {
+      vtype = ast_printer;
+   } else if (kind == "print") {
+      vtype = pretty_printer;
+   } else if (kind == "interpreter") {
+      vtype = interpreter;
+   }
+   test_visitor(filename, vtype);
+}

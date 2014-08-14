@@ -1,5 +1,8 @@
 CXX=clang++
-OBJECTS=main.o input.o parser.o ast.o prettypr.o astpr.o walker.o test.o token.o
+
+OBJECTS=main.o test.o input.o parser.o ast.o token.o value.o \
+   prettypr.o astpr.o interpreter.o walker.o
+
 CXXFLAGS=-std=c++11
 
 all: minicc
@@ -13,15 +16,17 @@ release: minicc
 minicc: $(OBJECTS)
 	clang++ -o minicc $(OBJECTS)
 
-token.o:    token.hh
-ast.o:      ast.hh input.hh token.hh
-input.o:    ast.hh input.hh token.hh
-parser.o:   ast.hh input.hh token.hh parser.hh
-astpr.o:    ast.hh astpr.hh
-prettypr.o: ast.hh prettypr.hh
-walker.o:   ast.hh walker.hh
-test.o:     ast.hh input.hh token.hh parser.hh astpr.hh prettypr.hh
-main.o:     ast.hh input.hh token.hh parser.hh astpr.hh prettypr.hh walker.hh test.hh
+token.o:       token.hh
+ast.o:         ast.hh input.hh token.hh
+input.o:       ast.hh input.hh token.hh
+parser.o:      ast.hh input.hh token.hh parser.hh
+astpr.o:       ast.hh astpr.hh
+prettypr.o:    ast.hh prettypr.hh
+interpreter.o: interpreter.hh
+value.o:       value.hh
+walker.o:      ast.hh walker.hh
+test.o:        ast.hh input.hh token.hh parser.hh astpr.hh prettypr.hh interpreter.hh
+main.o:        ast.hh input.hh token.hh parser.hh astpr.hh prettypr.hh interpreter.hh walker.hh test.hh
 
 clean:
 	rm -f minicc $(OBJECTS)

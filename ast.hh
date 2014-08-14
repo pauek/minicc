@@ -414,7 +414,7 @@ protected:
    }
 
 public:
-   AstVisitor(std::ostream *o) : _indent(0), _out(o) {}
+   AstVisitor(std::ostream *o = 0) : _indent(0), _out(o) {}
 
    virtual void visit_comment(CommentSeq*) = 0;
    virtual void visit_program(Program*) = 0;

@@ -7,33 +7,31 @@ using namespace std;
 #include "test.hh"
 #include "astpr.hh"
 #include "prettypr.hh"
+#include "interpreter.hh"
 #include "walker.hh"
 
 int main(int argc, char *argv[]) {
-   string filename;
-   bool print_ast = false;
+   string filename, todo = "eval";
    if (argc > 1) {
-      if (string(argv[1]) == "--test-print") {
+      string argv1 = argv[1];
+      if (argv1.substr(0, 7) == "--test-") {
          if (argc < 3) {
-            cerr << "test-print: missing filename" << endl;
+            cerr << argv1.substr(2) << ": missing filename" << endl;
             return 1;
          }
-         test_parser(argv[2]);
+         filename = argv[2];
+         test(argv1.substr(7), filename);
          return 0;
-      } 
-      if (string(argv[1]) == "--test-ast") {
-         if (argc < 3) {
-            cerr << "test-ast: missing filename" << endl;
-            return 1;
-         }
-         test_ast(argv[2]);
-         return 0;
-      } 
-      else if (string(argv[1]) == "--ast") {
+      } else if (argv1 == "--ast") {
          if (argc >= 3) {
             filename = argv[2];
          }
-         print_ast = true;         
+         todo = "ast";
+      } else if (argv1 == "--pprint") {
+         if (argc >= 3) {
+            filename = argv[2];
+         }
+         todo = "prettyprint";
       } else {
          filename = argv[1];
       }
@@ -46,16 +44,23 @@ int main(int argc, char *argv[]) {
    Parser P(i);
    AstNode *program = P.parse();
    AstVisitor *v;
-   if (print_ast) {
+   if (todo == "ast") {
       v = new AstPrinter(&cout);
-   } else {
+   } else if (todo == "prettyprint") {
       v = new PrettyPrinter(&cout);
+   } else {
+      v = new Interpreter();
    }
-   program->visit(v);
-   vector<Error*> ve;
-   collect_errors(program, ve);
-   for (Error *e : ve) {
-      cerr << e->msg << endl;
+
+   try {
+      program->visit(v);
+      vector<Error*> ve;
+      collect_errors(program, ve);
+      for (Error *e : ve) {
+         cerr << e->msg << endl;
+      }
+      return (ve.empty() ? 0 : 1);
+   } catch (EvalError* e) {
+      cerr << "Aborted: " << e->msg << endl;
    }
-   return (ve.empty() ? 0 : 1);
 }

@@ -13,13 +13,13 @@ function test_dir() {
       echo $dir
       echo "--------------"
    else
-      printf "%10s  " $dir
+      printf "%11s  " $dir
    fi
    if [ $verbose = "true" ]; then echo; fi
    for ccfile in $(find $dir -name "*.cc" | sort | xargs -n $colsize | sed 's/$/ <endl>/'); do
       if [ $ccfile = "<endl>" ]; then
          if [ $verbose == "false" ]; then
-            printf "\n%10s  " ""
+            printf "\n%11s  " ""
          fi
       else
          if [ $verbose = "true" ]; then
