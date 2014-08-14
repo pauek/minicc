@@ -2,19 +2,36 @@
 
 colsize=60
 
+verbose="false"
+if [ ! -z $1 ] && [ $1 = "-v" ]; then
+   verbose="true"
+fi
+
 function test_dir() {
    dir=$(echo $1 | tr -d './');
-   printf "%10s  " $dir
+   if [ $verbose == "true" ]; then
+      echo $dir
+      echo "--------------"
+   else
+      printf "%10s  " $dir
+   fi
+   if [ $verbose = "true" ]; then echo; fi
    for ccfile in $(find $dir -name "*.cc" | sort | xargs -n $colsize | sed 's/$/ <endl>/'); do
       if [ $ccfile = "<endl>" ]; then
-         printf "\n%10s  " ""
+         if [ $verbose == "false" ]; then
+            printf "\n%10s  " ""
+         fi
       else
+         if [ $verbose = "true" ]; then
+            echo -n $ccfile" "
+         fi
          ../minicc --test-${dir} $ccfile 2>> ${dir}-err
          code=$?
          if [ $code -ne 0 ]; then
             echo "[error code $code in $ccfile]" >> ${dir}-err
             echo -n "E"
          fi
+         if [ $verbose = "true" ]; then echo; fi
       fi
    done
    echo
