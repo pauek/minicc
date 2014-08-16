@@ -90,10 +90,14 @@ void Interpreter::visit_ident(Ident *x) {
 
 void Interpreter::visit_literal(Literal *x) {
    switch (x->type) {
-   case Literal::String: {
+   case Literal::String:
       _curr = Value(*x->val.as_string.s);
       break;
-   }
+
+   case Literal::Int:
+      _curr = Value(x->val.as_int);
+      break;
+
    default:
       _error("Interpreter::visit_literal: UNIMPLEMENTED");
    }
@@ -101,6 +105,8 @@ void Interpreter::visit_literal(Literal *x) {
 
 void Interpreter::visit_binaryexpr(BinaryExpr *x) {
    x->left->visit(this);
+
+   // cout << ...
    if (_curr == Value::cout && x->op == "<<") {
       Value old = _curr;
       x->right->visit(this);
@@ -108,6 +114,17 @@ void Interpreter::visit_binaryexpr(BinaryExpr *x) {
       _curr = old;
       return;
    }
+
+   Value left = _curr;
+   x->right->visit(this);
+   Value right = _curr;
+
+   if (x->op == "+") {
+      if (left.kind == Value::Int and right.kind == Value::Int) {
+         _curr = Value(left.val.as_int + right.val.as_int);
+         return;
+      }
+   } 
    _error("Interpreter::visit_binaryexpr: UNIMPLEMENTED");
 }
 
@@ -118,7 +135,19 @@ void Interpreter::visit_block(Block *x) {
 }
 
 void Interpreter::visit_vardecl(VarDecl *x) {
-   _error("Interpreter::visit_vardecl: UNIMPLEMENTED");
+   vector<Value> init;
+   if (!x->init.empty()) {
+      for (Expr *e : x->init) {
+         e->visit(this);
+         init.push_back(_curr);
+      }
+   }
+   // TODO: structs
+   if (init[0].type != x->type->str()) {
+      _error("Asignas el tipo '" + init[0].type + "' " +
+             "a una variable de tipo '" + x->type->str() + "'");
+   }
+   setenv(x->name, init[0]);
 }
 
 void Interpreter::visit_arraydecl(ArrayDecl *x) {
@@ -130,7 +159,9 @@ void Interpreter::visit_objdecl(ObjDecl *x) {
 }
 
 void Interpreter::visit_declstmt(DeclStmt* x) {
-   _error("Interpreter::visit_declstmt: UNIMPLEMENTED");
+   for (Decl *d : x->decls) {
+      d->visit(this);
+   }
 }
 
 void Interpreter::visit_exprstmt(ExprStmt* x) {
