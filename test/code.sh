@@ -1,2 +1,2 @@
 #!/bin/bash
-sed -n '0,/[[out]]/p' $1 | head -n -1
+sed -rn '0,/\[\[(out|in|err)\]\]/p' $1 | head -n -1
