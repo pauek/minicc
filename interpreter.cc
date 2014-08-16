@@ -28,6 +28,19 @@ Value *Interpreter::getenv(string id) {
    return 0;
 }
 
+void Interpreter::invoke_func(FuncDecl *fn, vector<Value>& args) {
+   pushenv();
+   if (fn->params.size() != args.size()) {
+      _error("Error en el número de argumentos al llamar a '" + fn->name + "'");
+   }
+   for (int i = 0; i < args.size(); i++) {
+      setenv(fn->params[i]->name, args[i]);
+   }
+   fn->block->visit(this);
+   popenv();
+}
+
+
 void Interpreter::visit_program(Program* x) {
    _env.clear();
    _env.resize(1);
@@ -45,18 +58,6 @@ void Interpreter::visit_program(Program* x) {
    }
    vector<Value> main_args;
    invoke_func(it->second, main_args);
-}
-
-void Interpreter::invoke_func(FuncDecl *fn, vector<Value>& args) {
-   pushenv();
-   if (fn->params.size() != args.size()) {
-      _error("Error en el número de argumentos al llamar a '" + fn->name + "'");
-   }
-   for (int i = 0; i < args.size(); i++) {
-      setenv(fn->params[i]->name, args[i]);
-   }
-   fn->block->visit(this);
-   popenv();
 }
 
 void Interpreter::visit_comment(CommentSeq* cn) {}
@@ -342,7 +343,24 @@ void Interpreter::visit_jumpstmt(JumpStmt *x) {
 }
 
 void Interpreter::visit_callexpr(CallExpr *x) {
-   _error("Interpreter::visit_callexpr: UNIMPLEMENTED");
+   Ident *fn = dynamic_cast<Ident*>(x->func);
+   if (fn == 0) {
+      _error("La llamada no-directa a funciones no se ha implementado");
+   }
+   auto it = _funcs.find(fn->id);
+   if (it == _funcs.end()) {
+      _error("La función '" + fn->id + "' no existe");
+   }
+   FuncDecl *func = it->second;
+   vector<Value> args;
+   for (int i = 0; i < x->args.size(); i++) {
+      x->args[i]->visit(this);
+      if (_curr.kind == Value::Ref) {
+         _curr = *static_cast<Value*>(_curr.val.as_ptr);
+      }
+      args.push_back(_curr);
+   }
+   invoke_func(func, args);
 }
 
 void Interpreter::visit_indexexpr(IndexExpr *x) {
