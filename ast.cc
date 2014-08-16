@@ -293,10 +293,39 @@ string Ident::str() const {
       _id += "::";
    }
    _id += id;
+   if (!subtypes.empty()) {
+      _id += "<";
+      for (int i = 0; i < subtypes.size(); i++) {
+         if (i > 0) {
+            _id += ",";
+         }
+         _id += subtypes[i]->str();
+      }
+      _id += ">";
+   }
    return _id;
 }
 
 string Type::str() const {
-   return id->str();
+   string _id;
+   int i = 0, numquals = 0;
+   static const string names[] = { 
+      "const", "volatile", "mutable", "register", "auto", "extern"
+   };
+   while (Type::Qualifiers(1 << i) <= Type::Extern) {
+      if (qual & Type::Qualifiers(1 << i)) {
+         if (numquals > 0) {
+            _id += " ";
+         }
+         _id += names[i];
+         numquals++;
+      }
+      i++;
+   }
+   _id += id->str();
+   if (reference) {
+      _id += "&";
+   }
+   return _id;
 }
 

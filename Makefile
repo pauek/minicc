@@ -7,7 +7,7 @@ CXXFLAGS=-std=c++11
 
 all: minicc
 
-debug: CXXFLAGS += -g
+debug: CXXFLAGS += -g3 -O0
 debug: minicc
 
 release: CXXFLAGS += -O3
@@ -22,11 +22,11 @@ input.o:       ast.hh input.hh token.hh
 parser.o:      ast.hh input.hh token.hh parser.hh
 astpr.o:       ast.hh astpr.hh
 prettypr.o:    ast.hh prettypr.hh
-interpreter.o: interpreter.hh
+interpreter.o: value.hh interpreter.hh
 value.o:       value.hh
 walker.o:      ast.hh walker.hh
-test.o:        ast.hh input.hh token.hh parser.hh astpr.hh prettypr.hh interpreter.hh
-main.o:        ast.hh input.hh token.hh parser.hh astpr.hh prettypr.hh interpreter.hh walker.hh test.hh
+test.o:        ast.hh input.hh token.hh value.hh parser.hh astpr.hh prettypr.hh interpreter.hh
+main.o:        ast.hh input.hh token.hh value.hh parser.hh astpr.hh prettypr.hh interpreter.hh walker.hh test.hh
 
 clean:
 	rm -f minicc $(OBJECTS)

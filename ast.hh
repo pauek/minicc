@@ -337,8 +337,8 @@ struct Type : public AstNode {
       Register = 8, Auto = 16,    Extern = 32
    };
 
-   bool reference;
-   int qual;
+   bool   reference;
+   int    qual;
    Ident *id;
 
    Type() : id(0), qual(None), reference(false) {}

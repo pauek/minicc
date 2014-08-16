@@ -3,7 +3,28 @@
 #include "interpreter.hh"
 using namespace std;
 
+void Interpreter::setenv(string id, const Value& val) {
+   _env.back()[id] = val;
+}
+
+bool Interpreter::getenv(string id, Value& val) const {
+   for (int i = _env.size()-1; i >= 0; i--) {
+      auto it = _env[i].find(id);
+      if (it != _env[i].end()) {
+         val = it->second;
+         return true;
+      }
+   }
+   return false;
+}
+
 void Interpreter::visit_program(Program* x) {
+   _env.clear();
+   _env.resize(1);
+
+   setenv("endl", Value("\n"));
+   setenv("cout", Value::cout);
+
    for (AstNode *n : x->nodes) {
       n->visit(this);
    }
@@ -11,7 +32,20 @@ void Interpreter::visit_program(Program* x) {
    if (it == _funcs.end()) {
       _error("La funcion 'main' no existe");
    }
-   it->second->block->visit(this);
+   vector<Value> main_args;
+   invoke_func(it->second, main_args);
+}
+
+void Interpreter::invoke_func(FuncDecl *fn, vector<Value>& args) {
+   pushenv();
+   if (fn->params.size() != args.size()) {
+      _error("Error en el número de argumentos al llamar a '" + fn->name + "'");
+   }
+   for (int i = 0; i < args.size(); i++) {
+      setenv(fn->params[i]->name, args[i]);
+   }
+   fn->block->visit(this);
+   popenv();
 }
 
 void Interpreter::visit_comment(CommentSeq* cn) {}
@@ -49,24 +83,15 @@ void Interpreter::visit_structdecl(StructDecl *x) {
 }
 
 void Interpreter::visit_ident(Ident *x) {
-   if (x->id == "endl") {
-      static string s = "\n";
-      _curr.val.as_ptr = &s; // FIXME
-      _curr.kind = Value::String;
-      _curr.type = 0;
-      return;
+   if (!getenv(x->id, _curr)) {
+      _error("No he encontrado la variable '" + x->id + "'");
    }
-   _curr.val.as_ptr = x;
-   _curr.kind = Value::Ref;
-   _curr.type = 0;
 }
 
 void Interpreter::visit_literal(Literal *x) {
    switch (x->type) {
    case Literal::String: {
-      _curr.val.as_ptr = x->val.as_string.s;
-      _curr.kind = Value::String;
-      _curr.type = 0;
+      _curr = Value(*x->val.as_string.s);
       break;
    }
    default:
@@ -76,8 +101,7 @@ void Interpreter::visit_literal(Literal *x) {
 
 void Interpreter::visit_binaryexpr(BinaryExpr *x) {
    x->left->visit(this);
-   Ident *id = _curr.ref_to<Ident*>();
-   if (id != 0 && id->id == "cout" && x->op == "<<") {
+   if (_curr == Value::cout && x->op == "<<") {
       Value old = _curr;
       x->right->visit(this);
       out() << _curr;
