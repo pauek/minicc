@@ -59,7 +59,7 @@ enum VisitorType { pretty_printer, ast_printer, interpreter };
 
 void test_visitor(string filename, VisitorType vtype) {
    ifstream F(filename);
-   string line, code, out, err;
+   string line, code, in, out, err;
 
    string *acum = &code;
    while (getline(F, line)) {
@@ -68,13 +68,15 @@ void test_visitor(string filename, VisitorType vtype) {
          *acum += line + "\n";
       } else if (label == "out") {
          acum = &out;
+      } else if (label == "in") {
+         acum = &in;
       } else if (label == "err") {
          acum = &err;
       }
    }
    
    ostringstream Sout, Serr;
-   istringstream Scode(code);
+   istringstream Scode(code), Sin(in);
    Parser P(&Scode, &Serr);
    AstNode *program;
 
@@ -83,7 +85,7 @@ void test_visitor(string filename, VisitorType vtype) {
    switch (vtype) {
    case pretty_printer: v = new PrettyPrinter(&Sout); break;
    case ast_printer:    v = new AstPrinter(&Sout); break;
-   case interpreter:    v = new Interpreter(&Sout); break;
+   case interpreter:    v = new Interpreter(&Sin, &Sout); break;
    }
    try {
       program->visit(v);

@@ -402,6 +402,7 @@ struct EnumDecl : public AstNode {
 
 class AstVisitor {
    int _indent;
+   std::istream *_in;
    std::ostream *_out;
 
 protected:
@@ -413,8 +414,11 @@ protected:
       assert(_indent >= 0);
    }
 
+   std::istream& in() { return *_in; }
+
 public:
-   AstVisitor(std::ostream *o = 0) : _indent(0), _out(o) {}
+   AstVisitor(std::ostream *o = 0)                      : _indent(0),         _out(o) {}
+   AstVisitor(std::istream *i = 0, std::ostream *o = 0) : _indent(0), _in(i), _out(o) {}
 
    virtual void visit_comment(CommentSeq*) = 0;
    virtual void visit_program(Program*) = 0;

@@ -1,5 +1,6 @@
 
 #include <iostream>
+#include <assert.h>
 using namespace std;
 
 #include "value.hh"
@@ -77,4 +78,37 @@ ostream& operator<<(ostream& o, const Value& v) {
       break;
    }
    return o;
+}
+
+istream& operator>>(istream& i, Value& v) {
+   if (v.type == "bool") {
+      if (i >> v.val.as_bool) {
+         v.kind = Value::Bool;
+      }
+   } else if (v.type == "char") {
+      if (i >> v.val.as_char) {
+         v.kind = Value::Char;
+      }
+   } else if (v.type == "int") {
+      if (i >> v.val.as_int) {
+         v.kind = Value::Int;
+      }
+   } else if (v.type == "float") {
+      if (i >> v.val.as_float) {
+         v.kind = Value::Float;
+      }
+   } else if (v.type == "double") {
+      if (i >> v.val.as_double) {
+         v.kind = Value::Double;
+      }
+   } else if (v.type == "string") {
+      string s;
+      if (i >> s) {
+         v.val.as_ptr = new string(s);
+         v.kind = Value::String;
+      }
+   } else {
+      assert(false);
+   }
+   return i;
 }

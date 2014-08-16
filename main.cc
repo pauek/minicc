@@ -35,13 +35,13 @@ int main(int argc, char *argv[]) {
       } else {
          filename = argv[1];
       }
+   } else {
+      cerr << "No has indicado el fichero de código" << endl;
+      exit(1);
    }
 
-   istream *i = &cin;
-   if (filename != "") {
-      i = new ifstream(filename.c_str());
-   }
-   Parser P(i);
+   ifstream codefile(filename.c_str());
+   Parser P(&codefile);
    AstNode *program = P.parse();
    AstVisitor *v;
    if (todo == "ast") {
@@ -49,7 +49,7 @@ int main(int argc, char *argv[]) {
    } else if (todo == "prettyprint") {
       v = new PrettyPrinter(&cout);
    } else {
-      v = new Interpreter();
+      v = new Interpreter(&cin, &cout);
    }
 
    try {

@@ -24,6 +24,7 @@ void Interpreter::visit_program(Program* x) {
 
    setenv("endl", Value("\n"));
    setenv("cout", Value::cout);
+   setenv("cin",  Value::cin);
 
    for (AstNode *n : x->nodes) {
       n->visit(this);
@@ -123,6 +124,23 @@ void Interpreter::visit_binaryexpr(BinaryExpr *x) {
       return;
    }
 
+   // cin >> ...
+   if (_curr == Value::cin && x->op == ">>") {
+      Value old = _curr;
+      Ident *id = dynamic_cast<Ident*>(x->right);
+      if (id == 0) {
+         _error("La lectura con 'cin' requiere que pongas variables");
+      }
+      Value right;
+      if (!getenv(id->id, right)) {
+         _error("La variable '" + id->id + "' no está declarada");
+      }
+      in() >> right;
+      setenv(id->id, right);
+      _curr = old;
+      return;
+   }
+
    Value left = _curr;
    x->right->visit(this);
    Value right = _curr;
@@ -156,6 +174,13 @@ void Interpreter::visit_binaryexpr(BinaryExpr *x) {
       }
       _error("Los operandos de '" + x->op + "' no son de tipo 'bool'");
    }
+   else if (x->op == "==") {
+      if (left.kind == right.kind) {
+         _curr = Value(left == right);
+         return;
+      }
+      _error("Los operandos de '==' no son del mismo tipo");
+   }
    _error("Interpreter::visit_binaryexpr: UNIMPLEMENTED");
 }
 
@@ -172,18 +197,20 @@ void Interpreter::visit_vardecl(VarDecl *x) {
          e->visit(this);
          init.push_back(_curr);
       }
-   }
-   // TODO: structs
-   string left = init[0].type, right = x->type->str();
-   if (left != right) {
-      // Conversiones implícitas!
-      if (!(left == "float"  and right == "double") and
-          !(left == "double" and right == "float")) {
-         _error("Asignas el tipo '" + init[0].type + "' " +
-                "a una variable de tipo '" + x->type->str() + "'");
+      // TODO: structs
+      string left = init[0].type, right = x->type->str();
+      if (left != right) {
+         // Conversiones implícitas!
+         if (!(left == "float"  and right == "double") and
+             !(left == "double" and right == "float")) {
+            _error("Asignas el tipo '" + init[0].type + "' " +
+                   "a una variable de tipo '" + x->type->str() + "'");
+         }
       }
+      setenv(x->name, init[0]);
+   } else {
+      setenv(x->name, Value(Value::Unknown, x->type->str()));
    }
-   setenv(x->name, init[0]);
 }
 
 void Interpreter::visit_arraydecl(ArrayDecl *x) {
@@ -205,7 +232,15 @@ void Interpreter::visit_exprstmt(ExprStmt* x) {
 }
 
 void Interpreter::visit_ifstmt(IfStmt *x) {
-   _error("Interpreter::visit_ifstmt: UNIMPLEMENTED");
+   x->cond->visit(this);
+   if (_curr.kind != Value::Bool) {
+      _error("La condición de un 'if' debe ser un valor de tipo 'bool'");
+   }
+   if (_curr.val.as_bool) {
+      x->then->visit(this);
+   } else {
+      x->els->visit(this);
+   }
 }
 
 void Interpreter::visit_iterstmt(IterStmt *x) {

@@ -27,9 +27,11 @@ struct Value
 
    void _clear() { std::memset(&val, 0, sizeof(Any)); }
 
-   Value() : kind(Unknown) { _clear(); }
+   Value()                      : kind(Unknown)    { _clear(); }
+   Value(Kind k)                : kind(k)          { _clear(); }
+   Value(Kind k, std::string t) : kind(k), type(t) { _clear(); }
+
    Value(const Value& v);
-   Value(Kind k) : kind(k) { _clear(); }
    ~Value();
 
    Value(bool x)        : type("bool"),    kind(Bool)   { _clear(); val.as_bool = x; }
@@ -55,6 +57,7 @@ struct Value
 
 bool operator==(const Value& a, const Value& b);
 std::ostream& operator<<(std::ostream& o, const Value& v);
+std::istream& operator>>(std::istream& o, Value& v);
 
 #endif
 

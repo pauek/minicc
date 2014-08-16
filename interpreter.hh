@@ -32,7 +32,9 @@ class Interpreter : public AstVisitor {
    void invoke_func(FuncDecl *, std::vector<Value>&);
 
 public:
-   Interpreter(std::ostream *o = &std::cout) : AstVisitor(o) {}
+   Interpreter(std::istream *i, std::ostream *o)
+      : AstVisitor(i, o) {}
+
    ~Interpreter() {}
 
    void visit_comment(CommentSeq *x);
