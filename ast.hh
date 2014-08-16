@@ -146,6 +146,7 @@ struct ArrayDecl : public Decl {
    Kind kind;
    ArrayDecl() : size(0), kind(Normal) {}
    void visit(AstVisitor *v);
+   std::string type_str() const;
 };
 
 struct ObjDecl : public Decl {

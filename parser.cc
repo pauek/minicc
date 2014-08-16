@@ -568,7 +568,7 @@ Expr *Parser::parse_unary_expr() {
    }
    case Token::Plus:
    case Token::Minus: {
-      SignExpr *se = new SignExpr(tok.kind == Token::Plus 
+      SignExpr *se = new SignExpr(tok.kind == Token::Plus
                                   ? SignExpr::Positive
                                   : SignExpr::Negative);
       _in.next();
@@ -595,7 +595,9 @@ Expr *Parser::parse_unary_expr() {
    }      
    case Token::MinusMinus:
    case Token::PlusPlus: {
-      IncrExpr *ie = new IncrExpr(Token::PlusPlus ? IncrExpr::Positive : IncrExpr::Negative);
+      IncrExpr *ie = new IncrExpr(tok.kind == Token::PlusPlus 
+                                  ? IncrExpr::Positive 
+                                  : IncrExpr::Negative);
       _in.consume(tok.kind == Token::PlusPlus ? "++" : "--");
       ie->expr = parse_unary_expr();
       ie->preincr = true;
@@ -701,7 +703,9 @@ Expr *Parser::parse_fieldexpr(Expr *x, Token tok) {
 }
 
 Expr *Parser::parse_increxpr(Expr *x, Token tok) {
-   IncrExpr *e = new IncrExpr(Token::PlusPlus ? IncrExpr::Positive : IncrExpr::Negative);
+   IncrExpr *e = new IncrExpr(tok.kind == Token::PlusPlus 
+                              ? IncrExpr::Positive 
+                              : IncrExpr::Negative);
    e->expr = x;
    _in.consume(tok.kind == Token::PlusPlus ? "++" : "--");
    _skip(e);

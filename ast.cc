@@ -329,3 +329,4 @@ string Type::str() const {
    return _id;
 }
 
+string ArrayDecl::type_str() const { return type->str() + "[]"; }

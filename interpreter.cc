@@ -263,7 +263,30 @@ void Interpreter::visit_vardecl(VarDecl *x) {
 }
 
 void Interpreter::visit_arraydecl(ArrayDecl *x) {
-   _error("Interpreter::visit_arraydecl: UNIMPLEMENTED");
+   x->size->visit(this);
+   if (_curr.kind != Value::Int) {
+      _error("El tamaño de una tabla debe ser un entero");
+   }
+   if (_curr.val.as_int <= 0) {
+      _error("El tamaño de una tabla debe ser un entero positivo");
+   }
+   const int sz = _curr.val.as_int;
+   setenv(x->name, Value(Value::Array, x->type_str()));
+   Value *v = getenv(x->name);
+   vector<Value> *vals = new vector<Value>(sz);
+   string cell_type = x->type->str();
+   for (int i = 0; i < x->init.size(); i++) {
+      x->init[i]->visit(this);
+      if (_curr.type != cell_type) {
+         ostringstream S;
+         S << "La inicialización de la casilla " << i 
+           << " tiene tipo '" << _curr.type << "'" 
+           << " cuando debería ser '" << cell_type << "'";
+         _error(S.str());
+      }
+      (*vals)[i] = _curr;
+   }
+   v->val.as_ptr = vals;
 }
 
 void Interpreter::visit_objdecl(ObjDecl *x) {
@@ -323,7 +346,28 @@ void Interpreter::visit_callexpr(CallExpr *x) {
 }
 
 void Interpreter::visit_indexexpr(IndexExpr *x) {
-   _error("Interpreter::visit_indexexpr: UNIMPLEMENTED");
+   x->base->visit(this);
+   if (_curr.kind == Value::Ref) {
+      _curr = *static_cast<Value*>(_curr.val.as_ptr);
+   }
+   if (_curr.kind != Value::Array) {
+      _error("Las expresiones de índice debe usarse sobre tablas o vectores");
+   }
+   vector<Value> *vals = static_cast<vector<Value>*>(_curr.val.as_ptr);
+   x->index->visit(this);
+   if (_curr.kind != Value::Int) {
+      // FIXME: maps!
+      _error("El índice en un acceso a tabla debe ser un entero");
+   }
+   int i = _curr.val.as_int;
+   if (i < 0 || i >= vals->size()) {
+      ostringstream S;
+      S << "La casilla " << i << " no existe";
+      _error(S.str());
+   }
+   Value *v = &(*vals)[i];
+   _curr = Value(Value::Ref, v->type + "&");
+   _curr.val.as_ptr = v;
 }
 
 void Interpreter::visit_fieldexpr(FieldExpr *x) {
