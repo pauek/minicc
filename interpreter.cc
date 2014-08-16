@@ -324,7 +324,17 @@ void Interpreter::visit_fieldexpr(FieldExpr *x) {
 }
 
 void Interpreter::visit_condexpr(CondExpr *x) {
-   _error("Interpreter::visit_condexpr: UNIMPLEMENTED");
+   x->cond->visit(this);
+   if (_curr.kind != Value::Bool) {
+      _error("Una expresión condicional debe tener valor de tipo 'bool' antes del interrogante");
+   }
+   if (_curr.val.as_bool) {
+      x->then->visit(this);
+   } else {
+      if (x->els != 0) {
+         x->els->visit(this);
+      }
+   }
 }
 
 void Interpreter::visit_signexpr(SignExpr *x) {
