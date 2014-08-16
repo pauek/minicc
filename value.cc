@@ -56,6 +56,11 @@ bool operator==(const Value& a, const Value& b) {
    switch (a.kind) {
    case Value::Cout: case Value::Cerr: case Value::Cin: 
       return true;
+   case Value::String: {
+      string *sa = static_cast<string*>(a.val.as_ptr);
+      string *sb = static_cast<string*>(b.val.as_ptr);
+      return *sa == *sb;
+   }
    default:
       return memcmp(&a.val, &b.val, sizeof(Value::Any)) == 0;
    }

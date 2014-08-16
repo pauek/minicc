@@ -107,6 +107,10 @@ void Interpreter::visit_literal(Literal *x) {
       _curr = Value(x->val.as_bool);
       break;
 
+   case Literal::Char:
+      _curr = Value((*x->val.as_string.s)[0] /* FIXME */);
+      break;
+
    default:
       _error("Interpreter::visit_literal: UNIMPLEMENTED");
    }
@@ -239,7 +243,9 @@ void Interpreter::visit_ifstmt(IfStmt *x) {
    if (_curr.val.as_bool) {
       x->then->visit(this);
    } else {
-      x->els->visit(this);
+      if (x->els != 0) {
+         x->els->visit(this);
+      }
    }
 }
 
