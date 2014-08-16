@@ -61,6 +61,6 @@ int main(int argc, char *argv[]) {
       }
       return (ve.empty() ? 0 : 1);
    } catch (EvalError* e) {
-      cerr << "Aborted: " << e->msg << endl;
+      cerr << "Error de ejecución: " << e->msg << endl;
    }
 }

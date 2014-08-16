@@ -59,5 +59,9 @@ bool operator==(const Value& a, const Value& b);
 std::ostream& operator<<(std::ostream& o, const Value& v);
 std::istream& operator>>(std::istream& o, Value& v);
 
+inline bool operator!=(const Value& a, const Value& b) {
+   return !operator==(a, b);
+}
+
 #endif
 

@@ -203,6 +203,13 @@ void Interpreter::visit_binaryexpr(BinaryExpr *x) {
       }
       _error("Los operandos de '==' no son del mismo tipo");
    }
+   else if (x->op == "!=") {
+      if (left.kind == right.kind) {
+         _curr = Value(left != right);
+         return;
+      }
+      _error("Los operandos de '!=' no son del mismo tipo");
+   }
    else if (x->op == "<") {
       if (left.kind == Value::Int and right.kind == Value::Int) {
          _curr = Value(left.val.as_int < right.val.as_int);
@@ -388,7 +395,11 @@ void Interpreter::visit_increxpr(IncrExpr *x) {
 }
 
 void Interpreter::visit_negexpr(NegExpr *x) {
-   _error("Interpreter::visit_negexpr: UNIMPLEMENTED");
+   x->expr->visit(this);
+   if (_curr.kind != Value::Bool) {
+      _error("Para negar una expresión ésta debe ser de tipo 'bool'");
+   }
+   _curr.val.as_bool = !_curr.val.as_bool;
 }
 
 void Interpreter::visit_addrexpr(AddrExpr *x) {
