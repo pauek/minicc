@@ -326,7 +326,8 @@ void Interpreter::visit_fieldexpr(FieldExpr *x) {
 void Interpreter::visit_condexpr(CondExpr *x) {
    x->cond->visit(this);
    if (_curr.kind != Value::Bool) {
-      _error("Una expresión condicional debe tener valor de tipo 'bool' antes del interrogante");
+      _error("Una expresión condicional debe tener valor "
+             "de tipo 'bool' antes del interrogante");
    }
    if (_curr.val.as_bool) {
       x->then->visit(this);
@@ -338,7 +339,29 @@ void Interpreter::visit_condexpr(CondExpr *x) {
 }
 
 void Interpreter::visit_signexpr(SignExpr *x) {
-   _error("Interpreter::visit_signexpr: UNIMPLEMENTED");
+   x->expr->visit(this);
+   if (x->kind == SignExpr::Positive) {
+      return;
+   }
+   if (_curr.kind == Value::Ref) {
+      _curr = *static_cast<Value*>(_curr.val.as_ptr);
+   }
+   switch (_curr.kind) {
+   case Value::Int:
+      _curr.val.as_int = -_curr.val.as_int;
+      break;
+
+   case Value::Float:
+      _curr.val.as_float = -_curr.val.as_float;
+      break;
+
+   case Value::Double:
+      _curr.val.as_double = -_curr.val.as_double;
+      break;
+
+   default:
+      _error("El cambio de signo para '" + _curr.type + "' no tiene sentido");
+   }
 }
 
 void Interpreter::visit_increxpr(IncrExpr *x) {
