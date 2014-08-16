@@ -348,7 +348,7 @@ void Interpreter::visit_increxpr(IncrExpr *x) {
       break;
 
    default:
-      _error("Estás incrementando un valor de tipo '" + target->type);
+      _error("Estás incrementando un valor de tipo '" + target->type + "'");
    }
    Value after = *target;
    _curr = (x->preincr ? before : after);
