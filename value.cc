@@ -14,7 +14,7 @@ Value::~Value() {
       break;
 
    default:
-   case Array: case Vector: case List: case Map:  case Struct: 
+   case Array: case Vector: case List: case Map: case Struct: 
       // TODO
       break;
    }
@@ -35,11 +35,13 @@ Value::Value(const Value& v) {
 }
 
 Value Value::operator=(const Value& v) {
+   if (kind == Value::String) {
+      delete static_cast<string*>(val.as_ptr);
+   }
    kind = v.kind;
    type = v.type;
    switch (v.kind) {
    case String:
-      delete static_cast<string*>(val.as_ptr);
       val.as_ptr = new string(*static_cast<string*>(v.val.as_ptr));
       break;
    default:
@@ -68,19 +70,19 @@ bool operator==(const Value& a, const Value& b) {
 
 ostream& operator<<(ostream& o, const Value& v) {
    switch (v.kind) {
-   case Value::Bool:   o << v.val.as_bool;   break;
-   case Value::Char:   o << v.val.as_char;   break;
-   case Value::Int:    o << v.val.as_int;    break;
-   case Value::Float:  o << v.val.as_float;  break;
-   case Value::Double: o << v.val.as_double; break;
+   case Value::Bool:   return o << v.val.as_bool;
+   case Value::Char:   return o << v.val.as_char;
+   case Value::Int:    return o << v.val.as_int;
+   case Value::Float:  return o << v.val.as_float;
+   case Value::Double: return o << v.val.as_double;
    case Value::String: {
       string *s = static_cast<string*>(v.val.as_ptr);
-      o << *s;
-      break;
+      return o << *s;
    }
+   case Value::Ref:
+      return o << *static_cast<Value*>(v.val.as_ptr);
    default:
-      o << "operator<<(Value): UNIMPLEMENTED"; 
-      break;
+      return o << "operator<<(Value): UNIMPLEMENTED"; 
    }
    return o;
 }

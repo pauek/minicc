@@ -18,6 +18,16 @@ bool Interpreter::getenv(string id, Value& val) const {
    return false;
 }
 
+Value *Interpreter::getenv(string id) {
+   for (int i = _env.size()-1; i >= 0; i--) {
+      auto it = _env[i].find(id);
+      if (it != _env[i].end()) {
+         return &it->second;
+      }
+   }
+   return 0;
+}
+
 void Interpreter::visit_program(Program* x) {
    _env.clear();
    _env.resize(1);
@@ -84,9 +94,12 @@ void Interpreter::visit_structdecl(StructDecl *x) {
 }
 
 void Interpreter::visit_ident(Ident *x) {
-   if (!getenv(x->id, _curr)) {
+   Value *v = getenv(x->id);
+   if (v == 0) {
       _error("No he encontrado la variable '" + x->id + "'");
    }
+   _curr = Value(Value::Ref, v->type + "&");
+   _curr.val.as_ptr = v;
 }
 
 void Interpreter::visit_literal(Literal *x) {
@@ -118,9 +131,13 @@ void Interpreter::visit_literal(Literal *x) {
 
 void Interpreter::visit_binaryexpr(BinaryExpr *x) {
    x->left->visit(this);
+   Value left = _curr;
+   if (left.kind == Value::Ref) {
+      left = *static_cast<Value*>(left.val.as_ptr);
+   }
 
    // cout << ...
-   if (_curr == Value::cout && x->op == "<<") {
+   if (left == Value::cout && x->op == "<<") {
       Value old = _curr;
       x->right->visit(this);
       out() << _curr;
@@ -129,25 +146,26 @@ void Interpreter::visit_binaryexpr(BinaryExpr *x) {
    }
 
    // cin >> ...
-   if (_curr == Value::cin && x->op == ">>") {
+   if (left == Value::cin && x->op == ">>") {
       Value old = _curr;
       Ident *id = dynamic_cast<Ident*>(x->right);
       if (id == 0) {
          _error("La lectura con 'cin' requiere que pongas variables");
       }
-      Value right;
-      if (!getenv(id->id, right)) {
+      Value *right = getenv(id->id);
+      if (right == 0) {
          _error("La variable '" + id->id + "' no está declarada");
       }
-      in() >> right;
-      setenv(id->id, right);
+      in() >> *right;
       _curr = old;
       return;
    }
 
-   Value left = _curr;
    x->right->visit(this);
    Value right = _curr;
+   if (right.kind == Value::Ref) {
+      right = *static_cast<Value*>(right.val.as_ptr);
+   }
 
    if (x->op == "+") {
       if (left.kind == Value::Int and right.kind == Value::Int) {
@@ -184,6 +202,26 @@ void Interpreter::visit_binaryexpr(BinaryExpr *x) {
          return;
       }
       _error("Los operandos de '==' no son del mismo tipo");
+   }
+   else if (x->op == "<") {
+      if (left.kind == Value::Int and right.kind == Value::Int) {
+         _curr = Value(left.val.as_int < right.val.as_int);
+         return;
+      }
+      if (left.kind == Value::Float and right.kind == Value::Float) {
+         _curr = Value(left.val.as_float < right.val.as_float);
+         return;
+      }
+      if (left.kind == Value::Double and right.kind == Value::Double) {
+         _curr = Value(left.val.as_double < right.val.as_double);
+         return;
+      }
+      if (left.kind == Value::String and right.kind == Value::String) {
+         string *s1 = static_cast<string*>(left.val.as_ptr);
+         string *s2 = static_cast<string*>(right.val.as_ptr);
+         _curr = Value(*s1 < *s2);
+         return;
+      }
    }
    _error("Interpreter::visit_binaryexpr: UNIMPLEMENTED");
 }
@@ -250,7 +288,23 @@ void Interpreter::visit_ifstmt(IfStmt *x) {
 }
 
 void Interpreter::visit_iterstmt(IterStmt *x) {
-   _error("Interpreter::visit_iterstmt: UNIMPLEMENTED");
+   if (x->init) {
+      x->init->visit(this);
+   }
+   while (true) {
+      x->cond->visit(this);
+      if (_curr.kind != Value::Bool) {
+         _error(string("La condición de un '") + (x->is_for() ? "for" : "while") + 
+                "' debe ser un valor de tipo 'bool'");
+      }
+      if (!_curr.val.as_bool) {
+         break;
+      }
+      x->substmt->visit(this);
+      if (x->post) {
+         x->post->visit(this);
+      }
+   }
 }
 
 void Interpreter::visit_jumpstmt(JumpStmt *x) {
@@ -278,7 +332,26 @@ void Interpreter::visit_signexpr(SignExpr *x) {
 }
 
 void Interpreter::visit_increxpr(IncrExpr *x) {
-   _error("Interpreter::visit_increxpr: UNIMPLEMENTED");
+   x->expr->visit(this);
+   if (_curr.kind != Value::Ref) {
+      _error("Hay que incrementar una variable, no un valor");
+   }
+   Value *target = static_cast<Value*>(_curr.val.as_ptr);
+   Value before = *target;
+   switch (target->kind) {
+   case Value::Int:
+      if (x->kind == IncrExpr::Positive) {
+         target->val.as_int++;
+      } else {
+         target->val.as_int--;
+      }
+      break;
+
+   default:
+      _error("Estás incrementando un valor de tipo '" + target->type);
+   }
+   Value after = *target;
+   _curr = (x->preincr ? before : after);
 }
 
 void Interpreter::visit_negexpr(NegExpr *x) {

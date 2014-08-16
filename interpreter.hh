@@ -26,8 +26,9 @@ class Interpreter : public AstVisitor {
    void pushenv() { _env.push_back(std::map<std::string, Value>()); }
    void popenv()  { _env.pop_back(); }
 
-   void setenv(std::string id, const Value& val);
-   bool getenv(std::string id, Value& val) const;
+   void   setenv(std::string id, const Value& val);
+   bool   getenv(std::string id, Value& val) const;
+   Value* getenv(std::string id);
 
    void invoke_func(FuncDecl *, std::vector<Value>&);
 
