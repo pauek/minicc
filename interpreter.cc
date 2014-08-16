@@ -98,6 +98,14 @@ void Interpreter::visit_literal(Literal *x) {
       _curr = Value(x->val.as_int);
       break;
 
+   case Literal::Double:
+      _curr = Value(x->val.as_double);
+      break;
+
+   case Literal::Bool:
+      _curr = Value(x->val.as_bool);
+      break;
+
    default:
       _error("Interpreter::visit_literal: UNIMPLEMENTED");
    }
@@ -124,7 +132,30 @@ void Interpreter::visit_binaryexpr(BinaryExpr *x) {
          _curr = Value(left.val.as_int + right.val.as_int);
          return;
       }
+      if (left.kind == Value::Double and right.kind == Value::Double) {
+         _curr = Value(left.val.as_double + right.val.as_double);
+         return;
+      }
+      if (left.kind == Value::String and right.kind == Value::String) {
+         _curr = Value(*static_cast<string*>(left.val.as_ptr) +
+                       *static_cast<string*>(right.val.as_ptr));
+         return;
+      }
+      _error("Los operandos de '+' no son compatibles");
    } 
+   else if (x->op == "*") {
+      if (left.kind == Value::Double and right.kind == Value::Double) {
+         _curr = Value(left.val.as_double * right.val.as_double);
+         return;
+      }
+   }
+   else if (x->op == "&&" or x->op == "and") {
+      if (left.kind == Value::Bool and right.kind == Value::Bool) {
+         _curr = Value(left.val.as_bool and right.val.as_bool);
+         return;
+      }
+      _error("Los operandos de '" + x->op + "' no son de tipo 'bool'");
+   }
    _error("Interpreter::visit_binaryexpr: UNIMPLEMENTED");
 }
 
@@ -143,9 +174,14 @@ void Interpreter::visit_vardecl(VarDecl *x) {
       }
    }
    // TODO: structs
-   if (init[0].type != x->type->str()) {
-      _error("Asignas el tipo '" + init[0].type + "' " +
-             "a una variable de tipo '" + x->type->str() + "'");
+   string left = init[0].type, right = x->type->str();
+   if (left != right) {
+      // Conversiones implícitas!
+      if (!(left == "float"  and right == "double") and
+          !(left == "double" and right == "float")) {
+         _error("Asignas el tipo '" + init[0].type + "' " +
+                "a una variable de tipo '" + x->type->str() + "'");
+      }
    }
    setenv(x->name, init[0]);
 }
