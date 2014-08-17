@@ -50,6 +50,8 @@ struct Value
       return static_cast<T>(val.as_ptr);
    }
 
+   Value *ref() const { return ref_to<Value*>(); }
+
    Value operator=(const Value& v);
 
    static Value cout, cin, cerr;

@@ -34,7 +34,21 @@ void Interpreter::invoke_func(FuncDecl *fn, vector<Value>& args) {
       _error("Error en el número de argumentos al llamar a '" + fn->name + "'");
    }
    for (int i = 0; i < args.size(); i++) {
-      setenv(fn->params[i]->name, args[i]);
+      if (args[i].kind == Value::Ref) {
+         if (fn->params[i]->type->reference) {
+            setenv(fn->params[i]->name, args[i]);
+         } else {
+            Value *v = static_cast<Value*>(args[i].val.as_ptr);
+            setenv(fn->params[i]->name, *v);
+         }
+      } else {
+         if (fn->params[i]->type->reference) {
+            ostringstream S;
+            S << "En el parámetro " << i+1 << " se requiere una variable.";
+            _error(S.str());
+         }
+         setenv(fn->params[i]->name, args[i]);
+      }
    }
    fn->block->visit(this);
    popenv();
@@ -99,8 +113,12 @@ void Interpreter::visit_ident(Ident *x) {
    if (v == 0) {
       _error("La variable '" + x->id + "' no existe.");
    }
-   _curr = Value(Value::Ref, v->type + "&");
-   _curr.val.as_ptr = v;
+   if (v->kind == Value::Ref) {
+      _curr = *v;
+   } else {
+      _curr = Value(Value::Ref, v->type + "&");
+      _curr.val.as_ptr = v;
+   }
 }
 
 void Interpreter::visit_literal(Literal *x) {
@@ -133,8 +151,10 @@ void Interpreter::visit_literal(Literal *x) {
 void Interpreter::visit_binaryexpr(BinaryExpr *x) {
    x->left->visit(this);
    Value left = _curr;
-   if (left.kind == Value::Ref) {
-      left = *static_cast<Value*>(left.val.as_ptr);
+   if (x->kind != Expr::Assignment) {
+      if (left.kind == Value::Ref) {
+         left = *static_cast<Value*>(left.val.as_ptr);
+      }
    }
 
    // cout << ...
@@ -167,8 +187,26 @@ void Interpreter::visit_binaryexpr(BinaryExpr *x) {
    if (right.kind == Value::Ref) {
       right = *static_cast<Value*>(right.val.as_ptr);
    }
-
-   if (x->op == "+") {
+   if (x->op == "+=") {
+      if (left.kind != Value::Ref) {
+         _error("Para usar '+=' se debe poner una variable a la izquierda");
+      }
+      Value *v = left.ref();
+      if (v->kind == Value::Int and right.kind == Value::Int) {
+         v->val.as_int += right.val.as_int;
+         return;
+      } 
+      if (v->kind == Value::Float and right.kind == Value::Float) {
+         v->val.as_float += right.val.as_float;
+         return;
+      }
+      if (v->kind == Value::Double and right.kind == Value::Double) {
+         v->val.as_double += right.val.as_double;
+         return;
+      }
+      _error("Los operandos de '+=' no son compatibles");
+   } 
+   else if (x->op == "+") {
       if (left.kind == Value::Int and right.kind == Value::Int) {
          _curr = Value(left.val.as_int + right.val.as_int);
          return;
@@ -360,13 +398,10 @@ void Interpreter::visit_callexpr(CallExpr *x) {
    vector<Value> args;
    for (int i = 0; i < x->args.size(); i++) {
       x->args[i]->visit(this);
-      if (_curr.kind == Value::Ref) {
-         _curr = *static_cast<Value*>(_curr.val.as_ptr);
-      }
       args.push_back(_curr);
    }
    invoke_func(func, args);
-   if (_ret.kind == Value::Unset) {
+   if (_ret.kind == Value::Unset && func->return_type->str() != "void") {
       _error("La función '" + func->name + "' debería devolver un '" + func->return_type->str() + "'");
    }
 }

@@ -99,9 +99,6 @@ void AstPrinter::visit_funcdecl(FuncDecl *x) {
       if (i > 0) {
          out() << ", ";
       }
-      if (x->params[i]->ref) {
-         out() << "&";
-      }
       out() << "\"" << x->params[i]->name << "\": ";
       x->params[i]->type->visit(this);
    }

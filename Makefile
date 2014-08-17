@@ -22,7 +22,7 @@ input.o:       ast.hh input.hh token.hh
 parser.o:      ast.hh input.hh token.hh parser.hh
 astpr.o:       ast.hh astpr.hh
 prettypr.o:    ast.hh prettypr.hh
-interpreter.o: value.hh interpreter.hh
+interpreter.o: ast.hh value.hh interpreter.hh
 value.o:       value.hh
 walker.o:      ast.hh walker.hh
 test.o:        ast.hh input.hh token.hh value.hh parser.hh astpr.hh prettypr.hh interpreter.hh

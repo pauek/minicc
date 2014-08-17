@@ -110,9 +110,6 @@ void PrettyPrinter::visit_funcdecl(FuncDecl *x) {
          out() << _cmt0_(x->params[i], 0);
       }
       visit_type(x->params[i]->type);
-      if (x->params[i]->ref) {
-         out() << "&";
-      }
       out() << _cmt_(x->params[i], 1);
       out() << x->params[i]->name;
       out() << _cmt0(x->params[i], 2);
