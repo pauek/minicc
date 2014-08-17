@@ -14,27 +14,27 @@ struct EvalError {
 };
 
 class Interpreter : public AstVisitor {
-   Value _curr, _ret;
+   Value *_curr, *_ret;
 
-   std::vector< std::map<std::string, Value> > _env;
-   std::map<std::string, FuncDecl*> _funcs;
+   std::vector< std::map<std::string, Value*> > _env;
+   std::map<std::string, FuncDecl*>             _funcs;
+   std::map<std::string, StructDecl*>           _structs;
+
+   void   pushenv() { _env.push_back(std::map<std::string, Value*>()); }
+   void   popenv()  { _env.pop_back(); }
+   void   setenv(std::string id, Value *val);
+   Value* getenv(std::string id);
 
    void _error(std::string msg) {
       throw new EvalError(msg);
    }
 
-   void pushenv() { _env.push_back(std::map<std::string, Value>()); }
-   void popenv()  { _env.pop_back(); }
-
-   void   setenv(std::string id, const Value& val);
-   bool   getenv(std::string id, Value& val) const;
-   Value* getenv(std::string id);
-
-   void invoke_func(FuncDecl *, std::vector<Value>&);
+   Value new_value_from_structdecl(StructDecl *x);
+   void  invoke_func(FuncDecl *, std::vector<Value*>&);
 
 public:
    Interpreter(std::istream *i, std::ostream *o)
-      : AstVisitor(i, o) {}
+      : AstVisitor(i, o), _curr(0), _ret(0) {}
 
    ~Interpreter() {}
 

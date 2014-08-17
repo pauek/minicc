@@ -44,6 +44,15 @@ Value Value::operator=(const Value& v) {
    case String:
       val.as_ptr = new string(*static_cast<string*>(v.val.as_ptr));
       break;
+
+   case Struct: 
+      val.as_ptr = new map<string,Value*>(*static_cast<map<string,Value*>*>(v.val.as_ptr));
+      break;
+
+   case Vector: case List: case Map:
+      assert(false);
+      break;
+
    default:
       memcpy(&val, &v.val, sizeof(Value::Any));
       break;
@@ -118,4 +127,28 @@ istream& operator>>(istream& i, Value& v) {
       assert(false);
    }
    return i;
+}
+
+Value::Kind Value::type2kind(string type) {
+   if (type == "int") {
+      return Value::Int;
+   } else if (type == "char") {
+      return Value::Char;
+   } else if (type == "float") {
+      return Value::Float;
+   } else if (type == "double") {
+      return Value::Double;
+   } else if (type == "bool") {
+      return Value::Bool;
+   } else if (type == "string") {
+      return Value::String;
+   } else if (type.substr(0,6) == "struct") {
+      return Value::Struct;
+   } else if (type.substr(0,6) == "vector") {
+      return Value::Vector;
+   } else if (type.substr(type.size()-2, 2) == "[]") {
+      return Value::Array;
+   } else {
+      assert(false);
+   }
 }

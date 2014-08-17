@@ -19,7 +19,7 @@ struct Value
                String, Vector, List, Map,
                Array, Struct, Ref,
                Cout, Cin, Cerr,
-               Unknown, Unset };
+               Unknown };
 
    Any         val;
    Kind        kind;
@@ -27,7 +27,7 @@ struct Value
 
    void _clear() { std::memset(&val, 0, sizeof(Any)); }
 
-   Value()                      : kind(Unset)      { _clear(); }
+   Value()                      : kind(Unknown)    { _clear(); }
    Value(Kind k)                : kind(k)          { _clear(); }
    Value(Kind k, std::string t) : kind(k), type(t) { _clear(); }
 
@@ -55,6 +55,8 @@ struct Value
    Value operator=(const Value& v);
 
    static Value cout, cin, cerr;
+
+   static Kind type2kind(std::string type);
 };
 
 bool operator==(const Value& a, const Value& b);

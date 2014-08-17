@@ -329,4 +329,27 @@ string Type::str() const {
    return _id;
 }
 
-string ArrayDecl::type_str() const { return type->str() + "[]"; }
+string ArrayDecl::type_str() const { 
+   return type->str() + "[]"; 
+}
+
+string StructDecl::type_str() const {
+   ostringstream S;
+   S << "struct{";
+   for (int i = 0; i < decls.size(); i++) {
+      if (i > 0) {
+         S << ";";
+      }
+      S << decls[i]->type->str();
+   }
+   S << "}";
+   return S.str();
+}
+
+int StructDecl::num_fields() const {
+   int num = 0;
+   for (int i = 0; i < decls.size(); i++) {
+      num += decls[i]->decls.size();
+   }
+   return num;
+}

@@ -375,6 +375,8 @@ struct StructDecl : public AstNode {
    StructDecl() : id(0) {}
    void visit(AstVisitor *v);
    bool has_errors() const;
+   std::string type_str() const;
+   int num_fields() const;
 };
 
 struct TypedefDecl : public AstNode {
