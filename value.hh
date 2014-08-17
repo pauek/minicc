@@ -19,7 +19,7 @@ struct Value
                String, Vector, List, Map,
                Array, Struct, Ref,
                Cout, Cin, Cerr,
-               Unknown };
+               Unknown, Unset };
 
    Any         val;
    Kind        kind;
@@ -27,7 +27,7 @@ struct Value
 
    void _clear() { std::memset(&val, 0, sizeof(Any)); }
 
-   Value()                      : kind(Unknown)    { _clear(); }
+   Value()                      : kind(Unset)      { _clear(); }
    Value(Kind k)                : kind(k)          { _clear(); }
    Value(Kind k, std::string t) : kind(k), type(t) { _clear(); }
 

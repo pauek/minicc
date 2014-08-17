@@ -14,7 +14,7 @@ struct EvalError {
 };
 
 class Interpreter : public AstVisitor {
-   Value _curr;
+   Value _curr, _ret;
 
    std::vector< std::map<std::string, Value> > _env;
    std::map<std::string, FuncDecl*> _funcs;

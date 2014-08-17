@@ -97,7 +97,7 @@ void Interpreter::visit_structdecl(StructDecl *x) {
 void Interpreter::visit_ident(Ident *x) {
    Value *v = getenv(x->id);
    if (v == 0) {
-      _error("No he encontrado la variable '" + x->id + "'");
+      _error("La variable '" + x->id + "' no existe.");
    }
    _curr = Value(Value::Ref, v->type + "&");
    _curr.val.as_ptr = v;
@@ -302,6 +302,9 @@ void Interpreter::visit_declstmt(DeclStmt* x) {
 
 void Interpreter::visit_exprstmt(ExprStmt* x) {
    x->expr->visit(this);
+   if (x->is_return) {
+      _ret = _curr;
+   }
 }
 
 void Interpreter::visit_ifstmt(IfStmt *x) {
@@ -319,6 +322,7 @@ void Interpreter::visit_ifstmt(IfStmt *x) {
 }
 
 void Interpreter::visit_iterstmt(IterStmt *x) {
+   pushenv();
    if (x->init) {
       x->init->visit(this);
    }
@@ -336,6 +340,7 @@ void Interpreter::visit_iterstmt(IterStmt *x) {
          x->post->visit(this);
       }
    }
+   popenv();
 }
 
 void Interpreter::visit_jumpstmt(JumpStmt *x) {
@@ -361,6 +366,9 @@ void Interpreter::visit_callexpr(CallExpr *x) {
       args.push_back(_curr);
    }
    invoke_func(func, args);
+   if (_ret.kind == Value::Unset) {
+      _error("La función '" + func->name + "' debería devolver un '" + func->return_type->str() + "'");
+   }
 }
 
 void Interpreter::visit_indexexpr(IndexExpr *x) {

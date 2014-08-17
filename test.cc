@@ -95,7 +95,7 @@ void test_visitor(string filename, VisitorType vtype) {
          Serr << e->msg << endl;
       }
    } catch (EvalError* e) {
-      Serr << "Aborted: EvalError: " << e->msg << endl;
+      Serr << "Error de ejecución: " << e->msg << endl;
    }
 
    char res = '.';
