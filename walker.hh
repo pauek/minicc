@@ -60,8 +60,10 @@ struct ErrorCollector : public Walker {
 };
 
 inline void collect_errors(AstNode *x, std::vector<Error*>& v) {
-   ErrorCollector e(v);
-   x->visit(&e);
+   if (x != 0) {
+      ErrorCollector e(v);
+      x->visit(&e);
+   }
 }
 
 #endif

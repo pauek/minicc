@@ -1,0 +1,37 @@
+CXX=emcc
+
+BCFILES=web.bc test.bc input.bc parser.bc ast.bc token.bc value.bc \
+   prettypr.bc astpr.bc interpreter.bc walker.bc
+
+CXXFLAGS=-std=c++11
+
+all: debug
+
+debug: CXXFLAGS += -g3 -O0
+debug: minicc.js
+
+release: CXXFLAGS += -O2
+release: minicc.js
+
+minicc.js: $(BCFILES)
+	emcc --bind $(CXXFLAGS) -o minicc.js $(BCFILES) 
+
+.cc.bc:
+	emcc -c $(CXXFLAGS) -o $@ $<
+
+token.bc:       token.hh
+ast.bc:         ast.hh input.hh token.hh
+input.bc:       ast.hh input.hh token.hh
+parser.bc:      ast.hh input.hh token.hh parser.hh
+astpr.bc:       ast.hh astpr.hh
+prettypr.bc:    ast.hh prettypr.hh
+interpreter.bc: ast.hh value.hh interpreter.hh
+value.bc:       value.hh
+walker.bc:      ast.hh walker.hh
+test.bc:        ast.hh input.hh token.hh value.hh parser.hh astpr.hh prettypr.hh interpreter.hh
+web.bc:         ast.hh input.hh token.hh value.hh parser.hh
+
+clean:
+	rm -f minicc.js $(BCFILES)
+
+.SUFFIXES: .cc .bc

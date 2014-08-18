@@ -58,7 +58,8 @@ void PrettyPrinter::visit_type(Type *x) {
    }
    x->id->visit(this);
    if (x->reference) {
-      out() << _cmt0_(x, c++) << "&" << _cmt0_(x, c);
+      out() << _cmt0_(x, c++) << "&";
+      out() << _cmt0_(x, c);
    } else {
       out() << _cmt0_(x, c);
    }   

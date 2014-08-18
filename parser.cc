@@ -33,19 +33,13 @@ typename Node::Error *Parser::error(string msg) {
    return s;
 }
 
-template<class X>
-void Parser::_skip(X *n, std::string stopset) {
-   n->comments.push_back(_in.skip(stopset));
-}
-
-void Parser::_skip(string stopset) {
-   CommentSeq *cn = _in.skip(stopset);
-   if (cn != 0) delete cn;
-}
 
 AstNode* Parser::parse() {
    Program *prog = new Program();
-   _in.next();
+   if (!_in.next()) {
+      error(prog, "Error al leer de la entrada");
+      return prog;
+   }
    CommentSeq *c = _in.skip("\n\t ");
    if (c != 0) {
       prog->add(c);

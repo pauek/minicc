@@ -1,4 +1,7 @@
 minicc
+minicc.js
+minicc.js.map
 *~
 *.o
+*.bc
 doc

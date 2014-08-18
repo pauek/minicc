@@ -222,7 +222,7 @@ bool Input::peek(int offset) {
 }
 
 bool Input::next() {
-   if (_in == 0 || !_in->good()) {
+   if (_in == 0) {
       return false;
    }
    if (_curr == -1) {

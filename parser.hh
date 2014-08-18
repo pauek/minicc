@@ -14,11 +14,16 @@ class Parser {
    set<std::string> _types; // things known as types
    bool _is_type(std::string);
 
-   template<typename X> 
-   void _skip(X *n, std::string stopset = "\n\t ");
-   
-   void _skip(std::string stopset = "\n\t ");
+   void _skip(string stopset) {
+      CommentSeq *cn = _in.skip(stopset);
+      if (cn != 0) delete cn;
+   }
 
+   template<typename X> 
+   void _skip(X *n, std::string stopset = "\n\t ") {
+      n->comments.push_back(_in.skip(stopset));
+   }
+   
    void error(AstNode *n, std::string msg);
 
    template<class Node>

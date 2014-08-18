@@ -43,6 +43,13 @@ int main(int argc, char *argv[]) {
    ifstream codefile(filename.c_str());
    Parser P(&codefile);
    AstNode *program = P.parse();
+
+   vector<Error*> ve;
+   collect_errors(program, ve);
+   for (Error *e : ve) {
+      cerr << "Error de compilación: " << e->msg << endl;
+   }
+
    AstVisitor *v;
    if (todo == "ast") {
       v = new AstPrinter(&cout);
@@ -54,13 +61,14 @@ int main(int argc, char *argv[]) {
 
    try {
       program->visit(v);
-      vector<Error*> ve;
       collect_errors(program, ve);
       for (Error *e : ve) {
          cerr << e->msg << endl;
       }
       return (ve.empty() ? 0 : 1);
-   } catch (EvalError* e) {
-      cerr << "Error de ejecución: " << e->msg << endl;
+   } 
+   catch (EvalError* e) {
+      cerr << "Error de ejecución:   " << e->msg << endl;
+      return 1;
    }
 }

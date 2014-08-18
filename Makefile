@@ -14,7 +14,7 @@ release: CXXFLAGS += -O3
 release: minicc
 
 minicc: $(OBJECTS)
-	clang++ -o minicc $(OBJECTS)
+	$(CXX) -o minicc $(OBJECTS)
 
 token.o:       token.hh
 ast.o:         ast.hh input.hh token.hh
