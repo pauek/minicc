@@ -9,6 +9,7 @@ using namespace std;
 
 #include "parser.hh"
 #include "walker.hh"
+#include "prettypr.hh"
 #include "interpreter.hh"
 
 AstNode *program;
@@ -41,8 +42,20 @@ string execute(string input) {
    return out.str();
 }
 
+string reformat(string code) {
+   istringstream in(code);
+   Parser P(&in);
+   AstNode *prog = P.parse();
+   
+   ostringstream out;
+   PrettyPrinter pr(&out);
+   prog->visit(&pr);
+   return out.str();
+}
+
 EMSCRIPTEN_BINDINGS(minicc) {
    emscripten::function("compile", &compile);
    emscripten::function("execute", &execute);
+   emscripten::function("reformat", &reformat);
 }
 
