@@ -32,6 +32,6 @@ test.bc:        ast.hh input.hh token.hh value.hh parser.hh astpr.hh prettypr.hh
 web.bc:         ast.hh input.hh token.hh value.hh parser.hh
 
 clean:
-	rm -f minicc.js $(BCFILES)
+	rm -f minicc.js minicc.js.map $(BCFILES)
 
 .SUFFIXES: .cc .bc
