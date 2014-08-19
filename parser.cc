@@ -346,16 +346,18 @@ Block *Parser::parse_block() {
       return block;
    }
    _skip(block);
+   bool closing_curly = false;
    while (!_in.end()) {
       if (_in.curr() == '}') {
+         closing_curly = true;
          _in.next();
          break;
       }
       Stmt *stmt = parse_stmt();
       block->stmts.push_back(stmt);
    }
-   if (_in.end()) {
-      error(block, "expected '}' but found EOF");
+   if (!closing_curly) {
+      error(block, "Esperaba '}' pero he llegado al final del texto");
    }
    _skip(block);
    return block;

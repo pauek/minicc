@@ -65,7 +65,15 @@ void test_visitor(string filename, VisitorType vtype) {
    while (getline(F, line)) {
       string label = test_separator(line);
       if (label == "") {
-         *acum += line + "\n";
+         if (line.size() > 0) {
+            *acum += line.substr(0, line.size()-1);
+            if (line.back() != '\\') {
+               *acum += line.back();
+               *acum += '\n';
+            }
+         } else {
+            *acum += '\n';
+         }
       } else if (label == "out") {
          acum = &out;
       } else if (label == "in") {
