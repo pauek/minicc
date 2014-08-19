@@ -20,40 +20,63 @@ function setCompilado(new_value) {
    }
 }
 
-$(document).ready(function () {
-   var editor = ace.edit("editor");
-   editor.setTheme("ace/theme/monokai");
-   editor.setValue(initial_program);
-   editor.gotoLine(6, 3);
+var editor;
 
-   var session = editor.getSession();
-   session.setMode("ace/mode/c_cpp");
-   session.setTabSize(3);
+$(document).ready(function () {
+   editor = CodeMirror.fromTextArea(document.getElementById("editor"), {
+      mode: 'text/x-c++src',
+      theme: 'default',
+      lineNumbers: true,
+      styleActiveLine: true,
+      matchBrackets: true,
+      tabSize: 3,
+      indentUnit: 3,
+      autofocus: true,
+   });
+   editor.setValue(initial_program);
+
+   var output = CodeMirror.fromTextArea($('#output > textarea')[0], {
+      mode: 'text/x-show-inv',
+      readOnly: true,
+   });
+   var errors = CodeMirror.fromTextArea($('#errors > textarea')[0], {
+      mode: 'text/x-show-inv',
+      readOnly: true,
+   });
 
    $("#execute").addClass("pure-button-disabled");
 
-   session.on("change", function () {
+   editor.on("change", function () {
       setCompilado(false);
+      $('#output').hide();
    });
 
    $("#compile").click(function () {
       var code = editor.getValue();
-      var errors = Module.compile(code);
-      if (errors == "") {
+      var err = Module.compile(code);
+      if (err == "") {
          setCompilado(true);
       }
-      $("#errors > pre").text(errors);
+      errors.setValue(err);
+      $('#errors').show();
    });
    $("#execute").click(function () {
+      $('#errors').hide();
       $("#output > pre").text("");
       setTimeout(function () {
-         $("#output > pre").text(Module.execute(""));
-      }, 200);
+         var out = Module.execute("");
+         var re1 = new RegExp('\n', 'g');
+         out = out.replace(re1, '\u21a9\n');
+         var re2 = new RegExp(' ', 'g');
+         out = out.replace(re2, '\u2423');
+         console.log(out);
+         $('#output').show();
+         output.setValue(out);
+      }, 80);
    });
    $("#reformat").click(function () {
       var code = editor.getValue();
       var new_code = Module.reformat(code);
       editor.setValue(new_code);
-      editor.selection.clearSelection();
    });
 });
