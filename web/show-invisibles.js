@@ -14,6 +14,7 @@
       var TOKEN_STYLE = {
          '\u2423': 'invisible',
          '\u21a9': 'invisible',
+         '\u00a7': 'invisible',
       };
       return {
          token: function (stream) {

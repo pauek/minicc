@@ -69,6 +69,7 @@ $(document).ready(function () {
          out = out.replace(re1, '\u21a9\n');
          var re2 = new RegExp(' ', 'g');
          out = out.replace(re2, '\u2423');
+         out += '\u00a7';
          console.log(out);
          $('#output').show();
          output.setValue(out);
