@@ -12,9 +12,7 @@ void Stepper::step() {
 }
 
 template<typename X>
-string status_for(X *x) {
-   return "UNIMPLEMENTED";
-}
+string status_for(X *x) { return x->describe(); }
 
 template<typename X>
 Todo Stepper::VisitState<X>::step(Stepper *S) {
@@ -92,66 +90,6 @@ Todo Stepper::IfVisitState::step(Stepper *S) {
    return todo;
 }
 
-void Stepper::visit_declstmt(DeclStmt *x) {
-   push(new VisitState<DeclStmt>(x));
-}
-
-template<>
-string status_for<DeclStmt>(DeclStmt *x) {
-   ostringstream S;
-   S << "Se declara" << (x->decls.size() > 1 ? "n " : " ");
-   string plural = (x->decls.size() > 1 ? "s" : "");
-   S << "la" << plural << " variable" << plural << " ";
-   for (int i = 0; i < x->decls.size(); i++) {
-      if (i > 0) {
-         if (i == x->decls.size() - 1) {
-            S << " y ";
-         } else {
-            S << ", ";
-         }
-      }
-      S << "'" << x->decls[i]->name << "'";
-   }
-   S << ".";
-   return S.str();
-}
-
-void Stepper::visit_exprstmt(ExprStmt *x) {
-   push(new VisitState<ExprStmt>(x));
-}
-
-template<>
-string status_for<ExprStmt>(ExprStmt *x) {
-   BinaryExpr *e = dynamic_cast<BinaryExpr*>(x->expr);
-   if (e != 0) {
-      if (e->is_write_expr()) {
-         return "Se escribe a la salida.";
-      }
-      if (e->is_read_expr()) {
-         return "Se lee de la entrada.";
-      }
-   }
-   return "UNIMPLEMENTED";
-}
-
-void Stepper::visit_binaryexpr(BinaryExpr *x) {
-   push(new VisitState<BinaryExpr>(x));
-}
-
-void Stepper::visit_increxpr(IncrExpr *x) {
-   push(new VisitState<IncrExpr>(x));
-}
-
-template<>
-string status_for<IncrExpr>(IncrExpr *x) {
-   Ident *id = dynamic_cast<Ident*>(x->expr);
-   if (id != 0) {
-      return "Se incrementa la variable '" + id->id + "'.";
-   }
-   return "UNIMPLEMENTED";
-}
-
-
 void Stepper::visit_iterstmt(IterStmt *x) {
    if (x->is_for()) {
       push(new ForVisitState(x));
@@ -207,10 +145,12 @@ Todo Stepper::WhileVisitState::step(Stepper *S) {
          S->_error("La condición de un 'while' debe ser un valor de tipo 'bool'");
       }
       if (!cond->val.as_bool) {
+         S->status("La condición vale 'false', salimos del while.");
          S->pop();
          delete this;
          return Next;
       } else {
+         S->status("La condición vale 'true', entramos en el while.");
          x->substmt->visit(S);
          state = Stepper::WhileVisitState::Block;
          return Stop;
@@ -224,4 +164,7 @@ Todo Stepper::WhileVisitState::step(Stepper *S) {
    
 }
 
-
+void Stepper::visit_declstmt(DeclStmt *x)     { push(new VisitState<DeclStmt>(x)); }
+void Stepper::visit_exprstmt(ExprStmt *x)     { push(new VisitState<ExprStmt>(x)); }
+void Stepper::visit_binaryexpr(BinaryExpr *x) { push(new VisitState<BinaryExpr>(x)); }
+void Stepper::visit_increxpr(IncrExpr *x)     { push(new VisitState<IncrExpr>(x)); }

@@ -16,20 +16,20 @@ struct Type;
 std::ostream& operator<<(std::ostream& o, CommentSeq* C);
 
 struct AstNode {
-   Pos ini, fin;
-   std::vector<Error*>      errors;
-   std::vector<CommentSeq*> comments;
+                      Pos ini, fin;
+      std::vector<Error*> errors;
+ std::vector<CommentSeq*> comments;
 
-   virtual ~AstNode() {}
-   virtual int num_children()    const { return 0; }
-   virtual AstNode* child(int n) const { return 0; }
-   virtual void visit(AstVisitor* v) = 0;
-   virtual bool has_errors()     const { return !errors.empty(); }
-   
-   Range span() const { return Range(ini, fin); }
+   virtual            ~AstNode() {}
+   virtual        void visit(AstVisitor* v) = 0;
+   virtual         int num_children() const { return 0; }
+   virtual    AstNode* child(int n)   const { return 0; }
+   virtual        bool has_errors()   const { return !errors.empty(); }
+   virtual std::string describe()     const { return "UNIMPLEMENTED"; }
+                 Range span()         const { return Range(ini, fin); }
 
    template<typename X>
-   bool is() { return dynamic_cast<X*>(this) != 0; }
+                  bool is()           const { return dynamic_cast<const X*>(this) != 0; }
 };
 
 struct Error {
@@ -105,6 +105,7 @@ struct ExprStmt : public Stmt {
    ExprStmt() : expr(0), is_return(false) {}
    void visit(AstVisitor *v);
    bool has_errors() const;
+   std::string describe() const;
 };
 
 struct IfStmt : public Stmt {
@@ -162,6 +163,7 @@ struct DeclStmt : public Stmt {
 
    void visit(AstVisitor *v);
    bool has_errors() const;
+   std::string describe() const;
 };
 
 struct JumpStmt : public Stmt {
@@ -272,6 +274,7 @@ struct BinaryExpr : public Expr {
 
    bool is_read_expr()  const;
    bool is_write_expr() const;
+   std::string describe() const;
 };
 
 struct UnaryExpr : public Expr {
@@ -293,6 +296,7 @@ struct IncrExpr : public UnaryExpr {
    bool preincr;
    IncrExpr(Kind k, bool pre = false) : kind(k), preincr(pre) {}
    void visit(AstVisitor *v);
+   std::string describe() const;
 };
 
 struct NegExpr : public UnaryExpr { 

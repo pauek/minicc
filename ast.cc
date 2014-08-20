@@ -367,3 +367,44 @@ bool BinaryExpr::is_write_expr() const {
       (left->is_write_expr() and op == "<<") or
       (id != 0 and id->id == "cout");   
 }
+
+string ExprStmt::describe() const {
+   return expr->describe();
+}
+
+string IncrExpr::describe() const {
+   Ident *id = dynamic_cast<Ident*>(expr);
+   if (id != 0) {
+      return "Se incrementa la variable '" + id->id + "'.";
+   }
+   return "UNIMPLEMENTED";
+}
+
+string BinaryExpr::describe() const {
+   if (is_write_expr()) {
+      return "Se escribe a la salida.";
+   }
+   if (is_read_expr()) {
+      return "Se lee de la entrada.";
+   }
+   return "UNIMPLEMENTED";
+}
+
+string DeclStmt::describe() const {
+   ostringstream S;
+   S << "Se declara" << (decls.size() > 1 ? "n " : " ");
+   string plural = (decls.size() > 1 ? "s" : "");
+   S << "la" << plural << " variable" << plural << " ";
+   for (int i = 0; i < decls.size(); i++) {
+      if (i > 0) {
+         if (i == decls.size() - 1) {
+            S << " y ";
+         } else {
+            S << ", ";
+         }
+      }
+      S << "'" << decls[i]->name << "'";
+   }
+   S << ".";
+   return S.str();
+}
