@@ -5,6 +5,7 @@ colsize=60
 verbose="false"
 if [ ! -z $1 ] && [ $1 = "-v" ]; then
    verbose="true"
+   shift
 fi
 
 function test_dir() {
@@ -16,7 +17,7 @@ function test_dir() {
       printf "%11s  " $dir
    fi
    if [ $verbose = "true" ]; then echo; fi
-   for ccfile in $(find $dir -name "*.cc" | sort | xargs -n $colsize | sed 's/$/ <endl>/'); do
+   for ccfile in $(find $dir -name "*.cc" | sort | xargs -n $colsize | sed '2,$s/^/<endl> /'); do
       if [ $ccfile = "<endl>" ]; then
          if [ $verbose == "false" ]; then
             printf "\n%11s  " ""
@@ -37,10 +38,14 @@ function test_dir() {
    echo
 }
 
-for dir in $(find -mindepth 1 -maxdepth 1 -type d | sort); do
+DIRS=$*
+if [ -z "$DIRS" ]; then
+    DIRS=$(find -mindepth 1 -maxdepth 1 -type d | sort)
+fi
+for dir in $DIRS; do
    test_dir $dir
 done
-for dir in $(find -mindepth 1 -maxdepth 1 -type d); do
+for dir in $DIRS; do
    if [ -f ${dir}-err ]; then
       cat ${dir}-err > /dev/stderr
       rm ${dir}-err
