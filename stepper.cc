@@ -137,3 +137,91 @@ string status_for<ExprStmt>(ExprStmt *x) {
 void Stepper::visit_binaryexpr(BinaryExpr *x) {
    push(new VisitState<BinaryExpr>(x));
 }
+
+void Stepper::visit_increxpr(IncrExpr *x) {
+   push(new VisitState<IncrExpr>(x));
+}
+
+template<>
+string status_for<IncrExpr>(IncrExpr *x) {
+   Ident *id = dynamic_cast<Ident*>(x->expr);
+   if (id != 0) {
+      return "Se incrementa la variable '" + id->id + "'.";
+   }
+   return "UNIMPLEMENTED";
+}
+
+
+void Stepper::visit_iterstmt(IterStmt *x) {
+   if (x->is_for()) {
+      push(new ForVisitState(x));
+      x->init->visit(this);
+   } else {
+      push(new WhileVisitState(x));
+      x->cond->visit(this);
+   }
+}
+
+Todo Stepper::ForVisitState::step(Stepper *S) {
+   switch (state) {
+   case Stepper::ForVisitState::Init: {
+      x->cond->visit(S);
+      state = Stepper::ForVisitState::Cond;
+      return Stop;
+   }
+   case Stepper::ForVisitState::Cond: {
+      Value *cond = S->I._curr;
+      if (cond->kind != Value::Bool) {
+         S->_error("La condición de un 'for' debe ser un valor de tipo 'bool'");
+      }
+      if (!cond->val.as_bool) {
+         S->status("La condición vale 'false', salimos del for.");
+         S->pop();
+         delete this;
+         return Next;
+      } else {
+         S->status("La condición vale 'true', entramos en el for.");
+         x->substmt->visit(S);
+         state = Stepper::ForVisitState::Block;
+         return Stop;
+      }
+   }
+   case Stepper::ForVisitState::Block: {
+      x->post->visit(S);
+      state = Stepper::ForVisitState::Post;
+      return Stop;
+   }
+   case Stepper::ForVisitState::Post: {
+      x->cond->visit(S);
+      state = Stepper::ForVisitState::Cond;
+      return Stop;
+   }
+   }
+}
+
+Todo Stepper::WhileVisitState::step(Stepper *S) {
+   switch (state) {
+   case Stepper::WhileVisitState::Cond: {
+      Value *cond = S->I._curr;
+      if (cond->kind != Value::Bool) {
+         S->_error("La condición de un 'while' debe ser un valor de tipo 'bool'");
+      }
+      if (!cond->val.as_bool) {
+         S->pop();
+         delete this;
+         return Next;
+      } else {
+         x->substmt->visit(S);
+         state = Stepper::WhileVisitState::Block;
+         return Stop;
+      }
+   }
+   case Stepper::WhileVisitState::Block:
+      x->cond->visit(S);
+      state = Stepper::WhileVisitState::Cond;
+      return Stop;
+   }
+   
+}
+
+

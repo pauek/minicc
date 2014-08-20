@@ -50,9 +50,11 @@ public:
           void visit_program(Program *x);
           void visit_block(Block *x);
           void visit_binaryexpr(BinaryExpr *x); 
+          void visit_increxpr(IncrExpr *x); 
           void visit_exprstmt(ExprStmt *x); 
           void visit_declstmt(DeclStmt *x);
           void visit_ifstmt(IfStmt *x);
+          void visit_iterstmt(IterStmt *x);
 
    template<typename X>
    struct VisitState : public StepperState { // Just to mark the current node (no eval)
@@ -62,26 +64,34 @@ public:
       Range span() const { return x->span(); }
    };
 
-   struct ProgramVisitState : public StepperState {
-      FuncDecl *main;
-      ProgramVisitState(FuncDecl *_main) : main(_main) {}
+   struct ProgramVisitState : public VisitState<FuncDecl> {
+      ProgramVisitState(FuncDecl *x) : VisitState<FuncDecl>(x) {}
       Todo  step(Stepper *S);
-      Range span() const { return main->block->span(); }
    };
 
-   struct BlockVisitState : public StepperState {
-      Block *x;
+   struct BlockVisitState : public VisitState<Block> {
       int curr;
-      BlockVisitState(Block *_x) : x(_x), curr(0) {}
+      BlockVisitState(Block *x) : VisitState<Block>(x), curr(0) {}
       Todo step(Stepper *S);      
-      Range span() const { return x->stmts[curr]->span(); }
    };
    
-   struct IfVisitState : public StepperState {
-      IfStmt *x;
-      IfVisitState(IfStmt *_x) : x(_x) {}
+   struct IfVisitState : public VisitState<IfStmt> {
+      IfVisitState(IfStmt *x) : VisitState<IfStmt>(x) {}
       Todo step(Stepper *S);
-      Range span() const { return x->cond->span(); }
+   };
+
+   struct ForVisitState : public VisitState<IterStmt> {
+      enum Location { Init, Cond, Block, Post };
+      Location state;
+      ForVisitState(IterStmt *x) : VisitState<IterStmt>(x), state(Init) {}
+      Todo step(Stepper *S);
+   };
+
+   struct WhileVisitState : public VisitState<IterStmt> {
+      enum Location { Cond, Block };
+      Location state;
+      WhileVisitState(IterStmt *x) : VisitState<IterStmt>(x), state(Cond) {}
+      Todo step(Stepper *S);
    };
 };
 
