@@ -14,9 +14,11 @@ function setCompilado(new_value) {
    if (compilado) {
       $("#compile").addClass("pure-button-disabled");
       $("#execute").removeClass("pure-button-disabled");
+      $("#step").removeClass("pure-button-disabled");
    } else {
       $("#compile").removeClass("pure-button-disabled");
       $("#execute").addClass("pure-button-disabled");
+      $("#step").addClass("pure-button-disabled");
    }
 }
 
@@ -45,6 +47,7 @@ $(document).ready(function () {
    });
 
    $("#execute").addClass("pure-button-disabled");
+   $("#step").addClass("pure-button-disabled");
 
    editor.on("change", function () {
       setCompilado(false);
@@ -74,6 +77,27 @@ $(document).ready(function () {
          $('#output').show();
          output.setValue(out);
       }, 80);
+   });
+   var stepper = null, mark;
+   $('#step').click(function () {
+      if (stepper === null) {
+         stepper = new Module.Stepper();
+      }
+      if (mark) {
+         mark.clear();
+      }
+      if (!stepper.finished()) {
+         var r = stepper.span();
+         var ini = {line: r.ini.lin-1, ch: r.ini.col};
+         var fin = {line: r.fin.lin-1, ch: r.fin.col};
+         console.log(ini, fin);
+         mark = editor.markText(ini, fin, {
+            className: "current",
+         });
+         stepper.step();
+      } else {
+         stepper = null;
+      }
    });
    $("#reformat").click(function () {
       var code = editor.getValue();

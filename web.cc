@@ -10,6 +10,7 @@ using namespace std;
 #include "parser.hh"
 #include "walker.hh"
 #include "prettypr.hh"
+#include "stepper.hh"
 #include "interpreter.hh"
 
 AstNode *program;
@@ -53,9 +54,34 @@ string reformat(string code) {
    return out.str();
 }
 
+class EmbindStepper {
+   Stepper *S;
+public:
+   EmbindStepper() {
+      S = new Stepper(&cin, &cout);
+      program->visit(S);
+   }
+   string status()   const { return S->status(); }
+    Range span()     const { return S->span(); }
+     bool finished() const { return S->finished(); }
+     void step()           { S->step(); }
+};
+
 EMSCRIPTEN_BINDINGS(minicc) {
    emscripten::function("compile", &compile);
    emscripten::function("execute", &execute);
    emscripten::function("reformat", &reformat);
+   emscripten::class_<Pos>("Pos")
+      .property("lin", &Pos::l, &Pos::sl)
+      .property("col", &Pos::c, &Pos::sc);
+   emscripten::class_<Range>("Range")
+      .property("ini", &Range::gi, &Range::si)
+      .property("fin", &Range::gf, &Range::sf);
+   emscripten::class_<EmbindStepper>("Stepper")
+      .constructor<>()
+      .function("status",   &EmbindStepper::status)
+      .function("span",     &EmbindStepper::span)
+      .function("finished", &EmbindStepper::finished)
+      .function("step",     &EmbindStepper::step);
 }
 

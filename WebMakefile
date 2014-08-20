@@ -1,7 +1,7 @@
 CXX=emcc
 
 BCFILES=web.bc test.bc input.bc parser.bc ast.bc token.bc value.bc \
-   prettypr.bc astpr.bc interpreter.bc walker.bc
+   prettypr.bc astpr.bc interpreter.bc stepper.bc walker.bc
 
 CXXFLAGS=-std=c++11
 

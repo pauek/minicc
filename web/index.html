@@ -28,8 +28,9 @@
     }
     .CodeMirror {
        height: 600px;
-       font-size: 15px;
+       font-size: 14px;
        font-family: "Source Code Pro", monospaced;
+       line-height: 17px;
     }
     #errors { 
        padding: .5em .8em; 
@@ -37,6 +38,10 @@
     #errors h4 { margin: 0; }
 
     .cm-invisible { opacity: .25; }
+    
+    .current { 
+       background: yellow; 
+    }
   </style>
 
 </head>
@@ -56,6 +61,12 @@
           <a href="#" id="execute">
             <i class="fa fa-play"></i>
             Ejecuta
+          </a>
+        </li>
+        <li>
+          <a href="#" id="step">
+            <i class="fa fa-play"></i>
+            Paso
           </a>
         </li>
         <li>

@@ -42,7 +42,7 @@ public:
           void push(StepperState *s)    {       _stack.push(s);           }
           void replace(StepperState *s) { _e(); _stack.top() = s;         }
           void pop()                    { _e(); _stack.pop();             }
-          bool finished()               { return _stack.empty(); }
+          bool finished()         const { return _stack.empty(); }
          Range span() const             { _e(); return _stack.top()->span(); }
           void step();
 

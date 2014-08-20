@@ -10,11 +10,21 @@ struct Pos {
    Pos() : lin(1), col(0) {}
    Pos(int l, int c) : lin(l), col(c) {}
    std::string str() const;
+   
+    int l() const { return lin; }
+    int c() const { return col; }
+   void sl(int x) { lin = x; }
+   void sc(int x) { col = x; }
 };
 
 struct Range {
    Pos ini, fin;
    Range(Pos i, Pos f) : ini(i), fin(f) {}
+
+    Pos gi() const { return ini; }
+    Pos gf() const { return fin; }
+   void si(const Pos& p) { ini = p; }
+   void sf(const Pos& p) { fin = p; }
 };
 
 // Input /////////////////////////////////////////////////////////////
