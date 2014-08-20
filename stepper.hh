@@ -10,7 +10,9 @@
 
 enum Todo { Stop, Next };
 
-class Stepper : public Interpreter {
+class Stepper : public AstVisitor {
+
+   Interpreter I;
 
    struct StepperState {
       virtual Todo  step(Stepper*) = 0;
@@ -24,8 +26,11 @@ class Stepper : public Interpreter {
           void _e() const { assert(!_stack.empty()); }
           void prepare_funcall(FuncDecl *, std::vector<Value*>&);
           void _error(std::string msg) { _errors.push_back(msg); }
+
+          void eval(AstNode *x) { x->visit(&I); }
 public:
-               Stepper(std::istream *i, std::ostream *o) : Interpreter(i, o) {}
+               Stepper(std::istream *i, std::ostream *o) 
+                  : AstVisitor(o), I(i, o) {}
               ~Stepper() {}
 
    std::string status()           const { return _status; }
@@ -44,13 +49,23 @@ public:
 
           void visit_program(Program *x);
           void visit_block(Block *x);
+          void visit_binaryexpr(BinaryExpr *x); 
+          void visit_exprstmt(ExprStmt *x); 
+          void visit_declstmt(DeclStmt *x);
           void visit_ifstmt(IfStmt *x);
-   
+
+   template<typename X>
+   struct VisitState : public StepperState { // Just to mark the current node (no eval)
+      X *x;
+      VisitState(X *_x) : x(_x) {}
+      Todo step(Stepper *S);
+      Range span() const { return x->span(); }
+   };
 
    struct ProgramVisitState : public StepperState {
       FuncDecl *main;
       ProgramVisitState(FuncDecl *_main) : main(_main) {}
-      Todo  step(Stepper *stepper);
+      Todo  step(Stepper *S);
       Range span() const { return main->block->span(); }
    };
 
@@ -58,15 +73,14 @@ public:
       Block *x;
       int curr;
       BlockVisitState(Block *_x) : x(_x), curr(0) {}
-      Todo step(Stepper *stepper);      
+      Todo step(Stepper *S);      
       Range span() const { return x->stmts[curr]->span(); }
    };
    
    struct IfVisitState : public StepperState {
       IfStmt *x;
-      Value *c; // Value obtained from the condition
-      IfVisitState(IfStmt *_x) : x(_x), c(0) {}
-      Todo step(Stepper *stepper);
+      IfVisitState(IfStmt *_x) : x(_x) {}
+      Todo step(Stepper *S);
       Range span() const { return x->cond->span(); }
    };
 };

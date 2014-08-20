@@ -8,6 +8,7 @@
 struct Pos { 
    int lin, col; 
    Pos() : lin(1), col(0) {}
+   Pos(int l, int c) : lin(l), col(c) {}
    std::string str() const;
 };
 
@@ -107,6 +108,10 @@ inline bool operator<=(const Pos& a, const Pos& b) {
 
 inline bool operator>=(const Pos& a, const Pos& b) { 
    return operator>(a, b) || operator==(a, b); 
+}
+
+inline Pos operator+(const Pos& p, int n) {
+   return Pos(p.lin, p.col + n);
 }
 
 #endif

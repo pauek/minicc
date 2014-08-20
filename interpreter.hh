@@ -14,24 +14,30 @@ struct EvalError {
 };
 
 class Interpreter : public AstVisitor {
-protected:
-   Value *_curr, *_ret;
+    Value *_curr, *_ret;
 
-   std::vector< std::map<std::string, Value*> > _env;
-   std::map<std::string, FuncDecl*>             _funcs;
-   std::map<std::string, StructDecl*>           _structs;
+  std::vector< std::map<std::string, Value*> > _env;
+  std::map<std::string, FuncDecl*>             _funcs;
+  std::map<std::string, StructDecl*>           _structs;
 
-   void   pushenv() { _env.push_back(std::map<std::string, Value*>()); }
-   void   popenv()  { _env.pop_back(); }
-   void   setenv(std::string id, Value *val);
-   Value* getenv(std::string id);
+    void   pushenv() { _env.push_back(std::map<std::string, Value*>()); }
+    void   popenv()  { _env.pop_back(); }
+    void   setenv(std::string id, Value *val);
+    Value* getenv(std::string id);
 
-   void _error(std::string msg) {
-      throw new EvalError(msg);
-   }
+    void _error(std::string msg) {
+       throw new EvalError(msg);
+    }
 
-   Value new_value_from_structdecl(StructDecl *x);
-   void  invoke_func(FuncDecl *, std::vector<Value*>&);
+    Value new_value_from_structdecl(StructDecl *x);
+
+    void  invoke_func_prepare(FuncDecl *x, const std::vector<Value*>& args);
+    void  invoke_func(FuncDecl *, const std::vector<Value*>&);
+
+    void  visit_program_prepare(Program *x);
+FuncDecl *visit_program_find_main();
+
+   friend class Stepper;
 
 public:
    Interpreter(std::istream *i, std::ostream *o)

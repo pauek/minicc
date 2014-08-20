@@ -11,108 +11,129 @@ void Stepper::step() {
    }
 }
 
-void Stepper::visit_program(Program *x) {
-   _env.clear();
-   _env.resize(1);
+template<typename X>
+string status_for(X *x) {
+   return "UNIMPLEMENTED";
+}
 
-   setenv("endl", new Value("\n"));
-   setenv("cout", &Value::cout);
-   setenv("cin",  &Value::cin);
-
-   for (AstNode *n : x->nodes) {
-      n->visit(this);
+template<typename X>
+Todo Stepper::VisitState<X>::step(Stepper *S) {
+   x->visit(&S->I);
+   string s = status_for<X>(x); 
+   if (s != "UNIMPLEMENTED") {
+      S->status(s);
    }
-   auto it = _funcs.find("main");
-   if (it == _funcs.end()) {
+   S->pop();
+   delete this;
+   return Next; 
+}
+
+void Stepper::visit_program(Program *x) {
+   I.visit_program_prepare(x);
+   FuncDecl *main = I.visit_program_find_main();
+   if (main == 0) {
       _error("La funcion 'main' no existe");
    }
-   vector<Value*> main_args;
-   pushenv();
-   prepare_funcall(it->second, main_args);
-   push(new ProgramVisitState(it->second));
-   it->second->block->visit(this);
+   I.invoke_func_prepare(main, vector<Value*>());
+   push(new ProgramVisitState(main));
+   main->block->visit(this);
+   status("Saltamos a la función 'main'.");
 }
 
 Todo Stepper::ProgramVisitState::step(Stepper *S) {
-   S->popenv();
-   S->status("El programa ha terminado.");
+   S->I.popenv();
    S->pop();
    delete this;
    return Next;
 }
 
-void Stepper::prepare_funcall(FuncDecl *fn, vector<Value*>& args) {
-   if (fn->params.size() != args.size()) {
-      _error("Error en el número de argumentos al llamar a '" + fn->name + "'");
-   }
-   for (int i = 0; i < args.size(); i++) {
-      if (args[i]->kind == Value::Ref) {
-         if (fn->params[i]->type->reference) {
-            setenv(fn->params[i]->name, args[i]);
-         } else {
-            Value *v = static_cast<Value*>(args[i]->val.as_ptr);
-            setenv(fn->params[i]->name, v);
-         }
-      } else {
-         if (fn->params[i]->type->reference) {
-            ostringstream S;
-            S << "En el parámetro " << i+1 << " se requiere una variable.";
-            _error(S.str());
-         }
-         setenv(fn->params[i]->name, args[i]);
-      }
-   }
-   _status = "Saltamos a la función '" + fn->name + "'.";
-}
-
 void Stepper::visit_block(Block *x) {
    push(new BlockVisitState(x));
+   x->stmts[0]->visit(this);
 }
 
 Todo Stepper::BlockVisitState::step(Stepper *S) {
    const int last = x->stmts.size()-1;
-   if (curr == last) {
+   ++curr;
+   if (curr > last) {
       S->pop();
-   }
-   x->stmts[curr]->visit(S);
-   curr++;
-   if (curr <= last) {
-      return Stop;
-   } else {
       delete this;
       return Next;
    }
+   x->stmts[curr]->visit(S);
+   return Stop;
 }
 
 void Stepper::visit_ifstmt(IfStmt *x) {
    push(new IfVisitState(x));
+   x->cond->visit(this);
 }
 
 Todo Stepper::IfVisitState::step(Stepper *S) {
-   if (c == 0) {
-      x->cond->visit(S);
-      c = S->_curr;
-      return Stop;
+   Value *c = S->I._curr;
+   if (c->kind != Value::Bool) {
+      S->_error("La condición de un 'if' debe ser un valor de tipo 'bool'.");
+   }
+   S->pop();
+   Todo todo = Stop;
+   if (c->val.as_bool) {
+      S->status("La condición vale 'true', tomamos la primera rama.");
+      x->then->visit(S);
    } else {
-      if (c->kind != Value::Bool) {
-         S->_error("La condición de un 'if' debe ser un valor de tipo 'bool'.");
-      }
-      S->pop();
-      if (c->val.as_bool) {
-         S->status("La condición ha dado 'true', cogemos la primera rama.");
-         x->then->visit(S);
-         return Stop;
+      if (x->els != 0) {
+         S->status("La condición vale 'false', tomamos la segunda rama.");
+         x->els->visit(S);
       } else {
-         if (x->els != 0) {
-            S->status("La condición ha dado 'false', cogemos la segunda rama.");
-            x->els->visit(S);
-            return Stop;
-         } else {
-            S->status("La condición ha dado 'false', continuamos.");
-            delete this;
-            return Next;
-         }
+         S->status("La condición vale 'false', continuamos.");
+         todo = Next;
       }
    }
+   delete this;
+   return todo;
 }
 
+void Stepper::visit_declstmt(DeclStmt *x) {
+   push(new VisitState<DeclStmt>(x));
+}
+
+template<>
+string status_for<DeclStmt>(DeclStmt *x) {
+   ostringstream S;
+   S << "Se declara" << (x->decls.size() > 1 ? "n " : " ");
+   string plural = (x->decls.size() > 1 ? "s" : "");
+   S << "la" << plural << " variable" << plural << " ";
+   for (int i = 0; i < x->decls.size(); i++) {
+      if (i > 0) {
+         if (i == x->decls.size() - 1) {
+            S << " y ";
+         } else {
+            S << ", ";
+         }
+      }
+      S << "'" << x->decls[i]->name << "'";
+   }
+   S << ".";
+   return S.str();
+}
+
+void Stepper::visit_exprstmt(ExprStmt *x) {
+   push(new VisitState<ExprStmt>(x));
+}
+
+template<>
+string status_for<ExprStmt>(ExprStmt *x) {
+   BinaryExpr *e = dynamic_cast<BinaryExpr*>(x->expr);
+   if (e != 0) {
+      if (e->is_write_expr()) {
+         return "Se escribe a la salida.";
+      }
+      if (e->is_read_expr()) {
+         return "Se lee de la entrada.";
+      }
+   }
+   return "UNIMPLEMENTED";
+}
+
+void Stepper::visit_binaryexpr(BinaryExpr *x) {
+   push(new VisitState<BinaryExpr>(x));
+}

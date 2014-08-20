@@ -17,7 +17,7 @@ Value *Interpreter::getenv(string id) {
    return 0;
 }
 
-void Interpreter::invoke_func(FuncDecl *fn, vector<Value*>& args) {
+void Interpreter::invoke_func_prepare(FuncDecl *fn, const vector<Value*>& args) {
    pushenv();
    if (fn->params.size() != args.size()) {
       _error("Error en el número de argumentos al llamar a '" + fn->name + "'");
@@ -39,12 +39,16 @@ void Interpreter::invoke_func(FuncDecl *fn, vector<Value*>& args) {
          setenv(fn->params[i]->name, args[i]);
       }
    }
+}
+
+void Interpreter::invoke_func(FuncDecl *fn, const vector<Value*>& args) {
+   invoke_func_prepare(fn, args);
    fn->block->visit(this);
    popenv();
 }
 
 
-void Interpreter::visit_program(Program* x) {
+void Interpreter::visit_program_prepare(Program *x) {
    _env.clear();
    _env.resize(1);
 
@@ -55,12 +59,21 @@ void Interpreter::visit_program(Program* x) {
    for (AstNode *n : x->nodes) {
       n->visit(this);
    }
+}
+
+FuncDecl *Interpreter::visit_program_find_main() {
    auto it = _funcs.find("main");
-   if (it == _funcs.end()) {
+   return (it == _funcs.end() ? 0 : it->second);
+}
+
+void Interpreter::visit_program(Program* x) {
+   visit_program_prepare(x);
+   FuncDecl *main = visit_program_find_main();
+   if (main == 0) {
       _error("La funcion 'main' no existe");
+   } else {
+      invoke_func(main, vector<Value*>());
    }
-   vector<Value*> main_args;
-   invoke_func(it->second, main_args);
 }
 
 void Interpreter::visit_comment(CommentSeq* cn) {}

@@ -6,6 +6,6 @@ int main() {
 }
 [[out]]--------------------------------------------------
 Saltamos a la función 'main'.
-5:3-5:26: cout << "hello" << endl
-El programa ha terminado.
+5:3-5:27: cout << "hello" << endl;
+Se escribe a la salida.
 [[err]]--------------------------------------------------

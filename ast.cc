@@ -353,3 +353,17 @@ int StructDecl::num_fields() const {
    }
    return num;
 }
+
+bool BinaryExpr::is_read_expr() const {
+   Ident *id = dynamic_cast<Ident*>(left);
+   return 
+      (left->is_read_expr() and op == ">>") or
+      (id != 0 and id->id == "cin");   
+}
+
+bool BinaryExpr::is_write_expr() const {
+   Ident *id = dynamic_cast<Ident*>(left);
+   return 
+      (left->is_write_expr() and op == "<<") or
+      (id != 0 and id->id == "cout");   
+}

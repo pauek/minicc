@@ -445,12 +445,18 @@ ExprStmt *Parser::parse_exprstmt(bool is_return) {
       assert(tok.kind == Token::Return);
       _skip(stmt);
    }
+   Pos eini = _in.pos();
    stmt->expr = (_in.curr() == ';' ? 0 : parse_expr());
-   stmt->fin = _in.pos();
+   Pos efin = _in.pos();
+   if (stmt->expr) {
+      stmt->expr->ini = eini;
+      stmt->expr->fin = efin;
+   }
    if (!_in.expect(";")) {
       error(stmt, _in.pos().str() + ": Expected ';'");
       _in.skip_to(";\n"); // resync...
    }
+   stmt->fin = _in.pos();
    _skip(stmt);
    return stmt;
 }
@@ -546,6 +552,7 @@ Expr *Parser::parse_postfix_expr(Expr *e = 0) {
 
 Expr *Parser::parse_unary_expr() {
    Expr *e;
+   Pos ini = _in.pos();
    Token tok = _in.peek_token();
    switch (tok.kind) {
    case Token::Not: {
@@ -599,6 +606,7 @@ Expr *Parser::parse_unary_expr() {
       e = parse_postfix_expr();
       break;
    }
+   e->ini = ini, e->fin = _in.pos();
    _skip(e);
    return e;
 }
@@ -641,6 +649,8 @@ Expr *Parser::parse_expr(BinaryExpr::Kind max) {
          Expr *right = parse_expr(submax);
          e->left = left;
          e->right = right;
+         e->ini = left->ini;
+         e->fin = right->fin;
          left = e;
       }
       _skip(left);
@@ -859,6 +869,7 @@ Decl *Parser::_parse_objdecl(string name) {
 
 DeclStmt *Parser::parse_declstmt(bool is_typedef) {
    DeclStmt *stmt = new DeclStmt();
+   stmt->ini = _in.pos();
    Type *type = parse_type();
    stmt->type = type;
    _skip(stmt);
@@ -894,6 +905,7 @@ DeclStmt *Parser::parse_declstmt(bool is_typedef) {
    if (!_in.expect(";")) {
       error(stmt, _in.pos().str() + ": Esperaba un ';'");
    }
+   stmt->fin = _in.pos();
    _skip(stmt);
    return stmt;
 }

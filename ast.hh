@@ -198,6 +198,9 @@ struct Expr : public AstNode {
 
    Expr() : paren(false) {}
 
+   virtual bool is_read_expr()  const { return false; }
+   virtual bool is_write_expr() const { return false; }
+
    static std::map<std::string, Kind> _op2kind;
    static std::map<Token::Kind, Kind> _tok2kind;
    static Kind op2kind(std::string op);
@@ -266,6 +269,9 @@ struct BinaryExpr : public Expr {
    void visit(AstVisitor *v);
    void set(Expr::Kind _kind);
    bool has_errors() const;
+
+   bool is_read_expr()  const;
+   bool is_write_expr() const;
 };
 
 struct UnaryExpr : public Expr {
@@ -424,40 +430,40 @@ public:
    AstVisitor(std::ostream *o = 0)                      : _indent(0),         _out(o) {}
    AstVisitor(std::istream *i = 0, std::ostream *o = 0) : _indent(0), _in(i), _out(o) {}
 
-   virtual void visit_comment(CommentSeq*) = 0;
-   virtual void visit_program(Program*) = 0;
-   virtual void visit_include(Include*) = 0;
-   virtual void visit_macro(Macro *) = 0;
-   virtual void visit_using(Using *) = 0;
-   virtual void visit_funcdecl(FuncDecl *) = 0;
-   virtual void visit_structdecl(StructDecl *) = 0;
-   virtual void visit_typedefdecl(TypedefDecl *) = 0;
-   virtual void visit_enumdecl(EnumDecl *) = 0;
-   virtual void visit_type(Type *) = 0;
-   virtual void visit_block(Block *) = 0;
-   virtual void visit_ident(Ident *) = 0;
-   virtual void visit_binaryexpr(BinaryExpr *) = 0;
-   virtual void visit_vardecl(VarDecl *) = 0;
-   virtual void visit_arraydecl(ArrayDecl *) = 0;
-   virtual void visit_objdecl(ObjDecl *) = 0;
-   virtual void visit_declstmt(DeclStmt *) = 0;
-   virtual void visit_exprstmt(ExprStmt *) = 0;
-   virtual void visit_ifstmt(IfStmt *) = 0;
-   virtual void visit_iterstmt(IterStmt *) = 0;
-   virtual void visit_jumpstmt(JumpStmt *) = 0;
-   virtual void visit_callexpr(CallExpr *) = 0;
-   virtual void visit_indexexpr(IndexExpr *) = 0;
-   virtual void visit_fieldexpr(FieldExpr *) = 0;
-   virtual void visit_condexpr(CondExpr *) = 0;
-   virtual void visit_signexpr(SignExpr *) = 0;
-   virtual void visit_increxpr(IncrExpr *) = 0;
-   virtual void visit_negexpr(NegExpr *) = 0;
-   virtual void visit_addrexpr(AddrExpr *) = 0;
-   virtual void visit_derefexpr(DerefExpr *) = 0;
-   virtual void visit_literal(Literal *) = 0;
+   virtual void visit_comment(CommentSeq*)        { assert(false); }
+   virtual void visit_program(Program*)           { assert(false); }
+   virtual void visit_include(Include*)           { assert(false); }
+   virtual void visit_macro(Macro *)              { assert(false); }
+   virtual void visit_using(Using *)              { assert(false); }
+   virtual void visit_funcdecl(FuncDecl *)        { assert(false); }
+   virtual void visit_structdecl(StructDecl *)    { assert(false); }
+   virtual void visit_typedefdecl(TypedefDecl *)  { assert(false); }
+   virtual void visit_enumdecl(EnumDecl *)        { assert(false); }
+   virtual void visit_type(Type *)                { assert(false); }
+   virtual void visit_block(Block *)              { assert(false); }
+   virtual void visit_ident(Ident *)              { assert(false); }
+   virtual void visit_binaryexpr(BinaryExpr *)    { assert(false); }
+   virtual void visit_vardecl(VarDecl *)          { assert(false); }
+   virtual void visit_arraydecl(ArrayDecl *)      { assert(false); }
+   virtual void visit_objdecl(ObjDecl *)          { assert(false); }
+   virtual void visit_declstmt(DeclStmt *)        { assert(false); }
+   virtual void visit_exprstmt(ExprStmt *)        { assert(false); }
+   virtual void visit_ifstmt(IfStmt *)            { assert(false); }
+   virtual void visit_iterstmt(IterStmt *)        { assert(false); }
+   virtual void visit_jumpstmt(JumpStmt *)        { assert(false); }
+   virtual void visit_callexpr(CallExpr *)        { assert(false); }
+   virtual void visit_indexexpr(IndexExpr *)      { assert(false); }
+   virtual void visit_fieldexpr(FieldExpr *)      { assert(false); }
+   virtual void visit_condexpr(CondExpr *)        { assert(false); }
+   virtual void visit_signexpr(SignExpr *)        { assert(false); }
+   virtual void visit_increxpr(IncrExpr *)        { assert(false); }
+   virtual void visit_negexpr(NegExpr *)          { assert(false); }
+   virtual void visit_addrexpr(AddrExpr *)        { assert(false); }
+   virtual void visit_derefexpr(DerefExpr *)      { assert(false); }
+   virtual void visit_literal(Literal *)          { assert(false); }
 
-   virtual void visit_errorstmt(Stmt::Error *) = 0;
-   virtual void visit_errorexpr(Expr::Error *) = 0;
+   virtual void visit_errorstmt(Stmt::Error *)    { assert(false); }
+   virtual void visit_errorexpr(Expr::Error *)    { assert(false); }
 };
 
 // Visit implementations
