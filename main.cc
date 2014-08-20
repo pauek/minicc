@@ -7,6 +7,7 @@ using namespace std;
 #include "test.hh"
 #include "astpr.hh"
 #include "prettypr.hh"
+#include "stepper.hh"
 #include "interpreter.hh"
 #include "walker.hh"
 
@@ -32,6 +33,11 @@ int main(int argc, char *argv[]) {
             filename = argv[2];
          }
          todo = "prettyprint";
+      } else if (argv1 == "--step") {
+         if (argc >= 3) {
+            filename = argv[2];
+         }
+         todo = "step";
       } else {
          filename = argv[1];
       }
@@ -50,22 +56,32 @@ int main(int argc, char *argv[]) {
       cerr << "Error de compilación: " << e->msg << endl;
    }
 
-   AstVisitor *v;
-   if (todo == "ast") {
-      v = new AstPrinter(&cout);
-   } else if (todo == "prettyprint") {
-      v = new PrettyPrinter(&cout);
-   } else {
-      v = new Interpreter(&cin, &cout);
-   }
-
    try {
-      program->visit(v);
-      collect_errors(program, ve);
-      for (Error *e : ve) {
-         cerr << e->msg << endl;
+      if (todo != "step") {
+         AstVisitor *v;
+         if (todo == "ast") {
+            v = new AstPrinter(&cout);
+         } else if (todo == "prettyprint") {
+            v = new PrettyPrinter(&cout);
+         } else {
+            v = new Interpreter(&cin, &cout);
+         }
+         program->visit(v);
+         collect_errors(program, ve);
+         for (Error *e : ve) {
+            cerr << e->msg << endl;
+         }
+         return (ve.empty() ? 0 : 1);
+      } else {
+         Stepper S(&cin, &cout);
+         program->visit(&S);
+         while (!S.finished()) {
+            cout << S.status() << endl;
+            cout << S.span() << ": " << P.input().substr(S.span()) << endl;
+            S.step();
+         }
+         cout << S.status() << endl;
       }
-      return (ve.empty() ? 0 : 1);
    } 
    catch (EvalError* e) {
       cerr << "Error de ejecución:   " << e->msg << endl;
