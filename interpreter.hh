@@ -14,6 +14,7 @@ struct EvalError {
 };
 
 class Interpreter : public AstVisitor {
+protected:
    Value *_curr, *_ret;
 
    std::vector< std::map<std::string, Value*> > _env;

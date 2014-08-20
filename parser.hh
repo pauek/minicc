@@ -39,6 +39,8 @@ class Parser {
 public:
              Parser(std::istream *in, std::ostream* err = &std::cerr);
 
+const Input& input() const { return _in; }
+
     AstNode *parse();
     AstNode *parse_macro();
     AstNode *parse_using_declaration();

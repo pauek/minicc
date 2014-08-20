@@ -1,7 +1,7 @@
 CXX=clang++
 
 OBJECTS=main.o test.o input.o parser.o ast.o token.o value.o \
-   prettypr.o astpr.o interpreter.o walker.o
+   prettypr.o astpr.o interpreter.o stepper.o walker.o
 
 CXXFLAGS=-std=c++11
 
@@ -23,6 +23,7 @@ parser.o:      ast.hh input.hh token.hh parser.hh
 astpr.o:       ast.hh astpr.hh
 prettypr.o:    ast.hh prettypr.hh
 interpreter.o: ast.hh value.hh interpreter.hh
+stepper.o:     ast.hh value.hh interpreter.hh stepper.hh
 value.o:       value.hh
 walker.o:      ast.hh walker.hh
 test.o:        ast.hh input.hh token.hh value.hh parser.hh astpr.hh prettypr.hh interpreter.hh

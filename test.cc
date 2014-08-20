@@ -6,6 +6,7 @@ using namespace std;
 #include "astpr.hh"
 #include "prettypr.hh"
 #include "interpreter.hh"
+#include "stepper.hh"
 #include "walker.hh"
 
 // Detect lines like:
@@ -55,7 +56,10 @@ string visible_spaces(string output, string compare = "") {
    return res;
 }
 
-enum VisitorType { pretty_printer, ast_printer, interpreter };
+enum VisitorType { pretty_printer, ast_printer, interpreter, stepper };
+
+void exec_visitor(Program *P, VisitorType vtype) {
+}
 
 void test_visitor(string filename, VisitorType vtype) {
    ifstream F(filename);
@@ -83,7 +87,7 @@ void test_visitor(string filename, VisitorType vtype) {
       }
    }
    
-   ostringstream Sout, Serr;
+   ostringstream Sout, Saux, Serr;
    istringstream Scode(code), Sin(in);
    Parser P(&Scode, &Serr);
    AstNode *program;
@@ -94,15 +98,30 @@ void test_visitor(string filename, VisitorType vtype) {
    case pretty_printer: v = new PrettyPrinter(&Sout); break;
    case ast_printer:    v = new AstPrinter(&Sout); break;
    case interpreter:    v = new Interpreter(&Sin, &Sout); break;
+   default: break;
    }
+
+   // Run it
    try {
-      program->visit(v);
-      vector<Error*> ve;
-      collect_errors(program, ve);
-      for (Error *e : ve) {
-         Serr << e->msg << endl;
+      if (vtype == stepper) {
+         Stepper S(&Sin, &Saux);
+         program->visit(&S);
+         while (!S.finished()) {
+            Sout << S.status() << endl;
+            Sout << S.span() << ": " << P.input().substr(S.span()) << endl;
+            S.step();
+         }
+         Sout << S.status() << endl;
+      } else {
+         program->visit(v);
+         vector<Error*> ve;
+         collect_errors(program, ve);
+         for (Error *e : ve) {
+            Serr << e->msg << endl;
+         }
       }
-   } catch (EvalError* e) {
+   } 
+   catch (EvalError* e) {
       Serr << "Error de ejecución: " << e->msg << endl;
    }
 
@@ -135,6 +154,8 @@ void test(string kind, string filename) {
       vtype = pretty_printer;
    } else if (kind == "interpreter") {
       vtype = interpreter;
+   } else if (kind == "stepper") {
+      vtype = stepper;
    }
    test_visitor(filename, vtype);
 }

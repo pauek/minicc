@@ -49,6 +49,7 @@ public:
           char  curr(int i = 0) const { return _text[_curr + i]; }
           bool  end()           const { return _curr >= _text.size(); }
           bool  curr_one_of(std::string set) const;
+   std::string  substr(const Range& r) const { return substr(r.ini, r.fin); }
    std::string  substr(const Pos& ini, const Pos& fin) const;
    std::string  substr(const Token& t);
 
@@ -81,8 +82,11 @@ public:
 bool is_space(std::string s);
 
 inline std::ostream& operator<<(std::ostream& o, const Pos& pos) {
-   o << pos.lin << ":" << pos.col;
-   return o;
+   return o << pos.lin << ":" << pos.col;
+}
+
+inline std::ostream& operator<<(std::ostream& o, const Range& rng) {
+   return o << rng.ini << "-" << rng.fin;
 }
 
 inline bool operator==(const Pos& a, const Pos& b) {

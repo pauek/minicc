@@ -25,6 +25,8 @@ struct AstNode {
    virtual AstNode* child(int n) const { return 0; }
    virtual void visit(AstVisitor* v) = 0;
    virtual bool has_errors()     const { return !errors.empty(); }
+   
+   Range span() const { return Range(ini, fin); }
 
    template<typename X>
    bool is() { return dynamic_cast<X*>(this) != 0; }
