@@ -59,7 +59,7 @@ const Input& input() const { return _in; }
        Stmt *parse_jumpstmt();
 
        Type *parse_type();
-      Ident *parse_ident(Token tok);
+      Ident *parse_ident(Token tok, Pos ini);
 
  StructDecl *parse_struct();
 TypedefDecl *parse_typedef();

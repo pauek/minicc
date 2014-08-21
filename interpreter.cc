@@ -179,15 +179,7 @@ void Interpreter::visit_binaryexpr(BinaryExpr *x) {
    }
    
    if (x->op == "=") {
-      if (left->kind != Value::Ref) {
-         _error("Intentas asignar sobre algo que no es una variable");
-      }
-      Value *v = left->ref();
-      if (v->type != right->type) {
-         _error("Las asignación no se puede hacer porque los tipos no coinciden");
-      }
-      *v = *right; // DANGER!
-      _curr = v;
+      visit_binaryexpr_assignment(left, right);
       return;
    }
    else if (x->op == "+=") {
@@ -251,6 +243,14 @@ void Interpreter::visit_binaryexpr(BinaryExpr *x) {
       _error("Los operandos de '+' no son compatibles");
    } 
    else if (x->op == "*") {
+      if (left->kind == Value::Int and right->kind == Value::Int) {
+         _curr = new Value(left->val.as_int * right->val.as_int);
+         return;
+      }
+      if (left->kind == Value::Float and right->kind == Value::Float) {
+         _curr = new Value(left->val.as_float * right->val.as_float);
+         return;
+      }
       if (left->kind == Value::Double and right->kind == Value::Double) {
          _curr = new Value(left->val.as_double * right->val.as_double);
          return;
@@ -299,6 +299,19 @@ void Interpreter::visit_binaryexpr(BinaryExpr *x) {
    }
    _error("Interpreter::visit_binaryexpr: UNIMPLEMENTED (" + x->op + ")");
 }
+
+void Interpreter::visit_binaryexpr_assignment(Value *left, Value *right) {
+   if (left->kind != Value::Ref) {
+      _error("Intentas asignar sobre algo que no es una variable");
+   }
+   Value *v = left->ref();
+   if (v->type != right->type) {
+      _error("Las asignación no se puede hacer porque los tipos no coinciden");
+   }
+   *v = *right; // DANGER!
+   _curr = v;
+}
+
 
 void Interpreter::visit_block(Block *x) {
    for (Stmt *stmt : x->stmts) {
@@ -430,7 +443,7 @@ void Interpreter::visit_iterstmt(IterStmt *x) {
    popenv();
 }
 
-void Interpreter::visit_callexpr(CallExpr *x) {
+FuncDecl *Interpreter::visit_callexpr_getfunc(CallExpr *x) {
    Ident *fn = dynamic_cast<Ident*>(x->func);
    if (fn == 0) {
       _error("La llamada no-directa a funciones no se ha implementado");
@@ -438,8 +451,13 @@ void Interpreter::visit_callexpr(CallExpr *x) {
    auto it = _funcs.find(fn->id);
    if (it == _funcs.end()) {
       _error("La función '" + fn->id + "' no existe");
+      return 0;
    }
-   FuncDecl *func = it->second;
+   return it->second;
+}
+
+void Interpreter::visit_callexpr(CallExpr *x) {
+   FuncDecl *func = visit_callexpr_getfunc(x);
    vector<Value*> args;
    for (int i = 0; i < x->args.size(); i++) {
       x->args[i]->visit(this);

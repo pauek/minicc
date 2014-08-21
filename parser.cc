@@ -196,14 +196,16 @@ AstNode* Parser::parse_using_declaration() {
    return u;
 }
 
-Ident *Parser::parse_ident(Token tok) {
+Ident *Parser::parse_ident(Token tok, Pos ini) {
    Ident *id = 0;
+   Pos fin;   
    while (true) {
       if (id == 0) {
          id = new Ident(tok.str);
       } else {
          id->shift(tok.str);
       }
+      fin = _in.pos(); // save for now
       _skip(id);
       _in.save();
       Token tok2 = _in.next_token();
@@ -216,6 +218,7 @@ Ident *Parser::parse_ident(Token tok) {
          } else {
             _in.next();
          }
+         fin = _in.pos();
          _skip(id);
       } else {
          _in.restore();
@@ -231,6 +234,8 @@ Ident *Parser::parse_ident(Token tok) {
          }
       }
    }
+   id->ini = ini;
+   id->fin = fin;
    return id;
 }
 
@@ -239,6 +244,7 @@ Type *Parser::parse_type() {
    Token tok;
    while (true) {
       _in.save();
+      Pos p = _in.pos();
       tok = _in.next_token();
       if (tok.group & Token::TypeQual) {
          _in.discard();
@@ -258,7 +264,7 @@ Type *Parser::parse_type() {
          }
          type->id = id;
       } else if (type->id == 0 and (tok.group & Token::Ident)) {
-         type->id = parse_ident(tok);
+         type->id = parse_ident(tok, p);
          _skip(type);
       } else if (tok.kind == Token::Amp) {
          type->reference = true;
@@ -463,6 +469,7 @@ ExprStmt *Parser::parse_exprstmt(bool is_return) {
 
 Expr *Parser::parse_primary_expr() {
    Expr *e;
+   Pos ini = _in.pos();
    Token tok = _in.next_token();
    switch (tok.kind) {
    case Token::LParen:
@@ -471,12 +478,16 @@ Expr *Parser::parse_primary_expr() {
       if (!_in.expect(")")) {
          error(e, _in.pos().str() + ": Expected ')'");
       }
+      e->ini = ini;
+      e->fin = _in.pos();
       break;
 
    case Token::True:
    case Token::False: {
       Literal* lit = new Literal(Literal::Bool);
       lit->val.as_bool = (tok.kind == Token::True);
+      lit->ini = ini;
+      lit->fin = _in.pos();
       _skip(lit);
       e = lit;
       break;
@@ -484,6 +495,8 @@ Expr *Parser::parse_primary_expr() {
    case Token::IntLiteral: {
       Literal* lit = new Literal(Literal::Int);
       lit->val.as_int = atoi(_in.substr(tok).c_str());
+      lit->ini = ini;
+      lit->fin = _in.pos();
       _skip(lit);
       e = lit;
       break;
@@ -491,6 +504,8 @@ Expr *Parser::parse_primary_expr() {
    case Token::CharLiteral: {
       Literal* lit = new Literal(Literal::Char);
       lit->val.as_string.s = new string(tok.str);
+      lit->ini = ini;
+      lit->fin = _in.pos();
       _skip(lit);
       e = lit;
       break;
@@ -500,6 +515,8 @@ Expr *Parser::parse_primary_expr() {
       Literal* lit = new Literal(Literal::Double);
       istringstream S(tok.str);
       S >> lit->val.as_double;
+      lit->ini = ini;
+      lit->fin = _in.pos();
       _skip(lit);
       e = lit;
       break;
@@ -507,12 +524,14 @@ Expr *Parser::parse_primary_expr() {
    case Token::StringLiteral: {
       Literal* lit = new Literal(Literal::String);
       lit->val.as_string.s = new string(tok.str);
+      lit->ini = ini;
+      lit->fin = _in.pos();
       _skip(lit);
       e = lit;
       break;
    }
    default:
-      e = parse_ident(tok);
+      e = parse_ident(tok, ini);
       break;
    }
    return e;
@@ -571,6 +590,7 @@ Expr *Parser::parse_unary_expr() {
       _in.next();
       _skip(se);
       se->expr = parse_unary_expr();
+      se->fin = se->expr->fin;
       e = se;
       break;
    }
@@ -579,15 +599,17 @@ Expr *Parser::parse_unary_expr() {
       _in.next();
       _skip(ae);
       ae->expr = parse_unary_expr();
+      ae->fin = ae->expr->fin;
       e = ae;
       break;
    }      
    case Token::Star: {
-      DerefExpr *ae = new DerefExpr();
+      DerefExpr *de = new DerefExpr();
       _in.next();
-      _skip(ae);
-      ae->expr = parse_unary_expr();
-      e = ae;
+      _skip(de);
+      de->expr = parse_unary_expr();
+      de->fin = de->expr->fin;
+      e = de;
       break;
    }      
    case Token::MinusMinus:
@@ -597,6 +619,7 @@ Expr *Parser::parse_unary_expr() {
                                   : IncrExpr::Negative);
       _in.consume(tok.kind == Token::PlusPlus ? "++" : "--");
       ie->expr = parse_unary_expr();
+      ie->fin = ie->expr->fin;
       ie->preincr = true;
       _skip(ie);
       e = ie;
@@ -606,7 +629,7 @@ Expr *Parser::parse_unary_expr() {
       e = parse_postfix_expr();
       break;
    }
-   e->ini = ini, e->fin = _in.pos();
+   e->ini = ini;
    _skip(e);
    return e;
 }
@@ -708,6 +731,7 @@ Expr *Parser::parse_increxpr(Expr *x, Token tok) {
                               : IncrExpr::Negative);
    e->expr = x;
    _in.consume(tok.kind == Token::PlusPlus ? "++" : "--");
+   e->fin = _in.pos();
    _skip(e);
    return e;
 }

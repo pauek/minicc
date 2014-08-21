@@ -12,19 +12,25 @@ Saltamos a la función 'main'.
 Se declara la variable 'i'.
 5:19-5:24: i < 3
 La condición vale 'true', entramos en el for.
-6:6-6:24: cout << i << endl;
+6:14-6:15: i
+Se escribe a la salida.
+6:19-6:23: endl
 Se escribe a la salida.
 5:26-5:29: i++
 Se incrementa la variable 'i'.
 5:19-5:24: i < 3
 La condición vale 'true', entramos en el for.
-6:6-6:24: cout << i << endl;
+6:14-6:15: i
+Se escribe a la salida.
+6:19-6:23: endl
 Se escribe a la salida.
 5:26-5:29: i++
 Se incrementa la variable 'i'.
 5:19-5:24: i < 3
 La condición vale 'true', entramos en el for.
-6:6-6:24: cout << i << endl;
+6:14-6:15: i
+Se escribe a la salida.
+6:19-6:23: endl
 Se escribe a la salida.
 5:26-5:29: i++
 Se incrementa la variable 'i'.

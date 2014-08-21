@@ -165,6 +165,95 @@ Todo Stepper::WhileVisitState::step(Stepper *S) {
 }
 
 void Stepper::visit_declstmt(DeclStmt *x)     { push(new VisitState<DeclStmt>(x)); }
-void Stepper::visit_exprstmt(ExprStmt *x)     { push(new VisitState<ExprStmt>(x)); }
-void Stepper::visit_binaryexpr(BinaryExpr *x) { push(new VisitState<BinaryExpr>(x)); }
 void Stepper::visit_increxpr(IncrExpr *x)     { push(new VisitState<IncrExpr>(x)); }
+void Stepper::visit_binaryexpr(BinaryExpr *x) { push(new VisitState<BinaryExpr>(x)); }
+void Stepper::visit_literal(Literal *x)       { push(new VisitState<Literal>(x)); }
+void Stepper::visit_ident(Ident *x)           { push(new VisitState<Ident>(x)); }
+
+void Stepper::visit_exprstmt(ExprStmt *x) { 
+   if (x->expr->is_assignment()) {
+      BinaryExpr *e = dynamic_cast<BinaryExpr*>(x->expr);
+      assert(e != 0);
+      push(new AssignmentVisitState(e));
+      e->right->visit(this);
+   } else if (x->expr->is_write_expr()) {
+      BinaryExpr *e = dynamic_cast<BinaryExpr*>(x->expr);
+      assert(e != 0);
+      WriteExprVisitState *ws = new WriteExprVisitState(e);
+      e->collect_rights(ws->exprs);
+      push(ws);
+      ws->exprs.front()->visit(this);
+   } else {
+      push(new VisitState<ExprStmt>(x));
+   }
+}
+
+Todo Stepper::WriteExprVisitState::step(Stepper* S) {
+   exprs.pop_front();
+   if (!exprs.empty()) {
+      exprs.front()->visit(S);
+      S->status("Se escribe a la salida.");
+      return Stop;
+   } else {
+      S->pop();
+      delete this;
+      return Next;
+   }
+}
+
+Range Stepper::AssignmentVisitState::span() const {
+   return Range(x->left->span().ini, x->right->span().ini);
+}
+
+Todo Stepper::AssignmentVisitState::step(Stepper *S) {
+   if (right == 0) {
+      right = S->I._curr;
+      ostringstream oss;
+      oss << "La expresión ha dado " << *right << ".";
+      S->status(oss.str());
+      return Stop;
+   } else {
+      x->left->visit(&S->I);
+      Value *left = S->I._curr;
+      S->I.visit_binaryexpr_assignment(left, right);
+      S->status("Asignamos el valor.");
+      S->pop();
+      delete this;
+      return Next;
+   }
+}
+
+void Stepper::visit_callexpr(CallExpr *x) {
+   FuncDecl *fn = I.visit_callexpr_getfunc(x);
+   push(new CallExprVisitState(x, fn));
+   if (!x->args.empty()) {
+      x->args[0]->visit(this);
+   }
+}
+
+Todo Stepper::CallExprVisitState::step(Stepper *S) {
+   if (curr == -1) { // we are returning from the call
+      S->I.popenv();
+      S->pop();
+      delete this;
+      return Next;
+   }
+   const int size = x->args.size();
+   if (size > 0) {
+      args[curr] = S->I._curr;
+      ++curr;
+   }
+   if (curr < size) {
+      x->args[curr]->visit(S);
+      ostringstream oss;
+      oss << "Evaluado el argumento " << curr-1 << ".";
+      S->status(oss.str());
+      return Stop;
+   } else {
+      S->I.invoke_func_prepare(fn, args);
+      fn->block->visit(S);
+      S->status("Saltamos a la función '" + fn->name + "'.");
+      curr = -1; // signal return
+      return Stop;
+   }
+}

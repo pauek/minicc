@@ -20,6 +20,8 @@ Se declara la variable 'a'.
 Se lee de la entrada.
 7:7-7:14: a == 42
 La condición vale 'false', tomamos la segunda rama.
-10:6-10:27: cout << "no" << endl;
+10:14-10:18: "no"
+Se escribe a la salida.
+10:22-10:26: endl
 Se escribe a la salida.
 [[err]]--------------------------------------------------

@@ -2,14 +2,15 @@
 using namespace std;
 
 int main() {
-   cout << "hello" << ", there" << endl;
+   int a = 2;
+   a = a + 3;
 }
 [[out]]--------------------------------------------------
 Saltamos a la función 'main'.
-5:11-5:18: "hello"
-Se escribe a la salida.
-5:22-5:31: ", there"
-Se escribe a la salida.
-5:35-5:39: endl
-Se escribe a la salida.
+5:3-5:13: int a = 2;
+Se declara la variable 'a'.
+6:7-6:12: a + 3
+La expresión ha dado 5.
+6:3-6:7: a = 
+Asignamos el valor.
 [[err]]--------------------------------------------------

@@ -368,6 +368,15 @@ bool BinaryExpr::is_write_expr() const {
       (id != 0 and id->id == "cout");   
 }
 
+bool BinaryExpr::is_assignment() const {
+   return kind == Expr::Assignment;
+}
+
+void BinaryExpr::collect_rights(list<Expr*>& L) const {
+   L.push_front(right);
+   left->collect_rights(L);
+}
+
 string ExprStmt::describe() const {
    return expr->describe();
 }

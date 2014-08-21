@@ -4,6 +4,7 @@
 #include <assert.h>
 #include <iostream>
 #include <vector>
+#include <list>
 #include <stack>
 #include <map>
 #include "interpreter.hh"
@@ -55,6 +56,10 @@ public:
           void visit_declstmt(DeclStmt *x);
           void visit_ifstmt(IfStmt *x);
           void visit_iterstmt(IterStmt *x);
+          void visit_callexpr(CallExpr *x); 
+          void visit_literal(Literal *x); 
+          void visit_ident(Ident *x); 
+  
 
    template<typename X>
    struct VisitState : public StepperState { // Just to mark the current node (no eval)
@@ -73,6 +78,13 @@ public:
       int curr;
       BlockVisitState(Block *x) : VisitState<Block>(x), curr(0) {}
       Todo step(Stepper *S);      
+   };
+
+   struct AssignmentVisitState : public VisitState<BinaryExpr> {
+      Value *right;
+      AssignmentVisitState(BinaryExpr *x) : VisitState<BinaryExpr>(x), right(0) {}
+      Todo step(Stepper *S);
+      Range span() const;
    };
    
    struct IfVisitState : public VisitState<IfStmt> {
@@ -93,6 +105,26 @@ public:
       WhileVisitState(IterStmt *x) : VisitState<IterStmt>(x), state(Cond) {}
       Todo step(Stepper *S);
    };
+
+   struct CallExprVisitState : public VisitState<CallExpr> {
+      int curr;
+      FuncDecl *fn;
+      std::vector<Value*> args;
+      CallExprVisitState(CallExpr *x, FuncDecl *f) 
+         : VisitState<CallExpr>(x), fn(f), curr(0) {
+         args.resize(x->args.size());
+      }
+
+      Todo step(Stepper *S);
+   };
+
+   struct WriteExprVisitState : public VisitState<BinaryExpr> {
+      int curr;
+      std::list<Expr*> exprs;
+      WriteExprVisitState(BinaryExpr *x) : VisitState<BinaryExpr>(x), curr(0) {}
+      Todo step(Stepper *S);
+   };
+
 };
 
 

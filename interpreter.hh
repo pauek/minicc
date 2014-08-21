@@ -36,6 +36,8 @@ class Interpreter : public AstVisitor {
 
     void  visit_program_prepare(Program *x);
 FuncDecl *visit_program_find_main();
+    void  visit_binaryexpr_assignment(Value *, Value *);
+FuncDecl *visit_callexpr_getfunc(CallExpr *x);
 
    friend class Stepper;
 

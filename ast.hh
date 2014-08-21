@@ -4,6 +4,7 @@
 #include <assert.h>
 #include <string>
 #include <vector>
+#include <list>
 #include <map>
 #include "input.hh"
 
@@ -202,6 +203,8 @@ struct Expr : public AstNode {
 
    virtual bool is_read_expr()  const { return false; }
    virtual bool is_write_expr() const { return false; }
+   virtual bool is_assignment() const { return false; }
+   virtual void collect_rights(std::list<Expr*>& L) const {}
 
    static std::map<std::string, Kind> _op2kind;
    static std::map<Token::Kind, Kind> _tok2kind;
@@ -274,6 +277,8 @@ struct BinaryExpr : public Expr {
 
    bool is_read_expr()  const;
    bool is_write_expr() const;
+   bool is_assignment() const;
+   void collect_rights(std::list<Expr*>& L) const;
    std::string describe() const;
 };
 
