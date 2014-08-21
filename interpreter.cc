@@ -94,18 +94,6 @@ void Interpreter::visit_funcdecl(FuncDecl *x) {
    }
 }
 
-void Interpreter::visit_type(Type *x) {
-   _error("Interpreter::visit_type: UNIMPLEMENTED");
-}
-
-void Interpreter::visit_enumdecl(EnumDecl *x) {
-   _error("Interpreter::visit_enumdecl: UNIMPLEMENTED");
-}
-
-void Interpreter::visit_typedefdecl(TypedefDecl *x) {
-   _error("Interpreter::visit_typedefdecl: UNIMPLEMENTED");
-}
-
 void Interpreter::visit_structdecl(StructDecl *x) {
    _structs[x->id->id] = x;
 }
@@ -393,10 +381,6 @@ void Interpreter::visit_arraydecl(ArrayDecl *x) {
    setenv(x->name, v);
 }
 
-void Interpreter::visit_objdecl(ObjDecl *x) {
-   _error("Interpreter::visit_objdecl: UNIMPLEMENTED");
-}
-
 void Interpreter::visit_declstmt(DeclStmt* x) {
    for (Decl *d : x->decls) {
       d->visit(this);
@@ -444,10 +428,6 @@ void Interpreter::visit_iterstmt(IterStmt *x) {
       }
    }
    popenv();
-}
-
-void Interpreter::visit_jumpstmt(JumpStmt *x) {
-   _error("Interpreter::visit_jumpstmt: UNIMPLEMENTED");
 }
 
 void Interpreter::visit_callexpr(CallExpr *x) {
@@ -585,18 +565,3 @@ void Interpreter::visit_negexpr(NegExpr *x) {
    _curr->val.as_bool = !_curr->val.as_bool;
 }
 
-void Interpreter::visit_addrexpr(AddrExpr *x) {
-   _error("Interpreter::visit_addrexpr: UNIMPLEMENTED");
-}
-
-void Interpreter::visit_derefexpr(DerefExpr *x) {
-   _error("Interpreter::visit_derefexpr: UNIMPLEMENTED");
-}
-
-void Interpreter::visit_errorstmt(Stmt::Error *x) {
-   _error("Interpreter::visit_errorstmt: UNIMPLEMENTED");
-}
-
-void Interpreter::visit_errorexpr(Expr::Error *x) {
-   _error("Interpreter::visit_errorexpr: UNIMPLEMENTED");
-}
