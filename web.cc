@@ -65,6 +65,7 @@ public:
     Range span()     const { return S->span(); }
      bool finished() const { return S->finished(); }
      void step()           { S->step(); }
+   string env()      const { return S->env2json(); }
 };
 
 EMSCRIPTEN_BINDINGS(minicc) {
@@ -82,6 +83,7 @@ EMSCRIPTEN_BINDINGS(minicc) {
       .function("status",   &EmbindStepper::status)
       .function("span",     &EmbindStepper::span)
       .function("finished", &EmbindStepper::finished)
-      .function("step",     &EmbindStepper::step);
+      .function("step",     &EmbindStepper::step)
+      .function("env",      &EmbindStepper::env);
 }
 

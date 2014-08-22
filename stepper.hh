@@ -46,6 +46,7 @@ public:
           bool finished()         const { return _stack.empty(); }
          Range span() const             { _e(); return _stack.top()->span(); }
           void step();
+   std::string env2json()         const { return I.env2json(); }
 
 
           void visit_program(Program *x);

@@ -94,6 +94,7 @@ $(document).ready(function () {
          mark = editor.markText(ini, fin, {
             className: "current",
          });
+         console.log(JSON.parse(stepper.env()));
          stepper.step();
       } else {
          stepper = null;

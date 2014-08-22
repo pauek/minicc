@@ -78,6 +78,7 @@ int main(int argc, char *argv[]) {
          while (!S.finished()) {
             cout << S.status() << endl;
             cout << S.span() << ": " << P.input().substr(S.span()) << endl;
+            cout << S.env2json() << endl;
             S.step();
          }
          cout << S.status() << endl;

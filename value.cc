@@ -1,5 +1,6 @@
 
 #include <iostream>
+#include <sstream>
 #include <assert.h>
 using namespace std;
 
@@ -151,4 +152,27 @@ Value::Kind Value::type2kind(string type) {
    } else {
       assert(false);
    }
+}
+
+string Value::to_json() const {
+   ostringstream json;
+   switch (kind) {
+   case Value::Unknown: json << "null"; break;
+   case Value::Bool:    json << (val.as_bool ? "true" : "false"); break;
+   case Value::Char:    json << "\"'" << val.as_char << "'\"";    break;
+   case Value::Int:     json << val.as_int;                       break;
+   case Value::Float:   json << val.as_float;                     break;
+   case Value::Double:  json << val.as_double;                    break;
+   case Value::String: {
+      string *s = static_cast<string*>(val.as_ptr);
+      json << "\"\\\"" << *s << "\"\\\"";
+      break;
+   }
+   case Value::Ref:
+      json << "{\"ref\":\"" << static_cast<Value*>(val.as_ptr) << "\"}";
+      break;
+   default:
+      json << "\"to_json(Value): UNIMPLEMENTED\""; 
+   }
+   return json.str();
 }

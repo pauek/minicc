@@ -24,6 +24,7 @@ struct Value
    Any         val;
    Kind        kind;
    std::string type; // string representation of the type (as returned by Type::str)
+   bool        hidden;
 
    void _clear() { std::memset(&val, 0, sizeof(Any)); }
 
@@ -51,12 +52,15 @@ struct Value
    }
 
    Value *ref() const { return ref_to<Value*>(); }
-
    Value operator=(const Value& v);
+
+   std::string to_json() const;
 
    static Value cout, cin, cerr;
 
    static Kind type2kind(std::string type);
+
+   
 };
 
 bool operator==(const Value& a, const Value& b);

@@ -3,22 +3,48 @@
 #include "interpreter.hh"
 using namespace std;
 
-void Interpreter::setenv(string id, Value *val) {
-   _env.back()[id] = val;
+void Interpreter::setenv(string id, Value *val, bool hidden) {
+   _env.back().map[id] = EnvValue(val, hidden);
 }
 
 Value *Interpreter::getenv(string id) {
    for (int i = _env.size()-1; i >= 0; i--) {
-      auto it = _env[i].find(id);
-      if (it != _env[i].end()) {
-         return it->second;
+      auto it = _env[i].map.find(id);
+      if (it != _env[i].map.end()) {
+         return it->second.val;
       }
    }
    return 0;
 }
 
+string Interpreter::env2json() const {
+   ostringstream json;
+   json << "[";
+   for (int i = 1; i < _env.size(); i++) {
+      if (i > 1) {
+         json << ",";
+      }
+      json << "{\"func\":\"" << _env[i].name << "\",\"env\":{";
+      bool first = true;
+      for (auto it : _env[i].map) {
+         if (it.second.hidden) {
+            continue;
+         }
+         if (!first) {
+            json << ",";
+         }
+         first = false;
+         json << '"' << it.first << "\":";
+         json << it.second.val->to_json();
+      }
+      json << "}}";
+   }
+   json << "]";
+   return json.str();
+}
+
 void Interpreter::invoke_func_prepare(FuncDecl *fn, const vector<Value*>& args) {
-   pushenv();
+   pushenv(fn->name);
    if (fn->params.size() != args.size()) {
       _error("Error en el número de argumentos al llamar a '" + fn->name + "'");
    }
@@ -50,11 +76,12 @@ void Interpreter::invoke_func(FuncDecl *fn, const vector<Value*>& args) {
 
 void Interpreter::visit_program_prepare(Program *x) {
    _env.clear();
-   _env.resize(1);
+   _env.push_back(Env("<global>"));
 
-   setenv("endl", new Value("\n"));
-   setenv("cout", &Value::cout);
-   setenv("cin",  &Value::cin);
+   bool hidden = true;
+   setenv("endl", new Value("\n"), hidden);
+   setenv("cout", &Value::cout,    hidden);
+   setenv("cin",  &Value::cin,     hidden);
 
    for (AstNode *n : x->nodes) {
       n->visit(this);
@@ -422,7 +449,7 @@ void Interpreter::visit_ifstmt(IfStmt *x) {
 }
 
 void Interpreter::visit_iterstmt(IterStmt *x) {
-   pushenv();
+   pushenv("");
    if (x->init) {
       x->init->visit(this);
    }

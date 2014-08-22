@@ -16,30 +16,45 @@ struct EvalError {
 class Interpreter : public AstVisitor {
     Value *_curr, *_ret;
 
-  std::vector< std::map<std::string, Value*> > _env;
-  std::map<std::string, FuncDecl*>             _funcs;
-  std::map<std::string, StructDecl*>           _structs;
+   struct EnvValue {
+      Value *val;
+      bool hidden;
+      EnvValue(Value *v = 0, bool h = false)
+         : val(v), hidden(h) {}
+   };
 
-    void   pushenv() { _env.push_back(std::map<std::string, Value*>()); }
-    void   popenv()  { _env.pop_back(); }
-    void   setenv(std::string id, Value *val);
-    Value* getenv(std::string id);
+   struct Env {
+      std::string name;
+      std::map<std::string, EnvValue> map;
+      Env(std::string n) : name(n) {}
+   };
+
+                    std::vector<Env> _env;
+    std::map<std::string, FuncDecl*> _funcs;
+  std::map<std::string, StructDecl*> _structs;
+
+   void   pushenv(std::string name) { _env.push_back(Env(name));  }
+   void   popenv()                  { _env.pop_back(); }
+   void   setenv(std::string id, Value *val, bool hidden = false);
+   Value* getenv(std::string id);
+
+std::string env2json() const;
 
     void _error(std::string msg) {
        throw new EvalError(msg);
     }
 
-    Value new_value_from_structdecl(StructDecl *x);
+     Value new_value_from_structdecl(StructDecl *x);
 
-    void  invoke_func_prepare(FuncDecl *x, const std::vector<Value*>& args);
-    void  invoke_func(FuncDecl *, const std::vector<Value*>&);
+     void  invoke_func_prepare(FuncDecl *x, const std::vector<Value*>& args);
+     void  invoke_func(FuncDecl *, const std::vector<Value*>&);
 
-    void  visit_program_prepare(Program *x);
-FuncDecl *visit_program_find_main();
-    void  visit_binaryexpr_assignment(Value *, Value *);
-FuncDecl *visit_callexpr_getfunc(CallExpr *x);
+     void  visit_program_prepare(Program *x);
+ FuncDecl *visit_program_find_main();
+     void  visit_binaryexpr_assignment(Value *, Value *);
+ FuncDecl *visit_callexpr_getfunc(CallExpr *x);
 
-   friend class Stepper;
+    friend class Stepper;
 
 public:
    Interpreter(std::istream *i, std::ostream *o)
