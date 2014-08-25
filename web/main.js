@@ -23,8 +23,9 @@ function setCompilado(new_value) {
 }
 
 var editor;
+var output, errors;
 
-$(document).ready(function () {
+function setup(init) {
    editor = CodeMirror.fromTextArea(document.getElementById("editor"), {
       mode: 'text/x-c++src',
       theme: 'default',
@@ -35,74 +36,109 @@ $(document).ready(function () {
       indentUnit: 3,
       autofocus: true,
    });
-   editor.setValue(initial_program);
+   editor.setValue(init);
 
-   var output = CodeMirror.fromTextArea($('#output > textarea')[0], {
-      mode: 'text/x-show-inv',
-      readOnly: true,
-   });
-   var errors = CodeMirror.fromTextArea($('#errors > textarea')[0], {
+   output = CodeMirror.fromTextArea($('#output > textarea')[0], {
       mode: 'text/x-show-inv',
       readOnly: true,
    });
 
-   $("#execute").addClass("pure-button-disabled");
-   $("#step").addClass("pure-button-disabled");
+   errors = CodeMirror.fromTextArea($('#errors > textarea')[0], {
+      mode: 'text/x-show-inv',
+      readOnly: true,
+   });
 
    editor.on("change", function () {
       setCompilado(false);
       $('#output').hide();
    });
+}
 
-   $("#compile").click(function () {
-      var code = editor.getValue();
-      var err = Module.compile(code);
-      if (err == "") {
-         setCompilado(true);
-      }
-      errors.setValue(err);
-      $('#errors').show();
+function compile() {
+   var code = editor.getValue();
+   var err = Module.compile(code);
+   if (err == "") {
+      setCompilado(true);
+   }
+   errors.setValue(err);
+   $('#errors').show();
+}
+
+function execute() {
+   $('#errors').hide();
+   $("#output > pre").text("");
+   setTimeout(function () {
+      var out = Module.execute("");
+      var re1 = new RegExp('\n', 'g');
+      out = out.replace(re1, '\u21a9\n');
+      var re2 = new RegExp(' ', 'g');
+      out = out.replace(re2, '\u2423');
+      out += '\u00a7';
+      console.log(out);
+      $('#output').show();
+      output.setValue(out);
+   }, 80);
+}
+
+var stepper = null, mark;
+
+function step() {
+   if (stepper === null) {
+      stepper = new Module.Stepper();
+   }
+   if (mark) {
+      mark.clear();
+   }
+   if (!stepper.finished()) {
+      var r = stepper.span();
+      var ini = {line: r.ini.lin-1, ch: r.ini.col};
+      var fin = {line: r.fin.lin-1, ch: r.fin.col};
+      console.log(ini, fin);
+      mark = editor.markText(ini, fin, {
+         className: "current",
+      });
+      console.log(JSON.parse(stepper.env()));
+      stepper.step();
+   } else {
+      stepper = null;
+   }
+}
+
+function reformat() {
+   var code = editor.getValue();
+   var new_code = Module.reformat(code);
+   editor.setValue(new_code);
+}
+
+function resize() {
+   var free = $(window).height() - $('header').height();
+   $('#content').height(free + 'px');
+}
+
+$(document).ready(function () {
+   setup(initial_program);
+
+   $("#execute").addClass("pure-button-disabled");
+   $("#step").addClass("pure-button-disabled");
+
+   $("#compile").click(compile);
+   $("#execute").click(execute);
+   $('#step').click(step);
+   $("#reformat").click(reformat);
+
+   $(window).resize(resize);
+   $(window).resize();
+
+   $('#content').split({
+      orientation: 'horizontal',
+      limit: 200,
    });
-   $("#execute").click(function () {
-      $('#errors').hide();
-      $("#output > pre").text("");
-      setTimeout(function () {
-         var out = Module.execute("");
-         var re1 = new RegExp('\n', 'g');
-         out = out.replace(re1, '\u21a9\n');
-         var re2 = new RegExp(' ', 'g');
-         out = out.replace(re2, '\u2423');
-         out += '\u00a7';
-         console.log(out);
-         $('#output').show();
-         output.setValue(out);
-      }, 80);
+   $('#top').split({
+      orientation: 'vertical',
+      limit: 350,
    });
-   var stepper = null, mark;
-   $('#step').click(function () {
-      if (stepper === null) {
-         stepper = new Module.Stepper();
-      }
-      if (mark) {
-         mark.clear();
-      }
-      if (!stepper.finished()) {
-         var r = stepper.span();
-         var ini = {line: r.ini.lin-1, ch: r.ini.col};
-         var fin = {line: r.fin.lin-1, ch: r.fin.col};
-         console.log(ini, fin);
-         mark = editor.markText(ini, fin, {
-            className: "current",
-         });
-         console.log(JSON.parse(stepper.env()));
-         stepper.step();
-      } else {
-         stepper = null;
-      }
+   $(window).bind('splitter.resize', function () {
+      editor.refresh();
    });
-   $("#reformat").click(function () {
-      var code = editor.getValue();
-      var new_code = Module.reformat(code);
-      editor.setValue(new_code);
-   });
+   editor.refresh();
 });

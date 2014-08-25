@@ -6,89 +6,60 @@
 
   <title>MiniC++</title>
 
+  <!-- pure -->
   <link rel="stylesheet" href="http://yui.yahooapis.com/pure/0.5.0/pure-min.css">
   <link rel="stylesheet" href="http://yui.yahooapis.com/pure/0.5.0/grids-responsive-min.css">
   <link rel="stylesheet" href="//maxcdn.bootstrapcdn.com/font-awesome/4.1.0/css/font-awesome.min.css">
 
-  <script src="zepto.min.js"></script> 
+  <!-- jQuery -->
+  <script src="jquery.min.js"></script> 
 
+  <!-- Splitter -->
+  <script src="jquery.splitter.js"></script> 
+  <link rel="stylesheet" href="jquery.splitter.css">
+
+  <!-- CodeMirror -->
   <link rel="stylesheet" href="codemirror.css">
   <script src="codemirror.js"></script>
   <script src="clike.js"></script>
   <script src="show-invisibles.js"></script>
 
+  <!-- minicc -->
+  <link rel="stylesheet" href="base.css">
   <script src="minicc.js"></script> 
   <script src="main.js"></script>
-
-  <style type="text/css" media="screen">
-    body { margin: 0; }
-    .editor {
-       border: 1px solid #ccc;
-       box-shadow: inset 0 1px 3px #e4e4e4;
-    }
-    .CodeMirror {
-       height: 600px;
-       font-size: 14px;
-       font-family: "Source Code Pro", monospaced;
-       line-height: 17px;
-    }
-    #errors { 
-       padding: .5em .8em; 
-    }
-    #errors h4 { margin: 0; }
-
-    .cm-invisible { opacity: .25; }
-    
-    .current { 
-       background: yellow; 
-    }
-  </style>
 
 </head>
 <body>
   <header>
-
     <div class="pure-menu pure-menu-open pure-menu-horizontal">
       <a href="#" class="pure-menu-heading">Mini C++</a>
       <ul>
-        <li>
-          <a href="#" id="compile">
-            <i class="fa fa-cog"></i>
-            Compila
-          </a>
-        </li>
-        <li>
-          <a href="#" id="execute">
-            <i class="fa fa-play"></i>
-            Ejecuta
-          </a>
-        </li>
-        <li>
-          <a href="#" id="step">
-            <i class="fa fa-play"></i>
-            Paso
-          </a>
-        </li>
-        <li>
-          <a href="#" id="reformat">
-            <i class="fa fa-indent"></i>
-            Reformatea
-          </a>
-        </li>
+        <li><a href="#" id="compile"> <i class="fa fa-cog">   </i> Compila   </a></li>
+        <li><a href="#" id="execute"> <i class="fa fa-play">  </i> Ejecuta   </a></li>
+        <li><a href="#" id="step">    <i class="fa fa-play">  </i> Paso      </a></li>
+        <li><a href="#" id="reformat"><i class="fa fa-indent"></i> Reformatea</a></li>
       </ul>
     </div>
   </header>
-  <div class="editor">
-    <textarea id="editor"></textarea>
+  <div id="content">
+    <div id="top">
+      <div id="left">
+        <textarea id="editor"></textarea>
+      </div>
+      <div id="right">
+        <div id="output">
+          <h4>Salida</h4>
+          <textarea></textarea>
+        </div>
+        <div id="errors" style="display: none">
+          <h4>Errores</h4>
+          <textarea></textarea>
+        </div>
+      </div>
+    </div>
+    <div id="bottom"></div>
   </div>
-  <div id="output" style="display: none">
-    <h4>Salida</h4>
-    <textarea></textarea>
   </div>
-  <div id="errors" style="display: none">
-    <h4>Errores</h4>
-    <textarea></textarea>
-  </div>
-
 </body>
 </html>
