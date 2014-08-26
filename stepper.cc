@@ -169,6 +169,7 @@ void Stepper::visit_increxpr(IncrExpr *x)     { push(new VisitState<IncrExpr>(x)
 void Stepper::visit_binaryexpr(BinaryExpr *x) { push(new VisitState<BinaryExpr>(x)); }
 void Stepper::visit_literal(Literal *x)       { push(new VisitState<Literal>(x)); }
 void Stepper::visit_ident(Ident *x)           { push(new VisitState<Ident>(x)); }
+void Stepper::visit_fieldexpr(FieldExpr *x)   { push(new VisitState<FieldExpr>(x)); }
 
 void Stepper::visit_exprstmt(ExprStmt *x) { 
    if (x->expr->is_assignment()) {

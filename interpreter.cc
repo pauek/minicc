@@ -437,16 +437,24 @@ void Interpreter::visit_binaryexpr(BinaryExpr *x) {
    _error("Interpreter::visit_binaryexpr: UNIMPLEMENTED (" + x->op + ")");
 }
 
+inline bool assignment_types_ok(string a, string b) {
+   return 
+      (a == b) or
+      (a == "float"  and b == "double") or
+      (a == "double" and b == "float");
+}
+
 void Interpreter::visit_binaryexpr_assignment(Value *left, Value *right) {
    if (left->kind != Value::Ref) {
       _error("Intentas asignar sobre algo que no es una variable");
    }
-   Value *v = left->ref();
-   if (v->type != right->type) {
-      _error("Las asignación no se puede hacer porque los tipos no coinciden");
+   left = left->ref();
+   if (assignment_types_ok(left->type, right->type)) {
+      *left = *right; // DANGER!
+   } else { 
+      _error("La asignación no se puede hacer porque los tipos no son compatibles");
    }
-   *v = *right; // DANGER!
-   _curr = v;
+   _curr = left;
 }
 
 
@@ -456,62 +464,76 @@ void Interpreter::visit_block(Block *x) {
    }
 }
 
-Value *Interpreter::visit_vardecl_struct_new(StructDecl *D, vector<Expr*> *init) {
-   Value *v = new Value(Value::Struct, D->type_str());
+Value *Interpreter::visit_vardecl_struct_new(StructDecl *D, Value *init) {
+   if (init and init->kind != Value::ExprList) {
+      _error("Inicializas una tupla con algo que no es una lista de valores");
+      return 0;
+   }
+   vector<Value*> *values = (init ? init->exprlist() : 0);
    map<string,Value*> *fields = new map<string,Value*>();
    int k = 0;
    for (int i = 0; i < D->decls.size(); i++) {
       string type = D->decls[i]->type->str();
       Value::Kind kind = Value::type2kind(type);
+      StructDecl *substruct;
       if (kind == Value::Unknown) {
          auto it = _structs.find(type); // try struct
          if (it != _structs.end()) {
             kind = Value::type2kind(it->second->type_str());
+            substruct = it->second;
          }
       }
-      for (int j = 0; j < D->decls[i]->decls.size(); j++) {
-         if (init and (k < init->size())) {
-            (*init)[k]->visit(this);
-            (*fields)[D->decls[i]->decls[j]->name] = _curr;
-            k++;
+      for (int j = 0; j < D->decls[i]->decls.size(); j++, k++) {
+         const string field_name = D->decls[i]->decls[j]->name;
+         Value *val = 0;
+         if (values and (k < values->size())) {
+            val = (*values)[k];
+         }
+         if (kind == Value::Struct) {
+            (*fields)[field_name] = visit_vardecl_struct_new(substruct, val);
          } else {
-            if (kind == Value::Struct) {
-               string type = D->decls[i]->type->str();
-               (*fields)[D->decls[i]->decls[j]->name] = visit_vardecl_struct_new(_structs[type], 0);
-            } else {
-               (*fields)[D->decls[i]->decls[j]->name] = new Value(kind, type);
-            }
+            (*fields)[field_name] = (val ? val : new Value(Value::Unknown, type));
          }
       }
    }
-   v->val.as_ptr = fields;
-   return v;
+   Value *res = new Value(Value::Struct, D->type_str());
+   res->val.as_ptr = fields;
+   return res;
 }
 
 void Interpreter::visit_vardecl_struct(VarDecl *x, StructDecl *D) {
-   auto it = _structs.find(x->type->id->id);
+   string struct_id = x->type->id->id;
+   auto it = _structs.find(struct_id);
    if (it == _structs.end()) {
-      _error("El tipo '" + x->type->id->id + "' no es una tupla");
+      _error("El tipo '" + struct_id + "' no es una tupla");
    }
-   if (D->num_fields() < x->init.size()) {
-      _error("Demasiados valores al inicializar la tupla de tipo '" + x->type->id->id + "'");
+   Value *init = 0;
+   if (x->init) {
+      x->init->visit(this);
+      if (_curr->kind != Value::ExprList) {
+         _error("Para inicializar una tupla hace falta una lista de expresiones entre '{' y '}'");
+         return;
+      }
+      vector<Value*> *values = _curr->exprlist();
+      assert(values != 0);
+      if (values->size() > D->num_fields()) {
+         _error("Demasiados valores al inicializar la tupla de tipo '" + struct_id + "'");
+         return;
+      }
+      init = _curr;
    }
-   setenv(x->name, visit_vardecl_struct_new(D, &x->init));
+   setenv(x->name, visit_vardecl_struct_new(D, init));
 }
 
 void Interpreter::visit_vardecl(VarDecl *x) {
    auto it = _structs.find(x->type->id->id);
    bool is_struct = (it != _structs.end());
    if (is_struct) {
-      if (!x->init.empty() and !x->curly) {
-         _error("Inicialización incorrecta: el tipo '" + x->type->id->id + "' es una tupla");
-         return;
-      }
       visit_vardecl_struct(x, it->second);
    } else {
       Value *init;
-      if (!x->init.empty()) {
-         x->init[0]->visit(this);
+      if (x->init) {
+         x->init->visit(this);
          string left = x->type->str(), right = _curr->type;
          if (left != right) {
             // Conversiones implícitas!
@@ -689,6 +711,16 @@ void Interpreter::visit_condexpr(CondExpr *x) {
          x->els->visit(this);
       }
    }
+}
+
+void Interpreter::visit_exprlist(ExprList *x) {
+   vector<Value*> *v = new vector<Value*>();
+   for (Expr *e : x->exprs) {
+      e->visit(this);
+      v->push_back(_curr);
+   }
+   _curr = new Value(Value::ExprList, "ExprList");
+   _curr->val.as_ptr = v;
 }
 
 void Interpreter::visit_signexpr(SignExpr *x) {

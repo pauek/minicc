@@ -29,8 +29,8 @@ class Parser {
    template<class Node>
    typename Node::Error *error(std::string msg);
 
-   void parse_expr_list(AstNode *n, std::vector<Expr*>& v);
-   void parse_type_list(AstNode *n, std::vector<Type*>& v);
+   void parse_expr_seq(AstNode *n, std::vector<Expr*>& v);
+   void parse_type_seq(AstNode *n, std::vector<Type*>& v);
 
    Decl *_parse_vardecl(std::string name, Decl::Kind kind);
    Decl *_parse_arraydecl(std::string name, Decl::Kind kind);
@@ -73,6 +73,7 @@ TypedefDecl *parse_typedef();
        Expr *parse_indexexpr(Expr *);
        Expr *parse_fieldexpr(Expr *, Token);
        Expr *parse_increxpr(Expr *, Token);
+       Expr *parse_exprlist();
 };
 
 #endif

@@ -59,6 +59,7 @@ public:
           void visit_iterstmt(IterStmt *x);
           void visit_callexpr(CallExpr *x); 
           void visit_literal(Literal *x); 
+          void visit_fieldexpr(FieldExpr *x); 
           void visit_ident(Ident *x); 
   
 

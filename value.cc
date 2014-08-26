@@ -91,6 +91,18 @@ ostream& operator<<(ostream& o, const Value& v) {
    }
    case Value::Ref:
       return o << *static_cast<Value*>(v.val.as_ptr);
+   case Value::ExprList: {
+      const vector<Value*> *vals = v.exprlist();
+      o << "{";
+      for (int i = 0; i < vals->size(); i++) {
+         if (i > 0) {
+            o << ", ";
+         }
+         o << *(*vals)[i];
+      }
+      o << '}';
+      return o;
+   }
    default:
       return o << "operator<<(Value): UNIMPLEMENTED"; 
    }
@@ -208,4 +220,12 @@ string Value::to_json() const {
       json << "\"to_json(Value): UNIMPLEMENTED\""; 
    }
    return json.str();
+}
+
+vector<Value*> *Value::exprlist() {
+   return static_cast<vector<Value*>*>(val.as_ptr);
+}
+
+const vector<Value*> *Value::exprlist() const {
+   return static_cast<vector<Value*>*>(val.as_ptr);
 }

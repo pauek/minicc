@@ -38,6 +38,7 @@ public:
    void visit_indexexpr(IndexExpr *x);
    void visit_fieldexpr(FieldExpr *x);
    void visit_condexpr(CondExpr *x);
+   void visit_exprlist(ExprList *x);
    void visit_signexpr(SignExpr *x);
    void visit_increxpr(IncrExpr *x);
    void visit_negexpr(NegExpr *x);

@@ -17,7 +17,7 @@ struct Value
 
    enum Kind { Bool, Char, Int, Float, Double,
                String, Vector, List, Map,
-               Array, Struct, Ref,
+               ExprList, Array, Struct, Ref,
                Cout, Cin, Cerr,
                Unknown };
 
@@ -60,7 +60,8 @@ struct Value
 
    static Kind type2kind(std::string type);
 
-   
+   std::vector<Value*> *exprlist();
+   const std::vector<Value*> *exprlist() const;
 };
 
 bool operator==(const Value& a, const Value& b);

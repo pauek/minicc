@@ -138,9 +138,8 @@ struct Decl : public AstNode {
 
 struct VarDecl : public Decl {
    Kind kind;
-   std::vector<Expr *> init;
-   bool curly;
-   VarDecl() : kind(Normal), curly(false) {}
+   Expr *init;
+   VarDecl() : kind(Normal), init(0) {}
    void visit(AstVisitor *v);
 };
 
@@ -348,6 +347,12 @@ struct CondExpr : public Expr {
    bool has_errors() const;
 };
 
+struct ExprList : public Expr {
+   std::vector<Expr*> exprs;
+   void visit(AstVisitor *v);
+   bool has_errors() const;
+};
+
 struct Type : public AstNode {
    enum Qualifiers {
       None = 0, 
@@ -464,6 +469,7 @@ public:
    virtual void visit_indexexpr(IndexExpr *)      { assert(false); }
    virtual void visit_fieldexpr(FieldExpr *)      { assert(false); }
    virtual void visit_condexpr(CondExpr *)        { assert(false); }
+   virtual void visit_exprlist(ExprList *)        { assert(false); }
    virtual void visit_signexpr(SignExpr *)        { assert(false); }
    virtual void visit_increxpr(IncrExpr *)        { assert(false); }
    virtual void visit_negexpr(NegExpr *)          { assert(false); }
@@ -501,6 +507,7 @@ inline void CallExpr::visit(AstVisitor *v)      { v->visit_callexpr(this); }
 inline void IndexExpr::visit(AstVisitor *v)     { v->visit_indexexpr(this); }
 inline void FieldExpr::visit(AstVisitor *v)     { v->visit_fieldexpr(this); }
 inline void CondExpr::visit(AstVisitor *v)      { v->visit_condexpr(this); }
+inline void ExprList::visit(AstVisitor *v)      { v->visit_exprlist(this); }
 inline void SignExpr::visit(AstVisitor *v)      { v->visit_signexpr(this); }
 inline void IncrExpr::visit(AstVisitor *v)      { v->visit_increxpr(this); }
 inline void NegExpr::visit(AstVisitor *v)       { v->visit_negexpr(this); }

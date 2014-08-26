@@ -54,7 +54,7 @@ std::string env2json() const;
      void  visit_binaryexpr_assignment(Value *, Value *);
  FuncDecl *visit_callexpr_getfunc(CallExpr *x);
      void  visit_vardecl_struct(VarDecl *x, StructDecl *decl);
-    Value *visit_vardecl_struct_new(StructDecl *D, std::vector<Expr*> *init);
+    Value *visit_vardecl_struct_new(StructDecl *D, Value *init);
 
    template<class Op>
      bool  visit_op_assignment(Value *left, Value *right);
@@ -99,6 +99,7 @@ public:
    void visit_indexexpr(IndexExpr *x);
    void visit_fieldexpr(FieldExpr *x);
    void visit_condexpr(CondExpr *x);
+   void visit_exprlist(ExprList *x);
    void visit_signexpr(SignExpr *x);
    void visit_increxpr(IncrExpr *x);
    void visit_negexpr(NegExpr *x);

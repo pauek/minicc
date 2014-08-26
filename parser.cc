@@ -212,7 +212,7 @@ Ident *Parser::parse_ident(Token tok, Pos ini) {
       if (_is_type(id->id) and tok2.kind == Token::LT) { // template_id
          _in.discard();
          _skip(id);
-         parse_type_list(id, id->subtypes);
+         parse_type_seq(id, id->subtypes);
          if (_in.curr() != '>') { // Do NOT call next_token here, since it will return ">>"
             error(id, "Esperaba un '>' aquí");
          } else {
@@ -721,6 +721,7 @@ Expr *Parser::parse_fieldexpr(Expr *x, Token tok) {
    _skip(e);
    Token id = _in.read_id();
    e->field = new Ident(id.str);
+   e->fin = _in.pos();
    _skip(e->field);
    return e;
 }
@@ -806,7 +807,7 @@ Stmt *Parser::parse_switch() {
    return error<Stmt>("UNIMPLEMENTED switch");
 }
 
-void Parser::parse_expr_list(AstNode *n, vector<Expr*>& exprs) {
+void Parser::parse_expr_seq(AstNode *n, vector<Expr*>& exprs) {
    exprs.push_back(parse_expr(Expr::Assignment));
    while (_in.curr() == ',') {
       _in.next();
@@ -815,7 +816,7 @@ void Parser::parse_expr_list(AstNode *n, vector<Expr*>& exprs) {
    }
 }
 
-void Parser::parse_type_list(AstNode *n, vector<Type*>& v) {
+void Parser::parse_type_seq(AstNode *n, vector<Type*>& v) {
    v.push_back(parse_type());
    _skip(n);
    while (_in.curr() == ',') {
@@ -823,6 +824,27 @@ void Parser::parse_type_list(AstNode *n, vector<Type*>& v) {
       _skip(n);
       v.push_back(parse_type());
    }
+}
+
+Expr *Parser::parse_exprlist() {
+   assert(_in.curr() == '{');
+   ExprList *elist = new ExprList();
+   do {
+      _in.next();
+      _skip(elist);
+      if (_in.curr() == '}') {
+         break;
+      }
+      elist->exprs.push_back(_in.curr() == '{' 
+                             ? parse_exprlist() 
+                             : parse_expr(Expr::Assignment));
+   } while (_in.curr() == ',');
+
+   if (!_in.expect("}")) {
+      error(elist, _in.pos().str() + ": Esperaba un '}' aquí");
+      _in.skip_to("},;\n");
+   }
+   return elist;
 }
 
 Decl *Parser::_parse_vardecl(string name, Decl::Kind kind) {
@@ -833,18 +855,9 @@ Decl *Parser::_parse_vardecl(string name, Decl::Kind kind) {
    if (_in.curr() == '=') {
       _in.next();
       _skip(decl);
-      if (_in.curr() == '{') { // inicialización de tupla
-         _in.next();
-         _skip(decl);
-         decl->curly = true;
-         parse_expr_list(decl, decl->init);
-         if (!_in.expect("}")) {
-            error(decl, _in.pos().str() + ": Esperaba un '}' aquí");
-            _in.skip_to("},;\n");
-         }
-      } else {
-         decl->init.push_back(parse_expr(Expr::Assignment));
-      }
+      decl->init = (_in.curr() == '{' 
+                    ? parse_exprlist() 
+                    : parse_expr(Expr::Assignment));
    }
    return decl;
 }
@@ -868,7 +881,7 @@ Decl *Parser::_parse_arraydecl(string name, Decl::Kind kind) {
          error(decl, _in.pos().str() + ": Esperaba un '{' aquí");
       }
       _skip(decl);
-      parse_expr_list(decl, decl->init);
+      parse_expr_seq(decl, decl->init);
       if (!_in.expect("}")) {
          error(decl, _in.pos().str() + ": Esperaba un '}' aquí");
          _in.skip_to("},;\n");
@@ -882,7 +895,7 @@ Decl *Parser::_parse_objdecl(string name) {
    ObjDecl *decl = new ObjDecl();
    _skip(decl); // after the name
    decl->name = name;
-   parse_expr_list(decl, decl->args);
+   parse_expr_seq(decl, decl->args);
    if (!_in.expect(")")) {
       error(decl, _in.pos().str() + ": Esperaba un ')' aquí");
       _in.skip_to("),;\n");

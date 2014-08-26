@@ -114,6 +114,7 @@ header {
   padding: 1px 4px;
   border: 1px solid #ccc;
   background-color: white;
+  color: #4449ff;
 }
 #env .var .unknown {
   color: #aaa;

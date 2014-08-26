@@ -260,6 +260,15 @@ bool CondExpr::has_errors() const {
    return AstNode::has_errors();
 }
 
+bool ExprList::has_errors() const {
+   for (Expr *e : exprs) {
+      if (e->has_errors()) {
+         return true;
+      }
+   }
+   return false;
+}
+
 bool Type::has_errors() const {
    _ERRORS(id);
    return AstNode::has_errors();

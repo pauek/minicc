@@ -166,7 +166,7 @@ function value_str(value, addClass) {
       }
       html += classes[i];
    }
-   html += '">' + s + '</span>';
+   html += '">' + s + '</' + elem + '>';
    return html;
 }
 
@@ -191,6 +191,7 @@ function showenv(env) {
       html += '</div></td>';
    }
    html += '</tr></table>';
+   console.log(html);
    $('#env').append(html);
 }
 
