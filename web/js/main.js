@@ -3,6 +3,10 @@ var initial_program = '#include <iostream>\n\
 using namespace std;\n\
 \n\
 int main() {\n\
+   int a = 1;\n\
+   a = 3;\n\
+   int b = 3;\n\
+   b = 7;\n\
    cout << "Hola, MiniC++" << endl;\n\
 }\n\
 ';
@@ -93,11 +97,10 @@ function step() {
       var r = stepper.span();
       var ini = {line: r.ini.lin-1, ch: r.ini.col};
       var fin = {line: r.fin.lin-1, ch: r.fin.col};
-      console.log(ini, fin);
       mark = editor.markText(ini, fin, {
          className: "current",
       });
-      console.log(JSON.parse(stepper.env()));
+      showenv(JSON.parse(stepper.env()));
       stepper.step();
    } else {
       stepper = null;
@@ -113,6 +116,27 @@ function reformat() {
 function resize() {
    var free = $(window).height() - $('header').height();
    $('#content').height(free + 'px');
+}
+
+function showenv(env) {
+   $('#env').empty();
+   for (var i = 0; i < env.length; i++) {
+      var html = '<div class="fenv"><h5>' + env[i].func + '</h5>';
+      var E = env[i].env;
+      for (var prop in E) {
+         html += '<div class="var">' + prop + '&nbsp;';
+         html += '<span class="value">';
+         if (E[prop] === null) {
+            html += '<span class="unknown">?</span>';
+         } else {
+            html += E[prop];
+         }
+         html += '</span>';
+         html += '</div>';
+      }
+      html += '</div>';
+      $('#env').append(html);
+   }
 }
 
 $(document).ready(function () {

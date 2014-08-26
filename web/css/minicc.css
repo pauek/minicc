@@ -1,0 +1,107 @@
+body { 
+  margin: 0; 
+  overflow: hidden;
+}
+
+.editor {
+  border: 1px solid #ccc;
+  box-shadow: inset 0 1px 3px #e4e4e4;
+}
+
+.CodeMirror {
+  height: 100%;
+  width: 100%;
+  font-size: 14px;
+  font-family: "Source Code Pro", "Consolas", monospaced;
+  line-height: 17px;
+  background: none;
+}
+.CodeMirror-linenumber {
+  color: #ccc;
+}
+
+#errors h4 { margin: 0; }
+
+.cm-invisible { opacity: .25; }
+
+.current { 
+  background: yellow; 
+}
+
+header {
+  border-bottom: 1px solid #ccc;
+}
+
+.splitter_panel .hsplitter {
+  background-color: white;
+  border-top: 1px solid #ddd;
+  border-bottom: 1px solid #ddd;
+  height: 6px;
+}
+
+.splitter_panel .vsplitter {
+  background-color: white;
+  border-left: 1px solid #ddd;
+  border-right: 1px solid #ddd;
+  width: 6px;
+}
+
+#right {
+  background-color: #e7e7e7;
+}
+
+#bottom {
+  background-color: #e7ffe7;
+  padding: 0;
+}
+
+#output {
+  padding: .3em 1.5em;
+}
+
+#env {
+  padding: 13px;
+}
+
+#env .fenv {
+  border: 1px solid #bbb;
+  padding: 0;
+  display: inline-block; 
+  width: 250px;
+}
+
+#env .fenv {
+  font-size: .85rem;
+  font-family: "Source Code Pro", "Consolas", monospace;
+  padding-bottom: 6px;
+  background-color: #f7f7f7;
+  min-height: 100px;
+  margin-right: 15px;
+  vertical-align: top;
+  border-radius: 3px;
+}
+
+#env .fenv h5 {
+  margin: 0;
+  padding: 5px 8px;
+  background-color: rgba(0, 0, 0, .2);
+  font-size: 0.9rem;
+  font-weight: normal;
+}
+
+#env .var {
+  padding: 7px 7px 0 7px;
+}
+
+#env .var .sep {
+  color: rgba(0, 0, 0, .2);
+}
+
+#env .var .value {
+  padding: 1px 4px;
+  border: 1px solid #ccc;
+  background-color: white;
+}
+#env .var .unknown {
+  color: #aaa;
+}
