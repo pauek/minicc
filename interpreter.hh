@@ -54,6 +54,9 @@ std::string env2json() const;
      void  visit_binaryexpr_assignment(Value *, Value *);
  FuncDecl *visit_callexpr_getfunc(CallExpr *x);
 
+   template<class Op>
+     bool  visit_op_assignment(Value *left, Value *right);
+
     friend class Stepper;
 
 public:

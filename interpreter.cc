@@ -165,6 +165,31 @@ void Interpreter::visit_literal(Literal *x) {
    }
 }
 
+struct PlusAssign { 
+   template<typename T> static void eval(T& a, const T& b) { a += b; }
+};
+struct MinusAssign { 
+   template<typename T> static void eval(T& a, const T& b) { a -= b; }
+};
+
+template<class Op>
+bool Interpreter::visit_op_assignment(Value *left, Value *right) {
+   if (left->kind == Value::Int and right->kind == Value::Int) {
+      Op::eval(left->val.as_int, right->val.as_int);
+      return true;
+   } 
+   if (left->kind == Value::Float and right->kind == Value::Float) {
+      Op::eval(left->val.as_float, right->val.as_float);
+      return true;
+   }
+   if (left->kind == Value::Double and right->kind == Value::Double) {
+      Op::eval(left->val.as_double, right->val.as_double);
+      return true;
+   }
+   return false;
+}
+
+
 void Interpreter::visit_binaryexpr(BinaryExpr *x) {
    x->left->visit(this);
    Value *left = _curr;
@@ -213,21 +238,12 @@ void Interpreter::visit_binaryexpr(BinaryExpr *x) {
       if (left->kind != Value::Ref) {
          _error("Para usar '+=' se debe poner una variable a la izquierda");
       }
-      Value *v = left->ref();
-      if (v->kind == Value::Int and right->kind == Value::Int) {
-         v->val.as_int += right->val.as_int;
-         return;
-      } 
-      if (v->kind == Value::Float and right->kind == Value::Float) {
-         v->val.as_float += right->val.as_float;
+      left = left->ref();
+      if (visit_op_assignment<PlusAssign>(left, right)) {
          return;
       }
-      if (v->kind == Value::Double and right->kind == Value::Double) {
-         v->val.as_double += right->val.as_double;
-         return;
-      }
-      if (v->kind == Value::String and right->kind == Value::String) {
-         string *s1 = static_cast<string*>(v->val.as_ptr);
+      if (left->kind == Value::String and right->kind == Value::String) {
+         string *s1 = static_cast<string*>(left->val.as_ptr);
          string *s2 = static_cast<string*>(right->val.as_ptr);
          *s1 += *s2;
          return;
@@ -238,17 +254,8 @@ void Interpreter::visit_binaryexpr(BinaryExpr *x) {
       if (left->kind != Value::Ref) {
          _error("Para usar '-=' se debe poner una variable a la izquierda");
       }
-      Value *v = left->ref();
-      if (v->kind == Value::Int and right->kind == Value::Int) {
-         v->val.as_int -= right->val.as_int;
-         return;
-      } 
-      if (v->kind == Value::Float and right->kind == Value::Float) {
-         v->val.as_float -= right->val.as_float;
-         return;
-      }
-      if (v->kind == Value::Double and right->kind == Value::Double) {
-         v->val.as_double -= right->val.as_double;
+      left = left->ref();
+      if (visit_op_assignment<MinusAssign>(left, right)) {
          return;
       }
       _error("Los operandos de '-=' no son compatibles");
