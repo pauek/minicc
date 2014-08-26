@@ -57,6 +57,12 @@ std::string env2json() const;
    template<class Op>
      bool  visit_op_assignment(Value *left, Value *right);
 
+   template<class Op>
+     bool  visit_sumprod(Value *left, Value *right);
+
+   template<class Op>
+     bool  visit_comparison(Value *left, Value *right);
+
     friend class Stepper;
 
 public:

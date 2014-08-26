@@ -189,6 +189,55 @@ bool Interpreter::visit_op_assignment(Value *left, Value *right) {
    return false;
 }
 
+struct _Add  { template<typename T> static T eval(const T& a, const T& b) { return a + b; } };
+struct _Sub  { template<typename T> static T eval(const T& a, const T& b) { return a - b; } };
+struct _Mult { template<typename T> static T eval(const T& a, const T& b) { return a * b; } };
+struct _Div  { template<typename T> static T eval(const T& a, const T& b) { return a / b; } };
+
+template<class Op>
+bool Interpreter::visit_sumprod(Value *left, Value *right) {
+   if (left->kind == Value::Int and right->kind == Value::Int) {
+      _curr = new Value(Op::eval(left->val.as_int, right->val.as_int));
+      return true;
+   }
+   if (left->kind == Value::Float and right->kind == Value::Float) {
+      _curr = new Value(Op::eval(left->val.as_float, right->val.as_float));
+      return true;
+   }
+   if (left->kind == Value::Double and right->kind == Value::Double) {
+      _curr = new Value(Op::eval(left->val.as_double, right->val.as_double));
+      return true;
+   }
+   return false;
+}
+
+struct _Lt { template<typename T> static bool eval(const T& a, const T& b) { return a <  b; } };
+struct _Le { template<typename T> static bool eval(const T& a, const T& b) { return a <= b; } };
+struct _Gt { template<typename T> static bool eval(const T& a, const T& b) { return a >  b; } };
+struct _Ge { template<typename T> static bool eval(const T& a, const T& b) { return a >= b; } };
+
+template<class Op>
+bool Interpreter::visit_comparison(Value *left, Value *right) {
+   if (left->kind == Value::Int and right->kind == Value::Int) {
+      _curr = new Value(Op::eval(left->val.as_int, right->val.as_int));
+      return true;
+   }
+   if (left->kind == Value::Float and right->kind == Value::Float) {
+      _curr = new Value(Op::eval(left->val.as_float, right->val.as_float));
+      return true;
+   }
+   if (left->kind == Value::Double and right->kind == Value::Double) {
+      _curr = new Value(Op::eval(left->val.as_double, right->val.as_double));
+      return true;
+   }
+   if (left->kind == Value::String and right->kind == Value::String) {
+      string *s1 = static_cast<string*>(left->val.as_ptr);
+      string *s2 = static_cast<string*>(right->val.as_ptr);
+      _curr = new Value(Op::eval(*s1, *s2));
+      return true;
+   }
+   return false;
+}
 
 void Interpreter::visit_binaryexpr(BinaryExpr *x) {
    x->left->visit(this);
@@ -261,12 +310,7 @@ void Interpreter::visit_binaryexpr(BinaryExpr *x) {
       _error("Los operandos de '-=' no son compatibles");
    } 
    else if (x->op == "+") {
-      if (left->kind == Value::Int and right->kind == Value::Int) {
-         _curr = new Value(left->val.as_int + right->val.as_int);
-         return;
-      }
-      if (left->kind == Value::Double and right->kind == Value::Double) {
-         _curr = new Value(left->val.as_double + right->val.as_double);
+      if (visit_sumprod<_Add>(left, right)) {
          return;
       }
       if (left->kind == Value::String and right->kind == Value::String) {
@@ -277,18 +321,29 @@ void Interpreter::visit_binaryexpr(BinaryExpr *x) {
       _error("Los operandos de '+' no son compatibles");
    } 
    else if (x->op == "*") {
+      if (visit_sumprod<_Mult>(left, right)) {
+         return;
+      }
+      _error("Los operandos de '*' no son compatibles");
+   }
+   else if (x->op == "-") {
+      if (visit_sumprod<_Sub>(left, right)) {
+         return;
+      }
+      _error("Los operandos de '-' no son compatibles");
+   }
+   else if (x->op == "/") {
+      if (visit_sumprod<_Div>(left, right)) {
+         return;
+      }
+      _error("Los operandos de '/' no son compatibles");
+   }
+   else if (x->op == "%") {
       if (left->kind == Value::Int and right->kind == Value::Int) {
-         _curr = new Value(left->val.as_int * right->val.as_int);
+         _curr = new Value(left->val.as_int % right->val.as_int);
          return;
       }
-      if (left->kind == Value::Float and right->kind == Value::Float) {
-         _curr = new Value(left->val.as_float * right->val.as_float);
-         return;
-      }
-      if (left->kind == Value::Double and right->kind == Value::Double) {
-         _curr = new Value(left->val.as_double * right->val.as_double);
-         return;
-      }
+      _error("Los operandos de '%' no son compatibles");
    }
    else if (x->op == "&&" or x->op == "and") {
       if (left->kind == Value::Bool and right->kind == Value::Bool) {
@@ -312,24 +367,28 @@ void Interpreter::visit_binaryexpr(BinaryExpr *x) {
       _error("Los operandos de '!=' no son del mismo tipo");
    }
    else if (x->op == "<") {
-      if (left->kind == Value::Int and right->kind == Value::Int) {
-         _curr = new Value(left->val.as_int < right->val.as_int);
+      if (visit_comparison<_Lt>(left, right)) {
          return;
       }
-      if (left->kind == Value::Float and right->kind == Value::Float) {
-         _curr = new Value(left->val.as_float < right->val.as_float);
+      _error("Los operandos de '<' no son compatibles");
+   }
+   else if (x->op == ">") {
+      if (visit_comparison<_Gt>(left, right)) {
          return;
       }
-      if (left->kind == Value::Double and right->kind == Value::Double) {
-         _curr = new Value(left->val.as_double < right->val.as_double);
+      _error("Los operandos de '<' no son compatibles");
+   }
+   else if (x->op == "<=") {
+      if (visit_comparison<_Le>(left, right)) {
          return;
       }
-      if (left->kind == Value::String and right->kind == Value::String) {
-         string *s1 = static_cast<string*>(left->val.as_ptr);
-         string *s2 = static_cast<string*>(right->val.as_ptr);
-         _curr = new Value(*s1 < *s2);
+      _error("Los operandos de '<=' no son compatibles");
+   }
+   else if (x->op == ">=") {
+      if (visit_comparison<_Ge>(left, right)) {
          return;
       }
+      _error("Los operandos de '>=' no son compatibles");
    }
    _error("Interpreter::visit_binaryexpr: UNIMPLEMENTED (" + x->op + ")");
 }
