@@ -147,10 +147,10 @@ Value::Kind Value::type2kind(string type) {
       return Value::Struct;
    } else if (type.substr(0,6) == "vector") {
       return Value::Vector;
-   } else if (type.substr(type.size()-2, 2) == "[]") {
+   } else if (type.size() >= 2 and type.substr(type.size()-2, 2) == "[]") {
       return Value::Array;
    } else {
-      assert(false);
+      return Value::Unknown;
    }
 }
 
@@ -159,13 +159,20 @@ string Value::to_json() const {
    switch (kind) {
    case Value::Unknown: json << "null"; break;
    case Value::Bool:    json << (val.as_bool ? "true" : "false"); break;
-   case Value::Char:    json << "\"'" << val.as_char << "'\"";    break;
    case Value::Int:     json << val.as_int;                       break;
    case Value::Float:   json << val.as_float;                     break;
    case Value::Double:  json << val.as_double;                    break;
+   case Value::Char: {
+      if (val.as_char < 32 or val.as_char > 127) {
+         json << "\"char(" << int(val.as_char) << ")\"";
+      } else {
+         json << "\"'" << val.as_char << "'\"";
+      }
+      break;
+   }
    case Value::String: {
       string *s = static_cast<string*>(val.as_ptr);
-      json << "\"\\\"" << *s << "\"\\\"";
+      json << "\"\\\"" << *s << "\\\"\"";
       break;
    }
    case Value::Array: {
@@ -178,6 +185,20 @@ string Value::to_json() const {
          json << (*v)[i]->to_json();
       }
       json << "]";
+      break;
+   }
+   case Value::Struct: {
+      map<string, Value*> *m = static_cast<map<string,Value*>*>(val.as_ptr);
+      json << "{";
+      bool first = true;
+      for (auto it : *m) {
+         if (!first) {
+            json << ",";
+         }
+         first = false;
+         json << '"' << it.first << "\":" << it.second->to_json();
+      }
+      json << "}";
       break;
    }
    case Value::Ref:

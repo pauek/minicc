@@ -24,6 +24,12 @@ function setCompilado(new_value) {
       $("#compile").removeClass("pure-button-disabled");
       $("#execute").addClass("pure-button-disabled");
       $("#step").addClass("pure-button-disabled");
+      if (mark) {
+         mark.clear();
+      }
+      if (stepper) {
+         stepper = null;
+      }
    }
 }
 
@@ -60,7 +66,12 @@ function setup(init) {
    });
 }
 
+function saveProgram() {
+   localStorage['minicc:program'] = editor.getValue();
+}
+
 function compile() {
+   saveProgram();
    var code = editor.getValue();
    var err = Module.compile(code);
    if (err == "") {
@@ -102,6 +113,7 @@ function step() {
       mark = editor.markText(ini, fin, {
          className: "current",
       });
+      console.log(stepper.env());
       showenv(JSON.parse(stepper.env()));
       stepper.step();
    } else {
@@ -122,7 +134,7 @@ function resize() {
 }
 
 function value_str(value, addClass) {
-   var s = '';
+   var s = '', elem = 'span';
    var classes = [];
    if (value === null) {
       classes.push('unknown');
@@ -132,15 +144,22 @@ function value_str(value, addClass) {
       for (var j = 0; j < value.length; j++) {
          s += value_str(value[j], (j == 0 ? "first" : null));
       } 
+   } else if (value instanceof Object) {
+      classes.push('struct');
+      elem = 'div';
+      for (var prop in value) {
+         s += '<div class="var">' + prop + '&nbsp;';
+         s += value_str(value[prop]);
+         s += '</div>';
+      }
    } else {
       classes.push('value');
       s = value;
    }
-   console.log(addClass);
    if (addClass) {
       classes.push(addClass);
    }
-   var html = '<span class="';
+   var html = '<' + elem + ' class="';
    for (var i = 0; i < classes.length; i++) {
       if (i > 0) {
          html += ' ';
@@ -176,6 +195,9 @@ function showenv(env) {
 }
 
 $(document).ready(function () {
+   if (localStorage['minicc:program']) {
+      initial_program = localStorage['minicc:program'];
+   }
    setup(initial_program);
 
    $("#execute").addClass("pure-button-disabled");
@@ -203,6 +225,7 @@ $(document).ready(function () {
    editor.refresh();
 
    $(window).bind('beforeunload', function () {
+      saveProgram();
       if (cambiado) {
          return "Has editado, seguro que quieres salir?";
       }

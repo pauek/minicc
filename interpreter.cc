@@ -456,52 +456,77 @@ void Interpreter::visit_block(Block *x) {
    }
 }
 
-void Interpreter::visit_vardecl(VarDecl *x) {
-   if (!x->init.empty() and !x->curly) {
-      x->init[0]->visit(this);
-      string left = x->type->str(), right = _curr->type;
-      if (left != right) {
-         // Conversiones implícitas!
-         if (!(left == "float"  and right == "double") and
-             !(left == "double" and right == "float")) {
-            _error("Asignas el tipo '" + _curr->type + "' " +
-                   "a una variable de tipo '" + x->type->str() + "'");
+Value *Interpreter::visit_vardecl_struct_new(StructDecl *D, vector<Expr*> *init) {
+   Value *v = new Value(Value::Struct, D->type_str());
+   map<string,Value*> *fields = new map<string,Value*>();
+   int k = 0;
+   for (int i = 0; i < D->decls.size(); i++) {
+      string type = D->decls[i]->type->str();
+      Value::Kind kind = Value::type2kind(type);
+      if (kind == Value::Unknown) {
+         auto it = _structs.find(type); // try struct
+         if (it != _structs.end()) {
+            kind = Value::type2kind(it->second->type_str());
          }
       }
-      setenv(x->name, _curr);
-   } 
-   else if (x->curly) {
-      // struct
-      auto it = _structs.find(x->type->id->id);
-      if (it == _structs.end()) {
-         _error("El tipo '" + x->type->id->id + "' no es una tupla");
-      }
-      StructDecl *D = it->second;
-      if (D->num_fields() < x->init.size()) {
-         _error("Demasiados valores al inicializar la tupla de tipo '" + x->type->id->id + "'");
-      }
-      Value *v = new Value(Value::Struct, D->type_str());
-      map<string,Value*> *fields = new map<string,Value*>();
-      int k = 0;
-      for (int i = 0; i < D->decls.size(); i++) {
-         string type = D->decls[i]->type->str();
-         Value::Kind kind = Value::type2kind(type);
-         for (int j = 0; j < D->decls[i]->decls.size(); j++) {
-            if (k < x->init.size()) {
-               x->init[k]->visit(this);
-               (*fields)[D->decls[i]->decls[j]->name] = _curr;
-               k++;
+      for (int j = 0; j < D->decls[i]->decls.size(); j++) {
+         if (init and (k < init->size())) {
+            (*init)[k]->visit(this);
+            (*fields)[D->decls[i]->decls[j]->name] = _curr;
+            k++;
+         } else {
+            if (kind == Value::Struct) {
+               string type = D->decls[i]->type->str();
+               (*fields)[D->decls[i]->decls[j]->name] = visit_vardecl_struct_new(_structs[type], 0);
             } else {
                (*fields)[D->decls[i]->decls[j]->name] = new Value(kind, type);
             }
          }
       }
-      v->val.as_ptr = fields;
-      setenv(x->name, v);
-   } 
-   else {
-      setenv(x->name, new Value(Value::Unknown, x->type->str()));
    }
+   v->val.as_ptr = fields;
+   return v;
+}
+
+void Interpreter::visit_vardecl_struct(VarDecl *x, StructDecl *D) {
+   auto it = _structs.find(x->type->id->id);
+   if (it == _structs.end()) {
+      _error("El tipo '" + x->type->id->id + "' no es una tupla");
+   }
+   if (D->num_fields() < x->init.size()) {
+      _error("Demasiados valores al inicializar la tupla de tipo '" + x->type->id->id + "'");
+   }
+   setenv(x->name, visit_vardecl_struct_new(D, &x->init));
+}
+
+void Interpreter::visit_vardecl(VarDecl *x) {
+   auto it = _structs.find(x->type->id->id);
+   bool is_struct = (it != _structs.end());
+   if (is_struct) {
+      if (!x->init.empty() and !x->curly) {
+         _error("Inicialización incorrecta: el tipo '" + x->type->id->id + "' es una tupla");
+         return;
+      }
+      visit_vardecl_struct(x, it->second);
+   } else {
+      Value *init;
+      if (!x->init.empty()) {
+         x->init[0]->visit(this);
+         string left = x->type->str(), right = _curr->type;
+         if (left != right) {
+            // Conversiones implícitas!
+            if (!(left == "float"  and right == "double") and
+                !(left == "double" and right == "float")) {
+               _error("Asignas el tipo '" + _curr->type + "' " +
+                      "a una variable de tipo '" + x->type->str() + "'");
+            }
+         }
+         init = _curr;
+      } else {
+         init = new Value(Value::Unknown, x->type->str());
+      }
+      setenv(x->name, init);
+   } 
 }
 
 void Interpreter::visit_arraydecl(ArrayDecl *x) {

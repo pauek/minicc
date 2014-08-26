@@ -53,6 +53,8 @@ std::string env2json() const;
  FuncDecl *visit_program_find_main();
      void  visit_binaryexpr_assignment(Value *, Value *);
  FuncDecl *visit_callexpr_getfunc(CallExpr *x);
+     void  visit_vardecl_struct(VarDecl *x, StructDecl *decl);
+    Value *visit_vardecl_struct_new(StructDecl *D, std::vector<Expr*> *init);
 
    template<class Op>
      bool  visit_op_assignment(Value *left, Value *right);
