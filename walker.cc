@@ -70,8 +70,11 @@ void Walker::visit_binaryexpr(BinaryExpr *x) {
 void Walker::visit_declstmt(DeclStmt* x) {
    walk(x);
    x->type->visit(this);
-   for (Decl *d : x->decls) {
-      d->visit(this);
+   for (DeclStmt::Item item : x->items) {
+      item.decl->visit(this);
+      if (item.init) {
+         item.init->visit(this);
+      }
    }
 }
 
@@ -128,6 +131,13 @@ void Walker::visit_condexpr(CondExpr *x) {
    x->cond->visit(this);
    x->then->visit(this);
    x->els->visit(this);
+}
+
+void Walker::visit_exprlist(ExprList *x) {
+   walk(x);
+   for (Expr *e : x->exprs) {
+      e->visit(this);
+   }
 }
 
 void Walker::visit_signexpr(SignExpr *x) {

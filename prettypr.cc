@@ -201,10 +201,6 @@ void PrettyPrinter::visit_vardecl(VarDecl *x) {
       out() << "*";
    }
    out() << x->name << _cmt0(x, 0);
-   if (x->init) {
-      out() << " =" << _cmt_(x, 1);
-      x->init->visit(this);
-   }
 }
 
 void PrettyPrinter::visit_exprlist(ExprList *x) {
@@ -223,10 +219,6 @@ void PrettyPrinter::visit_arraydecl(ArrayDecl *x) {
    out() << "[";
    x->size->visit(this);
    out() << "]";
-   if (x->init) {
-      out() << " =" << _cmt_(x, 1);
-      x->init->visit(this);
-   }
 }
 
 void PrettyPrinter::visit_objdecl(ObjDecl *x) {
@@ -247,11 +239,17 @@ void PrettyPrinter::visit_objdecl(ObjDecl *x) {
 void PrettyPrinter::visit_declstmt(DeclStmt* x) {
    x->type->visit(this);
    out() << " ";
-   for (int i = 0; i < x->decls.size(); i++) {
+   for (int i = 0; i < x->items.size(); i++) {
       if (i > 0) {
          out() << "," << _cmt_(x, i);
       }
-      x->decls[i]->visit(this);
+      DeclStmt::Item& item = x->items[i];
+      item.decl->visit(this);
+      if (item.init) {
+         out() << " = " << cmt0_(item.decl, -1);
+         item.init->visit(this);
+         
+      }
    }
    out() << ";" << _cmt0(x, -1);
 }

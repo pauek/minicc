@@ -113,7 +113,7 @@ function step() {
       mark = editor.markText(ini, fin, {
          className: "current",
       });
-      console.log(stepper.env());
+      editor.scrollIntoView({line: fin.line + 3, ch: 0});
       showenv(JSON.parse(stepper.env()));
       stepper.step();
    } else {
@@ -191,7 +191,6 @@ function showenv(env) {
       html += '</div></td>';
    }
    html += '</tr></table>';
-   console.log(html);
    $('#env').append(html);
 }
 

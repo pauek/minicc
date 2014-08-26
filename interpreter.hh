@@ -16,16 +16,10 @@ struct EvalError {
 class Interpreter : public AstVisitor {
     Value *_curr, *_ret;
 
-   struct EnvValue {
-      Value *val;
-      bool hidden;
-      EnvValue(Value *v = 0, bool h = false)
-         : val(v), hidden(h) {}
-   };
-
    struct Env {
       std::string name;
-      std::map<std::string, EnvValue> map;
+      std::map<std::string, Value*> map;
+      std::map<std::string, bool>   hidden;
       Env(std::string n) : name(n) {}
    };
 

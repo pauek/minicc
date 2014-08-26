@@ -138,15 +138,14 @@ struct Decl : public AstNode {
 
 struct VarDecl : public Decl {
    Kind kind;
-   Expr *init;
-   VarDecl() : kind(Normal), init(0) {}
+   VarDecl() : kind(Normal) {}
    void visit(AstVisitor *v);
 };
 
 struct ArrayDecl : public Decl {
-   Expr *size, *init;
+   Expr *size;
    Kind kind;
-   ArrayDecl() : size(0), init(0), kind(Normal) {}
+   ArrayDecl() : size(0), kind(Normal) {}
    void visit(AstVisitor *v);
    std::string type_str() const;
 };
@@ -158,7 +157,12 @@ struct ObjDecl : public Decl {
 
 struct DeclStmt : public Stmt {
    Type *type;
-   std::vector<Decl*> decls;
+   struct Item {
+      Decl *decl;
+      Expr *init;
+      Item() : decl(0), init(0) {}
+   };
+   std::vector<Item> items;
 
    void visit(AstVisitor *v);
    bool has_errors() const;
@@ -391,7 +395,7 @@ struct FuncDecl : public AstNode {
 
 struct StructDecl : public AstNode {
    Ident *id;
-   std::vector<DeclStmt *> decls;
+   std::vector<DeclStmt*> decls;
    
    StructDecl() : id(0) {}
    void visit(AstVisitor *v);

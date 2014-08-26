@@ -215,19 +215,23 @@ void AstPrinter::visit_vardecl(VarDecl *x) {
       out() << "*";
    }
    out() << '"' << x->name << '"';
+   /*
    if (x->init) {
       out() << " = ";
       x->init->visit(this);
    }
+   */
 }
 
 void AstPrinter::visit_arraydecl(ArrayDecl *x) {
    out() << '"' << x->name << "\"(Size = ";
    x->size->visit(this);
+   /*
    if (x->init) {
       out() << ", Init = ";
       x->init->visit(this);
    }
+   */
    out() << ")";
 }
 
@@ -262,11 +266,15 @@ void AstPrinter::visit_declstmt(DeclStmt* x) {
    x->type->visit(this);
    out() << ", Vars = {";
    bool first = true;
-   for (Decl *d : x->decls) {
+   for (DeclStmt::Item item : x->items) {
       if (!first) {
          out() << ", ";
       }
-      d->visit(this);
+      item.decl->visit(this);
+      if (item.init) {
+         out() << " = ";
+         item.init->visit(this);
+      }
       first = false;
    }
    out() << "})";

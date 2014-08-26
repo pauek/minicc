@@ -853,13 +853,6 @@ Decl *Parser::_parse_vardecl(string name, Decl::Kind kind) {
    _skip(decl); // after the name
    decl->name = name;
    decl->kind = kind;
-   if (_in.curr() == '=') {
-      _in.next();
-      _skip(decl);
-      decl->init = (_in.curr() == '{' 
-                    ? parse_exprlist() 
-                    : parse_expr(Expr::Assignment));
-   }
    return decl;
 }
 
@@ -875,13 +868,6 @@ Decl *Parser::_parse_arraydecl(string name, Decl::Kind kind) {
       error(decl, _in.pos().str() + ": Esperaba un ']' aquí");
    }
    _skip(decl);
-   if (_in.curr() == '=') {
-      _in.next();
-      _skip(decl);
-      decl->init = (_in.curr() == '{' 
-                    ? parse_exprlist() 
-                    : parse_expr(Expr::Assignment));
-   }
    return decl;
 }
 
@@ -917,16 +903,23 @@ DeclStmt *Parser::parse_declstmt(bool is_typedef) {
       if (id.group != Token::Ident) {
          error(stmt, "Esperaba un identificador aquí");
       }
-      Decl *decl;
+      DeclStmt::Item item;
       if (_in.curr() == '(' and !is_typedef) {
-         decl = _parse_objdecl(name);
+         item.decl = _parse_objdecl(name);
       } else if (_in.curr() == '[') {
-         decl = _parse_arraydecl(name, kind);
+         item.decl = _parse_arraydecl(name, kind);
       } else {
-         decl = _parse_vardecl(name, kind);
+         item.decl = _parse_vardecl(name, kind);
       }
-      decl->type = stmt->type;
-      stmt->decls.push_back(decl);
+      if (_in.curr() == '=') {
+         _in.next();
+         _skip(item.decl);
+         item.init = (_in.curr() == '{' 
+                      ? parse_exprlist() 
+                      : parse_expr(Expr::Assignment));
+      }
+      item.decl->type = stmt->type;
+      stmt->items.push_back(item);
       if (_in.curr() != ',' or is_typedef) {
          break;
       }
@@ -1002,7 +995,7 @@ TypedefDecl *Parser::parse_typedef() {
    TypedefDecl *typdef = new TypedefDecl();
    _skip(typdef);
    DeclStmt *stmt = parse_declstmt(true);
-   typdef->decl = stmt->decls[0];
+   typdef->decl = stmt->items[0].decl;
    delete stmt;
    return typdef;
 }

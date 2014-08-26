@@ -207,8 +207,9 @@ bool IterStmt::has_errors() const {
 
 bool DeclStmt::has_errors() const {
    _ERRORS(type);
-   for (const Decl* d : decls) {
-      _ERRORS(d);
+   for (Item i : items) {
+      _ERRORS(i.decl);
+      _ERRORS(i.init);
    } 
    return AstNode::has_errors();
 }
@@ -358,7 +359,7 @@ string StructDecl::type_str() const {
 int StructDecl::num_fields() const {
    int num = 0;
    for (int i = 0; i < decls.size(); i++) {
-      num += decls[i]->decls.size();
+      num += decls[i]->items.size();
    }
    return num;
 }
@@ -410,18 +411,18 @@ string BinaryExpr::describe() const {
 
 string DeclStmt::describe() const {
    ostringstream S;
-   S << "Se declara" << (decls.size() > 1 ? "n " : " ");
-   string plural = (decls.size() > 1 ? "s" : "");
+   S << "Se declara" << (items.size() > 1 ? "n " : " ");
+   string plural = (items.size() > 1 ? "s" : "");
    S << "la" << plural << " variable" << plural << " ";
-   for (int i = 0; i < decls.size(); i++) {
+   for (int i = 0; i < items.size(); i++) {
       if (i > 0) {
-         if (i == decls.size() - 1) {
+         if (i == items.size() - 1) {
             S << " y ";
          } else {
             S << ", ";
          }
       }
-      S << "'" << decls[i]->name << "'";
+      S << "'" << items[i].decl->name << "'";
    }
    S << ".";
    return S.str();

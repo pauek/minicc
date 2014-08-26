@@ -4,14 +4,15 @@
 using namespace std;
 
 void Interpreter::setenv(string id, Value *val, bool hidden) {
-   _env.back().map[id] = EnvValue(val, hidden);
+   _env.back().map[id] = val;
+   _env.back().hidden[id] = hidden;
 }
 
 Value *Interpreter::getenv(string id) {
    for (int i = _env.size()-1; i >= 0; i--) {
       auto it = _env[i].map.find(id);
       if (it != _env[i].map.end()) {
-         return it->second.val;
+         return it->second;
       }
    }
    return 0;
@@ -26,16 +27,18 @@ string Interpreter::env2json() const {
       }
       json << "{\"func\":\"" << _env[i].name << "\",\"env\":{";
       bool first = true;
-      for (auto it : _env[i].map) {
-         if (it.second.hidden) {
+      auto it = _env[i].map.begin();
+      auto ht = _env[i].hidden.begin();
+      for (; it != _env[i].map.end(); it++, ht++) {
+         if (ht->second) {
             continue;
          }
          if (!first) {
             json << ",";
          }
          first = false;
-         json << '"' << it.first << "\":";
-         json << it.second.val->to_json();
+         json << '"' << it->first << "\":";
+         json << it->second->to_json();
       }
       json << "}}";
    }
@@ -470,34 +473,22 @@ Value *Interpreter::visit_vardecl_struct_new(StructDecl *D, Value *init) {
       return 0;
    }
    vector<Value*> *values = (init ? init->exprlist() : 0);
-   map<string,Value*> *fields = new map<string,Value*>();
    int k = 0;
+   pushenv("<struct>");
    for (int i = 0; i < D->decls.size(); i++) {
-      string type = D->decls[i]->type->str();
-      Value::Kind kind = Value::type2kind(type);
-      StructDecl *substruct;
-      if (kind == Value::Unknown) {
-         auto it = _structs.find(type); // try struct
-         if (it != _structs.end()) {
-            kind = Value::type2kind(it->second->type_str());
-            substruct = it->second;
-         }
-      }
-      for (int j = 0; j < D->decls[i]->decls.size(); j++, k++) {
-         const string field_name = D->decls[i]->decls[j]->name;
-         Value *val = 0;
+      for (int j = 0; j < D->decls[i]->items.size(); j++, k++) {
          if (values and (k < values->size())) {
-            val = (*values)[k];
-         }
-         if (kind == Value::Struct) {
-            (*fields)[field_name] = visit_vardecl_struct_new(substruct, val);
+            _curr = (*values)[k];
          } else {
-            (*fields)[field_name] = (val ? val : new Value(Value::Unknown, type));
+            _curr = 0;
          }
+         DeclStmt::Item item = D->decls[i]->items[j];
+         item.decl->visit(this);
       }
    }
    Value *res = new Value(Value::Struct, D->type_str());
-   res->val.as_ptr = fields;
+   res->val.as_ptr = new map<string,Value*>(_env.back().map);
+   popenv();
    return res;
 }
 
@@ -507,9 +498,7 @@ void Interpreter::visit_vardecl_struct(VarDecl *x, StructDecl *D) {
    if (it == _structs.end()) {
       _error("El tipo '" + struct_id + "' no es una tupla");
    }
-   Value *init = 0;
-   if (x->init) {
-      x->init->visit(this);
+   if (_curr) {
       if (_curr->kind != Value::ExprList) {
          _error("Para inicializar una tupla hace falta una lista de expresiones entre '{' y '}'");
          return;
@@ -520,9 +509,8 @@ void Interpreter::visit_vardecl_struct(VarDecl *x, StructDecl *D) {
          _error("Demasiados valores al inicializar la tupla de tipo '" + struct_id + "'");
          return;
       }
-      init = _curr;
    }
-   setenv(x->name, visit_vardecl_struct_new(D, init));
+   setenv(x->name, visit_vardecl_struct_new(D, _curr));
 }
 
 void Interpreter::visit_vardecl(VarDecl *x) {
@@ -531,9 +519,7 @@ void Interpreter::visit_vardecl(VarDecl *x) {
    if (is_struct) {
       visit_vardecl_struct(x, it->second);
    } else {
-      Value *init;
-      if (x->init) {
-         x->init->visit(this);
+      if (_curr) {
          string left = x->type->str(), right = _curr->type;
          if (left != right) {
             // Conversiones implícitas!
@@ -543,15 +529,16 @@ void Interpreter::visit_vardecl(VarDecl *x) {
                       "a una variable de tipo '" + x->type->str() + "'");
             }
          }
-         init = _curr;
       } else {
-         init = new Value(Value::Unknown, x->type->str());
+         _curr = new Value(Value::Unknown, x->type->str());
       }
-      setenv(x->name, init);
+      setenv(x->name, _curr);
    } 
 }
 
 void Interpreter::visit_arraydecl(ArrayDecl *x) {
+   Value *init = _curr;
+
    x->size->visit(this);
    if (_curr->kind != Value::Int) {
       _error("El tamaño de una tabla debe ser un entero");
@@ -563,13 +550,11 @@ void Interpreter::visit_arraydecl(ArrayDecl *x) {
    Value *v = new Value(Value::Array, x->type_str());
    vector<Value*> *vals = new vector<Value*>(sz);
    string cell_type = x->type->str();
-   x->init->visit(this);
-   Value *values = _curr;
-   if (values->kind != Value::ExprList) {
+   if (init->kind != Value::ExprList) {
       _error("Inicializas una tabla con algo que no es una lista de valores");
       return;
    }
-   vector<Value*> *elist = _curr->exprlist();
+   vector<Value*> *elist = init->exprlist();
    assert(elist != 0);
    if (elist->size() > sz) {
       _error("Demasiados valores al inicializar la tabla");
@@ -593,8 +578,13 @@ void Interpreter::visit_arraydecl(ArrayDecl *x) {
 }
 
 void Interpreter::visit_declstmt(DeclStmt* x) {
-   for (Decl *d : x->decls) {
-      d->visit(this);
+   for (DeclStmt::Item& item : x->items) {
+      if (item.init) {
+         item.init->visit(this);
+      } else {
+         _curr = 0;
+      }
+      item.decl->visit(this);
    }
 }
 
@@ -677,6 +667,9 @@ void Interpreter::visit_indexexpr(IndexExpr *x) {
    }
    vector<Value*> *vals = static_cast<vector<Value*>*>(_curr->val.as_ptr);
    x->index->visit(this);
+   if (_curr->kind == Value::Ref) {
+      _curr = _curr->ref();
+   }
    if (_curr->kind != Value::Int) {
       // FIXME: maps!
       _error("El índice en un acceso a tabla debe ser un entero");

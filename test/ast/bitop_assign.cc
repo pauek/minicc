@@ -17,7 +17,7 @@ Program{
    Using(std)
    FuncDecl("main", Type(id:'int'), Params = {}, {
       Block({
-         DeclStmt(Type(id:'int'), Vars = {"a"(Size = Int<6>, Init = {Int<1>, Int<1>, Int<1>, Int<1>, Int<1>, Int<1>})})
+         DeclStmt(Type(id:'int'), Vars = {"a"(Size = Int<6>) = {Int<1>, Int<1>, Int<1>, Int<1>, Int<1>, Int<1>}})
          DeclStmt(Type(id:'int'), Vars = {"b" = Int<2>, "c" = Int<3>})
          ExprStmt(&=(IndexExpr(id:'a', Int<0>), id:'b'))
          ExprStmt(&=(IndexExpr(id:'a', Int<1>), id:'c'))
