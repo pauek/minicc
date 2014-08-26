@@ -563,18 +563,29 @@ void Interpreter::visit_arraydecl(ArrayDecl *x) {
    Value *v = new Value(Value::Array, x->type_str());
    vector<Value*> *vals = new vector<Value*>(sz);
    string cell_type = x->type->str();
-   for (int i = 0; i < x->init.size(); i++) {
-      x->init[i]->visit(this);
-      if (_curr->type != cell_type) {
+   x->init->visit(this);
+   Value *values = _curr;
+   if (values->kind != Value::ExprList) {
+      _error("Inicializas una tabla con algo que no es una lista de valores");
+      return;
+   }
+   vector<Value*> *elist = _curr->exprlist();
+   assert(elist != 0);
+   if (elist->size() > sz) {
+      _error("Demasiados valores al inicializar la tabla");
+      return;
+   }
+   for (int i = 0; i < elist->size(); i++) {
+      if ((*elist)[i]->type != cell_type) {
          ostringstream S;
          S << "La inicialización de la casilla " << i 
            << " tiene tipo '" << _curr->type << "'" 
            << " cuando debería ser '" << cell_type << "'";
          _error(S.str());
       }
-      (*vals)[i] = _curr;
+      (*vals)[i] = (*elist)[i];
    }
-   for (int i = x->init.size(); i < vals->size(); i++) {
+   for (int i = elist->size(); i < vals->size(); i++) {
       (*vals)[i] = new Value();
    }
    v->val.as_ptr = vals;

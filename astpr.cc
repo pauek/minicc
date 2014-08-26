@@ -224,17 +224,22 @@ void AstPrinter::visit_vardecl(VarDecl *x) {
 void AstPrinter::visit_arraydecl(ArrayDecl *x) {
    out() << '"' << x->name << "\"(Size = ";
    x->size->visit(this);
-   if (!x->init.empty()) {
-      out() << ", Init = {";
-      for (int i = 0; i < x->init.size(); i++) {
-         if (i > 0) {
-            out() << ", ";
-         }
-         x->init[i]->visit(this);
-      }
-      out() << "}";
+   if (x->init) {
+      out() << ", Init = ";
+      x->init->visit(this);
    }
    out() << ")";
+}
+
+void AstPrinter::visit_exprlist(ExprList *x) {
+   out() << "{";
+   for (int i = 0; i < x->exprs.size(); i++) {
+      if (i > 0) {
+         out() << ", ";
+      }
+      x->exprs[i]->visit(this);
+   }
+   out() << "}";
 }
 
 void AstPrinter::visit_objdecl(ObjDecl *x) {

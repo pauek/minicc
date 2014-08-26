@@ -208,14 +208,14 @@ void PrettyPrinter::visit_vardecl(VarDecl *x) {
 }
 
 void PrettyPrinter::visit_exprlist(ExprList *x) {
-   out() << "{ ";
+   out() << "{";
    for (int i = 0; i < x->exprs.size(); i++) {
       if (i > 0) {
          out() << ", ";
       }
       x->exprs[i]->visit(this);
    }
-   out() << " }";
+   out() << "}";
 }
 
 void PrettyPrinter::visit_arraydecl(ArrayDecl *x) {
@@ -223,15 +223,9 @@ void PrettyPrinter::visit_arraydecl(ArrayDecl *x) {
    out() << "[";
    x->size->visit(this);
    out() << "]";
-   if (!x->init.empty()) {
-      out() << " =" << _cmt_(x, 1) << "{";
-      for (int i = 0; i < x->init.size(); i++) {
-         if (i > 0) {
-            out() << ", ";
-         }
-         x->init[i]->visit(this);
-      }
-      out() << "}";
+   if (x->init) {
+      out() << " =" << _cmt_(x, 1);
+      x->init->visit(this);
    }
 }
 

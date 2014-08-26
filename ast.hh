@@ -144,10 +144,9 @@ struct VarDecl : public Decl {
 };
 
 struct ArrayDecl : public Decl {
-   Expr *size;
-   std::vector<Expr *> init;
+   Expr *size, *init;
    Kind kind;
-   ArrayDecl() : size(0), kind(Normal) {}
+   ArrayDecl() : size(0), init(0), kind(Normal) {}
    void visit(AstVisitor *v);
    std::string type_str() const;
 };

@@ -844,6 +844,7 @@ Expr *Parser::parse_exprlist() {
       error(elist, _in.pos().str() + ": Esperaba un '}' aquí");
       _in.skip_to("},;\n");
    }
+   _skip(elist);
    return elist;
 }
 
@@ -877,15 +878,9 @@ Decl *Parser::_parse_arraydecl(string name, Decl::Kind kind) {
    if (_in.curr() == '=') {
       _in.next();
       _skip(decl);
-      if (!_in.expect("{")) {
-         error(decl, _in.pos().str() + ": Esperaba un '{' aquí");
-      }
-      _skip(decl);
-      parse_expr_seq(decl, decl->init);
-      if (!_in.expect("}")) {
-         error(decl, _in.pos().str() + ": Esperaba un '}' aquí");
-         _in.skip_to("},;\n");
-      }
+      decl->init = (_in.curr() == '{' 
+                    ? parse_exprlist() 
+                    : parse_expr(Expr::Assignment));
    }
    return decl;
 }
