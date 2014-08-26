@@ -527,6 +527,9 @@ void Interpreter::visit_arraydecl(ArrayDecl *x) {
       }
       (*vals)[i] = _curr;
    }
+   for (int i = x->init.size(); i < vals->size(); i++) {
+      (*vals)[i] = new Value();
+   }
    v->val.as_ptr = vals;
    setenv(x->name, v);
 }
