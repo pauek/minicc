@@ -47,11 +47,11 @@ header {
 }
 
 #right {
-  background-color: #e7e7e7;
+  background-color: #eceff4;
 }
 
 #bottom {
-  background-color: #e7ffe7;
+  background-color: #f9faef;
   padding: 0;
 }
 
@@ -66,8 +66,9 @@ header {
 #env .fenv {
   border: 1px solid #bbb;
   padding: 0;
-  display: inline-block; 
-  width: 250px;
+  float: left;
+  min-width: 100px;
+  box-shadow: #ddd 2px 2px 7px;
 }
 
 #env .fenv {
@@ -75,7 +76,7 @@ header {
   font-family: "Source Code Pro", "Consolas", monospace;
   padding-bottom: 6px;
   background-color: #f7f7f7;
-  min-height: 100px;
+  min-height: 30px;
   margin-right: 15px;
   vertical-align: top;
   border-radius: 3px;
@@ -89,6 +90,14 @@ header {
   font-weight: normal;
 }
 
+#env .fenv.curr h5 {
+  background-color: rgba(150, 150, 0, 0.3);
+}
+
+#env .fenv.curr {
+  background-color: rgb(255, 255, 160);
+}
+
 #env .var {
   padding: 7px 7px 0 7px;
 }
@@ -97,11 +106,27 @@ header {
   color: rgba(0, 0, 0, .2);
 }
 
-#env .var .value {
+#env .var .value, #env .var .unknown {
   padding: 1px 4px;
   border: 1px solid #ccc;
   background-color: white;
 }
 #env .var .unknown {
   color: #aaa;
+}
+#env table.array {
+  display: inline-block;
+}
+#env table.array td {
+  border: 1px solid #ccc;
+  background-color: white;
+}
+#env td {
+  vertical-align: top;
+}
+#env .array .value, #env .array .unknown {
+  border-left: none;
+}
+#env .array .first {
+  border-left: 1px solid #ccc;
 }

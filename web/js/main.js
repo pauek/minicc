@@ -11,6 +11,7 @@ int main() {\n\
 }\n\
 ';
 
+var cambiado = false;
 var compilado = false;
 
 function setCompilado(new_value) {
@@ -54,6 +55,7 @@ function setup(init) {
 
    editor.on("change", function () {
       setCompilado(false);
+      cambiado = true;
       $('#output').hide();
    });
 }
@@ -104,6 +106,7 @@ function step() {
       stepper.step();
    } else {
       stepper = null;
+      showenv(null);
    }
 }
 
@@ -118,25 +121,58 @@ function resize() {
    $('#content').height(free + 'px');
 }
 
+function value_str(value, addClass) {
+   var s = '';
+   var classes = [];
+   if (value === null) {
+      classes.push('unknown');
+      s = '?';
+   } else if (value instanceof Array) {
+      classes.push('array');
+      for (var j = 0; j < value.length; j++) {
+         s += value_str(value[j], (j == 0 ? "first" : null));
+      } 
+   } else {
+      classes.push('value');
+      s = value;
+   }
+   console.log(addClass);
+   if (addClass) {
+      classes.push(addClass);
+   }
+   var html = '<span class="';
+   for (var i = 0; i < classes.length; i++) {
+      if (i > 0) {
+         html += ' ';
+      }
+      html += classes[i];
+   }
+   html += '">' + s + '</span>';
+   return html;
+}
+
 function showenv(env) {
    $('#env').empty();
-   for (var i = 0; i < env.length; i++) {
-      var html = '<div class="fenv"><h5>' + env[i].func + '</h5>';
+   if (env === null) {
+      return;
+   }
+   var html = '<table><tr>';
+   for (var i = env.length-1; i >= 0; i--) {
+      html += '<td><div class="fenv';
+      if (i == env.length-1) {
+         html += " curr";
+      }
+      html += '"><h5>' + env[i].func + '</h5>';
       var E = env[i].env;
       for (var prop in E) {
          html += '<div class="var">' + prop + '&nbsp;';
-         html += '<span class="value">';
-         if (E[prop] === null) {
-            html += '<span class="unknown">?</span>';
-         } else {
-            html += E[prop];
-         }
-         html += '</span>';
+         html += value_str(E[prop]);
          html += '</div>';
       }
-      html += '</div>';
-      $('#env').append(html);
+      html += '</div></td>';
    }
+   html += '</tr></table>';
+   $('#env').append(html);
 }
 
 $(document).ready(function () {
@@ -165,4 +201,10 @@ $(document).ready(function () {
       editor.refresh();
    });
    editor.refresh();
+
+   $(window).bind('beforeunload', function () {
+      if (cambiado) {
+         return "Has editado, seguro que quieres salir?";
+      }
+   });
 });

@@ -168,6 +168,18 @@ string Value::to_json() const {
       json << "\"\\\"" << *s << "\"\\\"";
       break;
    }
+   case Value::Array: {
+      vector<Value*> *v = static_cast<vector<Value*>*>(val.as_ptr);
+      json << "[";
+      for (int i = 0; i < v->size(); i++) {
+         if (i > 0) {
+            json << ", ";
+         }
+         json << (*v)[i]->to_json();
+      }
+      json << "]";
+      break;
+   }
    case Value::Ref:
       json << "{\"ref\":\"" << static_cast<Value*>(val.as_ptr) << "\"}";
       break;
