@@ -142,9 +142,14 @@ Token Input::next_token() {
       } 
       return tok;
    }
-
+   case '-': {
+      if (isdigit(curr(1))) {
+         return read_number_literal();
+      } else {
+         return read_operator();
+      }
+   }
    case '+': case '&': case '|': case '!':
-   case '-':
    case '*': case '/': case '%': case '=': case '^': 
    case '<': case '>': 
    case ',': case '~': case '?': {
@@ -442,13 +447,15 @@ Token Input::read_string_or_char_literal(char delim) {
 }
 
 Token Input::read_number_literal() {
-   string num;
    Token t;
    t.ini = _curr;
    if (curr() == '.') {
       next();
       t.str += '.';
       return read_real_literal(t);
+   } else if (curr() == '-') {
+      t.str += '-';
+      next();
    }
    while (isdigit(curr())) {
       t.str += curr();
