@@ -436,7 +436,7 @@ Stmt *Parser::parse_jumpstmt() {
       _skip(stmt);
    }
    if (!_in.expect(";")) {
-      error(stmt, _in.pos().str() + ": Expected ';'");
+      error(stmt, _in.pos().str() + ": Esperaba un ';' después de " + tok.str);
       _in.skip_to(";\n"); // resync...
    }
    _skip(stmt);
@@ -459,7 +459,7 @@ ExprStmt *Parser::parse_exprstmt(bool is_return) {
       stmt->expr->fin = efin;
    }
    if (!_in.expect(";")) {
-      error(stmt, _in.pos().str() + ": Expected ';'");
+      error(stmt, _in.pos().str() + ": Esperaba un ';' después de la expresión");
       _in.skip_to(";\n"); // resync...
    }
    stmt->fin = _in.pos();
@@ -867,7 +867,6 @@ Decl *Parser::_parse_arraydecl(string name, Decl::Kind kind) {
       if (!_in.expect("{")) {
          error(decl, _in.pos().str() + ": Esperaba un '{' aquí");
       }
-      _in.next();
       _skip(decl);
       parse_expr_list(decl, decl->init);
       if (!_in.expect("}")) {

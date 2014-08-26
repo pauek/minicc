@@ -165,12 +165,28 @@ void Interpreter::visit_literal(Literal *x) {
    }
 }
 
-struct PlusAssign { 
-   template<typename T> static void eval(T& a, const T& b) { a += b; }
-};
-struct MinusAssign { 
-   template<typename T> static void eval(T& a, const T& b) { a -= b; }
-};
+struct _Add { template<typename T> static T eval(const T& a, const T& b) { return a + b; } };
+struct _Sub { template<typename T> static T eval(const T& a, const T& b) { return a - b; } };
+struct _Mul { template<typename T> static T eval(const T& a, const T& b) { return a * b; } };
+struct _Div { template<typename T> static T eval(const T& a, const T& b) { return a / b; } };
+
+struct _And { template<typename T> static T eval(const T& a, const T& b) { return a & b; } };
+struct _Or  { template<typename T> static T eval(const T& a, const T& b) { return a | b; } };
+struct _Xor { template<typename T> static T eval(const T& a, const T& b) { return a ^ b; } };
+
+struct _AAdd { template<typename T> static void eval(T& a, const T& b) { a += b; } };
+struct _ASub { template<typename T> static void eval(T& a, const T& b) { a -= b; } };
+struct _AMul { template<typename T> static void eval(T& a, const T& b) { a *= b; } };
+struct _ADiv { template<typename T> static void eval(T& a, const T& b) { a /= b; } };
+struct _AAnd { template<typename T> static void eval(T& a, const T& b) { a &= b; } };
+struct _AOr  { template<typename T> static void eval(T& a, const T& b) { a |= b; } };
+struct _AXor { template<typename T> static void eval(T& a, const T& b) { a ^= b; } };
+
+struct _Lt { template<typename T> static bool eval(const T& a, const T& b) { return a <  b; } };
+struct _Le { template<typename T> static bool eval(const T& a, const T& b) { return a <= b; } };
+struct _Gt { template<typename T> static bool eval(const T& a, const T& b) { return a >  b; } };
+struct _Ge { template<typename T> static bool eval(const T& a, const T& b) { return a >= b; } };
+
 
 template<class Op>
 bool Interpreter::visit_op_assignment(Value *left, Value *right) {
@@ -189,10 +205,14 @@ bool Interpreter::visit_op_assignment(Value *left, Value *right) {
    return false;
 }
 
-struct _Add  { template<typename T> static T eval(const T& a, const T& b) { return a + b; } };
-struct _Sub  { template<typename T> static T eval(const T& a, const T& b) { return a - b; } };
-struct _Mult { template<typename T> static T eval(const T& a, const T& b) { return a * b; } };
-struct _Div  { template<typename T> static T eval(const T& a, const T& b) { return a / b; } };
+template<class Op>
+bool Interpreter::visit_bitop_assignment(Value *left, Value *right) {
+   if (left->kind == Value::Int and right->kind == Value::Int) {
+      Op::eval(left->val.as_int, right->val.as_int);
+      return true;
+   } 
+   return false;
+}
 
 template<class Op>
 bool Interpreter::visit_sumprod(Value *left, Value *right) {
@@ -211,10 +231,14 @@ bool Interpreter::visit_sumprod(Value *left, Value *right) {
    return false;
 }
 
-struct _Lt { template<typename T> static bool eval(const T& a, const T& b) { return a <  b; } };
-struct _Le { template<typename T> static bool eval(const T& a, const T& b) { return a <= b; } };
-struct _Gt { template<typename T> static bool eval(const T& a, const T& b) { return a >  b; } };
-struct _Ge { template<typename T> static bool eval(const T& a, const T& b) { return a >= b; } };
+template<class Op>
+bool Interpreter::visit_bitop(Value *left, Value *right) {
+   if (left->kind == Value::Int and right->kind == Value::Int) {
+      _curr = new Value(Op::eval(left->val.as_int, right->val.as_int));
+      return true;
+   }
+   return false;
+}
 
 template<class Op>
 bool Interpreter::visit_comparison(Value *left, Value *right) {
@@ -283,60 +307,82 @@ void Interpreter::visit_binaryexpr(BinaryExpr *x) {
       visit_binaryexpr_assignment(left, right);
       return;
    }
-   else if (x->op == "+=") {
+   if (x->op == "+=" || x->op == "-=" || x->op == "*=" || x->op == "/=") {
       if (left->kind != Value::Ref) {
-         _error("Para usar '+=' se debe poner una variable a la izquierda");
+         _error("Para usar '" + x->op + "' se debe poner una variable a la izquierda");
       }
       left = left->ref();
-      if (visit_op_assignment<PlusAssign>(left, right)) {
+      bool ret = false;
+      switch (x->op[0]) {
+      case '+': {
+         if (left->kind == Value::String and right->kind == Value::String) {
+            string *s1 = static_cast<string*>(left->val.as_ptr);
+            string *s2 = static_cast<string*>(right->val.as_ptr);
+            *s1 += *s2;
+            ret = true;
+         } else {
+            ret = visit_op_assignment<_AAdd>(left, right);
+         }
+         break;
+      }
+      case '-': ret = visit_op_assignment<_ASub>(left, right); break;
+      case '*': ret = visit_op_assignment<_AMul>(left, right); break;
+      case '/': ret = visit_op_assignment<_ADiv>(left, right); break;
+      }
+      if (ret) {
          return;
       }
-      if (left->kind == Value::String and right->kind == Value::String) {
-         string *s1 = static_cast<string*>(left->val.as_ptr);
-         string *s2 = static_cast<string*>(right->val.as_ptr);
-         *s1 += *s2;
-         return;
-      }
-      _error("Los operandos de '+=' no son compatibles");
+      _error("Los operandos de '" + x->op + "' no son compatibles");
    } 
-   if (x->op == "-=") {
+   if (x->op == "&=" || x->op == "|=" || x->op == "^=") {
       if (left->kind != Value::Ref) {
-         _error("Para usar '-=' se debe poner una variable a la izquierda");
+         _error("Para usar '" + x->op + "' se debe poner una variable a la izquierda");
       }
       left = left->ref();
-      if (visit_op_assignment<MinusAssign>(left, right)) {
+      bool ret = false;
+      switch (x->op[0]) {
+      case '&': ret = visit_bitop_assignment<_AAnd>(left, right); break;
+      case '|': ret = visit_bitop_assignment<_AOr >(left, right); break;
+      case '^': ret = visit_bitop_assignment<_AXor>(left, right); break;
+      }
+      if (ret) {
          return;
       }
-      _error("Los operandos de '-=' no son compatibles");
+      _error("Los operandos de '" + x->op + "' no son compatibles");
    } 
-   else if (x->op == "+") {
-      if (visit_sumprod<_Add>(left, right)) {
+   else if (x->op == "&" || x->op == "|" || x->op == "^") {
+      bool ret = false;
+      switch (x->op[0]) {
+      case '&': ret = visit_bitop<_And>(left, right); break;
+      case '|': ret = visit_bitop<_Or >(left, right); break;
+      case '^': ret = visit_bitop<_Xor>(left, right); break;
+      }
+      if (ret) {
          return;
       }
-      if (left->kind == Value::String and right->kind == Value::String) {
-         _curr = new Value(*static_cast<string*>(left->val.as_ptr) +
-                           *static_cast<string*>(right->val.as_ptr));
-         return;
+      _error("Los operandos de '" + x->op + "' son incompatibles");
+   }
+   else if (x->op == "+" || x->op == "*" || x->op == "-" || x->op == "/") {
+      bool ret = false;
+      switch (x->op[0]) {
+      case '+': {
+         if (left->kind == Value::String and right->kind == Value::String) {
+            _curr = new Value(*static_cast<string*>(left->val.as_ptr) +
+                              *static_cast<string*>(right->val.as_ptr));
+            ret = true;
+         } else {
+            ret = visit_sumprod<_Add>(left, right);
+         }
+         break;
       }
-      _error("Los operandos de '+' no son compatibles");
-   } 
-   else if (x->op == "*") {
-      if (visit_sumprod<_Mult>(left, right)) {
+      case '*': ret = visit_sumprod<_Mul>(left, right); break;
+      case '-': ret = visit_sumprod<_Sub>(left, right); break;
+      case '/': ret = visit_sumprod<_Div>(left, right); break;
+      }
+      if (ret) {
          return;
       }
       _error("Los operandos de '*' no son compatibles");
-   }
-   else if (x->op == "-") {
-      if (visit_sumprod<_Sub>(left, right)) {
-         return;
-      }
-      _error("Los operandos de '-' no son compatibles");
-   }
-   else if (x->op == "/") {
-      if (visit_sumprod<_Div>(left, right)) {
-         return;
-      }
-      _error("Los operandos de '/' no son compatibles");
    }
    else if (x->op == "%") {
       if (left->kind == Value::Int and right->kind == Value::Int) {
@@ -345,50 +391,48 @@ void Interpreter::visit_binaryexpr(BinaryExpr *x) {
       }
       _error("Los operandos de '%' no son compatibles");
    }
-   else if (x->op == "&&" or x->op == "and") {
+   else if (x->op == "%=") {
+      if (left->kind != Value::Ref) {
+         _error("Para usar '" + x->op + "' se debe poner una variable a la izquierda");
+      }
+      left = left->ref();
+      if (left->kind == Value::Int and right->kind == Value::Int) {
+         left->val.as_int %= right->val.as_int;
+         return;
+      }
+      _error("Los operandos de '%=' no son compatibles");
+   }
+   else if (x->op == "&&" or x->op == "and" || x->op == "||" || x->op == "or")  {
       if (left->kind == Value::Bool and right->kind == Value::Bool) {
-         _curr = new Value(left->val.as_bool and right->val.as_bool);
+         _curr = new Value(x->op == "&&" or x->op == "and" 
+                           ? left->val.as_bool and right->val.as_bool
+                           : left->val.as_bool or right->val.as_bool);
          return;
       }
       _error("Los operandos de '" + x->op + "' no son de tipo 'bool'");
    }
-   else if (x->op == "==") {
+   else if (x->op == "==" || x->op == "!=") {
       if (left->kind == right->kind) {
-         _curr = new Value(*left == *right);
+         _curr = new Value(x->op == "==" ? *left == *right : *left != *right);
          return;
       }
-      _error("Los operandos de '==' no son del mismo tipo");
+      _error("Los operandos de '" + x->op + "' no son del mismo tipo");
    }
-   else if (x->op == "!=") {
-      if (left->kind == right->kind) {
-         _curr = new Value(*left != *right);
+   else if (x->op == "<" || x->op == ">" || x->op == "<=" || x->op == ">=") {
+      bool ret = false;
+      if (x->op[0] == '<') {
+         ret = (x->op.size() == 1 
+                ? visit_comparison<_Lt>(left, right)
+                : visit_comparison<_Le>(left, right));
+      } else {
+         ret = (x->op.size() == 1 
+                ? visit_comparison<_Gt>(left, right)
+                : visit_comparison<_Ge>(left, right));
+      }
+      if (ret) {
          return;
       }
-      _error("Los operandos de '!=' no son del mismo tipo");
-   }
-   else if (x->op == "<") {
-      if (visit_comparison<_Lt>(left, right)) {
-         return;
-      }
-      _error("Los operandos de '<' no son compatibles");
-   }
-   else if (x->op == ">") {
-      if (visit_comparison<_Gt>(left, right)) {
-         return;
-      }
-      _error("Los operandos de '<' no son compatibles");
-   }
-   else if (x->op == "<=") {
-      if (visit_comparison<_Le>(left, right)) {
-         return;
-      }
-      _error("Los operandos de '<=' no son compatibles");
-   }
-   else if (x->op == ">=") {
-      if (visit_comparison<_Ge>(left, right)) {
-         return;
-      }
-      _error("Los operandos de '>=' no son compatibles");
+      _error("Los operandos de '" + x->op + "' no son compatibles");
    }
    _error("Interpreter::visit_binaryexpr: UNIMPLEMENTED (" + x->op + ")");
 }

@@ -58,7 +58,13 @@ std::string env2json() const;
      bool  visit_op_assignment(Value *left, Value *right);
 
    template<class Op>
+     bool  visit_bitop_assignment(Value *left, Value *right);
+
+   template<class Op>
      bool  visit_sumprod(Value *left, Value *right);
+
+   template<class Op>
+     bool  visit_bitop(Value *left, Value *right);
 
    template<class Op>
      bool  visit_comparison(Value *left, Value *right);
