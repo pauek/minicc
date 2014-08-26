@@ -571,7 +571,7 @@ void Interpreter::visit_arraydecl(ArrayDecl *x) {
       (*vals)[i] = (*elist)[i];
    }
    for (int i = elist->size(); i < vals->size(); i++) {
-      (*vals)[i] = new Value();
+      (*vals)[i] = new Value(Value::Unknown, cell_type);
    }
    v->val.as_ptr = vals;
    setenv(x->name, v);
