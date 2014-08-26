@@ -135,3 +135,34 @@ header {
 #env .array .first {
   border-left: 1px solid #ccc;
 }
+
+#history-wrapper {
+  margin-left: 1em;
+  margin-right: 1em;
+}
+.slider {
+  margin-top: 10px;
+  width: 95%;
+  margin-left: 20px;
+}
+.slider > .track, .slider > .highlight-track {
+  background-image: none;
+  box-shadow: none;
+  height: 3px;
+  border: none;
+  border-radius: 0;
+}
+.slider > .dragger {
+  border: 1px solid #65abfc;
+  width: 20px;
+  height: 20px;
+  background: #fff;
+  box-shadow: none;
+  border-radius: 0;
+}
+.slider > .dragger:hover {
+  background: #fff;
+}
+.slider > .track           { background-color: #ccc; }
+.slider > .highlight-track { background-color: #98d0ff; }
+

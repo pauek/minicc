@@ -24,6 +24,10 @@
   <script src="js/clike.js"></script>
   <script src="js/show-invisibles.js"></script>
 
+  <!-- Simple Slider -->
+  <link rel="stylesheet" href="css/simple-slider.css">
+  <script src="js/simple-slider.min.js"></script>
+
   <!-- minicc -->
   <link rel="stylesheet" href="css/minicc.css">
   <script src="js/minicc.js"></script> 
@@ -59,6 +63,14 @@
       </div>
     </div>
     <div id="bottom">
+      <div id="history-wrapper">
+        <input id="history" type="text" 
+               data-slider="true"
+               data-slider-range="0,100"
+               data-slider-step="1"
+               data-slider-snap="true"
+               data-slider-highlight="true">
+      </div>
       <div id="env"></div>
     </div>
   </div>

@@ -194,6 +194,11 @@ function showenv(env) {
    $('#env').append(html);
 }
 
+function sliderChange() {
+   var value = $('history').value;
+   console.log(value);
+}
+
 $(document).ready(function () {
    if (localStorage['minicc:program']) {
       initial_program = localStorage['minicc:program'];
@@ -229,5 +234,9 @@ $(document).ready(function () {
       if (cambiado) {
          return "Has editado, seguro que quieres salir?";
       }
+   });
+
+   $('#history').bind('slider:changed', function (event, data) {
+      console.log(data.value);
    });
 });
