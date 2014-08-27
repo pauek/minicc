@@ -65,7 +65,7 @@ public:
     Range span()     const { return S->span(); }
      bool finished() const { return S->finished(); }
      bool step()           { return S->step(); }
-   string error()    const { return S->error(); }
+   string error()    const { return S->error()->msg; }
    string env()      const { return S->env2json(); }
 };
 
