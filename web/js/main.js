@@ -118,6 +118,7 @@ function step() {
       if (!stepper.step()) {
          alert(stepper.error());
       }
+      slider.incr();
    } else {
       stepper = null;
       showenv(null);
@@ -212,15 +213,60 @@ function sliderChange() {
    console.log(value);
 }
 
-function sliderSet(ratio) {
-   if (ratio >= 0.0 && ratio <= 1.0) {
+var slider = {
+   _max: 100,
+   _curr: 10,
+   _knob: 0,
+   curr: function () {
+      return this._curr / this.max;
+   },
+   init: function () {
+      this._refreshTrack();
+      this._refreshKnob();
+   },
+   incr: function() {
+      this.curr += 1;
+      this._refreshTrack();
+   },
+   _refreshTrack: function () {
+      var ratio = this._curr / this._max;
+      if (ratio > 1.0) {
+         ratio = 1.0;
+      } else if (ratio < 0.0) {
+         ratio = 0.0;
+      }
+      var track = $('#slider .track');
+      var w = track.width();
+      var left = track.position().left;
+      $('#slider .hl-track').css({width: '' + (ratio * 100) + '%'});
+   },
+   _refreshKnob: function () {
+      var ratio = this._knob / this._max;
+      if (ratio > 1.0) {
+         ratio = 1.0;
+      } else if (ratio < 0.0) {
+         ratio = 0.0;
+      }
       var track = $('#slider .track');
       var w = track.width();
       var left = track.position().left;
       $('#slider .knob').css({left: ratio * w + left + 'px'});
-      $('#slider .hl-track').css({width: '' + (ratio * 100) + '%'});
+   },
+   setKnob: function (ratio) {
+      this._knob = this._max * ratio;
+      this._refreshKnob();
+   },
+   click: function (ev) {
+      var track = $('#slider .track');
+      var w = track.width();
+      var left = track.position().left;
+      var ratio = (ev.clientX - left) / w;
+      if (ratio < -0.02 || ratio > 1.02) {
+         return;
+      }
+      this.setKnob(ratio);
    }
-}
+};
 
 $(document).ready(function () {
    if (localStorage['minicc:program']) {
@@ -259,11 +305,8 @@ $(document).ready(function () {
       }
    });
    
+   slider.init();
    $('#slider').click(function (ev) {
-      var track = $('#slider .track');
-      var w = track.width();
-      var left = track.position().left;
-      var ratio = (ev.clientX - left) / w;
-      sliderSet(ratio);
+      slider.click(ev);
    });
 });
