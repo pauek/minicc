@@ -24,10 +24,6 @@
   <script src="js/clike.js"></script>
   <script src="js/show-invisibles.js"></script>
 
-  <!-- Simple Slider -->
-  <link rel="stylesheet" href="css/simple-slider.css">
-  <script src="js/simple-slider.min.js"></script>
-
   <!-- minicc -->
   <link rel="stylesheet" href="css/minicc.css">
   <script src="js/minicc.js"></script> 
@@ -63,13 +59,17 @@
       </div>
     </div>
     <div id="bottom">
-      <div id="history-wrapper">
-        <input id="history" type="text" 
-               data-slider="true"
-               data-slider-range="0,100"
-               data-slider-step="1"
-               data-slider-snap="true"
-               data-slider-highlight="true">
+      <div id="controls">
+        <div id="buttons">
+          <button id="execute"   class="pure-button"><i class="fa fa-play"></i></button>
+          <button id="backwards" class="pure-button"><i class="fa fa-backward"></i></button>
+          <button id="forwards"  class="pure-button"><i class="fa fa-forward"></i></button>
+        </div>
+        <div id="slider">
+          <div class="track"></div>
+          <div class="hl-track"></div>
+          <div class="knob"></div>
+        </div>
       </div>
       <div id="env"></div>
     </div>

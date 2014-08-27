@@ -248,8 +248,4 @@ $(document).ready(function () {
          return "Has editado, seguro que quieres salir?";
       }
    });
-
-   $('#history').bind('slider:changed', function (event, data) {
-      console.log(data.value);
-   });
 });

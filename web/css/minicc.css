@@ -52,7 +52,6 @@ header {
   background-color: #f9faef;
   padding: 0;
 }
-
 #output {
   padding: .3em 1.5em;
 }
@@ -135,35 +134,47 @@ header {
   padding: 0 .3em 0 .4em;
 }
 
-#history-wrapper {
-  margin-left: 1em;
-  margin-right: 1em;
+#controls {
+  position: relative;
+  padding-top: 1px;
 }
-.slider {
-  margin-top: 10px;
-  width: 95%;
-  margin-left: 20px;
+#slider {
+  position: relative;
+  top: 3px;
+  right: 0;
+  height: 2.1em;
+  padding-left: 11em;
+  padding-right: 1.5em;
+  box-sizing: border-box;
+  width: 100%;
 }
-.slider > .track, .slider > .highlight-track {
-  background-image: none;
-  box-shadow: none;
+#slider .track {
+  background-color: #bbb;
+  margin-top: .9em;
   height: 3px;
-  border: none;
-  border-radius: 0;
 }
-.slider > .dragger {
-  border: 1px solid #65abfc;
-  width: 20px;
-  height: 20px;
-  background: #fff;
-  box-shadow: none;
-  border-radius: 0;
+#slider .hl-track {
+  background-color: #333;
+  margin-top: -3px;
+  height: 3px;
+  width: 10%;
 }
-.slider > .dragger:hover {
-  background: #fff;
+#slider .knob {
+  position: absolute;
+  margin-top: -.85em;
+  width: 1.5em;
+  height: 1.5em;
+  border-radius: 1em;
+  background-color: #777;
+  margin-left: 20em;
 }
-.slider > .track           { background-color: #ccc; }
-.slider > .highlight-track { background-color: #98d0ff; }
+#buttons {
+  position: absolute;
+  top: .2em;
+  left: .4em;
+  z-index: 1;
+}
+
 
 #env table.struct {
   border: 1px solid #ccc;
