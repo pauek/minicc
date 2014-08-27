@@ -223,6 +223,9 @@ var slider = {
    init: function () {
       this._refreshTrack();
       this._refreshKnob();
+      $('#slider').click(function (ev) {
+         slider.click(ev);
+      });
    },
    incr: function() {
       this.curr += 1;
@@ -306,7 +309,4 @@ $(document).ready(function () {
    });
    
    slider.init();
-   $('#slider').click(function (ev) {
-      slider.click(ev);
-   });
 });
