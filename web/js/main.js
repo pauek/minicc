@@ -213,6 +213,32 @@ function sliderChange() {
    console.log(value);
 }
 
+var dragging = null;
+
+function setupEvents() {
+   $('#slider').click(function (ev) {
+      slider.click(ev);
+   });
+   $('#slider .knob').mousedown(function (ev) { 
+      var track = $('#slider .track');
+      dragging = { 
+         orig:  track.position().left,
+         width: track.width(),
+      };
+      return false;
+   });
+   $('body').mousemove(function (ev) {
+      if (dragging) {
+         var ratio = (ev.clientX - dragging.orig) / dragging.width;
+         slider.setKnob(ratio);
+         return false;
+      }
+   });
+   $('body').mouseup(function (ev) {
+      dragging = null;
+   });
+}
+
 var slider = {
    _max: 100,
    _curr: 10,
@@ -223,9 +249,7 @@ var slider = {
    init: function () {
       this._refreshTrack();
       this._refreshKnob();
-      $('#slider').click(function (ev) {
-         slider.click(ev);
-      });
+      setupEvents();
    },
    incr: function() {
       this.curr += 1;
