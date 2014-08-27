@@ -37,8 +37,8 @@ public:
 
    std::string status()           const { return _status; }
           void status(std::string s)    { _status = s; }
-   std::string error()            const { return (_err ? _err->msg : ""); }
-
+     EvalError *error()           const { return _err; }
+ 
           void start(Program *p)        { visit_program(p); }
 
           void push(StepperState *s)    {       _stack.push(s);           }

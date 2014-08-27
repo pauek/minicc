@@ -192,12 +192,12 @@ function showenv(env) {
       if (i == env.length-1) {
          html += " curr";
       }
-      html += '"><h5>' + env[i].func + '</h5>';
-      var E = env[i].env;
+      html += '"><h5>' + env[i].name + '</h5>';
+      var T = env[i].tab;
       html += '<div class="wrapper"><table>'
-      for (var prop in E) {
+      for (var prop in T) {
          html += '<tr><td><div class="name">' + prop + '</div></td><td>';
-         html += value_str(E[prop]);
+         html += value_str(T[prop]);
          html += '</td></tr>';
       }
       html += '</table></div>';

@@ -4,15 +4,14 @@
 using namespace std;
 
 void Interpreter::setenv(string id, Value *val, bool hidden) {
-   _env.back().map[id] = val;
-   _env.back().hidden[id] = hidden;
+   _env.back().set(id, val, hidden);
 }
 
 Value *Interpreter::getenv(string id) {
    for (int i = _env.size()-1; i >= 0; i--) {
-      auto it = _env[i].map.find(id);
-      if (it != _env[i].map.end()) {
-         return it->second;
+      Value *v = _env[i].get(id);
+      if (v) {
+         return v;
       }
    }
    return 0;
@@ -25,22 +24,9 @@ string Interpreter::env2json() const {
       if (i > 1) {
          json << ",";
       }
-      json << "{\"func\":\"" << _env[i].name << "\",\"env\":{";
-      bool first = true;
-      auto it = _env[i].map.begin();
-      auto ht = _env[i].hidden.begin();
-      for (; it != _env[i].map.end(); it++, ht++) {
-         if (ht->second) {
-            continue;
-         }
-         if (!first) {
-            json << ",";
-         }
-         first = false;
-         json << '"' << it->first << "\":";
-         json << it->second->to_json();
-      }
-      json << "}}";
+      json << "{\"name\":\"" << _env[i].name << "\",\"tab\":";
+      _env[i].to_json(json);
+      json << "}";
    }
    json << "]";
    return json.str();
@@ -79,7 +65,7 @@ void Interpreter::invoke_func(FuncDecl *fn, const vector<Value*>& args) {
 
 void Interpreter::visit_program_prepare(Program *x) {
    _env.clear();
-   _env.push_back(Env("<global>"));
+   _env.push_back(Environment("<global>"));
 
    bool hidden = true;
    setenv("endl", new Value("\n"), hidden);
@@ -455,7 +441,9 @@ void Interpreter::visit_binaryexpr_assignment(Value *left, Value *right) {
    if (assignment_types_ok(left->type, right->type)) {
       *left = *right; // DANGER!
    } else { 
-      _error("La asignación no se puede hacer porque los tipos no son compatibles");
+      _error(string() + 
+             "La asignación no se puede hacer porque los tipos no son compatibles (" +
+             left->type + " vs " + right->type + ")");
    }
    _curr = left;
 }
@@ -487,7 +475,7 @@ Value *Interpreter::visit_vardecl_struct_new(StructDecl *D, Value *init) {
       }
    }
    Value *res = new Value(Value::Struct, D->type_str());
-   res->val.as_ptr = new map<string,Value*>(_env.back().map);
+   res->val.as_ptr = new Environment(_env.back());
    popenv();
    return res;
 }
@@ -700,13 +688,13 @@ void Interpreter::visit_fieldexpr(FieldExpr *x) {
    if (_curr->kind != Value::Struct) {
       _error("El acceso a campos debe hacerse sobre tuplas u objetos");
    }
-   map<string,Value*> *fields = static_cast<map<string,Value*>*>(_curr->val.as_ptr);
-   auto it = fields->find(x->field->id);
-   if (it == fields->end()) {
+   Environment *fields = static_cast<Environment*>(_curr->val.as_ptr);
+   Value *v = fields->get(x->field->id);
+   if (v == 0) {
       _error("No existe el campo '" + x->field->id + "'");
    }
-   _curr = new Value(Value::Ref, it->second->type + "&");
-   _curr->val.as_ptr = it->second;
+   _curr = new Value(Value::Ref, v->type + "&");
+   _curr->val.as_ptr = v;
 }
 
 void Interpreter::visit_condexpr(CondExpr *x) {

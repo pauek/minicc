@@ -1,6 +1,7 @@
 
 #include <iostream>
 #include <sstream>
+#include <map>
 #include <assert.h>
 using namespace std;
 
@@ -47,7 +48,7 @@ Value Value::operator=(const Value& v) {
       break;
 
    case Struct: 
-      val.as_ptr = new map<string,Value*>(*static_cast<map<string,Value*>*>(v.val.as_ptr));
+      val.as_ptr = new Environment(*static_cast<Environment*>(v.val.as_ptr));
       break;
 
    case Vector: case List: case Map:
@@ -200,17 +201,8 @@ string Value::to_json() const {
       break;
    }
    case Value::Struct: {
-      map<string, Value*> *m = static_cast<map<string,Value*>*>(val.as_ptr);
-      json << "{";
-      bool first = true;
-      for (auto it : *m) {
-         if (!first) {
-            json << ",";
-         }
-         first = false;
-         json << '"' << it.first << "\":" << it.second->to_json();
-      }
-      json << "}";
+      Environment *E = static_cast<Environment*>(val.as_ptr);
+      E->to_json(json);
       break;
    }
    case Value::Ref:
@@ -228,4 +220,30 @@ vector<Value*> *Value::exprlist() {
 
 const vector<Value*> *Value::exprlist() const {
    return static_cast<vector<Value*>*>(val.as_ptr);
+}
+
+Environment::Item *Environment::_get(std::string name) {
+   for (int i = 0; i < tab.size(); i++) {
+      if (tab[i].name == name) {
+         return &tab[i];
+      }
+   }
+   return 0;
+}
+
+void Environment::to_json(ostream& json) const {
+   json << "{";
+   bool first = true;
+   for (int i = 0; i < tab.size(); i++) {
+      if (tab[i].hidden) {
+         continue;
+      }
+      if (!first) {
+         json << ",";
+      }
+      json << '"' << tab[i].name << "\":";
+      json << tab[i].value->to_json();
+      first = false;
+   }
+   json << "}";
 }

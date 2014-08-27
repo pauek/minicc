@@ -72,5 +72,36 @@ inline bool operator!=(const Value& a, const Value& b) {
    return !operator==(a, b);
 }
 
+struct Environment {
+   struct Item {
+      std::string  name;
+      Value *value;
+      bool  hidden;
+      Item(std::string n, Value *v, bool h = false)
+         : name(n), value(v), hidden(h) {}
+   };
+
+   std::string       name;
+   std::vector<Item> tab;
+
+   Item *_get(std::string name);
+
+public:
+   Environment(std::string n) : name(n) {}
+
+   void set(std::string name, Value *v, bool hidden = false) {
+      tab.push_back(Item(name, v, hidden));
+   }
+
+   Value *get(std::string name) {
+      Item *i = _get(name);
+      return (i ? i->value : 0);
+   }
+
+   void to_json(std::ostream& o) const;
+   std::map<std::string,Value*> *as_map() const;
+};
+
+
 #endif
 

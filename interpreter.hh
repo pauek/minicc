@@ -16,14 +16,7 @@ struct EvalError {
 class Interpreter : public AstVisitor {
     Value *_curr, *_ret;
 
-   struct Env {
-      std::string name;
-      std::map<std::string, Value*> map;
-      std::map<std::string, bool>   hidden;
-      Env(std::string n) : name(n) {}
-   };
-
-                    std::vector<Env> _env;
+            std::vector<Environment> _env;
     std::map<std::string, FuncDecl*> _funcs;
   std::map<std::string, StructDecl*> _structs;
 
@@ -31,7 +24,7 @@ class Interpreter : public AstVisitor {
       return _structs.find(name) != _structs.end();
    }
 
-   void   pushenv(std::string name) { _env.push_back(Env(name));  }
+   void   pushenv(std::string name) { _env.push_back(Environment(name));  }
    void   popenv()                  { _env.pop_back(); }
    void   setenv(std::string id, Value *val, bool hidden = false);
    Value* getenv(std::string id);

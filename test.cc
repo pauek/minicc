@@ -109,7 +109,9 @@ void test_visitor(string filename, VisitorType vtype) {
          while (!S.finished()) {
             Sout << S.status() << endl;
             Sout << S.span() << ": " << P.input().substr(S.span()) << endl;
-            S.step();
+            if (!S.step()) {
+               throw S.error();
+            }
          }
          Sout << S.status() << endl;
       } else {

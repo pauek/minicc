@@ -217,6 +217,9 @@ Range Stepper::AssignmentVisitState::span() const {
 Todo Stepper::AssignmentVisitState::step(Stepper *S) {
    if (right == 0) {
       right = S->I._curr;
+      if (right->kind == Value::Ref) {
+         right = right->ref();
+      }
       ostringstream oss;
       oss << "La expresión ha dado " << *right << ".";
       S->status(oss.str());
