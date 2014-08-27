@@ -19,17 +19,17 @@ function setCompilado(new_value) {
    if (compilado) {
       $("#compile").addClass("pure-button-disabled");
       $("#execute").removeClass("pure-button-disabled");
-      $("#step").removeClass("pure-button-disabled");
+      $("#forwards").removeClass("pure-button-disabled");
+      $("#backwards").removeClass("pure-button-disabled");
+      stepper.prepare();
+      slider.reset();
+      showenv(null);
    } else {
       $("#compile").removeClass("pure-button-disabled");
       $("#execute").addClass("pure-button-disabled");
-      $("#step").addClass("pure-button-disabled");
-      if (mark) {
-         mark.clear();
-      }
-      if (stepper) {
-         stepper = null;
-      }
+      $("#forwards").addClass("pure-button-disabled");
+      $("#backwards").addClass("pure-button-disabled");
+      stepper.clearMark();
    }
 }
 
@@ -97,33 +97,71 @@ function execute() {
    }, 80);
 }
 
-var stepper = null, mark;
-
-function step() {
-   if (stepper === null) {
-      stepper = new Module.Stepper();
-   }
-   if (mark) {
-      mark.clear();
-   }
-   if (!stepper.finished()) {
-      var r = stepper.span();
-      var ini = {line: r.ini.lin-1, ch: r.ini.col};
-      var fin = {line: r.fin.lin-1, ch: r.fin.col};
-      mark = editor.markText(ini, fin, {
+var stepper = {
+   _mark: null,
+   _stepper: null,
+   _history: null,
+   prepare: function () {
+      this.resetHistory();
+      this._stepper = new Module.Stepper();
+   },
+   clearMark: function () {
+      if (this._mark) {
+         this._mark.clear();
+         this._mark = null;
+      }
+   },
+   span: function () {
+      var span = this._stepper.span();
+      return {
+         ini: {line: span.ini.lin-1, ch: span.ini.col},
+         fin: {line: span.fin.lin-1, ch: span.fin.col}
+      };
+   },
+   setMark: function(span) {
+      this.clearMark();
+      this._mark = editor.markText(span.ini, span.fin, {
          className: "current",
       });
-      editor.scrollIntoView({line: fin.line + 3, ch: 0});
-      showenv(JSON.parse(stepper.env()));
-      if (!stepper.step()) {
-         alert(stepper.error());
+      editor.scrollIntoView({line: span.fin.line, ch: 0}, 40);
+   },
+   resetHistory: function () {
+      this._history = [{
+         span: { 
+            ini: {line: 0, ch: 0},
+            fin: {line: 0, ch: 0}
+         },
+         status: "",
+         env: null
+      }];
+   },
+   finished: function () {
+      return this._stepper.finished();
+   },
+   step: function () {
+      var span = this.span();
+      this.setMark(span);
+      var item = {
+         span:   span,
+         status: this._stepper.status(),
+         env:    JSON.parse(this._stepper.env())
+      };
+      this._history.push(item);
+      if (!this._stepper.step()) {
+         alert(this._stepper.error());
+         return false;
       }
-      slider.incr();
-   } else {
-      stepper = null;
-      showenv(null);
+      return true;
+   },
+   show: function (k) {
+      if (k < 0 || k >= this._history.length) {
+         return;
+      }
+      var item = stepper._history[k];
+      this.setMark(item.span);
+      showenv(item.env);
    }
-}
+};
 
 function reformat() {
    var code = editor.getValue();
@@ -210,7 +248,6 @@ function showenv(env) {
 
 function sliderChange() {
    var value = $('history').value;
-   console.log(value);
 }
 
 var dragging = null;
@@ -241,10 +278,23 @@ function setupEvents() {
 
 var slider = {
    _max: 100,
-   _curr: 10,
+   _curr: 0,
    _knob: 0,
    curr: function () {
       return this._curr / this.max;
+   },
+   knob: function () {
+      return this._knob;
+   },
+   top: function () {
+      return this._curr == this._knob;
+   },
+   reset: function () {
+      this._max = 100;
+      this._curr = 0;
+      this._knob = 0;
+      this._refreshKnob();
+      this._refreshTrack();
    },
    init: function () {
       this._refreshTrack();
@@ -252,8 +302,21 @@ var slider = {
       setupEvents();
    },
    incr: function() {
-      this.curr += 1;
-      this._refreshTrack();
+      this._knob += 1;
+      this._refreshKnob();
+      if (this._knob > this._curr) {
+         this._curr = this._knob;
+         this._refreshTrack();
+         return true;
+      }
+      return false;
+   },
+   decr: function() {
+      this._knob -= 1;
+      if (this._knob < 0) {
+         this._knob = 0;
+      }
+      this._refreshKnob();
    },
    _refreshTrack: function () {
       var ratio = this._curr / this._max;
@@ -280,8 +343,16 @@ var slider = {
       $('#slider .knob').css({left: ratio * w + left + 'px'});
    },
    setKnob: function (ratio) {
-      this._knob = this._max * ratio;
+      this._knob = Math.round(this._max * ratio);
+      if (this._knob < 0) {
+         this._knob = 0;
+      }
+      var len = stepper._history.length;
+      if (this._knob >= len) {
+         this._knob = len-1;
+      }
       this._refreshKnob();
+      stepper.show(this._knob);
    },
    click: function (ev) {
       var track = $('#slider .track');
@@ -302,11 +373,24 @@ $(document).ready(function () {
    setup(initial_program);
 
    $("#execute").addClass("pure-button-disabled");
-   $("#step").addClass("pure-button-disabled");
+   $("#forwards").addClass("pure-button-disabled");
+   $("#backwards").addClass("pure-button-disabled");
 
    $("#compile").click(compile);
    $("#execute").click(execute);
-   $('#step').click(step);
+   $('#forwards').click(function () {
+      if (slider.top() && stepper.finished()) {
+         return;
+      }
+      if (slider.incr()) {
+         stepper.step();
+      }
+      stepper.show(slider.knob());
+   });
+   $('#backwards').click(function () {
+      slider.decr();
+      stepper.show(slider.knob());
+   });
    $("#reformat").click(reformat);
 
    $(window).resize(resize);
@@ -331,6 +415,5 @@ $(document).ready(function () {
          return "Has editado, seguro que quieres salir?";
       }
    });
-   
    slider.init();
 });
