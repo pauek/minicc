@@ -33,16 +33,14 @@ header {
 }
 
 .splitter_panel .hsplitter {
-  background-color: white;
-  border-top: 1px solid #ddd;
-  border-bottom: 1px solid #ddd;
-  height: 6px;
+  background-color: #f9faef;
+  border-top: 1px solid #e1e3d4;
+  height: 4px;
 }
 
 .splitter_panel .vsplitter {
-  background-color: white;
-  border-left: 1px solid #ddd;
-  border-right: 1px solid #ddd;
+  background-color: #eceff4;
+  border-left: 1px solid #ccd6e8;
   width: 6px;
 }
 
