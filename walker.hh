@@ -5,10 +5,10 @@
 #include <iostream>
 #include "ast.hh"
 
-class Walker : public AstVisitor {
+class Walker : public AstVisitor, public ReadWriter {
    
 public:
-   Walker(std::ostream *o = &std::cout) : AstVisitor(o) {}
+   Walker(std::ostream *o = &std::cout) : ReadWriter(o) {}
 
    virtual void walk(AstNode *n) = 0;
 

@@ -5,10 +5,11 @@
 #include <iostream>
 #include "ast.hh"
 
-class AstPrinter : public AstVisitor {
+class AstPrinter : public AstVisitor, public ReadWriter {
    
 public:
-   AstPrinter(std::ostream *o = &std::cout) : AstVisitor(o) {}
+   AstPrinter(std::ostream *o = &std::cout) 
+      : ReadWriter(o) {}
 
    void print(AstNode* x) { x->visit(this); }
 

@@ -5,11 +5,12 @@
 #include <iostream>
 #include "ast.hh"
 
-class PrettyPrinter : public AstVisitor {
+class PrettyPrinter : public AstVisitor, public ReadWriter {
    void print_block(Block *);
 
 public:
-   PrettyPrinter(std::ostream *o = &std::cout) : AstVisitor(o) {}
+   PrettyPrinter(std::ostream *o = &std::cout) 
+      : ReadWriter(o) {}
 
    void print(AstNode* x) { x->visit(this); }
 

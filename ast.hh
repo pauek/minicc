@@ -427,7 +427,7 @@ struct EnumDecl : public AstNode {
 
 // AstVisitor
 
-class AstVisitor {
+class ReadWriter {
    int _indent;
    std::istream *_in;
    std::ostream *_out;
@@ -443,10 +443,17 @@ protected:
 
    std::istream& in() { return *_in; }
 
-public:
-   AstVisitor(std::ostream *o = 0)                      : _indent(0),         _out(o) {}
-   AstVisitor(std::istream *i = 0, std::ostream *o = 0) : _indent(0), _in(i), _out(o) {}
 
+public:
+   ReadWriter(std::ostream *o)                          : _indent(0),         _out(o) {}
+   ReadWriter(std::istream *i = 0, std::ostream *o = 0) : _indent(0), _in(i), _out(o) {}
+
+   void set_in(std::istream *i)  { _in  = i; }
+   void set_out(std::ostream *o) { _out = o; }
+};
+
+class AstVisitor {
+public:
    virtual void visit_comment(CommentSeq*)        { assert(false); }
    virtual void visit_program(Program*)           { assert(false); }
    virtual void visit_include(Include*)           { assert(false); }

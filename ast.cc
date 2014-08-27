@@ -94,7 +94,7 @@ bool Expr::right_associative(Expr::Kind t) {
    return t == Expr::Assignment;
 }
 
-std::ostream& AstVisitor::out(OutType typ) { 
+std::ostream& ReadWriter::out(OutType typ) { 
    if (typ == beginl and _indent > 0) {
       *_out << string(_indent * TAB_WIDTH, ' ');
    }

@@ -13,7 +13,7 @@ struct EvalError {
    EvalError(std::string _msg) : msg(_msg) {}
 };
 
-class Interpreter : public AstVisitor {
+class Interpreter : public AstVisitor, public ReadWriter {
     Value *_curr, *_ret;
 
             std::vector<Environment> _env;
@@ -65,8 +65,11 @@ std::string env2json() const;
     friend class Stepper;
 
 public:
+   Interpreter() 
+      : _curr(0), _ret(0) {}
+
    Interpreter(std::istream *i, std::ostream *o)
-      : AstVisitor(i, o), _curr(0), _ret(0) {}
+      : ReadWriter(i, o), _curr(0), _ret(0) {}
 
    ~Interpreter() {}
 
