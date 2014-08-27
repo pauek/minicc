@@ -115,7 +115,9 @@ function step() {
       });
       editor.scrollIntoView({line: fin.line + 3, ch: 0});
       showenv(JSON.parse(stepper.env()));
-      stepper.step();
+      if (!stepper.step()) {
+         alert(stepper.error());
+      }
    } else {
       stepper = null;
       showenv(null);
@@ -133,25 +135,34 @@ function resize() {
    $('#content').height(free + 'px');
 }
 
-function value_str(value, addClass) {
-   var s = '', elem = 'span';
-   var classes = [];
+function value_str(value, addClass, insert) {
+   var s = '', elem = 'div';
+   var classes = ['var'];
    if (value === null) {
       classes.push('unknown');
       s = '?';
    } else if (value instanceof Array) {
       classes.push('array');
+      elem = 'table';
+      s += '<tr>'
       for (var j = 0; j < value.length; j++) {
-         s += value_str(value[j], (j == 0 ? "first" : null));
+         s += '<td>';
+         s += value_str(value[j], 
+                        (j == 0 ? "first" : null), 
+                        '<div class="index">' + j + '</div>');
+         s += '</td>';
       } 
+      s += '</tr>';
    } else if (value instanceof Object) {
       classes.push('struct');
       elem = 'div';
+      s += '<table>';
       for (var prop in value) {
-         s += '<div class="var">' + prop + '&nbsp;';
+         s += '<tr><td><div class="name">' + prop + '</div></td><td>';
          s += value_str(value[prop]);
-         s += '</div>';
+         s += '</td></tr>';
       }
+      s += '</table>';
    } else {
       classes.push('value');
       s = value;
@@ -166,7 +177,7 @@ function value_str(value, addClass) {
       }
       html += classes[i];
    }
-   html += '">' + s + '</' + elem + '>';
+   html += '">' + s + (insert ? insert : '') + '</' + elem + '>';
    return html;
 }
 
@@ -183,11 +194,13 @@ function showenv(env) {
       }
       html += '"><h5>' + env[i].func + '</h5>';
       var E = env[i].env;
+      html += '<div class="wrapper"><table>'
       for (var prop in E) {
-         html += '<div class="var">' + prop + '&nbsp;';
+         html += '<tr><td><div class="name">' + prop + '</div></td><td>';
          html += value_str(E[prop]);
-         html += '</div>';
+         html += '</td></tr>';
       }
+      html += '</table></div>';
       html += '</div></td>';
    }
    html += '</tr></table>';

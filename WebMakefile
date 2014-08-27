@@ -7,10 +7,10 @@ CXXFLAGS=-std=c++11
 
 all: debug
 
-debug: CXXFLAGS += -g3 -O0
+debug: CXXFLAGS += -g3 -O0 -s DISABLE_EXCEPTION_CATCHING=0
 debug: minicc.js
 
-release: CXXFLAGS += -O2
+release: CXXFLAGS += -O2 -s DISABLE_EXCEPTION_CATCHING=0
 release: minicc.js
 
 minicc.js: $(BCFILES)

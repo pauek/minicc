@@ -23,6 +23,7 @@ class Stepper : public AstVisitor {
                  std::string _status;
    std::stack<StepperState*> _stack;
    std::vector<std::string>  _errors;
+                 EvalError*  _err;
 
           void _e() const { assert(!_stack.empty()); }
           void prepare_funcall(FuncDecl *, std::vector<Value*>&);
@@ -31,12 +32,12 @@ class Stepper : public AstVisitor {
           void eval(AstNode *x) { x->visit(&I); }
 public:
                Stepper(std::istream *i, std::ostream *o) 
-                  : AstVisitor(o), I(i, o) {}
+                  : AstVisitor(o), I(i, o), _err(0) {}
               ~Stepper() {}
 
    std::string status()           const { return _status; }
           void status(std::string s)    { _status = s; }
-          bool errors()           const { return !_errors.empty(); }
+   std::string error()            const { return (_err ? _err->msg : ""); }
 
           void start(Program *p)        { visit_program(p); }
 
@@ -45,7 +46,7 @@ public:
           void pop()                    { _e(); _stack.pop();             }
           bool finished()         const { return _stack.empty(); }
          Range span() const             { _e(); return _stack.top()->span(); }
-          void step();
+          bool step();
    std::string env2json()         const { return I.env2json(); }
 
 

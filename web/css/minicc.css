@@ -70,6 +70,10 @@ header {
   min-width: 100px;
   box-shadow: #ddd 2px 2px 7px;
 }
+#env .fenv .wrapper {
+  padding-left: .4em;
+  padding-right: .4em;
+}
 
 #env .fenv {
   font-size: .85rem;
@@ -88,6 +92,7 @@ header {
   background-color: rgba(0, 0, 0, .2);
   font-size: 0.9rem;
   font-weight: normal;
+  margin-bottom: .4em;
 }
 
 #env .fenv.curr h5 {
@@ -97,43 +102,39 @@ header {
 #env .fenv.curr {
   background-color: rgb(255, 255, 160);
 }
-
-#env .var {
-  padding: 7px 7px 0 7px;
-}
-
-#env .var .struct {
-  display: inline-block;
+#env .struct {
   background-color: white;
   border: 1px solid #ccc;
-  padding-bottom: 7px;
-  vertical-align: middle;
 }
-
-#env .var .value, #env .var .unknown {
+#env .var {
+  padding: .3em .4em .3em 0;
+  display: inline-block;
+  margin: .1em 0;
+}
+#env .value, #env .var.unknown {
   padding: 1px 4px;
   border: 1px solid #ccc;
   background-color: white;
   color: #4449ff;
 }
-#env .var .unknown {
+#env .var.unknown {
   color: #aaa;
 }
-#env table.array {
-  display: inline-block;
-}
-#env table.array td {
-  border: 1px solid #ccc;
-  background-color: white;
+#env table.var.array {
+  padding-bottom: 0;
 }
 #env td {
-  vertical-align: top;
+  vertical-align: middle;
+  padding: 0;
 }
-#env .array .value, #env .array .unknown {
+#env .array > .value, #env .array > .unknown, #env .array > .struct {
   border-left: none;
 }
-#env .array .first {
+#env .array > .first {
   border-left: 1px solid #ccc;
+}
+#env .name {
+  padding: 0 .3em 0 .4em;
 }
 
 #history-wrapper {
@@ -166,3 +167,24 @@ header {
 .slider > .track           { background-color: #ccc; }
 .slider > .highlight-track { background-color: #98d0ff; }
 
+#env table.struct {
+  border: 1px solid #ccc;
+  background: white;
+}
+#env table.array > tbody > tr > td > div.var {
+  border-left: none;
+  padding-bottom: 1em;
+}
+#env table.array > tbody > tr > td > div.var.first {
+  border-left: 1px solid #ccc;
+}
+#env table.array > tbody > tr > td > .var {
+  position: relative;
+}
+#env table.array .index {
+  position: absolute;
+  color: #aaa;
+  font-size: 75%;
+  right: 1px;
+  bottom: -1px;
+}

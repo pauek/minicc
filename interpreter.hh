@@ -27,6 +27,10 @@ class Interpreter : public AstVisitor {
     std::map<std::string, FuncDecl*> _funcs;
   std::map<std::string, StructDecl*> _structs;
 
+   bool  is_struct(std::string name) {
+      return _structs.find(name) != _structs.end();
+   }
+
    void   pushenv(std::string name) { _env.push_back(Env(name));  }
    void   popenv()                  { _env.pop_back(); }
    void   setenv(std::string id, Value *val, bool hidden = false);

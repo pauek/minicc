@@ -4,10 +4,18 @@
 #include "stepper.hh"
 using namespace std;
 
-void Stepper::step() {
-   Todo t = Next;
-   while (!finished() and t == Next) {
-      t = _stack.top()->step(this);
+bool Stepper::step() {
+   _err = 0;
+   try {
+      Todo t = Next;
+      while (!finished() and t == Next) {
+         t = _stack.top()->step(this);
+      }
+      return true;
+   }
+   catch (EvalError* e) {
+      _err = e;
+      return false;
    }
 }
 

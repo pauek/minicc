@@ -474,7 +474,7 @@ Value *Interpreter::visit_vardecl_struct_new(StructDecl *D, Value *init) {
    }
    vector<Value*> *values = (init ? init->exprlist() : 0);
    int k = 0;
-   pushenv("<struct>");
+   pushenv("[struct]");
    for (int i = 0; i < D->decls.size(); i++) {
       for (int j = 0; j < D->decls[i]->items.size(); j++, k++) {
          if (values and (k < values->size())) {
@@ -550,28 +550,35 @@ void Interpreter::visit_arraydecl(ArrayDecl *x) {
    Value *v = new Value(Value::Array, x->type_str());
    vector<Value*> *vals = new vector<Value*>(sz);
    string cell_type = x->type->str();
-   if (init->kind != Value::ExprList) {
-      _error("Inicializas una tabla con algo que no es una lista de valores");
-      return;
-   }
-   vector<Value*> *elist = init->exprlist();
-   assert(elist != 0);
-   if (elist->size() > sz) {
-      _error("Demasiados valores al inicializar la tabla");
-      return;
-   }
-   for (int i = 0; i < elist->size(); i++) {
-      if ((*elist)[i]->type != cell_type) {
-         ostringstream S;
-         S << "La inicialización de la casilla " << i 
-           << " tiene tipo '" << _curr->type << "'" 
-           << " cuando debería ser '" << cell_type << "'";
-         _error(S.str());
+   int num_inited = 0;
+   if (init) {
+      if (init->kind != Value::ExprList) {
+         _error("Inicializas una tabla con algo que no es una lista de valores");
+         return;
       }
-      (*vals)[i] = (*elist)[i];
+      vector<Value*> *elist = init->exprlist();
+      assert(elist != 0);
+      if (elist->size() > sz) {
+         _error("Demasiados valores al inicializar la tabla");
+         return;
+      }
+      for (int i = 0; i < elist->size(); i++) {
+         if ((*elist)[i]->type != cell_type) {
+            ostringstream S;
+            S << "La inicialización de la casilla " << i 
+              << " tiene tipo '" << _curr->type << "'" 
+              << " cuando debería ser '" << cell_type << "'";
+            _error(S.str());
+         }
+         (*vals)[i] = (*elist)[i];
+      }
+      num_inited = elist->size();
    }
-   for (int i = elist->size(); i < vals->size(); i++) {
-      (*vals)[i] = new Value(Value::Unknown, cell_type);
+   for (int i = num_inited; i < vals->size(); i++) {
+      auto it = _structs.find(cell_type);
+      (*vals)[i] = (it != _structs.end()
+                    ? visit_vardecl_struct_new(it->second, 0)
+                    : new Value(Value::Unknown, cell_type));
    }
    v->val.as_ptr = vals;
    setenv(x->name, v);
