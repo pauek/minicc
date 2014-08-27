@@ -22,8 +22,6 @@ function setCompilado(new_value) {
       $("#forwards").removeClass("pure-button-disabled");
       $("#backwards").removeClass("pure-button-disabled");
       stepper.prepare();
-      slider.reset();
-      showenv(null);
    } else {
       $("#compile").removeClass("pure-button-disabled");
       $("#execute").addClass("pure-button-disabled");
@@ -31,6 +29,8 @@ function setCompilado(new_value) {
       $("#backwards").addClass("pure-button-disabled");
       stepper.clearMark();
    }
+   slider.reset();
+   showenv(null);
 }
 
 var editor;
