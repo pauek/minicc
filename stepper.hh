@@ -11,7 +11,7 @@
 
 enum Todo { Stop, Next };
 
-class Stepper : public AstVisitor, public ReadWriter {
+class Stepper : public AstVisitor {
 
    Interpreter I;
 
@@ -32,7 +32,7 @@ class Stepper : public AstVisitor, public ReadWriter {
           void eval(AstNode *x) { x->visit(&I); }
 public:
                Stepper(std::istream *i, std::ostream *o) 
-                  : ReadWriter(o), I(i, o), _err(0) {}
+                  : I(i, o), _err(0) {}
 
               ~Stepper() {}
 
