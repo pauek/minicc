@@ -143,14 +143,12 @@ header {
   top: 3px;
   right: 0;
   height: 2.1em;
-  padding-left: 11em;
-  padding-right: 1.5em;
+  padding: .9em 1.5em .9em 11em;
   box-sizing: border-box;
   width: 100%;
 }
 #slider .track {
   background-color: #bbb;
-  margin-top: .9em;
   height: 3px;
 }
 #slider .hl-track {
@@ -165,8 +163,8 @@ header {
   width: 1.5em;
   height: 1.5em;
   border-radius: 1em;
-  background-color: #777;
-  margin-left: 20em;
+  background-color: rgba(90, 90, 90, .7);
+  margin-left: -.75em;
 }
 #buttons {
   position: absolute;

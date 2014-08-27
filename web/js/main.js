@@ -212,6 +212,16 @@ function sliderChange() {
    console.log(value);
 }
 
+function sliderSet(ratio) {
+   if (ratio >= 0.0 && ratio <= 1.0) {
+      var track = $('#slider .track');
+      var w = track.width();
+      var left = track.position().left;
+      $('#slider .knob').css({left: ratio * w + left + 'px'});
+      $('#slider .hl-track').css({width: '' + (ratio * 100) + '%'});
+   }
+}
+
 $(document).ready(function () {
    if (localStorage['minicc:program']) {
       initial_program = localStorage['minicc:program'];
@@ -247,5 +257,13 @@ $(document).ready(function () {
       if (cambiado) {
          return "Has editado, seguro que quieres salir?";
       }
+   });
+   
+   $('#slider').click(function (ev) {
+      var track = $('#slider .track');
+      var w = track.width();
+      var left = track.position().left;
+      var ratio = (ev.clientX - left) / w;
+      sliderSet(ratio);
    });
 });
