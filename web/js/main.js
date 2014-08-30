@@ -139,15 +139,7 @@ var stepper = {
       return this._stepper.finished();
    },
    step: function () {
-      var span = this.span();
-      this.setMark(span);
-      console.log(this._stepper.state());
-      var state = JSON.parse(this._stepper.state());
-      this._history.push({
-         span:   span,
-         status: state.status,
-         env:    state.env
-      });
+      this._history.push(JSON.parse(this._stepper.state()));
       if (!this._stepper.step()) {
          alert(this._stepper.error());
          return false;
@@ -223,10 +215,11 @@ function value_str(value, addClass, insert) {
 
 function showstate(S) {
    $('#env').empty();
+   $('#status').text('');
    if (S === null) {
       return;
    }
-   console.log(S.status);
+   
    var env = S.env;
    if (env === null) {
       return;

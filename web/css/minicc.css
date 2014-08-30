@@ -20,6 +20,9 @@ body {
   color: #ccc;
 }
 
+#errors {
+  display: none;
+}
 #errors h4 { margin: 0; }
 
 .cm-invisible { opacity: .25; }
@@ -54,6 +57,7 @@ header {
 }
 #output {
   padding: .3em 1.5em;
+  display: none;
 }
 
 #env {

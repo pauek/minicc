@@ -61,12 +61,11 @@ public:
       S = new Stepper(&cin, &cout);
       program->visit(S);
    }
-    Range span()     const { return S->span(); }
      bool finished() const { return S->finished(); }
      bool step()           { return S->step(); }
-   string error()    const { return S->error()->msg; }
    string state()    const { return S->state2json(); }
    string output()   const { return S->output(); }
+   string error()    const { return S->error()->msg; }
 };
 
 EMSCRIPTEN_BINDINGS(minicc) {
@@ -81,10 +80,10 @@ EMSCRIPTEN_BINDINGS(minicc) {
       .property("fin", &Range::gf, &Range::sf);
    emscripten::class_<EmbindStepper>("Stepper")
       .constructor<>()
-      .function("state",    &EmbindStepper::state)
-      .function("span",     &EmbindStepper::span)
       .function("finished", &EmbindStepper::finished)
       .function("step",     &EmbindStepper::step)
+      .function("state",    &EmbindStepper::state)
+      .function("output",   &EmbindStepper::output)
       .function("error",    &EmbindStepper::error);
 }
 

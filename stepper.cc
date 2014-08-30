@@ -277,7 +277,12 @@ string Stepper::state2json() const {
    ostringstream json;
    json << "{";
    json << "\"env\":" << I.env2json() << ",";
-   json << "\"status\":" << "\"" << json_encode(_status) << "\"";
-   json << "}";
+   json << "\"status\":" << "\"" << json_encode(_status) << "\",";
+   Range s = span();
+   json << "\"span\":" << "{";
+   // -1 for codemirror!
+   json << "\"ini\":{" << "\"line\":" <<  s.ini.lin-1 << ",\"ch\":" << s.ini.col << "},";
+   json << "\"fin\":{" << "\"line\":" <<  s.fin.lin-1 << ",\"ch\":" << s.fin.col << "}";
+   json << "}}";
    return json.str();
 }
