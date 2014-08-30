@@ -1,6 +1,7 @@
-
 #include <vector>
 #include <sstream>
+#include <iomanip>
+#include <stdint.h>
 #include "stepper.hh"
 using namespace std;
 
@@ -198,6 +199,7 @@ void Stepper::visit_exprstmt(ExprStmt *x) {
 }
 
 Todo Stepper::WriteExprVisitState::step(Stepper* S) {
+   S->_out << *S->I._curr;
    exprs.pop_front();
    if (!exprs.empty()) {
       exprs.front()->visit(S);
@@ -268,4 +270,14 @@ Todo Stepper::CallExprVisitState::step(Stepper *S) {
       curr = -1; // signal return
       return Stop;
    }
+}
+
+
+string Stepper::state2json() const {
+   ostringstream json;
+   json << "{";
+   json << "\"env\":" << I.env2json() << ",";
+   json << "\"status\":" << "\"" << json_encode(_status) << "\"";
+   json << "}";
+   return json.str();
 }

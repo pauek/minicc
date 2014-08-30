@@ -3,6 +3,7 @@
 
 #include <assert.h>
 #include <iostream>
+#include <sstream>
 #include <vector>
 #include <list>
 #include <stack>
@@ -30,26 +31,38 @@ class Stepper : public AstVisitor {
           void _error(std::string msg) { _errors.push_back(msg); }
 
           void eval(AstNode *x) { x->visit(&I); }
+
+   std::stringstream _out;
+   std::stringstream _in;
 public:
-               Stepper(std::istream *i, std::ostream *o) 
-                  : I(i, o), _err(0) {}
+   Stepper() : _err(0) { 
+      I.set_in(&_in), I.set_out(&_out); 
+   }
+
+   Stepper(std::istream *i, std::ostream* o) 
+      : I(i, o), _err(0) {}
 
               ~Stepper() {}
 
-   std::string status()           const { return _status; }
           void status(std::string s)    { _status = s; }
+   std::string status()           const { return _status; }
      EvalError *error()           const { return _err; }
  
           void start(Program *p)        { visit_program(p); }
 
-          void push(StepperState *s)    {       _stack.push(s);           }
-          void replace(StepperState *s) { _e(); _stack.top() = s;         }
-          void pop()                    { _e(); _stack.pop();             }
-          bool finished()         const { return _stack.empty(); }
+          void push(StepperState *s)    {       _stack.push(s);              }
+          void replace(StepperState *s) { _e(); _stack.top() = s;            }
+          void pop()                    { _e(); _stack.pop();                }
+          bool finished()         const {       return _stack.empty();       }
          Range span() const             { _e(); return _stack.top()->span(); }
           bool step();
-   std::string env2json()         const { return I.env2json(); }
+   std::string state2json()       const;
 
+   std::string output() { 
+      std::string s = _out.str();
+      _out.str("");
+      return s;
+   }
 
           void visit_program(Program *x);
           void visit_block(Block *x);

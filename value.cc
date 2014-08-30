@@ -1,5 +1,5 @@
-
 #include <iostream>
+#include <iomanip>
 #include <sstream>
 #include <map>
 #include <assert.h>
@@ -185,7 +185,7 @@ string Value::to_json() const {
    }
    case Value::String: {
       string *s = static_cast<string*>(val.as_ptr);
-      json << "\"\\\"" << *s << "\\\"\"";
+      json << "\"\\\"" << json_encode(*s) << "\\\"\"";
       break;
    }
    case Value::Array: {
@@ -246,4 +246,21 @@ void Environment::to_json(ostream& json) const {
       first = false;
    }
    json << "}";
+}
+
+string json_encode(string s) {
+   ostringstream json;
+   for (int i = 0; i < s.size(); i++) {
+      if (uint8_t(s[i]) < 0x7F) {
+         json << s[i];
+      } else if ((uint8_t(s[i]) & 0x000000E0) == 0x000000C0) {
+         // Gran cutrada...
+         json << "\\u" << hex << setfill('0') << setw(4) 
+              << ((uint8_t(s[i] & 0x1F) << 6) + uint8_t(s[i+1] & 0x3F));
+         i++;
+      } else {
+         assert(false);
+      }
+   }
+   return json.str();
 }

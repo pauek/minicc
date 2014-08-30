@@ -102,6 +102,7 @@ public:
    std::map<std::string,Value*> *as_map() const;
 };
 
+std::string json_encode(std::string s);
 
 #endif
 

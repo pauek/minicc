@@ -73,17 +73,19 @@ int main(int argc, char *argv[]) {
          }
          return (ve.empty() ? 0 : 1);
       } else {
-         Stepper S(&cin, &cout);
+         Stepper S;
          program->visit(&S);
          while (!S.finished()) {
             cout << S.status() << endl;
             cout << S.span() << ": " << P.input().substr(S.span()) << endl;
             // cout << S.env2json() << endl;
+            cout << "OUTPUT: \"" << S.output() << "\"" << endl;
             if (!S.step()) {
                throw S.error();
             }
          }
          cout << S.status() << endl;
+         cout << "OUTPUT: \"" << S.output() << "\"" << endl;
       }
    } 
    catch (EvalError* e) {

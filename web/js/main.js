@@ -30,7 +30,7 @@ function setCompilado(new_value) {
       stepper.clearMark();
    }
    slider.reset();
-   showenv(null);
+   showstate(null);
 }
 
 var editor;
@@ -141,12 +141,13 @@ var stepper = {
    step: function () {
       var span = this.span();
       this.setMark(span);
-      var item = {
+      console.log(this._stepper.state());
+      var state = JSON.parse(this._stepper.state());
+      this._history.push({
          span:   span,
-         status: this._stepper.status(),
-         env:    JSON.parse(this._stepper.env())
-      };
-      this._history.push(item);
+         status: state.status,
+         env:    state.env
+      });
       if (!this._stepper.step()) {
          alert(this._stepper.error());
          return false;
@@ -159,7 +160,7 @@ var stepper = {
       }
       var item = stepper._history[k];
       this.setMark(item.span);
-      showenv(item.env);
+      showstate(item);
    }
 };
 
@@ -220,8 +221,13 @@ function value_str(value, addClass, insert) {
    return html;
 }
 
-function showenv(env) {
+function showstate(S) {
    $('#env').empty();
+   if (S === null) {
+      return;
+   }
+   console.log(S.status);
+   var env = S.env;
    if (env === null) {
       return;
    }
@@ -244,6 +250,7 @@ function showenv(env) {
    }
    html += '</tr></table>';
    $('#env').append(html);
+   $('#status').text(S.status);
 }
 
 function sliderChange() {
