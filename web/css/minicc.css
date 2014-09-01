@@ -96,11 +96,11 @@ header {
   margin-bottom: .4em;
 }
 
-#env .fenv.curr h5 {
+#env .fenv.active h5 {
   background-color: rgba(150, 150, 0, 0.3);
 }
 
-#env .fenv.curr {
+#env .fenv.active {
   background-color: rgb(255, 255, 160);
 }
 #env .struct {
@@ -177,6 +177,9 @@ header {
   height: 1.5em;
   border-radius: 1em;
   margin-left: -.75em;
+}
+#slider .knob.disabled {
+  background-color: #ccc;
 }
 #buttons {
   position: absolute;

@@ -145,16 +145,20 @@ public:
          args.resize(x->args.size());
       }
       Todo step(Stepper *S);
-      Range span() const { return x->span(); }
+      Range span() const;
+
+      static const int Return, Block;
    };
 
    struct WriteExprVisitState : public StepperState {
-      int curr;
+      Expr *curr;
+      bool waiting;
       std::list<Expr*> exprs;
       BinaryExpr *x;
-      WriteExprVisitState(BinaryExpr *_x) : x(_x), curr(0) {}
-      Todo step(Stepper *S);
-      Range span() const { return x->span(); }
+      WriteExprVisitState(BinaryExpr *_x) : x(_x), curr(0), waiting(false) {}
+      Todo step(Stepper *S); 
+      Todo step_waiting(Stepper *S);
+     Range span() const;
    };
 
 };

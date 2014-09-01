@@ -17,6 +17,18 @@ Value *Interpreter::getenv(string id) {
    return 0;
 }
 
+void Interpreter::actenv() {
+   for (int i = 0; i < _env.size(); i++) {
+      _env[i].active = false;
+   }
+   _env.back().active = true;
+}
+
+void Interpreter::popenv() { 
+   _env.pop_back(); 
+   _env.back().active = true;
+}
+
 string Interpreter::env2json() const {
    ostringstream json;
    json << "[";
@@ -38,13 +50,15 @@ void Interpreter::invoke_func_prepare(FuncDecl *fn, const vector<Value*>& args) 
       _error("Error en el número de argumentos al llamar a '" + fn->id->str() + "'");
    }
    for (int i = 0; i < args.size(); i++) {
-      if (args[i]->kind == Value::Ref) {
-         if (fn->params[i]->type->reference) {
-            setenv(fn->params[i]->name, args[i]);
-         } else {
-            Value *v = static_cast<Value*>(args[i]->val.as_ptr);
-            setenv(fn->params[i]->name, v);
+      if (args[i] == 0) {
+         string type = fn->params[i]->type->str();
+         setenv(fn->params[i]->name, new Value(Value::Unknown, type));
+      } else if (args[i]->kind == Value::Ref) {
+         Value *v = args[i];
+         if (!fn->params[i]->type->reference) {
+            v = v->ref();
          }
+         setenv(fn->params[i]->name, v);
       } else {
          if (fn->params[i]->type->reference) {
             ostringstream S;

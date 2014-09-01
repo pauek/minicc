@@ -699,6 +699,7 @@ Expr *Parser::parse_callexpr(Expr *x) {
    if (!_in.expect(")")) {
       error(e, _in.pos().str() + ": Esperaba ')'");
    }
+   e->fin = _in.pos();
    _skip(e);
    return e;
 }

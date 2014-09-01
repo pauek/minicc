@@ -81,16 +81,22 @@ struct Environment {
          : name(n), value(v), hidden(h) {}
    };
 
+   bool              active;
    std::string       name;
    std::vector<Item> tab;
 
    Item *_get(std::string name);
 
 public:
-   Environment(std::string n) : name(n) {}
+   Environment(std::string n) : name(n), active(false) {}
 
    void set(std::string name, Value *v, bool hidden = false) {
-      tab.push_back(Item(name, v, hidden));
+      Item *i = _get(name);
+      if (i == 0) {
+         tab.push_back(Item(name, v, hidden));
+      } else {
+         i->value = v;
+      }
    }
 
    Value *get(std::string name) {

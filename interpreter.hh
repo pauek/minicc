@@ -25,7 +25,8 @@ class Interpreter : public AstVisitor, public ReadWriter {
    }
 
    void   pushenv(std::string name) { _env.push_back(Environment(name));  }
-   void   popenv()                  { _env.pop_back(); }
+   void   popenv();
+   void   actenv();
    void   setenv(std::string id, Value *val, bool hidden = false);
    Value* getenv(std::string id);
 

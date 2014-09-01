@@ -232,18 +232,13 @@ Environment::Item *Environment::_get(std::string name) {
 }
 
 void Environment::to_json(ostream& json) const {
-   json << "{";
-   bool first = true;
+   json << "{\"<active>\":" << (active ? "true" : "false");
    for (int i = 0; i < tab.size(); i++) {
       if (tab[i].hidden) {
          continue;
       }
-      if (!first) {
-         json << ",";
-      }
-      json << '"' << tab[i].name << "\":";
+      json << ",\"" << tab[i].name << "\":";
       json << tab[i].value->to_json();
-      first = false;
    }
    json << "}";
 }

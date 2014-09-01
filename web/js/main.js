@@ -27,6 +27,7 @@ function setCompilado(new_value) {
       $("#execute").addClass("pure-button-disabled");
       $("#forwards").addClass("pure-button-disabled");
       $("#backwards").addClass("pure-button-disabled");
+      stepper.resetHistory();
       stepper.clearMark();
    }
    slider.reset();
@@ -126,14 +127,7 @@ var stepper = {
       editor.scrollIntoView({line: span.fin.line, ch: 0}, 40);
    },
    resetHistory: function () {
-      this._history = [{
-         span: { 
-            ini: {line: 0, ch: 0},
-            fin: {line: 0, ch: 0}
-         },
-         status: "",
-         env: null
-      }];
+      this._history = [];
    },
    finished: function () {
       return this._stepper.finished();
@@ -217,9 +211,10 @@ function showstate(S) {
    $('#env').empty();
    $('#status').text('');
    if (S === null) {
+      $('#slider .knob').addClass('disabled');
       return;
    }
-   
+   $('#slider .knob').removeClass('disabled');
    var env = S.env;
    if (env === null) {
       return;
@@ -227,13 +222,16 @@ function showstate(S) {
    var html = '<table><tr>';
    for (var i = env.length-1; i >= 0; i--) {
       html += '<td><div class="fenv';
-      if (i == env.length-1) {
-         html += " curr";
+      if (env[i].tab["<active>"]) {
+         html += " active";
       }
       html += '"><h5>' + env[i].name + '</h5>';
       var T = env[i].tab;
       html += '<div class="wrapper"><table>'
       for (var prop in T) {
+         if (prop == "<active>") {
+            continue;
+         }
          html += '<tr><td><div class="name">' + prop + '</div></td><td>';
          html += value_str(T[prop]);
          html += '</td></tr>';
@@ -278,8 +276,8 @@ function setupEvents() {
 
 var slider = {
    _max: 100,
-   _curr: 0,
-   _knob: 0,
+   _curr: -1,
+   _knob: -1,
    curr: function () {
       return this._curr / this.max;
    },
@@ -291,8 +289,8 @@ var slider = {
    },
    reset: function () {
       this._max = 100;
-      this._curr = 0;
-      this._knob = 0;
+      this._curr = -1;
+      this._knob = -1;
       this._refreshKnob();
       this._refreshTrack();
    },
@@ -416,4 +414,5 @@ $(document).ready(function () {
       }
    });
    slider.init();
+   showstate(null);
 });

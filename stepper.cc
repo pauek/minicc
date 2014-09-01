@@ -41,9 +41,9 @@ void Stepper::generic_visit(AstNode *x) {
 void Stepper::visit_declstmt(DeclStmt *x)     { generic_visit(x); }
 void Stepper::visit_increxpr(IncrExpr *x)     { generic_visit(x); }
 void Stepper::visit_binaryexpr(BinaryExpr *x) { generic_visit(x); }
-void Stepper::visit_literal(Literal *x)       { generic_visit(x); }
-void Stepper::visit_ident(Ident *x)           { generic_visit(x); }
-void Stepper::visit_fieldexpr(FieldExpr *x)   { generic_visit(x); }
+void Stepper::visit_literal(Literal *x)       { x->visit(&I); }
+void Stepper::visit_ident(Ident *x)           { x->visit(&I); }
+void Stepper::visit_fieldexpr(FieldExpr *x)   { x->visit(&I); }
 
 void Stepper::visit_program(Program *x) {
    I.visit_program_prepare(x);
@@ -53,6 +53,7 @@ void Stepper::visit_program(Program *x) {
    }
    status("Empieza el programa.");
    I.invoke_func_prepare(main, vector<Value*>());
+   I._env.back().active = true;
    push(new ProgramVisitState(main));
 }
 
@@ -225,22 +226,47 @@ void Stepper::visit_exprstmt(ExprStmt *x) {
       WriteExprVisitState *ws = new WriteExprVisitState(e);
       e->collect_rights(ws->exprs);
       push(ws);
-      ws->exprs.front()->visit(this);
-      status("Se escribe a la salida.");
+      ws->step(this);
    } else {
       I.visit(x->expr);
-      status(x->expr->describe());
+      if (x->is_return) {
+         ostringstream oss;
+         oss << "Se retorna " << *I._curr << ".";
+         status(oss.str());
+      } else {
+         status(x->expr->describe());
+      }
       push(new PopState(x->span()));
    }
 }
 
-Todo Stepper::WriteExprVisitState::step(Stepper* S) {
+Range Stepper::WriteExprVisitState::span() const {
+   return curr->span();
+}
+
+Todo Stepper::WriteExprVisitState::step_waiting(Stepper* S) {
+   S->status("Se escribe a la salida.");
    S->_out << *S->I._curr;
    exprs.pop_front();
+   waiting = false;
+   return Stop;
+}
+
+Todo Stepper::WriteExprVisitState::step(Stepper* S) {
    if (!exprs.empty()) {
-      exprs.front()->visit(S);
-      S->status("Se escribe a la salida.");
-      return Stop;
+      if (waiting) {
+         return step_waiting(S);
+      } else {
+         curr = exprs.front();
+         const int old_sz = S->_stack.size();
+         curr->visit(S);
+         if (S->_stack.size() > old_sz) {
+            waiting = true;
+            return Stop;
+         } else {
+            return step_waiting(S);
+         }
+      }
    } else {
       S->pop();
       delete this;
@@ -284,35 +310,61 @@ Todo Stepper::AssignmentVisitState::step(Stepper *S) {
 
 void Stepper::visit_callexpr(CallExpr *x) {
    FuncDecl *fn = I.visit_callexpr_getfunc(x);
-   push(new CallExprVisitState(x, fn));
-   if (!x->args.empty()) {
-      x->args[0]->visit(this);
+   CallExprVisitState *s = new CallExprVisitState(x, fn);
+   vector<Value*> args(fn->params.size(), 0);
+   I.invoke_func_prepare(fn, args);
+   s->step(this);
+   push(s);
+}
+
+string numeral[] = {
+   "primer", "segundo", "tercer", "cuarto", "quinto", "sexto", "séptimo"
+};
+
+const int Stepper::CallExprVisitState::Block  = -1;
+const int Stepper::CallExprVisitState::Return = -2;
+
+Range Stepper::CallExprVisitState::span() const {
+   if (curr == CallExprVisitState::Return) {
+      return x->span();
+   } else if (curr == CallExprVisitState::Block) {
+      return fn->id->span();
+   } else {
+      return x->args[curr-1]->span();
    }
 }
 
 Todo Stepper::CallExprVisitState::step(Stepper *S) {
-   if (curr == -1) { // we are returning from the call
+   const int size = x->args.size();
+   if (curr == CallExprVisitState::Return) {
       S->I.popenv();
       S->pop();
       delete this;
       return Next;
-   }
-   const int size = x->args.size();
-   if (size > 0) {
-      args[curr] = S->I._curr;
+   } else if (curr == CallExprVisitState::Block) {
+      fn->block->visit(S);
+      curr = CallExprVisitState::Return;
+      return Stop;
+   } else if (curr < size) {
+      if (curr < 7) {
+         S->status("Se evalúa el " + numeral[curr] + " parámetro.");
+      } else {
+         ostringstream oss;
+         oss << "Se evalúa el parámetro número " << curr << ".";
+         S->status(oss.str());
+      }
+      x->args[curr]->visit(&S->I);
+      Value *v = S->I._curr;
+      if (!fn->params[curr]->type->reference && v->kind == Value::Ref) {
+         v = v->ref();
+      }
+      S->I.setenv(fn->params[curr]->name, v);
       ++curr;
-   }
-   if (curr < size) {
-      x->args[curr]->visit(S);
-      ostringstream oss;
-      oss << "Evaluado el argumento " << curr-1 << ".";
-      S->status(oss.str());
       return Stop;
    } else {
-      S->I.invoke_func_prepare(fn, args);
-      fn->block->visit(S);
       S->status("Saltamos a la función '" + fn->id->str() + "'.");
-      curr = -1; // signal return
+      S->I.actenv();
+      curr = Block;
       return Stop;
    }
 }
