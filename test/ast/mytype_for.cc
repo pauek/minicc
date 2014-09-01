@@ -5,7 +5,7 @@ int f() {
 }
 [[out]]--------------------------------------------------
 Program{
-   FuncDecl("f", Type(id:'int'), Params = {}, {
+   FuncDecl(id:'f', Type(id:'int'), Params = {}, {
       Block({
          IterStmt<for>(DeclStmt(Type(id:'MyType'), Vars = {"x"}), !=(id:'x', Bool<false>), IncrExpr<++, post>(id:'x'), {
             Block({

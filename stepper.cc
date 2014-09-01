@@ -20,20 +20,30 @@ bool Stepper::step() {
    }
 }
 
-template<typename X>
-string status_for(X *x) { return x->describe(); }
+string Stepper::output() { 
+   std::string s = _out.str();
+   _out.str("");
+   return s;
+}
 
-template<typename X>
-Todo Stepper::VisitState<X>::step(Stepper *S) {
-   x->visit(&S->I);
-   string s = status_for<X>(x); 
-   if (s != "UNIMPLEMENTED") {
-      S->status(s);
-   }
+Todo Stepper::PopState::step(Stepper *S) {
    S->pop();
    delete this;
    return Next; 
 }
+
+void Stepper::generic_visit(AstNode *x) {
+   x->visit(&I);
+   status(x->describe());
+   push(new PopState(x->span()));
+}
+
+void Stepper::visit_declstmt(DeclStmt *x)     { generic_visit(x); }
+void Stepper::visit_increxpr(IncrExpr *x)     { generic_visit(x); }
+void Stepper::visit_binaryexpr(BinaryExpr *x) { generic_visit(x); }
+void Stepper::visit_literal(Literal *x)       { generic_visit(x); }
+void Stepper::visit_ident(Ident *x)           { generic_visit(x); }
+void Stepper::visit_fieldexpr(FieldExpr *x)   { generic_visit(x); }
 
 void Stepper::visit_program(Program *x) {
    I.visit_program_prepare(x);
@@ -41,17 +51,42 @@ void Stepper::visit_program(Program *x) {
    if (main == 0) {
       _error("La funcion 'main' no existe");
    }
+   status("Empieza el programa.");
    I.invoke_func_prepare(main, vector<Value*>());
    push(new ProgramVisitState(main));
-   main->block->visit(this);
-   status("Saltamos a la función 'main'.");
+}
+
+Range Stepper::ProgramVisitState::span() const {
+   if (at == ProgramVisitState::Begin) {
+      return x->id->span(); 
+   } else if (at == ProgramVisitState::Finished) {
+      Pos ini = x->block->fin - 1, fin = x->block->fin;
+      return Range(ini, fin);
+   }
+   return Range();
 }
 
 Todo Stepper::ProgramVisitState::step(Stepper *S) {
-   S->I.popenv();
-   S->pop();
-   delete this;
-   return Next;
+   switch (at) {
+   case Begin: {
+      x->block->visit(S);
+      at = End;
+      return Stop;
+   } 
+   case End: {
+      at = Finished;
+      S->status("Termina el programa.");
+      return Stop;
+   }
+   case Finished: {
+      S->I.popenv();
+      S->pop();
+      delete this;
+      return Next;
+   }
+   default:
+      assert(false);
+   }
 }
 
 void Stepper::visit_block(Block *x) {
@@ -72,28 +107,34 @@ Todo Stepper::BlockVisitState::step(Stepper *S) {
 }
 
 void Stepper::visit_ifstmt(IfStmt *x) {
-   push(new IfVisitState(x));
-   x->cond->visit(this);
+   x->cond->visit(&I);
+   Value *c = I._curr;
+   if (c->kind != Value::Bool) {
+      _error("La condición de un 'if' debe ser un valor de tipo 'bool'.");
+   }
+   Stmt *next;
+   if (c->val.as_bool) {
+      status("La condición vale 'true', tomamos la primera rama.");
+      next = x->then;
+   } else {
+      if (x->els != 0) {
+         status("La condición vale 'false', tomamos la segunda rama.");
+         next = x->els;
+      } else {
+         status("La condición vale 'false', continuamos.");
+         next = 0;
+      }
+   }
+   push(new IfVisitState(x->cond->span(), next));
 }
 
 Todo Stepper::IfVisitState::step(Stepper *S) {
-   Value *c = S->I._curr;
-   if (c->kind != Value::Bool) {
-      S->_error("La condición de un 'if' debe ser un valor de tipo 'bool'.");
-   }
    S->pop();
    Todo todo = Stop;
-   if (c->val.as_bool) {
-      S->status("La condición vale 'true', tomamos la primera rama.");
-      x->then->visit(S);
+   if (next == 0) {
+      todo = Next;
    } else {
-      if (x->els != 0) {
-         S->status("La condición vale 'false', tomamos la segunda rama.");
-         x->els->visit(S);
-      } else {
-         S->status("La condición vale 'false', continuamos.");
-         todo = Next;
-      }
+      next->visit(S);
    }
    delete this;
    return todo;
@@ -104,97 +145,92 @@ void Stepper::visit_iterstmt(IterStmt *x) {
       push(new ForVisitState(x));
       x->init->visit(this);
    } else {
-      push(new WhileVisitState(x));
-      x->cond->visit(this);
+      WhileVisitState *s = new WhileVisitState(x);
+      s->step(this);
+      push(s);
    }
 }
 
 Todo Stepper::ForVisitState::step(Stepper *S) {
-   switch (state) {
-   case Stepper::ForVisitState::Init: {
-      x->cond->visit(S);
-      state = Stepper::ForVisitState::Cond;
-      return Stop;
+   switch (at) {
+   case Stepper::ForVisitState::Leave: {
+      S->pop();
+      delete this;
+      return Next;
    }
    case Stepper::ForVisitState::Cond: {
+      S->visit(x->cond);
       Value *cond = S->I._curr;
       if (cond->kind != Value::Bool) {
          S->_error("La condición de un 'for' debe ser un valor de tipo 'bool'");
       }
       if (!cond->val.as_bool) {
          S->status("La condición vale 'false', salimos del for.");
-         S->pop();
-         delete this;
-         return Next;
+         at = Stepper::ForVisitState::Leave;
       } else {
          S->status("La condición vale 'true', entramos en el for.");
-         x->substmt->visit(S);
-         state = Stepper::ForVisitState::Block;
-         return Stop;
+         at = Stepper::ForVisitState::Block;
       }
+      return Stop;
    }
    case Stepper::ForVisitState::Block: {
-      x->post->visit(S);
-      state = Stepper::ForVisitState::Post;
+      x->substmt->visit(S);
+      at = Stepper::ForVisitState::Post;
       return Stop;
    }
    case Stepper::ForVisitState::Post: {
-      x->cond->visit(S);
-      state = Stepper::ForVisitState::Cond;
+      x->post->visit(S);
+      at = Stepper::ForVisitState::Cond;
       return Stop;
    }
    }
 }
 
 Todo Stepper::WhileVisitState::step(Stepper *S) {
-   switch (state) {
+   switch (at) {
+   case Stepper::WhileVisitState::Leave: {
+      S->pop();
+      delete this;
+      return Next;
+   }
    case Stepper::WhileVisitState::Cond: {
+      S->visit(x->cond);
       Value *cond = S->I._curr;
       if (cond->kind != Value::Bool) {
          S->_error("La condición de un 'while' debe ser un valor de tipo 'bool'");
       }
       if (!cond->val.as_bool) {
          S->status("La condición vale 'false', salimos del while.");
-         S->pop();
-         delete this;
-         return Next;
+         at = Stepper::WhileVisitState::Leave;
       } else {
          S->status("La condición vale 'true', entramos en el while.");
-         x->substmt->visit(S);
-         state = Stepper::WhileVisitState::Block;
-         return Stop;
+         at = Stepper::WhileVisitState::Block;
       }
-   }
-   case Stepper::WhileVisitState::Block:
-      x->cond->visit(S);
-      state = Stepper::WhileVisitState::Cond;
       return Stop;
    }
-   
+   case Stepper::WhileVisitState::Block:
+      x->substmt->visit(S);
+      at = Stepper::WhileVisitState::Cond;
+      return Stop;
+   }
 }
-
-void Stepper::visit_declstmt(DeclStmt *x)     { push(new VisitState<DeclStmt>(x)); }
-void Stepper::visit_increxpr(IncrExpr *x)     { push(new VisitState<IncrExpr>(x)); }
-void Stepper::visit_binaryexpr(BinaryExpr *x) { push(new VisitState<BinaryExpr>(x)); }
-void Stepper::visit_literal(Literal *x)       { push(new VisitState<Literal>(x)); }
-void Stepper::visit_ident(Ident *x)           { push(new VisitState<Ident>(x)); }
-void Stepper::visit_fieldexpr(FieldExpr *x)   { push(new VisitState<FieldExpr>(x)); }
 
 void Stepper::visit_exprstmt(ExprStmt *x) { 
    if (x->expr->is_assignment()) {
-      BinaryExpr *e = dynamic_cast<BinaryExpr*>(x->expr);
-      assert(e != 0);
-      push(new AssignmentVisitState(e));
-      e->right->visit(this);
-   } else if (x->expr->is_write_expr()) {
+      visit_assignment(dynamic_cast<BinaryExpr*>(x->expr));
+   } 
+   else if (x->expr->is_write_expr()) {
       BinaryExpr *e = dynamic_cast<BinaryExpr*>(x->expr);
       assert(e != 0);
       WriteExprVisitState *ws = new WriteExprVisitState(e);
       e->collect_rights(ws->exprs);
       push(ws);
       ws->exprs.front()->visit(this);
+      status("Se escribe a la salida.");
    } else {
-      push(new VisitState<ExprStmt>(x));
+      I.visit(x->expr);
+      status(x->expr->describe());
+      push(new PopState(x->span()));
    }
 }
 
@@ -212,29 +248,38 @@ Todo Stepper::WriteExprVisitState::step(Stepper* S) {
    }
 }
 
+void Stepper::visit_assignment(BinaryExpr *e) {
+   assert(e != 0);
+   I.visit(e);
+   Value *right = I._curr;
+   if (right->kind == Value::Ref) {
+      right = right->ref();
+   }
+   ostringstream oss;
+   oss << "La expresión ha dado " << *right << ".";
+   status(oss.str());
+   push(new AssignmentVisitState(e, right));
+}
+
 Range Stepper::AssignmentVisitState::span() const {
-   return Range(x->left->span().ini, x->right->span().ini);
+   if (left == 0) {
+      return x->right->span();
+   } else {
+      return Range(x->left->span().ini, x->right->span().ini);
+   }
 }
 
 Todo Stepper::AssignmentVisitState::step(Stepper *S) {
-   if (right == 0) {
-      right = S->I._curr;
-      if (right->kind == Value::Ref) {
-         right = right->ref();
-      }
-      ostringstream oss;
-      oss << "La expresión ha dado " << *right << ".";
-      S->status(oss.str());
-      return Stop;
-   } else {
-      x->left->visit(&S->I);
-      Value *left = S->I._curr;
-      S->I.visit_binaryexpr_assignment(left, right);
-      S->status("Asignamos el valor.");
+   if (left != 0) {
       S->pop();
       delete this;
       return Next;
    }
+   x->left->visit(&S->I);
+   left = S->I._curr;
+   S->I.visit_binaryexpr_assignment(left, right);
+   S->status("Asignamos el valor.");
+   return Stop;
 }
 
 void Stepper::visit_callexpr(CallExpr *x) {
@@ -266,7 +311,7 @@ Todo Stepper::CallExprVisitState::step(Stepper *S) {
    } else {
       S->I.invoke_func_prepare(fn, args);
       fn->block->visit(S);
-      S->status("Saltamos a la función '" + fn->name + "'.");
+      S->status("Saltamos a la función '" + fn->id->str() + "'.");
       curr = -1; // signal return
       return Stop;
    }

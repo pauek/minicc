@@ -33,9 +33,9 @@ string Interpreter::env2json() const {
 }
 
 void Interpreter::invoke_func_prepare(FuncDecl *fn, const vector<Value*>& args) {
-   pushenv(fn->name);
+   pushenv(fn->id->str());
    if (fn->params.size() != args.size()) {
-      _error("Error en el número de argumentos al llamar a '" + fn->name + "'");
+      _error("Error en el número de argumentos al llamar a '" + fn->id->str() + "'");
    }
    for (int i = 0; i < args.size(); i++) {
       if (args[i]->kind == Value::Ref) {
@@ -104,9 +104,9 @@ void Interpreter::visit_include(Include* x) {
 }
 
 void Interpreter::visit_funcdecl(FuncDecl *x) {
-   auto it = _funcs.insert(make_pair(x->name, x));
+   auto it = _funcs.insert(make_pair(x->id->str(), x));
    if (!it.second) {
-      _error("La función de nombre '" + x->name + "' ya existía");
+      _error("La función de nombre '" + x->id->str() + "' ya existía");
    }
 }
 
@@ -648,7 +648,8 @@ void Interpreter::visit_callexpr(CallExpr *x) {
    }
    invoke_func(func, args);
    if (_ret == 0 && func->return_type->str() != "void") {
-      _error("La función '" + func->name + "' debería devolver un '" + func->return_type->str() + "'");
+      _error("La función '" + func->id->str() 
+             + "' debería devolver un '" + func->return_type->str() + "'");
    }
 }
 

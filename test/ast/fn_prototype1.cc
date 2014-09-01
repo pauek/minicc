@@ -1,6 +1,6 @@
 double  f    (   );
 [[out]]----------------------------------------
 Program{
-   FuncDecl("f", Type(id:'double'), Params = {})
+   FuncDecl(id:'f', Type(id:'double'), Params = {})
 }
 [[err]]----------------------------------------

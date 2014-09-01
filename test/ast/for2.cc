@@ -5,7 +5,7 @@ void print() {
 }
 [[out]]--------------------------------------------------
 Program{
-   FuncDecl("print", Type(id:'void'), Params = {}, {
+   FuncDecl(id:'print', Type(id:'void'), Params = {}, {
       Block({
          IterStmt<for>(DeclStmt(Type(id:'int'), Vars = {"i" = Int<1>}), <(id:'i', Int<100>), =(id:'i', +(id:'i', Int<1>)), {
             Block({

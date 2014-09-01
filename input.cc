@@ -97,14 +97,15 @@ string Input::skip_to(string stop_set) {
 }
 
 void Input::save() {
-   _stack.push_back(make_pair(_curr, _pos));
+   _stack.push_back(SavedItem(_curr, _pos, _linepos));
 }
 
 void Input::restore() {
    assert(!_stack.empty());
-   pair<int, Pos> top = _stack.back();
-   _curr = top.first;
-   _pos  = top.second;
+   SavedItem item = _stack.back();
+   _curr    = item.curr;
+   _pos     = item.pos;
+   _linepos = item.linepos;
    _stack.pop_back();
 }
 

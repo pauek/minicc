@@ -92,7 +92,9 @@ void AstPrinter::visit_structdecl(StructDecl *x) {
 }
 
 void AstPrinter::visit_funcdecl(FuncDecl *x) {
-   out() << "FuncDecl(\"" << x->name << "\", ";
+   out() << "FuncDecl(";
+   x->id->visit(this);
+   out() << ", ";
    x->return_type->visit(this);
    out() << ", Params = {";
    for (int i = 0; i < x->params.size(); i++) {

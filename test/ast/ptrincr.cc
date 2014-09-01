@@ -3,7 +3,7 @@ int f() {
 }
 [[out]]--------------------------------------------------
 Program{
-   FuncDecl("f", Type(id:'int'), Params = {}, {
+   FuncDecl(id:'f', Type(id:'int'), Params = {}, {
       Block({
          ExprStmt(DerefExpr(IncrExpr<++, post>(id:'a')))
       })

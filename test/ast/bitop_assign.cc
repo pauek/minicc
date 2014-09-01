@@ -15,7 +15,7 @@ int main() {
 Program{
    Include(<iostream>)
    Using(std)
-   FuncDecl("main", Type(id:'int'), Params = {}, {
+   FuncDecl(id:'main', Type(id:'int'), Params = {}, {
       Block({
          DeclStmt(Type(id:'int'), Vars = {"a"(Size = Int<6>) = {Int<1>, Int<1>, Int<1>, Int<1>, Int<1>, Int<1>}})
          DeclStmt(Type(id:'int'), Vars = {"b" = Int<2>, "c" = Int<3>})

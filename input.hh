@@ -19,6 +19,7 @@ struct Pos {
 
 struct Range {
    Pos ini, fin;
+   Range() {}
    Range(Pos i, Pos f) : ini(i), fin(f) {}
 
     Pos gi() const { return ini; }
@@ -38,7 +39,16 @@ class Input {
    int _curr;
    Pos _pos;
    std::vector<int> _linepos; // positions of line starts (ignoring position 0 since no line 0)
-   std::vector<std::pair<int, Pos>> _stack; // save/restore stack
+
+   struct SavedItem {
+      int              curr;
+      Pos              pos;
+      std::vector<int> linepos;
+
+      SavedItem(int c, Pos p, const std::vector<int>& l)
+         : curr(c), pos(p), linepos(l) {}
+   };
+   std::vector<SavedItem> _stack; // save/restore stack
 
    bool _seen_endl;
 
@@ -122,6 +132,10 @@ inline bool operator>=(const Pos& a, const Pos& b) {
 
 inline Pos operator+(const Pos& p, int n) {
    return Pos(p.lin, p.col + n);
+}
+
+inline Pos operator-(const Pos& p, int n) {
+   return Pos(p.lin, p.col - n);
 }
 
 #endif

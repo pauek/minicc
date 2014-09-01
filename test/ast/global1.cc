@@ -4,7 +4,7 @@ void f() { g(); }
 [[out]]--------------------------------------------------
 Program{
    DeclStmt(Type(id:'int', {const}), Vars = {"a" = Int<3>})
-   FuncDecl("f", Type(id:'void'), Params = {}, {
+   FuncDecl(id:'f', Type(id:'void'), Params = {}, {
       Block({
          ExprStmt(CallExpr(id:'g', Args = {}))
       })

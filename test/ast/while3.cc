@@ -4,7 +4,7 @@ void xxx(string s) {
 }
 [[out]]--------------------------------------------------
 Program{
-   FuncDecl("xxx", Type(id:'void'), Params = {"s": Type(id:'string')}, {
+   FuncDecl(id:'xxx', Type(id:'void'), Params = {"s": Type(id:'string')}, {
       Block({
          IterStmt<while>(=(id:'a', Bool<true>), {
             ExprStmt(=(id:'a', +(id:'a', Int<2>)))

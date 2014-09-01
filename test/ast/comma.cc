@@ -3,7 +3,7 @@ int f() {
 }
 [[out]]--------------------------------------------------
 Program{
-   FuncDecl("f", Type(id:'int'), Params = {}, {
+   FuncDecl(id:'f', Type(id:'int'), Params = {}, {
       Block({
          ExprStmt(,(=(id:'a', Int<1>), =(id:'b', Int<2>)))
       })

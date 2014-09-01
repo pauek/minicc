@@ -3,7 +3,7 @@ string f() {
 }
 [[out]]--------------------------------------------------
 Program{
-   FuncDecl("f", Type(id:'string'), Params = {}, {
+   FuncDecl(id:'f', Type(id:'string'), Params = {}, {
       Block({
          ExprStmt(+(+(+(String<\a\b\fabc\">, id:'d'), String<\"efg>), id:'h'))
       })

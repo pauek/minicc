@@ -4,7 +4,7 @@ void f() {
 }
 [[out]]--------------------------------------------------
 Program{
-   FuncDecl("f", Type(id:'void'), Params = {}, {
+   FuncDecl(id:'f', Type(id:'void'), Params = {}, {
       Block({
          ExprStmt(=(id:'a', Int<-1>))
          ExprStmt(=(id:'b', Double<-0.5>))

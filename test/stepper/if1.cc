@@ -13,15 +13,25 @@ int main() {
 [[in]]---------------------------------------------------
 41
 [[out]]--------------------------------------------------
-Saltamos a la función 'main'.
+4:4-4:8: main
+Empieza el programa.
+
 5:3-5:9: int a;
 Se declara la variable 'a'.
+
 6:3-6:12: cin >> a;
 Se lee de la entrada.
+
 7:7-7:14: a == 42
 La condición vale 'false', tomamos la segunda rama.
+
 10:14-10:18: "no"
 Se escribe a la salida.
+
 10:22-10:26: endl
 Se escribe a la salida.
+
+12:0-12:1: }
+Termina el programa.
+
 [[err]]--------------------------------------------------

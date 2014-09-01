@@ -3,7 +3,7 @@ char f() {
 }
 [[out]]------------------------------------
 Program{
-   FuncDecl("f", Type(id:'char'), Params = {}, {
+   FuncDecl(id:'f', Type(id:'char'), Params = {}, {
       Block({
          DeclStmt(Type<&>(id:'int'), Vars = {"a"})
       })

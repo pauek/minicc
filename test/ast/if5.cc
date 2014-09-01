@@ -16,7 +16,7 @@ int main() {
 Program{
    Include(<iostream>)
    Using(std)
-   FuncDecl("main", Type(id:'int'), Params = {}, {
+   FuncDecl(id:'main', Type(id:'int'), Params = {}, {
       Block({
          DeclStmt(Type(id:'string'), Vars = {"s"})
          ExprStmt(>>(id:'cin', id:'s'))

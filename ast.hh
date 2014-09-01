@@ -384,11 +384,11 @@ struct FuncDecl : public AstNode {
    };
 
    Type *return_type;
-   std::string name;
+   Ident *id;
    std::vector<Param*> params;
    Block* block;
    
-   FuncDecl(std::string _name) : name(_name) {}
+   FuncDecl(Ident *_id) : id(_id) {}
    void visit(AstVisitor *v);
    bool has_errors() const;
 };
@@ -454,6 +454,8 @@ public:
 
 class AstVisitor {
 public:
+   void visit(AstNode *x) { x->visit(this); }
+
    virtual void visit_comment(CommentSeq*)        { assert(false); }
    virtual void visit_program(Program*)           { assert(false); }
    virtual void visit_include(Include*)           { assert(false); }

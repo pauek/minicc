@@ -7,5 +7,5 @@ int main       /* and here */(int a  , int    b   )  {    }
 #include <iostream>
 using namespace std;
 
-int main /* and here */ (int a, int b) {}
+int main /* and here */(int a, int b) {}
 [[err]]----------------------------------------

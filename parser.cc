@@ -284,13 +284,14 @@ AstNode *Parser::parse_func_or_var() {
    Pos ini = _in.pos();
    _in.save();
    Type *type = parse_type();
-   c[0] = _in.skip("\t ");
+   c[0] = _in.skip("\n\t ");
+   Pos id_ini = _in.pos();
    Token tok = _in.read_id();
-   string name = tok.str;
-   c[1] = _in.skip("\t ");
+   Ident *id = parse_ident(tok, id_ini);
+   c[1] = _in.skip("\n\t ");
    if (_in.curr() == '(') {
       _in.discard();
-      FuncDecl *fn = new FuncDecl(name);
+      FuncDecl *fn = new FuncDecl(id);
       fn->comments.assign(c, c+2);
       fn->return_type = type;
       fn->ini = ini;
@@ -365,6 +366,7 @@ Block *Parser::parse_block() {
    if (!closing_curly) {
       error(block, "Esperaba '}' pero he llegado al final del texto");
    }
+   block->fin = _in.pos();
    _skip(block);
    return block;
 }

@@ -4,7 +4,7 @@ int f() {
 }
 [[out]]--------------------------------------------------
 Program{
-   FuncDecl("f", Type(id:'int'), Params = {}, {
+   FuncDecl(id:'f', Type(id:'int'), Params = {}, {
       Block({
          IfStmt(==(==(id:'a', id:'b'), id:'c'), Block({
             ExprStmt(+(id:'cout', id:'x'))

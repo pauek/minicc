@@ -107,13 +107,13 @@ void test_visitor(string filename, VisitorType vtype) {
          Stepper S(&Sin, &Saux);
          program->visit(&S);
          while (!S.finished()) {
-            Sout << S.status() << endl;
             Sout << S.span() << ": " << P.input().substr(S.span()) << endl;
+            Sout << S.status() << endl;
+            Sout << endl;
             if (!S.step()) {
                throw S.error();
             }
          }
-         Sout << S.status() << endl;
       } else {
          program->visit(v);
          vector<Error*> ve;
