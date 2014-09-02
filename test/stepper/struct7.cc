@@ -231,15 +231,21 @@ La condición vale 'false', salimos del for.
 
 15:11-15:17: T[0].a
 Se escribe a la salida.
+OUTPUT: "0"
 
 15:21-15:25: endl
 Se escribe a la salida.
+OUTPUT: "
+"
 
 16:11-16:17: T[1].b
 Se escribe a la salida.
+OUTPUT: "1"
 
 16:21-16:25: endl
 Se escribe a la salida.
+OUTPUT: "
+"
 
 17:0-17:1: }
 Termina el programa.

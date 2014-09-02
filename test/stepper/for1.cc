@@ -18,9 +18,12 @@ La condición vale 'true', entramos en el for.
 
 6:14-6:15: i
 Se escribe a la salida.
+OUTPUT: "0"
 
 6:19-6:23: endl
 Se escribe a la salida.
+OUTPUT: "
+"
 
 5:26-5:29: i++
 Se incrementa la variable 'i'.
@@ -30,9 +33,12 @@ La condición vale 'true', entramos en el for.
 
 6:14-6:15: i
 Se escribe a la salida.
+OUTPUT: "1"
 
 6:19-6:23: endl
 Se escribe a la salida.
+OUTPUT: "
+"
 
 5:26-5:29: i++
 Se incrementa la variable 'i'.
@@ -42,9 +48,12 @@ La condición vale 'true', entramos en el for.
 
 6:14-6:15: i
 Se escribe a la salida.
+OUTPUT: "2"
 
 6:19-6:23: endl
 Se escribe a la salida.
+OUTPUT: "
+"
 
 5:26-5:29: i++
 Se incrementa la variable 'i'.

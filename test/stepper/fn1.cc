@@ -30,9 +30,12 @@ Se retorna 21.
 
 10:11-10:18: f(x, 7)
 Se escribe a la salida.
+OUTPUT: "21"
 
 10:22-10:26: endl
 Se escribe a la salida.
+OUTPUT: "
+"
 
 11:0-11:1: }
 Termina el programa.

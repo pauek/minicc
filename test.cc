@@ -109,6 +109,10 @@ void test_visitor(string filename, VisitorType vtype) {
          while (!S.finished()) {
             Sout << S.span() << ": " << P.input().substr(S.span()) << endl;
             Sout << S.status() << endl;
+            string output = S.output();
+            if (output != "") {
+               Sout << "OUTPUT: \"" << output << '"' << endl;
+            }
             Sout << endl;
             if (!S.step()) {
                throw S.error();

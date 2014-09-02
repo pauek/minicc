@@ -20,9 +20,12 @@ La condición vale 'true', entramos en el while.
 
 7:14-7:15: i
 Se escribe a la salida.
+OUTPUT: "0"
 
 7:19-7:23: endl
 Se escribe a la salida.
+OUTPUT: "
+"
 
 8:6-8:10: i++;
 Se incrementa la variable 'i'.
@@ -32,9 +35,12 @@ La condición vale 'true', entramos en el while.
 
 7:14-7:15: i
 Se escribe a la salida.
+OUTPUT: "1"
 
 7:19-7:23: endl
 Se escribe a la salida.
+OUTPUT: "
+"
 
 8:6-8:10: i++;
 Se incrementa la variable 'i'.
@@ -44,9 +50,12 @@ La condición vale 'true', entramos en el while.
 
 7:14-7:15: i
 Se escribe a la salida.
+OUTPUT: "2"
 
 7:19-7:23: endl
 Se escribe a la salida.
+OUTPUT: "
+"
 
 8:6-8:10: i++;
 Se incrementa la variable 'i'.

@@ -27,9 +27,12 @@ La condición vale 'false', tomamos la segunda rama.
 
 10:14-10:18: "no"
 Se escribe a la salida.
+OUTPUT: "no"
 
 10:22-10:26: endl
 Se escribe a la salida.
+OUTPUT: "
+"
 
 12:0-12:1: }
 Termina el programa.
