@@ -418,7 +418,7 @@ $(document).ready(function () {
 
    $('#content').split({
       orientation: 'horizontal',
-      limit: 200,
+      limit: 70,
    });
    $('#top').split({
       orientation: 'vertical',

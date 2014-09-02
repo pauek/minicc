@@ -57,6 +57,7 @@ header {
 #bottom {
   background-color: #f9faef;
   padding: 0;
+  overflow: hidden;
 }
 #output {
   padding: .3em 1.5em;
