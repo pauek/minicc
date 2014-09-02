@@ -19,6 +19,9 @@ body {
 .CodeMirror-linenumber {
   color: #ccc;
 }
+.CodeMirror.over {
+  border: 3px solid black;
+}
 
 #errors {
   display: none;
