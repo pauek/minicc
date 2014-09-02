@@ -319,6 +319,9 @@ var slider = {
    },
    incr: function() {
       this._knob += 1;
+      if (this._knob > this._max * 0.95) {
+         this._max += this._max / 2;
+      }
       this._refreshKnob();
       if (this._knob > this._curr) {
          this._curr = this._knob;
