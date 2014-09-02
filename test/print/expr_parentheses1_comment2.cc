@@ -5,4 +5,3 @@ double    fn   (char c1 ,char   c2  )    {
 double fn(char c1, char c2) {
    a = (a + 1 /* yay! */);
 }
-[[err]]--------------------------------------------------

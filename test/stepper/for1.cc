@@ -64,4 +64,3 @@ La condición vale 'false', salimos del for.
 8:0-8:1: }
 Termina el programa.
 
-[[err]]--------------------------------------------------

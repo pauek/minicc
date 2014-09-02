@@ -3,4 +3,3 @@ typedef int Entero;
 Program{
    TypedefDecl("Entero" = Type(id:'int'))
 }
-[[err]]--------------------------------------------------

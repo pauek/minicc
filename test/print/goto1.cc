@@ -3,4 +3,3 @@ int main() { if (a) goto xxx; }
 int main() {
    if (a) goto xxx;
 }
-[[err]]------------------------------------------

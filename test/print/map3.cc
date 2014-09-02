@@ -5,4 +5,3 @@ int f ( ) {
 int f() {
    const map<int, vector<string>> M;
 }
-[[err]]--------------------------------------------------

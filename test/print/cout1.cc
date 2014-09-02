@@ -5,4 +5,3 @@ void f() {
 void f() {
    std::cout << "hola" << std::endl;
 }
-[[err]]------------------------------------

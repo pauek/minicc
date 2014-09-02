@@ -5,4 +5,3 @@ double    fn   (char c1 ,float x  )    {
 double fn(char c1, float x) {
    a = b = c = 1;
 }
-[[err]]--------------------------------------------------

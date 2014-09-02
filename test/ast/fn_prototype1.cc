@@ -3,4 +3,3 @@ double  f    (   );
 Program{
    FuncDecl(id:'f', Type(id:'double'), Params = {})
 }
-[[err]]----------------------------------------

@@ -21,4 +21,3 @@ Asignamos el valor.
 7:0-7:1: }
 Termina el programa.
 
-[[err]]--------------------------------------------------

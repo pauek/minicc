@@ -27,4 +27,3 @@ bool dentro(Tiendas& T, string tienda, int cp) {
    Tiendas::iterator it = T.find(tienda);
    return it != T.end() && it->second.find(cp) != it->second.end();
 }
-[[err]]--------------------------------------------------

@@ -8,4 +8,3 @@ int main       /* and here */(int a  , int    b   )  {    }
 using namespace std;
 
 int main /* and here */(int a, int b) {}
-[[err]]----------------------------------------

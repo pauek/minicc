@@ -5,4 +5,3 @@ int main() {
 int main() {
    if (a) break; /* not too hard! */
 }
-[[err]]------------------------------------------

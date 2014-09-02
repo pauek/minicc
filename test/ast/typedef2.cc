@@ -3,4 +3,3 @@ typedef map<int, vector<string>> Listas;
 Program{
    TypedefDecl("Listas" = Type(id:'map'<Type(id:'int'), Type(id:'vector'<Type(id:'string')>)>))
 }
-[[err]]--------------------------------------------------

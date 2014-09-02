@@ -6,4 +6,3 @@ void xxx(string s) {
 void xxx(string s) {
    while (a = true) while (a = true) a = a + 2;
 }
-[[err]]--------------------------------------------------

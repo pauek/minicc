@@ -3,4 +3,3 @@ enum Blah { bla, ble, bli };
 Program{
    EnumDecl("Blah", {"bla", "ble", "bli"})
 }
-[[err]]--------------------------------------------------

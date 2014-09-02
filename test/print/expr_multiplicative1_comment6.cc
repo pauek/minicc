@@ -3,4 +3,3 @@ double fn(char c1,char c2){a*b+1/* bla */;}
 double fn(char c1, char c2) {
    a * b + 1 /* bla */;
 }
-[[err]]--------------------------------------------------

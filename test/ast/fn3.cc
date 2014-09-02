@@ -3,4 +3,3 @@ double  f(double& x, double& y);
 Program{
    FuncDecl(id:'f', Type(id:'double'), Params = {"x": Type<&>(id:'double'), "y": Type<&>(id:'double')})
 }
-[[err]]----------------------------------------

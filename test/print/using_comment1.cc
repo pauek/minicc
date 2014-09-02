@@ -13,4 +13,3 @@ using /*
 ---
 */ namespace YYY;
 using namespace loooong; // plus comment at the end
-[[err]]---------------------------------------------

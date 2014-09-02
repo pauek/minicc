@@ -10,4 +10,3 @@ Program{
    })
    FuncDecl(id:'f', Type<&>(id:'Bleh', {const}), Params = {})
 }
-[[err]]----------------------------------------

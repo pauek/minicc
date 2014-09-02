@@ -66,4 +66,3 @@ La condición vale 'false', salimos del while.
 10:0-10:1: }
 Termina el programa.
 
-[[err]]--------------------------------------------------

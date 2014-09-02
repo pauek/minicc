@@ -7,4 +7,3 @@ void xxx(string s) {
    while (a = true) a = a + 2;
    while (a = true) a = a + 2;
 }
-[[err]]--------------------------------------------------
