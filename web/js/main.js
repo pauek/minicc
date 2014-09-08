@@ -177,6 +177,7 @@ function reformat() {
 function resize() {
    var free = $(window).height() - $('header').height();
    $('#content').height(free + 'px');
+   slider._refreshKnob();
 }
 
 function value_str(value, addClass, insert) {
