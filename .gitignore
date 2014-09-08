@@ -1,6 +1,7 @@
 minicc
 minicc.js
 minicc.js.map
+minicc.js.mem
 *~
 *.o
 *.bc
