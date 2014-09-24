@@ -44,6 +44,7 @@ std::string env2json() const;
      void  visit_program_prepare(Program *x);
  FuncDecl *visit_program_find_main();
      void  visit_binaryexpr_assignment(Value *, Value *);
+     bool  visit_binaryexpr_op_assignment(char, Value *, Value *);
  FuncDecl *visit_callexpr_getfunc(CallExpr *x);
      void  visit_vardecl_struct(VarDecl *x, StructDecl *decl);
     Value *visit_vardecl_struct_new(StructDecl *D, Value *init);
