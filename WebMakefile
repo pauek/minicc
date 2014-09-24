@@ -8,13 +8,13 @@ CXXFLAGS=-std=c++11
 all: debug
 
 debug: CXXFLAGS += -g3 -O0 -s DISABLE_EXCEPTION_CATCHING=0
-debug: minicc.js
+debug: web/js/minicc.js
 
 release: CXXFLAGS += -O2 -s DISABLE_EXCEPTION_CATCHING=0
-release: minicc.js
+release: web/js/minicc.js
 
-minicc.js: $(BCFILES)
-	emcc --bind $(CXXFLAGS) -o minicc.js $(BCFILES) 
+web/js/minicc.js: $(BCFILES)
+	emcc --bind $(CXXFLAGS) -o web/js/minicc.js $(BCFILES) 
 
 .cc.bc:
 	emcc -c $(CXXFLAGS) -o $@ $<
@@ -31,6 +31,6 @@ walker.bc:      ast.hh walker.hh
 web.bc:         ast.hh input.hh token.hh value.hh parser.hh
 
 clean:
-	rm -f minicc.js minicc.js.map minicc.js.mem $(BCFILES)
+	rm -f web/js/minicc.js $(BCFILES)
 
 .SUFFIXES: .cc .bc
