@@ -312,10 +312,8 @@ void Interpreter::visit_binaryexpr(BinaryExpr *x) {
    }
    if (x->op == "+=" || x->op == "-=" || x->op == "*=" || x->op == "/=" ||
        x->op == "&=" || x->op == "|=" || x->op == "^=") {
-      if (visit_binaryexpr_op_assignment(x->op[0], left, right)) {
-         return;
-      }
-      _error("Los operandos de '" + x->op + "' no son compatibles");
+      visit_binaryexpr_op_assignment(x->op[0], left, right);
+      return;
    } 
    else if (x->op == "&" || x->op == "|" || x->op == "^") {
       bool ret = false;
@@ -426,32 +424,34 @@ void Interpreter::visit_binaryexpr_assignment(Value *left, Value *right) {
    _curr = left;
 }
 
-bool Interpreter::visit_binaryexpr_op_assignment(char op, Value *left, Value *right) {
+void Interpreter::visit_binaryexpr_op_assignment(char op, Value *left, Value *right) {
    if (left->kind != Value::Ref) {
       _error(string("Para usar '") + op + "=' se debe poner una variable a la izquierda");
    }
    left = left->ref();
-   bool ret = false;
+   bool ok = false;
    switch (op) {
    case '+': {
       if (left->kind == Value::String and right->kind == Value::String) {
          string *s1 = static_cast<string*>(left->val.as_ptr);
          string *s2 = static_cast<string*>(right->val.as_ptr);
          *s1 += *s2;
-         ret = true;
+         ok = true;
       } else {
-         ret = visit_op_assignment<_AAdd>(left, right);
+         ok = visit_op_assignment<_AAdd>(left, right);
       }
       break;
    }
-   case '-': ret = visit_op_assignment<_ASub>(left, right); break;
-   case '*': ret = visit_op_assignment<_AMul>(left, right); break;
-   case '/': ret = visit_op_assignment<_ADiv>(left, right); break;
-   case '&': ret = visit_bitop_assignment<_AAnd>(left, right); break;
-   case '|': ret = visit_bitop_assignment<_AOr >(left, right); break;
-   case '^': ret = visit_bitop_assignment<_AXor>(left, right); break;
+   case '-': ok = visit_op_assignment<_ASub>(left, right); break;
+   case '*': ok = visit_op_assignment<_AMul>(left, right); break;
+   case '/': ok = visit_op_assignment<_ADiv>(left, right); break;
+   case '&': ok = visit_bitop_assignment<_AAnd>(left, right); break;
+   case '|': ok = visit_bitop_assignment<_AOr >(left, right); break;
+   case '^': ok = visit_bitop_assignment<_AXor>(left, right); break;
    }
-   return ret;
+   if (!ok) {
+      _error(string("Los operandos de '") + op + "=' no son compatibles");
+   }
 }
 
 void Interpreter::visit_block(Block *x) {
