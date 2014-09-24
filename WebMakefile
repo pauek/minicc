@@ -31,6 +31,6 @@ walker.bc:      ast.hh walker.hh
 web.bc:         ast.hh input.hh token.hh value.hh parser.hh
 
 clean:
-	rm -f minicc.js minicc.js.map $(BCFILES)
+	rm -f minicc.js minicc.js.map minicc.js.mem $(BCFILES)
 
 .SUFFIXES: .cc .bc
