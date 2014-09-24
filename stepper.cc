@@ -276,7 +276,7 @@ Todo Stepper::WriteExprVisitState::step(Stepper* S) {
 
 void Stepper::visit_assignment(BinaryExpr *e) {
    assert(e != 0);
-   I.visit(e);
+   I.visit(e->right);
    Value *right = I._curr;
    if (right->kind == Value::Ref) {
       right = right->ref();
@@ -301,7 +301,7 @@ Todo Stepper::AssignmentVisitState::step(Stepper *S) {
       delete this;
       return Next;
    }
-   x->left->visit(&S->I);
+   S->I.visit(x->left);
    left = S->I._curr;
    S->I.visit_binaryexpr_assignment(left, right);
    S->status("Asignamos el valor.");
