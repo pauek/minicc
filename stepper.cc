@@ -227,6 +227,8 @@ void Stepper::visit_exprstmt(ExprStmt *x) {
       e->collect_rights(ws->exprs);
       push(ws);
       ws->step(this);
+   } else if (x->expr->is<CallExpr>()) {
+      visit_callexpr(dynamic_cast<CallExpr*>(x->expr));
    } else {
       I.visit(x->expr);
       if (x->is_return) {
@@ -303,7 +305,11 @@ Todo Stepper::AssignmentVisitState::step(Stepper *S) {
    }
    S->I.visit(x->left);
    left = S->I._curr;
-   S->I.visit_binaryexpr_assignment(left, right);
+   if (x->op == "=") {
+      S->I.visit_binaryexpr_assignment(left, right);
+   } else if (x->op.size() == 2 and x->op[1] == '=') {
+      S->I.visit_binaryexpr_op_assignment(x->op[0], left, right);
+   }
    S->status("Asignamos el valor.");
    return Stop;
 }
@@ -353,7 +359,7 @@ Todo Stepper::CallExprVisitState::step(Stepper *S) {
          oss << "Se evalúa el parámetro número " << curr << ".";
          S->status(oss.str());
       }
-      x->args[curr]->visit(&S->I);
+      S->I.visit(x->args[curr]);
       Value *v = S->I._curr;
       if (!fn->params[curr]->type->reference && v->kind == Value::Ref) {
          v = v->ref();
