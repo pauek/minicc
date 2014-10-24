@@ -365,7 +365,7 @@ void PrettyPrinter::visit_condexpr(CondExpr *x) {
    x->cond->visit(this);
    out() << " ?" << _cmt_(x, 0);
    x->then->visit(this);
-   out() << " : " << _cmt0_(x, 1);
+   out() << " : " << cmt0_(x, 1);
    x->els->visit(this);
    if (x->paren) {
       out() << ")";
