@@ -128,11 +128,11 @@ void PrettyPrinter::visit_funcdecl(FuncDecl *x) {
 
 void PrettyPrinter::print_block(Block *x) {
    if (x->stmts.empty()) {
-      out() << "{}" << _cmt0(x, 1);
+      out() << "{" << _cmt0_(x, 0) << "}" << _cmt0(x, 1);
       return;
    } 
    indent(+1);
-   out() << "{" << _cmtl(x, 0);
+   out() << "{" << _cmt0(x, 0) << endl;
    for (Stmt *s : x->stmts) {
       out(beginl);
       s->visit(this);

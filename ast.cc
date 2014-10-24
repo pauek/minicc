@@ -116,7 +116,7 @@ string cmtl(CommentSeq *cn) {
    if (cn) {
       out << ' ' << cn;
    }
-   if (!cn or !cn->endl()) {
+   if (!cn or cn->endl()) {
       out << endl;
    }
    return out.str();
