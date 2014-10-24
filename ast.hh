@@ -199,7 +199,7 @@ struct Expr : public AstNode {
    };
    struct Op2KindInitializer { Op2KindInitializer(); }; // init _op2kind
 
-   bool paren;
+   bool paren; // if this is true, comments will have an extra element!
 
    Expr() : paren(false) {}
 

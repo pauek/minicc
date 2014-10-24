@@ -474,16 +474,18 @@ Expr *Parser::parse_primary_expr() {
    Pos ini = _in.pos();
    Token tok = _in.next_token();
    switch (tok.kind) {
-   case Token::LParen:
+   case Token::LParen: {
+      CommentSeq *cn = _in.skip("\n\t ");
       e = parse_expr();
       e->paren = true;
+      e->comments.insert(e->comments.begin(), cn);
       if (!_in.expect(")")) {
          error(e, _in.pos().str() + ": Expected ')'");
       }
       e->ini = ini;
       e->fin = _in.pos();
       break;
-
+   }
    case Token::True:
    case Token::False: {
       Literal* lit = new Literal(Literal::Bool);

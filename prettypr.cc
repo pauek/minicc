@@ -178,14 +178,15 @@ void PrettyPrinter::visit_literal(Literal *x) {
 }
 
 void PrettyPrinter::visit_binaryexpr(BinaryExpr *x) {
+   int nc = 0;
    if (x->paren) {
-      out() << "(";
+      out() << "(" << cmt0_(x, nc++);
    }
    x->left->visit(this);
    if (x->op != ",") {
       out() << " ";
    }
-   out() << x->op << _cmt_(x, 0);
+   out() << x->op << _cmt_(x, nc++);
    x->right->visit(this);
 
    if (x->paren) {
@@ -410,10 +411,11 @@ void PrettyPrinter::visit_negexpr(NegExpr *x) {
 }
 
 void PrettyPrinter::visit_addrexpr(AddrExpr *x) {
+   int nc = 0;
    if (x->paren) {
-      out() << "(";
+      out() << "(" << cmt0_(x, nc++);
    }
-   out() << "&" << _cmt0_(x, 0);
+   out() << "&" << _cmt0_(x, nc);
    x->expr->visit(this);
    if (x->paren) {
       out() << ")";
