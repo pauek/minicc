@@ -268,9 +268,9 @@ void PrettyPrinter::visit_exprstmt(ExprStmt* x) {
 }
 
 void PrettyPrinter::visit_ifstmt(IfStmt *x) {
-   out() << "if" << _cmt_(x, 0) << "(";
+   out() << "if" << _cmt_(x, 0) << "(" << cmt0_(x, 1);
    x->cond->visit(this);
-   out() << ")" << _cmt_(x, 1);
+   out() << ")" << _cmt_(x, 2);
    x->then->visit(this);
    if (x->els) {
       if (!x->then->is<Block>()) {
@@ -279,7 +279,7 @@ void PrettyPrinter::visit_ifstmt(IfStmt *x) {
       } else {
          out() << ' ';
       }
-      out() << "else" << _cmt(x, 1);
+      out() << "else" << _cmt_(x, 3);
       x->els->visit(this);
    }
 }
