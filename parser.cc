@@ -1029,16 +1029,16 @@ StructDecl *Parser::parse_struct() {
    tok = _in.peek_token();
    while (!_in.end() and tok.kind != Token::RCurly) {
       decl->decls.push_back(parse_declstmt());
-      _skip(decl);
       tok = _in.peek_token();      
    }
    if (tok.kind != Token::RCurly) {
       error(decl, _in.pos().str() + ": Esperaba un '}' aquí");
    }
-   _in.next_token();
-   tok = _in.next_token();
-   if (tok.kind != Token::SemiColon) {
+   _in.expect("}");
+   _skip(decl);
+   if (!_in.expect(";")) {
       error(decl, _in.pos().str() + ": Esperaba un ';' aquí");
    }
+   _skip(decl);
    return decl;   
 }
