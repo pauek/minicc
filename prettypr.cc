@@ -66,14 +66,17 @@ void PrettyPrinter::visit_type(Type *x) {
 }
 
 void PrettyPrinter::visit_enumdecl(EnumDecl *x) {
-   out() << "enum " << x->name << " { ";
+   out() << "enum " << cmt0_(x, 0) << x->name << _cmt0(x, 1) 
+         << " { " << _cmt0_(x, 2);
+   int cn = 3;
    for (int i = 0; i < x->values.size(); i++) {
       if (i > 0) {
-         out() << ", ";
+         out() << ", " << _cmt0_(x, cn++);
       }
-      out() << x->values[i].id;
+      out() << x->values[i].id << _cmt0(x, cn++);
       if (x->values[i].has_val) {
-         out() << " = " << x->values[i].val;
+         out() << " = " << _cmt0_(x, cn++) 
+               << x->values[i].val << _cmt0(x, cn++);
       }
    }
    out() << " };";
