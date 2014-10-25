@@ -1,4 +1,5 @@
 [ ] Repasar los comentarios de _cada_ astnode.
+[ ] Implementar tablas de más de una dimensión.
 [ ] Traducción de todo a inglés (+ català).
 [ ] Implementar vector<X> en el intérprete.
 [ ] Empezar el Semantic Analyzer.
