@@ -1001,6 +1001,9 @@ TypedefDecl *Parser::parse_typedef() {
    _skip(typdef);
    DeclStmt *stmt = parse_declstmt(true);
    typdef->decl = stmt->items[0].decl;
+   for (CommentSeq *c : stmt->comments) {
+      typdef->comments.push_back(c);
+   }
    delete stmt;
    return typdef;
 }
