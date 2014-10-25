@@ -5,5 +5,5 @@ struct X {
 [[out]]--------------------------------------------------
 struct X {
    vector<int> a, b;
-   double x, y; // yay
+   double x, y;      // yay
 };

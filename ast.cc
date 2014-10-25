@@ -95,10 +95,14 @@ bool Expr::right_associative(Expr::Kind t) {
 }
 
 std::ostream& ReadWriter::out(OutType typ) { 
-   if (typ == beginl and _indent > 0) {
-      *_out << string(_indent * TAB_WIDTH, ' ');
+   ostream *o = _out;
+   if (!_stack.empty()) {
+      o = _stack.back();
    }
-   return *_out; 
+   if (typ == beginl and _indent > 0) {
+      *o << string(_indent * TAB_WIDTH, ' ');
+   }
+   return *o; 
 }
 
 string cmt(CommentSeq* cn, bool pre, bool post, bool missing) {

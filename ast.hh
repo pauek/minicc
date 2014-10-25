@@ -3,6 +3,7 @@
 
 #include <assert.h>
 #include <string>
+#include <sstream>
 #include <vector>
 #include <list>
 #include <map>
@@ -431,6 +432,7 @@ class ReadWriter {
    int _indent;
    std::istream *_in;
    std::ostream *_out;
+   std::vector<std::ostringstream*> _stack; // temporary output
 
 protected:
    enum OutType { normal, beginl };
@@ -443,6 +445,14 @@ protected:
 
    std::istream& in() { return *_in; }
 
+   void push() { _stack.push_back(new std::ostringstream()); }
+
+   std::string pop()  {
+      std::string res = _stack.back()->str();
+      delete _stack.back();
+      _stack.pop_back();
+      return res;
+   }
 
 public:
    ReadWriter(std::ostream *o)                          : _indent(0),         _out(o) {}

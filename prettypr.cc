@@ -1,3 +1,4 @@
+#include <algorithm>
 #include <sstream>
 #include "ast.hh"
 #include "prettypr.hh"
@@ -95,10 +96,24 @@ void PrettyPrinter::visit_structdecl(StructDecl *x) {
    x->id->visit(this);
    out() << _cmt0(x, 1) << " {" << _cmt0(x, 2) << endl;
    indent(+1);
+   vector<string> decl_strings;
+   vector<CommentSeq*> last_comments;
+   size_t max_size = 0;
    for (DeclStmt *decl : x->decls) {
-      out(beginl);
+      push();
+      CommentSeq *last = 0;
+      swap(last, decl->comments.back());
+      last_comments.push_back(last);
       decl->visit(this);
-      out() << endl;
+      string d = pop();
+      max_size = std::max(d.size(), max_size);
+      decl_strings.push_back(d);
+   }
+   for (int i = 0; i < decl_strings.size(); i++) {
+      string decl = decl_strings[i];
+      CommentSeq *c = last_comments[i];
+      string filler(max_size - decl.size(), ' ');
+      out(beginl) << decl << filler << cmt(c, 1, 0, 0) << endl;
    }
    indent(-1);
    out(beginl) << "}" << _cmt0(x, 3) << ";" << _cmt0(x, 4);  
