@@ -33,7 +33,7 @@ void PrettyPrinter::visit_macro(Macro* x) {
 
 void PrettyPrinter::visit_using(Using* x) {
    out() << "using" << _cmt_(x, 0) << "namespace" << _cmt_(x, 1)
-         << x->namespc << _cmt0_(x, 2) << ";" << _cmt0(x, 3);
+         << x->namespc << _cmt0(x, 2) << ";" << _cmt0(x, 3);
 }
 
 void PrettyPrinter::visit_type(Type *x) {
