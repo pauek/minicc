@@ -297,9 +297,9 @@ void PrettyPrinter::visit_iterstmt(IterStmt *x) {
       x->post->visit(this);
       out() << ")" << _cmt_(x, 1);
    } else {
-      out() << "while" << _cmt_(x, 0) << "(";
+      out() << "while" << _cmt_(x, 0) << "(" << cmt0_(x, 1);
       x->cond->visit(this);
-      out() << ")" << _cmt_(x, 1);
+      out() << ")" << _cmt_(x, 2);
    }
    x->substmt->visit(this);
 }

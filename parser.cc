@@ -773,7 +773,7 @@ Stmt *Parser::parse_while() {
    if (!_in.expect("(")) {
       error(stmt, _in.pos().str() + ": Expected '('");
    }
-   _in.skip("\t\n "); // Comments here will disappear
+   _skip(stmt);
    stmt->cond = parse_expr();
    if (!_in.expect(")")) {
       error(stmt, _in.pos().str() + ": Expected ')')");
