@@ -233,7 +233,7 @@ void PrettyPrinter::visit_objdecl(ObjDecl *x) {
       out() << "(";
       for (int i = 0; i < x->args.size(); i++) {
          if (i > 0) {
-            out() << ",";
+            out() << ", ";
          }
          out() << _cmt0(x, i+1);
          x->args[i]->visit(this);
