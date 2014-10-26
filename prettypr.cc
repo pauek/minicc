@@ -7,7 +7,9 @@ using namespace std;
 void PrettyPrinter::visit_program(Program* x) {
    for (int i = 0; i < x->nodes.size(); i++) {
       AstNode *n = x->nodes[i];
-      if ((n->is<FuncDecl>() or n->is<StructDecl>()) and i > 0) {
+      if ((n->is<FuncDecl>() or 
+           n->is<StructDecl>() or 
+           n->is<TypedefDecl>()) and i > 0) {
          out() << endl;
       }
       n->visit(this);
@@ -263,13 +265,14 @@ void PrettyPrinter::visit_declstmt(DeclStmt* x) {
 }
 
 void PrettyPrinter::visit_exprstmt(ExprStmt* x) {
+   int c = 0;
    if (x->is_return) {
-      out() << "return ";
+      out() << "return " << cmt0_(x, c++);
    }
    if (x->expr) {
       x->expr->visit(this);
    }
-   out() << ";" << _cmt0(x, 0);
+   out() << ";" << _cmt0(x, c);
 }
 
 void PrettyPrinter::visit_ifstmt(IfStmt *x) {
