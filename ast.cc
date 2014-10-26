@@ -1,4 +1,5 @@
 
+#include <algorithm>
 #include <iostream>
 #include <sstream>
 #include <assert.h>
@@ -65,6 +66,11 @@ struct {
    // { ".*", Expr::multiplicative }, TODO
 
    { "END", Token::Unknown,      Expr::Unknown }
+};
+
+const string Type::QualifiersNames[] = { 
+   "const",    "volatile", "mutable", 
+   "register", "auto",     "extern"
 };
 
 map<string, Expr::Kind>      Expr::_op2kind;
@@ -327,7 +333,8 @@ string Type::str() const {
       "const", "volatile", "mutable", "register", "auto", "extern"
    };
    while (Type::Qualifiers(1 << i) <= Type::Extern) {
-      if (qual & Type::Qualifiers(1 << i)) {
+      int q = Type::Qualifiers(1 << i);
+      if (find(qual.begin(), qual.end(), q) != qual.end()) {
          if (numquals > 0) {
             _id += " ";
          }

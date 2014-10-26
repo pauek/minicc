@@ -107,8 +107,7 @@ AstNode* Parser::parse() {
 AstNode* Parser::parse_macro() {
    Pos ini = _in.pos();
    _in.consume('#');
-   vector<CommentSeq*> cmts;
-   cmts.push_back(_in.skip("\t "));
+   _in.skip("\t "); // comments between '#' and the macro name are gobbled up...
    Pos macro_ini = _in.pos();
    if (!_in.expect("include")) {
       Token tok = _in.read_id();
@@ -121,8 +120,7 @@ AstNode* Parser::parse_macro() {
       return m;
    }
    Include* inc = new Include();
-
-   cmts.push_back(_in.skip("\t "));
+   _skip(inc);
    char open = _in.curr();
    if (open != '"' && open != '<') {
       error(inc, _in.pos().str() + ": expected '\"' or '<'");
@@ -151,7 +149,7 @@ AstNode* Parser::parse_macro() {
       _in.next();
       c3 = _in.skip("\t ");
    }
-   cmts.push_back(c3);
+   inc->comments.push_back(c3);
 
    inc->filename = filename;
    inc->global = (close == '>');
@@ -162,7 +160,6 @@ AstNode* Parser::parse_macro() {
       error(inc, fin.str() + ": expected '\\n' after '#include' (found \"" + skipped + "\")");
       _in.next();
    }
-   inc->comments = cmts;
    inc->ini = ini;
    inc->fin = fin;
    return inc;
@@ -249,9 +246,12 @@ Type *Parser::parse_type() {
       if (tok.group & Token::TypeQual) {
          _in.discard();
          switch (tok.kind) {
-         case Token::Const:   type->qual |= Type::Const; break;
-         case Token::Auto:    type->qual |= Type::Auto;  break;
-         case Token::Mutable: type->qual |= Type::Mutable;  break;
+         case Token::Const:    type->qual.push_back(Type::Const);    break;
+         case Token::Auto:     type->qual.push_back(Type::Auto);     break;
+         case Token::Mutable:  type->qual.push_back(Type::Mutable);  break;
+         case Token::Register: type->qual.push_back(Type::Register); break;
+         case Token::Volatile: type->qual.push_back(Type::Volatile); break;
+         case Token::Extern:   type->qual.push_back(Type::Extern);   break;
          default: /* TODO: acabar! */ break;
          }
          _skip(type);

@@ -358,17 +358,18 @@ struct ExprList : public Expr {
 };
 
 struct Type : public AstNode {
+   static const std::string QualifiersNames[];
+
    enum Qualifiers {
-      None = 0, 
-      Const = 1,    Volatile = 2, Mutable = 4, 
-      Register = 8, Auto = 16,    Extern = 32
+      Const    = 0, Volatile = 1, Mutable = 2, 
+      Register = 3, Auto     = 4, Extern  = 5
    };
 
-   bool   reference;
-   int    qual;
-   Ident *id;
+   bool                    reference;
+   std::vector<Qualifiers> qual;
+   Ident                  *id;
 
-   Type() : id(0), qual(None), reference(false) {}
+   Type() : id(0), reference(false) {}
    void visit(AstVisitor *v);
    bool has_errors() const;
    std::string str() const;

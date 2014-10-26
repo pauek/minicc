@@ -1,3 +1,4 @@
+#include <algorithm>
 #include <sstream>
 #include "ast.hh"
 #include "astpr.hh"
@@ -33,22 +34,18 @@ void AstPrinter::visit_using(Using* x) {
 }
 
 void AstPrinter::visit_type(Type *x) {
-   static const string names[] = { 
-      "const", "volatile", "mutable", "register", "auto", "extern"
-   };
-
    out() << "Type" << (x->reference ? "<&>" : "") << "(";
    x->id->visit(this);
-   if (x->qual != 0) {
+   if (!x->qual.empty()) {
       out() << ", {";
-      int i = 0, numquals = 0;
-      while (Type::Qualifiers(1 << i) <= Type::Extern) {
-         if (x->qual & Type::Qualifiers(1 << i)) {
-            if (numquals > 0) {
+      int i = 0, numq = 0;
+      for (int q = Type::Const; q <= Type::Extern; q++) {
+         if (find(x->qual.begin(), x->qual.end(), q) != x->qual.end()) {
+            if (numq > 0) {
                out() << "," << _cmt_(x, i);
             }
-            out() << names[i];
-            numquals++;
+            out() << Type::QualifiersNames[i];
+            numq++;
          }
          i++;
       }

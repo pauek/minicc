@@ -24,8 +24,8 @@ void PrettyPrinter::visit_include(Include* x) {
    if (x->global) {
       delim = "<>";
    }
-   out() << "#" << _cmt0_(x, 0) << "include" << _cmt_(x, 1)
-         << delim[0] << x->filename << delim[1] << _cmt0(x, 2);
+   out() << "#include" << _cmt_(x, 0)
+         << delim[0] << x->filename << delim[1] << _cmt0(x, 1);
 }
 
 void PrettyPrinter::visit_macro(Macro* x) {
@@ -38,24 +38,9 @@ void PrettyPrinter::visit_using(Using* x) {
 }
 
 void PrettyPrinter::visit_type(Type *x) {
-   int i = 0, numquals = 0;
-   static const string names[] = { 
-      "const", "volatile", "mutable", "register", "auto", "extern"
-   };
-   int c = 0;
-   // Count Qualifiers
-   while (Type::Qualifiers(1 << i) <= Type::Extern) {
-      if (x->qual & Type::Qualifiers(1 << i)) {
-         if (numquals > 0) {
-            out() << " ";
-         }
-         out() << names[i] << _cmt0(x, c++);
-         numquals++;
-      }
-      i++;
-   }
-   if (numquals > 0) {
-      out() << " ";
+   int i = 0, c = 0;
+   for (int q : x->qual) {
+      out() << Type::QualifiersNames[q] << _cmt_(x, c++);
    }
    x->id->visit(this);
    if (x->reference) {

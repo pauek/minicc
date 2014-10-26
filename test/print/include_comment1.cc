@@ -1,3 +1,3 @@
-#/* bla bla */include<iostream>
+#/* se lo come */include<iostream>
 [[out]]----------------------------------------
-# /* bla bla */ include <iostream>
+#include <iostream>
