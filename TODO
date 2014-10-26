@@ -2,7 +2,7 @@
 [ ] Implementar tablas de más de una dimensión.
 [ ] Traducción de todo a inglés (+ català).
 [ ] Implementar vector<X> en el intérprete.
-[ ] Empezar el Semantic Analyzer.
+[ ] Empezar el Semantic Analyzer (-> mensajes de error)
 [ ] Pintar flechas con jsPlumb.
 [ ] Pensar más Entrada/Salida.
 [ ] Pintar matrices en 2D.
