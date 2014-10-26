@@ -150,9 +150,9 @@ void PrettyPrinter::visit_ident(Ident *x) {
       pre->visit(this);
       out() << "::";
    }
-   out() << x->id << _cmt0(x, 0);
+   out() << x->id;
    if (!x->subtypes.empty()) {
-      out() << "<" << cmt0_(x, 1);
+      out() << _cmt0_(x, 0) << "<" << cmt0_(x, 1);
       for (int i = 0; i < x->subtypes.size(); i++) {
          if (i > 0) {
             out() << "," << _cmt_(x, i+2);
@@ -160,6 +160,8 @@ void PrettyPrinter::visit_ident(Ident *x) {
          x->subtypes[i]->visit(this);
       }
       out() << ">" << _cmt0(x, -1);
+   } else { 
+      out() << _cmt0(x, 0);
    }
 }
 
