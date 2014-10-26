@@ -225,10 +225,10 @@ void PrettyPrinter::visit_exprlist(ExprList *x) {
 }
 
 void PrettyPrinter::visit_arraydecl(ArrayDecl *x) {
-   out() << x->name << _cmt0(x, 0);
-   out() << "[";
+   out() << x->name << _cmt0_(x, 0);
+   out() << "[" << cmt0_(x, 1);
    x->size->visit(this);
-   out() << "]";
+   out() << "]" << _cmt0(x, 2);
 }
 
 void PrettyPrinter::visit_objdecl(ObjDecl *x) {
