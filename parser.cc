@@ -622,10 +622,11 @@ Expr *Parser::parse_unary_expr() {
                                   ? IncrExpr::Positive 
                                   : IncrExpr::Negative);
       _in.consume(tok.kind == Token::PlusPlus ? "++" : "--");
+      CommentSeq *comm = _in.skip("\n\t ");
       ie->expr = parse_unary_expr();
-      ie->fin = ie->expr->fin;
       ie->preincr = true;
-      _skip(ie);
+      ie->fin = ie->expr->fin;
+      ie->comments.insert(ie->comments.begin(), comm);
       e = ie;
       break;
    }

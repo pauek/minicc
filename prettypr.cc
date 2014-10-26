@@ -391,11 +391,11 @@ void PrettyPrinter::visit_increxpr(IncrExpr *x) {
       out() << "(";
    }
    if (x->preincr) {
-      out() << (x->kind == IncrExpr::Positive ? "++" : "--");
+      out() << (x->kind == IncrExpr::Positive ? "++" : "--") << _cmt0_(x, 0);
       x->expr->visit(this);
    } else {
       x->expr->visit(this);
-      out() << (x->kind == IncrExpr::Positive ? "++" : "--");
+      out() << (x->kind == IncrExpr::Positive ? "++" : "--") << _cmt0(x, 0);
    }
    if (x->paren) {
       out() << ")";
