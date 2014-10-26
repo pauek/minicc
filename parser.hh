@@ -32,9 +32,9 @@ class Parser {
    void parse_expr_seq(AstNode *n, std::vector<Expr*>& v);
    void parse_type_seq(AstNode *n, std::vector<Type*>& v);
 
-   Decl *_parse_vardecl(std::string name, Decl::Kind kind);
-   Decl *_parse_arraydecl(std::string name, Decl::Kind kind);
-   Decl *_parse_objdecl(std::string name);
+   Decl *_parse_vardecl(std::string name, Decl::Kind kind, CommentSeq *comm);
+   Decl *_parse_arraydecl(std::string name, Decl::Kind kind, CommentSeq *comm);
+   Decl *_parse_objdecl(std::string name, CommentSeq *comm);
 
 public:
              Parser(std::istream *in, std::ostream* err = &std::cerr);

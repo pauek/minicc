@@ -258,11 +258,11 @@ Type *Parser::parse_type() {
       } else if (tok.group & Token::BasicType) {
          _in.discard();
          Ident *id = new Ident(tok.str);
-         _skip(id);
          if (type->id != 0) {
             error(type, "Los tipos básicos no deben estar anidados");
          }
          type->id = id;
+         _skip(id);
       } else if (type->id == 0 and (tok.group & Token::Ident)) {
          type->id = parse_ident(tok, p);
          _skip(type);
@@ -853,17 +853,17 @@ Expr *Parser::parse_exprlist() {
    return elist;
 }
 
-Decl *Parser::_parse_vardecl(string name, Decl::Kind kind) {
+Decl *Parser::_parse_vardecl(string name, Decl::Kind kind, CommentSeq *comm) {
    VarDecl *decl = new VarDecl();
-   _skip(decl); // after the name
    decl->name = name;
    decl->kind = kind;
+   decl->comments.push_back(comm);
    return decl;
 }
 
-Decl *Parser::_parse_arraydecl(string name, Decl::Kind kind) {
+Decl *Parser::_parse_arraydecl(string name, Decl::Kind kind, CommentSeq *comm) {
    ArrayDecl *decl = new ArrayDecl();
-   _skip(decl); // after the name
+   decl->comments.push_back(comm);
    decl->name = name;
    decl->kind = kind;
    _in.consume("[");
@@ -876,11 +876,12 @@ Decl *Parser::_parse_arraydecl(string name, Decl::Kind kind) {
    return decl;
 }
 
-Decl *Parser::_parse_objdecl(string name) {
+Decl *Parser::_parse_objdecl(string name, CommentSeq *comm) {
    _in.consume("(");
    ObjDecl *decl = new ObjDecl();
-   _skip(decl); // after the name
+   decl->comments.push_back(comm);
    decl->name = name;
+   _skip(decl);
    parse_expr_seq(decl, decl->args);
    if (!_in.expect(")")) {
       error(decl, _in.pos().str() + ": Esperaba un ')' aquí");
@@ -893,8 +894,8 @@ DeclStmt *Parser::parse_declstmt(bool is_typedef) {
    DeclStmt *stmt = new DeclStmt();
    stmt->ini = _in.pos();
    Type *type = parse_type();
+   _skip(stmt); // before identifier
    stmt->type = type;
-   _skip(stmt);
    while (true) {
       Token id = _in.next_token();
       string name = id.str;
@@ -909,12 +910,13 @@ DeclStmt *Parser::parse_declstmt(bool is_typedef) {
          error(stmt, "Esperaba un identificador aquí");
       }
       DeclStmt::Item item;
+      CommentSeq *comm = _in.skip("\n\t ");
       if (_in.curr() == '(' and !is_typedef) {
-         item.decl = _parse_objdecl(name);
+         item.decl = _parse_objdecl(name, comm);
       } else if (_in.curr() == '[') {
-         item.decl = _parse_arraydecl(name, kind);
+         item.decl = _parse_arraydecl(name, kind, comm);
       } else {
-         item.decl = _parse_vardecl(name, kind);
+         item.decl = _parse_vardecl(name, kind, comm);
       }
       if (_in.curr() == '=') {
          _in.next();
@@ -928,8 +930,8 @@ DeclStmt *Parser::parse_declstmt(bool is_typedef) {
       if (_in.curr() != ',' or is_typedef) {
          break;
       }
-      _in.next();
-      _skip(stmt);
+      _in.consume(",");
+      _skip(stmt); // before identifier
    }
    if (!_in.expect(";")) {
       error(stmt, _in.pos().str() + ": Esperaba un ';'");

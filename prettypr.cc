@@ -235,7 +235,7 @@ void PrettyPrinter::visit_objdecl(ObjDecl *x) {
          if (i > 0) {
             out() << ", ";
          }
-         out() << _cmt0(x, i+1);
+         out() << cmt0_(x, i+1);
          x->args[i]->visit(this);
       }
       out() << ")";
@@ -247,14 +247,14 @@ void PrettyPrinter::visit_declstmt(DeclStmt* x) {
    out() << " ";
    for (int i = 0; i < x->items.size(); i++) {
       if (i > 0) {
-         out() << "," << _cmt_(x, i);
+         out() << ", ";
       }
+      out() << cmt0_(x, i);
       DeclStmt::Item& item = x->items[i];
       item.decl->visit(this);
       if (item.init) {
-         out() << " = " << cmt0_(item.decl, -1);
+         out() << " = " << cmt0_(item.decl, 1);
          item.init->visit(this);
-         
       }
    }
    out() << ";" << _cmt0(x, -1);
