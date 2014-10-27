@@ -3,7 +3,6 @@
 #include "walker.hh"
 using namespace std;
 
-void Walker::visit_comment(CommentSeq* cn)   { walk(cn); }
 void Walker::visit_include(Include* x)       { walk(x); }
 void Walker::visit_macro(Macro* x)           { walk(x); }
 void Walker::visit_using(Using* x)           { walk(x); }

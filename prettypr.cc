@@ -5,7 +5,9 @@
 using namespace std;
 
 void PrettyPrinter::visit_program(Program* x) {
-   for (int i = 0; i < x->nodes.size(); i++) {
+   int i;
+   for (i = 0; i < x->nodes.size(); i++) {
+      out() << cmt0(x, i);
       AstNode *n = x->nodes[i];
       if ((n->is<FuncDecl>() or 
            n->is<StructDecl>() or 
@@ -15,6 +17,9 @@ void PrettyPrinter::visit_program(Program* x) {
       n->visit(this);
       out() << endl;
    }
+   if (x->comments[i]) {
+      out() << cmt0(x, i) << endl;
+   }   
 }
 
 void PrettyPrinter::visit_comment(CommentSeq* cn) {

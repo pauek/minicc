@@ -49,7 +49,7 @@ struct Comment {
    Comment(Kind k) : kind(k), endl(false) {}
 };
 
-struct CommentSeq : public AstNode {
+struct CommentSeq {
    std::vector<Comment> items;
    void visit(AstVisitor* v);
    bool endl() const { return !items.empty() and items.back().endl; }

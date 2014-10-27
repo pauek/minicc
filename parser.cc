@@ -40,10 +40,7 @@ AstNode* Parser::parse() {
       error(prog, "Error al leer de la entrada");
       return prog;
    }
-   CommentSeq *c = _in.skip("\n\t ");
-   if (c != 0) {
-      prog->add(c);
-   }
+   _skip(prog);
    while (!_in.end()) {
       Pos pos = _in.pos();
       Token tok = _in.peek_token();
@@ -96,10 +93,7 @@ AstNode* Parser::parse() {
          _in.next_token();
          break;
       }
-      c = _in.skip("\n\t ");
-      if (c != 0) {
-         prog->add(c);
-      }
+      _skip(prog);
    }
    return prog;
 }

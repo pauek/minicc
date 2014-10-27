@@ -12,7 +12,6 @@ public:
 
    virtual void walk(AstNode *n) = 0;
 
-   void visit_comment(CommentSeq *x);
    void visit_include(Include *x);
    void visit_macro(Macro *x);
    void visit_program(Program *x);
