@@ -78,7 +78,6 @@ public:
           void  restore();
           void  discard();
 
-          bool  seen_endl()     const { return _seen_endl; }
           void  mark()                { _seen_endl = false; }
 
           bool  expect(std::string word);
