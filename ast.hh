@@ -545,7 +545,6 @@ inline void Stmt::visit(AstVisitor *v)          { assert(false); }
 
 // Comment helpers
 std::string cmt(CommentSeq* cn, bool pre, bool post, bool missing);
-std::string cmtl(CommentSeq *cn);
 
 template<typename T> 
 inline CommentSeq *_at(T *x, int i) {
@@ -562,6 +561,5 @@ template<typename T> std::string _cmt0 (T* x, int i) { return cmt(_at(x, i), 1, 
 template<typename T> std::string _cmt0_(T* x, int i) { return cmt(_at(x, i), 1, 1, 0); }
 template<typename T> std::string  cmt0_(T* x, int i) { return cmt(_at(x, i), 0, 1, 0); }
 template<typename T> std::string  cmt0 (T* x, int i) { return cmt(_at(x, i), 0, 0, 0); }
-template<typename T> std::string _cmtl (T* x, int i) { return cmtl(_at(x, i)); }
 
 #endif

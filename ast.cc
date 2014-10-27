@@ -121,17 +121,6 @@ string cmt(CommentSeq* cn, bool pre, bool post, bool missing) {
    return out.str();
 }
 
-string cmtl(CommentSeq *cn) {
-   ostringstream out;
-   if (cn) {
-      out << ' ' << cn;
-   }
-   if (!cn or cn->endl()) {
-      out << endl;
-   }
-   return out.str();
-}
-
 ostream& operator<<(ostream& o, CommentSeq* C) {
    if (C == 0) {
       return o;
