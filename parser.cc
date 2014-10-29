@@ -138,24 +138,13 @@ AstNode* Parser::parse_macro() {
          break;
       }
    }
-   CommentSeq *c3 = 0;
    if (_in.curr() == close) {
       _in.next();
-      c3 = _in.skip("\t ");
    }
-   inc->comments.push_back(c3);
-
    inc->filename = filename;
    inc->global = (close == '>');
-
-   Pos fin = _in.pos();
-   if (!_in.expect("\n")) {
-      string skipped = _in.skip_to("\n");
-      error(inc, fin.str() + ": expected '\\n' after '#include' (found \"" + skipped + "\")");
-      _in.next();
-   }
    inc->ini = ini;
-   inc->fin = fin;
+   inc->fin = _in.pos();
    return inc;
 }
 
@@ -177,13 +166,6 @@ AstNode* Parser::parse_using_declaration() {
    if (!_in.expect(";")) {
       error(u, u->fin.str() + ": expected ';'");
    }
-   _skip(u, "\t ");
-   Pos p = _in.pos();
-   string rest = _in.skip_to("\n");
-   if (!is_space(rest)) {
-      error(u, p.str() + ": extra text after 'using' declaration (\"" + rest + "\")");
-   }
-   _in.next();
    return u;
 }
 
@@ -335,7 +317,6 @@ void Parser::parse_function(FuncDecl *fn) {
    } else {
       fn->block = parse_block();
    }
-   _skip(fn);
    fn->fin = _in.pos();
 }
 
@@ -356,12 +337,12 @@ Block *Parser::parse_block() {
       }
       Stmt *stmt = parse_stmt();
       block->stmts.push_back(stmt);
+      _skip(block);
    }
    if (!closing_curly) {
       error(block, "Esperaba '}' pero he llegado al final del texto");
    }
    block->fin = _in.pos();
-   _skip(block);
    return block;
 }
 
@@ -435,7 +416,6 @@ Stmt *Parser::parse_jumpstmt() {
       error(stmt, _in.pos().str() + ": Esperaba un ';' después de " + tok.str);
       _in.skip_to(";\n"); // resync...
    }
-   _skip(stmt);
    return stmt;
 }
 
@@ -459,7 +439,6 @@ ExprStmt *Parser::parse_exprstmt(bool is_return) {
       _in.skip_to(";\n"); // resync...
    }
    stmt->fin = _in.pos();
-   _skip(stmt);
    return stmt;
 }
 
@@ -745,13 +724,14 @@ Stmt *Parser::parse_for() {
       error(stmt, _in.pos().str() + ": Expected '('");
       // TODO: resync?
    }
-   _in.skip("\t\n "); // Comments here will disappear
+   _skip(stmt);
    stmt->init = parse_decl_or_expr_stmt();
+   _skip(stmt);
    stmt->cond = parse_expr();
    if (!_in.expect(";")) {
       error(stmt, _in.pos().str() + ": Expected ';'");
    }
-   _in.skip("\t\n "); // Comments here will disappear
+   _skip(stmt);
    stmt->post = parse_expr();
    if (!_in.expect(")")) {
       error(stmt, _in.pos().str() + ": Expected ')'");
@@ -780,7 +760,6 @@ Stmt *Parser::parse_while() {
 
 Stmt *Parser::parse_ifstmt() {
    IfStmt *stmt = new IfStmt();
-
    _in.consume("if");
    _skip(stmt);
    if (!_in.expect("(")) {
@@ -793,12 +772,17 @@ Stmt *Parser::parse_ifstmt() {
    }
    _skip(stmt);
    stmt->then = parse_stmt();
-   
+   _in.save();
+   _skip(stmt);
    string tok;
    if (_in.peek_token().kind == Token::Else) {
       _in.consume("else");
+      _in.discard();
       _skip(stmt);
       stmt->els = parse_stmt();
+   } else {
+      stmt->comments.pop_back();
+      _in.restore();
    }
    return stmt;
 }
@@ -932,7 +916,6 @@ DeclStmt *Parser::parse_declstmt(bool is_typedef) {
       error(stmt, _in.pos().str() + ": Esperaba un ';'");
    }
    stmt->fin = _in.pos();
-   _skip(stmt);
    return stmt;
 }
 
@@ -1026,6 +1009,7 @@ StructDecl *Parser::parse_struct() {
    tok = _in.peek_token();
    while (!_in.end() and tok.kind != Token::RCurly) {
       decl->decls.push_back(parse_declstmt());
+      _skip(decl);
       tok = _in.peek_token();      
    }
    if (tok.kind != Token::RCurly) {
@@ -1036,6 +1020,5 @@ StructDecl *Parser::parse_struct() {
    if (!_in.expect(";")) {
       error(decl, _in.pos().str() + ": Esperaba un ';' aquí");
    }
-   _skip(decl);
    return decl;   
 }

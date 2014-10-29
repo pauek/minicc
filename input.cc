@@ -76,8 +76,11 @@ CommentSeq* Input::skip(string skip_set) {
             break;
          }
       }
-      if (cs != 0 and curr() == '\n') {
-         cs->items.back().endl = true;
+      if (curr() == '\n') {
+         if (cs == 0) {
+            cs = new CommentSeq();
+         }
+         cs->items.push_back(Comment(Comment::endline));
       }
       if (skip_set.find(curr()) == string::npos) {
          break;

@@ -111,31 +111,23 @@ std::ostream& ReadWriter::out(OutType typ) {
    return *o; 
 }
 
-string cmt(CommentSeq* cn, bool pre, bool post, bool missing) {
-   ostringstream out;
-   if (cn != 0) {
-      out << (pre ? " " : "") << cn << (post ? " " : "");
-   } else if (missing) {
-      out << ' ';
-   }
-   return out.str();
-}
-
 ostream& operator<<(ostream& o, CommentSeq* C) {
    if (C == 0) {
       return o;
    }
    for (int i = 0; i < C->items.size(); i++) {
       const Comment& c = C->items[i];
-      if (c.kind == Comment::multiline) {
-         if (i > 0 and !C->items[i].endl) {
+      switch (c.kind) {
+      case Comment::multiline:
+         if (i > 0 and C->items[i-1].kind != Comment::endline) {
             o << ' ';
          }
          o << "/*" << c.text << "*/";
-      } else {
+         break;
+      case Comment::singleline:
          o << "//" << c.text;
-      }
-      if (c.endl and i < C->items.size()-1) {
+         break;
+      case Comment::endline:
          o << endl;
       }
    }

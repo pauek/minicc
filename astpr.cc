@@ -42,7 +42,7 @@ void AstPrinter::visit_type(Type *x) {
       for (int q = Type::Const; q <= Type::Extern; q++) {
          if (find(x->qual.begin(), x->qual.end(), q) != x->qual.end()) {
             if (numq > 0) {
-               out() << "," << _cmt_(x, i);
+               out() << ", ";
             }
             out() << Type::QualifiersNames[i];
             numq++;

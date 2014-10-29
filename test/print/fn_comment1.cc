@@ -1,5 +1,4 @@
 #include <iostream>
-
 using namespace std;
 
 int main       /* and here */(int a  , int    b   )  {    }

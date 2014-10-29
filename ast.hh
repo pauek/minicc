@@ -41,16 +41,29 @@ struct Error {
 };
 
 struct Comment {
-   enum Kind { singleline, multiline };
+   enum Kind { singleline, multiline, endline };
    Kind kind;
    std::string text;
-   bool endl;
-   Comment(Kind k) : kind(k), endl(false) {}
+   Comment(Kind k) : kind(k) {}
 };
 
 struct CommentSeq {
    std::vector<Comment> items;
-   bool endl() const { return !items.empty() and items.back().endl; }
+   bool has_endl() {
+      for (Comment& c : items) {
+         if (c.kind == Comment::endline) {
+            return true;
+         }
+      }
+      return false;
+   }
+   bool starts_with_endl()  const { return !items.empty() and items.front().kind == Comment::endline; }
+   bool ends_with_endl()    const { return !items.empty() and items.back().kind  == Comment::endline; }
+   bool ends_with_empty_line() const { 
+      const int sz = items.size();
+      return sz >= 2 and 
+         (items[sz-2].kind == Comment::endline and items[sz-1].kind == Comment::endline);
+   }
 };
 
 struct Program : public AstNode {
@@ -540,23 +553,5 @@ inline void Expr::Error::visit(AstVisitor *v)   { v->visit_errorexpr(this); }
 
 inline void Stmt::visit(AstVisitor *v)          { assert(false); }
 
-// Comment helpers
-std::string cmt(CommentSeq* cn, bool pre, bool post, bool missing);
-
-template<typename T> 
-inline CommentSeq *_at(T *x, int i) {
-   if (i < 0) {
-      const int sz = x->comments.size();
-      return (sz+i >= 0 ? x->comments[sz+i] : 0);
-   } else {
-      return (i < x->comments.size() ? x->comments[i] : 0);
-   }
-}
-template<typename T> std::string _cmt  (T* x, int i) { return cmt(_at(x, i), 1, 0, 1); }
-template<typename T> std::string _cmt_ (T* x, int i) { return cmt(_at(x, i), 1, 1, 1); }
-template<typename T> std::string _cmt0 (T* x, int i) { return cmt(_at(x, i), 1, 0, 0); }
-template<typename T> std::string _cmt0_(T* x, int i) { return cmt(_at(x, i), 1, 1, 0); }
-template<typename T> std::string  cmt0_(T* x, int i) { return cmt(_at(x, i), 0, 1, 0); }
-template<typename T> std::string  cmt0 (T* x, int i) { return cmt(_at(x, i), 0, 0, 0); }
 
 #endif

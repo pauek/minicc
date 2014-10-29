@@ -4,22 +4,74 @@
 #include "prettypr.hh"
 using namespace std;
 
+// Comment helpers
+string cmt(CommentSeq* cn, bool pre, bool post, bool _endl, bool missing) {
+   ostringstream out;
+   if (cn != 0) {
+      if (pre and !cn->starts_with_endl()) {
+         out << " ";
+      }
+      out << cn;
+      if (_endl and !cn->has_endl()) {
+         out << endl;
+      } else {
+         out << (post ? " " : "");
+      }
+   } else {
+      if (_endl) {
+         out << endl;
+      } else if (missing) {
+         out << ' ';
+      }
+   }
+   return out.str();
+}
+
+template<typename T> 
+inline CommentSeq *_at(T *x, int i) {
+   if (i < 0) {
+      const int sz = x->comments.size();
+      return (sz+i >= 0 ? x->comments[sz+i] : 0);
+   } else {
+      return (i < x->comments.size() ? x->comments[i] : 0);
+   }
+}
+
+template<typename T> std::string _cmt_ (T* x, int i) { return cmt(_at(x, i), 1, 1, 0, 1); }
+template<typename T> std::string _cmt0 (T* x, int i) { return cmt(_at(x, i), 1, 0, 0, 0); }
+template<typename T> std::string _cmt0_(T* x, int i) { return cmt(_at(x, i), 1, 1, 0, 0); }
+template<typename T> std::string  cmt0_(T* x, int i) { return cmt(_at(x, i), 0, 1, 0, 0); }
+template<typename T> std::string  cmt0 (T* x, int i) { return cmt(_at(x, i), 0, 0, 0, 0); }
+template<typename T> std::string _cmtl (T* x, int i) { return cmt(_at(x, i), 1, 0, 1, 0); }
+
+struct CommentsPrinter {
+   AstNode *x;
+   int index;
+
+   CommentsPrinter(AstNode *_x) : x(_x), index(0) {}
+};
+
 void PrettyPrinter::visit_program(Program* x) {
    int i;
    for (i = 0; i < x->nodes.size(); i++) {
-      out() << cmt0(x, i);
+      out() << _cmt0(x, i);
       AstNode *n = x->nodes[i];
-      if ((n->is<FuncDecl>() or 
-           n->is<StructDecl>() or 
-           n->is<TypedefDecl>()) and i > 0) {
+      if (i > 0 and 
+          n->is<FuncDecl>() and 
+          (x->comments[i] and !x->comments[i]->ends_with_empty_line())) {
          out() << endl;
       }
       n->visit(this);
+   }
+   if (i > 0) {
+      out() << _cmt0(x, i);
+   } else {
+      out() << cmt0(x, i);
+   }
+   if (x->comments[i] == 0 or 
+       !x->comments[i]->has_endl()) {
       out() << endl;
    }
-   if (x->comments[i]) {
-      out() << cmt0(x, i) << endl;
-   }   
 }
 
 void PrettyPrinter::visit_comment(CommentSeq* cn) {
@@ -31,8 +83,8 @@ void PrettyPrinter::visit_include(Include* x) {
    if (x->global) {
       delim = "<>";
    }
-   out() << "#include" << _cmt_(x, 0)
-         << delim[0] << x->filename << delim[1] << _cmt0(x, 1);
+   out() << "#include " << cmt0_(x, 0)
+         << delim[0] << x->filename << delim[1];
 }
 
 void PrettyPrinter::visit_macro(Macro* x) {
@@ -40,14 +92,14 @@ void PrettyPrinter::visit_macro(Macro* x) {
 }
 
 void PrettyPrinter::visit_using(Using* x) {
-   out() << "using" << _cmt_(x, 0) << "namespace" << _cmt_(x, 1)
-         << x->namespc << _cmt0(x, 2) << ";" << _cmt0(x, 3);
+   out() << "using " << cmt0_(x, 0) << "namespace " << cmt0_(x, 1)
+         << x->namespc << _cmt0(x, 2) << ";" << cmt0(x, 3);
 }
 
 void PrettyPrinter::visit_type(Type *x) {
    int i = 0, c = 0;
    for (int q : x->qual) {
-      out() << Type::QualifiersNames[q] << _cmt_(x, c++);
+      out() << Type::QualifiersNames[q] << " " << cmt0_(x, c++);
    }
    x->id->visit(this);
    if (x->reference) {
@@ -86,16 +138,15 @@ void PrettyPrinter::visit_typedefdecl(TypedefDecl *x) {
 void PrettyPrinter::visit_structdecl(StructDecl *x) {
    out() << "struct " << cmt0_(x, 0);
    x->id->visit(this);
-   out() << _cmt0(x, 1) << " {" << _cmt0(x, 2) << endl;
+   out() << _cmt0(x, 1) << " {" << _cmtl(x, 2);
    indent(+1);
    vector<string> decl_strings;
    vector<CommentSeq*> last_comments;
    size_t max_size = 0;
+   int nc = 3;
    for (DeclStmt *decl : x->decls) {
       push();
-      CommentSeq *last = 0;
-      swap(last, decl->comments.back());
-      last_comments.push_back(last);
+      last_comments.push_back(x->comments[nc++]);
       decl->visit(this);
       string d = pop();
       max_size = std::max(d.size(), max_size);
@@ -105,10 +156,13 @@ void PrettyPrinter::visit_structdecl(StructDecl *x) {
       string decl = decl_strings[i];
       CommentSeq *c = last_comments[i];
       string filler(max_size - decl.size(), ' ');
-      out(beginl) << decl << filler << cmt(c, 1, 0, 0) << endl;
+      out(beginl) << decl << filler << cmt(c, 1, 0, 0, 0);
+   }
+   if (!last_comments.back()->has_endl()) {
+      out() << endl;
    }
    indent(-1);
-   out(beginl) << "}" << _cmt0(x, 3) << ";" << _cmt0(x, 4);  
+   out(beginl) << "}" << _cmt0(x, nc) << ";";
 }
 
 void PrettyPrinter::visit_funcdecl(FuncDecl *x) {
@@ -142,14 +196,15 @@ void PrettyPrinter::print_block(Block *x) {
       return;
    } 
    indent(+1);
-   out() << "{" << _cmt0(x, 0) << endl;
+   int nc = 0;
+   out() << "{" << _cmtl(x, nc++);
    for (Stmt *s : x->stmts) {
       out(beginl);
       s->visit(this);
-      out() << endl;
+      out() << _cmtl(x, nc++);
    }
    indent(-1);
-   out(beginl) << "}" << _cmt0(x, 1);
+   out(beginl) << "}" << _cmt0(x, nc);
 }
 
 void PrettyPrinter::visit_ident(Ident *x) {
@@ -266,7 +321,7 @@ void PrettyPrinter::visit_declstmt(DeclStmt* x) {
          item.init->visit(this);
       }
    }
-   out() << ";" << _cmt0(x, -1);
+   out() << ";";
 }
 
 void PrettyPrinter::visit_exprstmt(ExprStmt* x) {
@@ -277,7 +332,7 @@ void PrettyPrinter::visit_exprstmt(ExprStmt* x) {
    if (x->expr) {
       x->expr->visit(this);
    }
-   out() << ";" << _cmt0(x, c);
+   out() << ";" << cmt0(x, c);
 }
 
 void PrettyPrinter::visit_ifstmt(IfStmt *x) {
@@ -286,13 +341,13 @@ void PrettyPrinter::visit_ifstmt(IfStmt *x) {
    out() << ")" << _cmt_(x, 2);
    x->then->visit(this);
    if (x->els) {
+      out() << _cmt0(x, 3);
       if (!x->then->is<Block>()) {
-         out() << endl;
          out(beginl);
       } else {
          out() << ' ';
       }
-      out() << "else" << _cmt_(x, 3);
+      out() << "else" << _cmt_(x, 4);
       x->els->visit(this);
    }
 }
@@ -329,7 +384,7 @@ void PrettyPrinter::visit_callexpr(CallExpr *x) {
       out() << "(";
    }
    x->func->visit(this);
-   if (x->func->comments[0] != 0 and !x->func->comments[0]->endl()) {
+   if (x->func->comments[0] != 0 and !x->func->comments[0]->ends_with_endl()) {
       out() << " ";
    }
    out() << "(";
