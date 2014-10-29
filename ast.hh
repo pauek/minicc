@@ -45,13 +45,11 @@ struct Comment {
    Kind kind;
    std::string text;
    bool endl;
-
    Comment(Kind k) : kind(k), endl(false) {}
 };
 
 struct CommentSeq {
    std::vector<Comment> items;
-   void visit(AstVisitor* v);
    bool endl() const { return !items.empty() and items.back().endl; }
 };
 
@@ -506,7 +504,6 @@ public:
 
 // Visit implementations
 inline void Program::visit(AstVisitor *v)       { v->visit_program(this); }
-inline void CommentSeq::visit(AstVisitor *v)    { v->visit_comment(this); }
 inline void Include::visit(AstVisitor *v)       { v->visit_include(this); }
 inline void Macro::visit(AstVisitor *v)         { v->visit_macro(this); }
 inline void Using::visit(AstVisitor *v)         { v->visit_using(this); }
