@@ -41,10 +41,10 @@ struct Error {
 };
 
 struct Comment {
-   enum Kind { singleline, multiline, endline };
+   enum Kind { none, singleline, multiline, endline };
    Kind kind;
    std::string text;
-   Comment(Kind k) : kind(k) {}
+   Comment(Kind k = none) : kind(k) {}
 };
 
 struct CommentSeq {
@@ -63,6 +63,20 @@ struct CommentSeq {
       const int sz = items.size();
       return sz >= 2 and 
          (items[sz-2].kind == Comment::endline and items[sz-1].kind == Comment::endline);
+   }
+
+   void only_one_endl_at_end() {
+      if (items.empty() or items.back().kind != Comment::endline) {
+         return;
+      }
+      int i = items.size()-1;
+      while (true) {
+         if (items[i-1].kind != Comment::endline) {
+            break;
+         }
+         i--;
+      }
+      items.resize(i+1);
    }
 };
 
@@ -392,7 +406,6 @@ struct FuncDecl : public AstNode {
    struct Param {
       Type *type;
       std::string name;
-      std::vector<CommentSeq *> comments;
       Param() : type(0) {}
    };
 
@@ -446,6 +459,8 @@ class ReadWriter {
    std::ostream *_out;
    std::vector<std::ostringstream*> _stack; // temporary output
 
+   static const int TAB_WIDTH = 3;
+   
 protected:
    enum OutType { normal, beginl };
 
@@ -470,6 +485,10 @@ public:
    ReadWriter(std::ostream *o)                          : _indent(0),         _out(o) {}
    ReadWriter(std::istream *i = 0, std::ostream *o = 0) : _indent(0), _in(i), _out(o) {}
 
+   std::string indentation() const { 
+      return std::string(_indent * TAB_WIDTH, ' '); 
+   }
+
    void set_in(std::istream *i)  { _in  = i; }
    void set_out(std::ostream *o) { _out = o; }
 };
@@ -478,7 +497,6 @@ class AstVisitor {
 public:
    void visit(AstNode *x) { x->visit(this); }
 
-   virtual void visit_comment(CommentSeq*)        { assert(false); }
    virtual void visit_program(Program*)           { assert(false); }
    virtual void visit_include(Include*)           { assert(false); }
    virtual void visit_macro(Macro *)              { assert(false); }

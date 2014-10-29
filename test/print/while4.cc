@@ -4,5 +4,6 @@ void xxx(string s) {
 }
 [[out]]--------------------------------------------------
 void xxx(string s) {
-   while (a = true) while (a = true) a = a + 2;
+   while (a = true)
+      while (a = true) a = a + 2;
 }

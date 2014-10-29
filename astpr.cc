@@ -16,10 +16,6 @@ void AstPrinter::visit_program(Program* x) {
    out(beginl) << "}" << endl;
 }
 
-void AstPrinter::visit_comment(CommentSeq* cn) {
-   out() << cn;
-}
-
 void AstPrinter::visit_include(Include* x) {
    string D = (x->global ? "<>" : "\"\"");
    out() << "Include(" << D[0] << x->filename << D[1] << ")";

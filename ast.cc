@@ -6,8 +6,6 @@
 #include "ast.hh"
 using namespace std;
 
-const int TAB_WIDTH = 3;
-
 // OJO: El orden de la tabla es importante!
 // Hay que dejarla antes que el initializer y el map...
 //
@@ -106,33 +104,11 @@ std::ostream& ReadWriter::out(OutType typ) {
       o = _stack.back();
    }
    if (typ == beginl and _indent > 0) {
-      *o << string(_indent * TAB_WIDTH, ' ');
+      *o << indentation();
    }
    return *o; 
 }
 
-ostream& operator<<(ostream& o, CommentSeq* C) {
-   if (C == 0) {
-      return o;
-   }
-   for (int i = 0; i < C->items.size(); i++) {
-      const Comment& c = C->items[i];
-      switch (c.kind) {
-      case Comment::multiline:
-         if (i > 0 and C->items[i-1].kind != Comment::endline) {
-            o << ' ';
-         }
-         o << "/*" << c.text << "*/";
-         break;
-      case Comment::singleline:
-         o << "//" << c.text;
-         break;
-      case Comment::endline:
-         o << endl;
-      }
-   }
-   return o;
-}
 
 void BinaryExpr::set(Expr::Kind k) {
    kind = k;

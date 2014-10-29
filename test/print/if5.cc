@@ -6,5 +6,6 @@ int f() {
 int f() {
    if (true) {
       a + 1;
-   } else bla + 2;
+   }
+   else bla + 2;
 }

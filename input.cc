@@ -60,6 +60,7 @@ bool Input::curr_one_of(std::string set) const {
 
 CommentSeq* Input::skip(string skip_set) {
    CommentSeq *cs = 0;
+   int endls_in_a_row = 0;
    while (!end()) {
       while (curr() == '/') {
          peek(1);
@@ -69,18 +70,25 @@ CommentSeq* Input::skip(string skip_set) {
          if (curr(1) == '*') {
             cs->items.push_back(Comment(Comment::multiline));
             read_multiline_comment(cs->items.back());
+            endls_in_a_row = 0;
          } else if (curr(1) == '/') {
             cs->items.push_back(Comment(Comment::singleline));
             read_singleline_comment(cs->items.back());
+            endls_in_a_row = 0;
          } else {
             break;
          }
       }
       if (curr() == '\n') {
+         endls_in_a_row++;
          if (cs == 0) {
             cs = new CommentSeq();
          }
-         cs->items.push_back(Comment(Comment::endline));
+         if (endls_in_a_row < 3) {
+            cs->items.push_back(Comment(Comment::endline));
+         }
+      } else {
+         endls_in_a_row = 0;
       }
       if (skip_set.find(curr()) == string::npos) {
          break;

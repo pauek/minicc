@@ -288,16 +288,16 @@ void Parser::parse_function(FuncDecl *fn) {
    _in.consume('(');
    while (true) {
       FuncDecl::Param *p = new FuncDecl::Param();
-      _skip(p);
+      _skip(fn);
       if (_in.curr() == ')') {
          delete p;
          break;
       }
       p->type = parse_type();
-      _skip(p);
+      _skip(fn);
       Token tok = _in.read_id();
       p->name = tok.str;
-      _skip(p);
+      _skip(fn);
       fn->params.push_back(p);
 
       if (_in.curr() == ')') {
@@ -899,7 +899,7 @@ DeclStmt *Parser::parse_declstmt(bool is_typedef) {
       }
       if (_in.curr() == '=') {
          _in.next();
-         _skip(item.decl);
+         _skip(stmt);
          item.init = (_in.curr() == '{' 
                       ? parse_exprlist() 
                       : parse_expr(Expr::Assignment));
