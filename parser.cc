@@ -5,6 +5,7 @@
 using namespace std;
 
 #include "parser.hh"
+#include "translator.hh"
 
 Parser::Parser(istream *i, std::ostream* err) : _in(i), _err(err) {
    static const char *basic_types[] = {
@@ -37,7 +38,7 @@ typename Node::Error *Parser::error(string msg) {
 AstNode* Parser::parse() {
    Program *prog = new Program();
    if (!_in.next()) {
-      error(prog, "Error al leer de la entrada");
+      error(prog, _T("Error when reading input"));
       return prog;
    }
    _skip(prog);
@@ -72,13 +73,13 @@ AstNode* Parser::parse() {
          break;
       }
       case Token::Class: {
-         prog->add(error<Stmt>("UNIMPLEMENTED"));
+         prog->add(error<Stmt>(_T("UNIMPLEMENTED")));
          _in.skip_to(";");
          break;
       }
       case Token::Empty: {
          ostringstream msg;
-         msg << pos << ": Unexpected character '" << _in.curr() << "'";
+         msg << pos << ": " << _T("Unexpected character '%c'", _in.curr());
          prog->add(error<Stmt>(msg.str()));
          _in.next_token();
          break;
@@ -89,7 +90,7 @@ AstNode* Parser::parse() {
             prog->add(parse_func_or_var());
             break;
          }
-         error(prog, "No esperaba '" + tok.str + "' aquí");
+         error(prog, _T("Unexpected '%s' here.", tok.str.c_str()));
          _in.next_token();
          break;
       }
@@ -110,14 +111,14 @@ AstNode* Parser::parse_macro() {
       Pos macro_fin = _in.pos();
       _in.next();
       Macro *m = new Macro(_in.substr(macro_ini, macro_fin));
-      error(m, ini.str() + ": ignoring macro '" + macro_name + "'");
+      error(m, ini.str() + ": " + _T("ignoring macro '%s'", macro_name.c_str()));
       return m;
    }
    Include* inc = new Include();
    _skip(inc);
    char open = _in.curr();
    if (open != '"' && open != '<') {
-      error(inc, _in.pos().str() + ": expected '\"' or '<'");
+      error(inc, _in.pos().str() + ": " + _T("Expected '\"' or '<' here."));
       _in.skip_to("\n");
       return inc;
    }
@@ -127,14 +128,15 @@ AstNode* Parser::parse_macro() {
    _in.next();
    while (_in.curr() != close) {
       if (_in.curr() == '\n') {
-         error(inc, _in.pos().str() + ": '#include' missing closing '" + close + "'");
+         error(inc, _in.pos().str() + ": " 
+               + _T("'#include' missing closing '%c'", close));
          break;
       }
       filename += _in.curr();
       Pos p = _in.pos();
       _in.next();
       if (_in.end()) {
-         error(inc, p.str() + ": '#include' missing closing '" + close + "'");
+         error(inc, p.str() + ": " + _T("'#include' missing closing '%c'", close));
          break;
       }
    }
@@ -154,7 +156,7 @@ AstNode* Parser::parse_using_declaration() {
    _in.consume("using");
    _skip(u);
    if (!_in.expect("namespace")) {
-      error(u, u->ini.str() + ": expected 'namespace'");
+      error(u, u->ini.str() + ": " + _T("Expected '%s' here.", "namespace"));
       _in.skip_to("\n");
       return u;
    }
@@ -164,7 +166,7 @@ AstNode* Parser::parse_using_declaration() {
    _skip(u);
    u->fin = _in.pos();
    if (!_in.expect(";")) {
-      error(u, u->fin.str() + ": expected ';'");
+      error(u, u->fin.str() + ": " + _T("Expected '%s' here.", ";"));
    }
    return u;
 }
@@ -187,7 +189,7 @@ Ident *Parser::parse_ident(Token tok, Pos ini) {
          _skip(id);
          parse_type_seq(id, id->subtypes);
          if (_in.curr() != '>') { // Do NOT call next_token here, since it will return ">>"
-            error(id, "Esperaba un '>' aquí");
+            error(id, _T("Expected '%s' here.", ">"));
          } else {
             _in.next();
          }
@@ -203,7 +205,7 @@ Ident *Parser::parse_ident(Token tok, Pos ini) {
          _in.next_token();
          tok = _in.next_token();
          if (!(tok.group & Token::Ident)) {
-            error(id, "Esperaba un identificador aquí");
+            error(id, _T("Expected an identifier here"));
          }
       }
    }
@@ -235,7 +237,7 @@ Type *Parser::parse_type() {
          _in.discard();
          Ident *id = new Ident(tok.str);
          if (type->id != 0) {
-            error(type, "Los tipos básicos no deben estar anidados");
+            error(type, _T("Basic types are not templates"));
          }
          type->id = id;
          _skip(id);
@@ -305,7 +307,7 @@ void Parser::parse_function(FuncDecl *fn) {
       } else if (_in.curr() == ',') {
          _in.consume(',');
       } else {
-         error(fn, string("Unexpected character '") + _in.curr() + "' in parameter list");
+         error(fn, _T("Unexpected character '%c' in parameter list", _in.curr()));
          _in.skip_to(")");
       }
    }
@@ -324,7 +326,7 @@ Block *Parser::parse_block() {
    Block *block = new Block();
    block->ini = _in.pos();
    if (!_in.expect("{")) {
-      error(block, "'{' expected");
+      error(block, _T("I expected a '%s' here.", "{"));
       return block;
    }
    _skip(block);
@@ -340,7 +342,7 @@ Block *Parser::parse_block() {
       _skip(block);
    }
    if (!closing_curly) {
-      error(block, "Esperaba '}' pero he llegado al final del texto");
+      error(block, _T("Expected '}' but end of text found"));
    }
    block->fin = _in.pos();
    return block;
@@ -413,7 +415,8 @@ Stmt *Parser::parse_jumpstmt() {
       _skip(stmt);
    }
    if (!_in.expect(";")) {
-      error(stmt, _in.pos().str() + ": Esperaba un ';' después de " + tok.str);
+      error(stmt, _in.pos().str() + ": " 
+            + _T("Esperaba un ';' después de '%s'.", tok.str.c_str()));
       _in.skip_to(";\n"); // resync...
    }
    return stmt;
@@ -435,7 +438,7 @@ ExprStmt *Parser::parse_exprstmt(bool is_return) {
       stmt->expr->fin = efin;
    }
    if (!_in.expect(";")) {
-      error(stmt, _in.pos().str() + ": Esperaba un ';' después de la expresión");
+      error(stmt, _in.pos().str() + ": " + _T("Expected ';' after expression"));
       _in.skip_to(";\n"); // resync...
    }
    stmt->fin = _in.pos();
@@ -633,7 +636,7 @@ Expr *Parser::parse_expr(BinaryExpr::Kind max) {
          e->then = parse_expr(Expr::Assignment); // Expr::comma?
          Token colon = _in.read_operator();
          if (colon.kind != Token::Colon) {
-            error(e, "Esperaba un ':' aquí");
+            error(e, _T("Expected '%s' here.", ":"));
          }
          _skip(e);
          e->els = parse_expr(Expr::Assignment);
@@ -673,7 +676,7 @@ Expr *Parser::parse_callexpr(Expr *x) {
       }
    }
    if (!_in.expect(")")) {
-      error(e, _in.pos().str() + ": Esperaba ')'");
+      error(e, _in.pos().str() + ": " + _T("Expected '%s' here.", ")"));
    }
    e->fin = _in.pos();
    _skip(e);
@@ -686,7 +689,7 @@ Expr *Parser::parse_indexexpr(Expr *x) {
    _in.consume('[');
    e->index = parse_expr();
    if (!_in.expect("]")) {
-      error(e, _in.pos().str() + ": Esperaba ']'");
+      error(e, _in.pos().str() + ": " + _T("Expected '%s' here.", "]"));
    }
    _skip(e);
    return e;
@@ -721,7 +724,7 @@ Stmt *Parser::parse_for() {
    _in.consume("for");
    _skip(stmt);
    if (!_in.expect("(")) {
-      error(stmt, _in.pos().str() + ": Expected '('");
+      error(stmt, _in.pos().str() + ": " + _T("Expected '%s' here.", "("));
       // TODO: resync?
    }
    _skip(stmt);
@@ -729,12 +732,12 @@ Stmt *Parser::parse_for() {
    _skip(stmt);
    stmt->cond = parse_expr();
    if (!_in.expect(";")) {
-      error(stmt, _in.pos().str() + ": Expected ';'");
+      error(stmt, _in.pos().str() + ": " + _T("Expected '%s' here.", ";"));
    }
    _skip(stmt);
    stmt->post = parse_expr();
    if (!_in.expect(")")) {
-      error(stmt, _in.pos().str() + ": Expected ')'");
+      error(stmt, _in.pos().str() + ": " + _T("Expected '%s' here.", ")"));
    }
    _skip(stmt);
    stmt->substmt = parse_stmt();
@@ -746,12 +749,12 @@ Stmt *Parser::parse_while() {
    _in.consume("while");
    _skip(stmt);
    if (!_in.expect("(")) {
-      error(stmt, _in.pos().str() + ": Expected '('");
+      error(stmt, _in.pos().str() + ": " + _T("Expected '%s' here.", "("));
    }
    _skip(stmt);
    stmt->cond = parse_expr();
    if (!_in.expect(")")) {
-      error(stmt, _in.pos().str() + ": Expected ')')");
+      error(stmt, _in.pos().str() + ": " + _T("Expected '%s' here.", ")"));
    }
    _skip(stmt);
    stmt->substmt = parse_stmt();
@@ -763,12 +766,12 @@ Stmt *Parser::parse_ifstmt() {
    _in.consume("if");
    _skip(stmt);
    if (!_in.expect("(")) {
-      error(stmt, _in.pos().str() + ": Expected '('");
+      error(stmt, _in.pos().str() + ": " + _T("Expected '%s' here.", "("));
    }
    _skip(stmt);
    stmt->cond = parse_expr();
    if (!_in.expect(")")) {
-      error(stmt, _in.pos().str() + ": Expected ')')");
+      error(stmt, _in.pos().str() + ": " + _T("Expected '%s' here.", ")"));
    }
    _skip(stmt);
    stmt->then = parse_stmt();
@@ -788,7 +791,7 @@ Stmt *Parser::parse_ifstmt() {
 }
 
 Stmt *Parser::parse_switch() {
-   return error<Stmt>("UNIMPLEMENTED switch");
+   return error<Stmt>(_T("UNIMPLEMENTED"));
 }
 
 void Parser::parse_expr_seq(AstNode *n, vector<Expr*>& exprs) {
@@ -825,7 +828,7 @@ Expr *Parser::parse_exprlist() {
    } while (_in.curr() == ',');
 
    if (!_in.expect("}")) {
-      error(elist, _in.pos().str() + ": Esperaba un '}' aquí");
+      error(elist, _in.pos().str() + ": " + _T("Expected '%s' here.", "}"));
       _in.skip_to("},;\n");
    }
    _skip(elist);
@@ -849,7 +852,7 @@ Decl *Parser::_parse_arraydecl(string name, Decl::Kind kind, CommentSeq *comm) {
    _skip(decl);
    decl->size = parse_expr(Expr::Conditional);
    if (!_in.expect("]")) {
-      error(decl, _in.pos().str() + ": Esperaba un ']' aquí");
+      error(decl, _in.pos().str() + ": " + _T("Expected '%s' here.", "]"));
    }
    _skip(decl);
    return decl;
@@ -863,7 +866,7 @@ Decl *Parser::_parse_objdecl(string name, CommentSeq *comm) {
    _skip(decl);
    parse_expr_seq(decl, decl->args);
    if (!_in.expect(")")) {
-      error(decl, _in.pos().str() + ": Esperaba un ')' aquí");
+      error(decl, _in.pos().str() + ": " + _T("Expected '%s' here.", ")"));
       _in.skip_to("),;\n");
    }
    return decl;
@@ -886,7 +889,7 @@ DeclStmt *Parser::parse_declstmt(bool is_typedef) {
          name = id.str;
       }
       if (id.group != Token::Ident) {
-         error(stmt, "Esperaba un identificador aquí");
+         error(stmt, _T("Expected an identifier here."));
       }
       DeclStmt::Item item;
       CommentSeq *comm = _in.skip("\n\t ");
@@ -913,7 +916,7 @@ DeclStmt *Parser::parse_declstmt(bool is_typedef) {
       _skip(stmt); // before identifier
    }
    if (!_in.expect(";")) {
-      error(stmt, _in.pos().str() + ": Esperaba un ';'");
+      error(stmt, _in.pos().str() + ": " + _T("Expected '%s' here.", ";"));
    }
    stmt->fin = _in.pos();
    return stmt;
@@ -925,21 +928,21 @@ EnumDecl *Parser::parse_enum() {
    _skip(decl);
    Token tok = _in.next_token();
    if (!(tok.group & Token::Ident)) {
-      error(decl, _in.pos().str() + ": Esperaba un identificador aquí");
+      error(decl, _in.pos().str() + ": " + _T("Expected an identifier here."));
       _in.skip_to(";");
       return decl;
    }
    decl->name = tok.str;
    _skip(decl);
    if (!_in.expect("{")) {
-      error(decl, _in.pos().str() + ": Esperaba un '{' aquí");
+      error(decl, _in.pos().str() + ": " + _T("Expected '%s' here.", "{"));
       _in.skip_to("};");
    }
    _skip(decl);
    while (true) {
       Token tok = _in.next_token();
       if (!(tok.group & Token::Ident)) {
-         error(decl, _in.pos().str() + ": Esperaba un identificador aquí");
+         error(decl, _in.pos().str() + ": " + _T("Expected an identifier here."));
          _in.skip_to(",}");
          break;
       }
@@ -950,7 +953,7 @@ EnumDecl *Parser::parse_enum() {
          _skip(decl);
          Token num = _in.read_number_literal();
          if (num.kind != Token::IntLiteral) {
-            error(decl, _in.pos().str() + ": Esperaba un entero aquí");
+            error(decl, _in.pos().str() + ": " + _T("Expected an integer here."));
             _in.skip_to(",};");
          }
          v.has_val = true;
@@ -967,10 +970,10 @@ EnumDecl *Parser::parse_enum() {
       }
    }
    if (!_in.expect("}")) {
-      error(decl, _in.pos().str() + ": Esperaba un '{' aquí");
+      error(decl, _in.pos().str() + ": " + _T("Expected '%s' here.", "{"));
    }
    if (!_in.expect(";")) {
-      error(decl, _in.pos().str() + ": Esperaba un ';' aquí");
+      error(decl, _in.pos().str() + ": " + _T("Expected '%s' here.", ";"));
    }
    return decl;
 }
@@ -1000,7 +1003,7 @@ StructDecl *Parser::parse_struct() {
    
    tok = _in.next_token();
    if (tok.kind != Token::LCurly) {
-      error(decl, "Esperaba un '{' aquí");
+      error(decl, _T("Expected '%s' here.", "{"));
       _in.skip_to("};");
       return decl;
    }
@@ -1013,12 +1016,12 @@ StructDecl *Parser::parse_struct() {
       tok = _in.peek_token();      
    }
    if (tok.kind != Token::RCurly) {
-      error(decl, _in.pos().str() + ": Esperaba un '}' aquí");
+      error(decl, _in.pos().str() + ": " + _T("Expected '%s' here.", "}"));
    }
    _in.expect("}");
    _skip(decl);
    if (!_in.expect(";")) {
-      error(decl, _in.pos().str() + ": Esperaba un ';' aquí");
+      error(decl, _in.pos().str() + ": " + _T("Expected '%s' here.", ";"));
    }
    return decl;   
 }

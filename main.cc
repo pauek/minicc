@@ -9,10 +9,11 @@ using namespace std;
 #include "prettypr.hh"
 #include "stepper.hh"
 #include "interpreter.hh"
+#include "translator.hh"
 #include "walker.hh"
 
 int main(int argc, char *argv[]) {
-   string filename, todo = "eval";
+   string filename, todo = "eval", lang = "";
    if (argc > 1) {
       string argv1 = argv[1];
       if (argv1.substr(0, 7) == "--test-") {
@@ -42,9 +43,11 @@ int main(int argc, char *argv[]) {
          filename = argv[1];
       }
    } else {
-      cerr << "No has indicado el fichero de código" << endl;
+      cerr << _T("You should specify a filename") << endl;
       exit(1);
    }
+
+   Translator::translator.set_language("en");
 
    ifstream codefile(filename.c_str());
    Parser P(&codefile);
@@ -53,7 +56,7 @@ int main(int argc, char *argv[]) {
    vector<Error*> ve;
    collect_errors(program, ve);
    for (Error *e : ve) {
-      cerr << "Error de compilación: " << e->msg << endl;
+      cerr << _T("Compilation Error") << ": " << e->msg << endl;
    }
 
    try {
@@ -87,7 +90,7 @@ int main(int argc, char *argv[]) {
       }
    } 
    catch (EvalError* e) {
-      cerr << "Error de ejecución:   " << e->msg << endl;
+      cerr << _T("Execution Error") << ": " << e->msg << endl;
       return 1;
    }
 }

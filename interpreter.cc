@@ -1,5 +1,6 @@
 #include <sstream>
 #include "ast.hh"
+#include "translator.hh"
 #include "interpreter.hh"
 using namespace std;
 
@@ -100,7 +101,7 @@ void Interpreter::visit_program(Program* x) {
    visit_program_prepare(x);
    FuncDecl *main = visit_program_find_main();
    if (main == 0) {
-      _error("La funcion 'main' no existe");
+      _error(_T("The '%s' function does not exist.", "main"));
    } else {
       invoke_func(main, vector<Value*>());
    }
@@ -598,7 +599,7 @@ void Interpreter::visit_exprstmt(ExprStmt* x) {
 void Interpreter::visit_ifstmt(IfStmt *x) {
    x->cond->visit(this);
    if (_curr->kind != Value::Bool) {
-      _error("La condición de un 'if' debe ser un valor de tipo 'bool'");
+      _error("An if's condition needs to be a bool value");
    }
    if (_curr->val.as_bool) {
       x->then->visit(this);
@@ -634,11 +635,11 @@ void Interpreter::visit_iterstmt(IterStmt *x) {
 FuncDecl *Interpreter::visit_callexpr_getfunc(CallExpr *x) {
    Ident *fn = dynamic_cast<Ident*>(x->func);
    if (fn == 0) {
-      _error("La llamada no-directa a funciones no se ha implementado");
+      _error(_T("Indirect call to functions is not implemented"));
    }
    auto it = _funcs.find(fn->id);
    if (it == _funcs.end()) {
-      _error("La función '" + fn->id + "' no existe");
+      _error(_T("The '%s' function does not exist.", fn->id.c_str()));
       return 0;
    }
    return it->second;
