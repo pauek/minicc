@@ -172,87 +172,86 @@ AstNode* Parser::parse_using_declaration() {
 }
 
 Ident *Parser::parse_ident(Token tok, Pos ini) {
-   Ident *id = 0;
-   Pos fin;   
+   Ident *id = new Ident(tok.str);
+   Pos fin = _in.pos();
    while (true) {
-      if (id == 0) {
-         id = new Ident(tok.str);
-      } else {
-         id->shift(tok.str);
-      }
-      fin = _in.pos(); // save for now
-      _skip(id);
-      _in.save();
-      Token tok2 = _in.next_token();
-      if (_is_type(id->id) and tok2.kind == Token::LT) { // template_id
-         _in.discard();
+      tok = _in.peek_token();
+      if (_is_type(id->id) and tok.kind == Token::LT) { // template_id
+         _skip(id);
+         _in.consume("<");
          _skip(id);
          parse_type_seq(id, id->subtypes);
+         _skip(id);
          if (_in.curr() != '>') { // Do NOT call next_token here, since it will return ">>"
             error(id, _T("Expected '%s' here.", ">"));
          } else {
             _in.next();
          }
          fin = _in.pos();
-         _skip(id);
-      } else {
-         _in.restore();
       }
       tok = _in.peek_token();
       if (tok.kind != Token::ColonColon) {
          break;
-      } else {
-         _in.next_token();
-         tok = _in.next_token();
-         if (!(tok.group & Token::Ident)) {
-            error(id, _T("Expected an identifier here"));
-         }
       }
+      _skip(id);
+      _in.consume("::");
+      _skip(id);
+      tok = _in.next_token();
+      if (!(tok.group & Token::Ident)) {
+         error(id, _T("Expected an identifier here"));
+      }
+      id->shift(tok.str);
+      fin = _in.pos();
    }
    id->ini = ini;
    id->fin = fin;
    return id;
 }
 
+bool Parser::_parse_type_process_token(Type *type, Token tok, Pos p) {
+   if (tok.group & Token::BasicType) {
+      Ident *id = new Ident(tok.str);
+      if (type->id != 0) {
+         error(type, _T("Basic types are not templates"));
+      }
+      type->id = id;
+      return true;
+   } 
+   if (tok.group & Token::TypeQual) {
+      switch (tok.kind) {
+      case Token::Const:    type->qual.push_back(Type::Const);    break;
+      case Token::Auto:     type->qual.push_back(Type::Auto);     break;
+      case Token::Mutable:  type->qual.push_back(Type::Mutable);  break;
+      case Token::Register: type->qual.push_back(Type::Register); break;
+      case Token::Volatile: type->qual.push_back(Type::Volatile); break;
+      case Token::Extern:   type->qual.push_back(Type::Extern);   break;
+      default: /* TODO: acabar! */ break;
+      }
+      return true;
+   } 
+   if (type->id == 0 and (tok.group & Token::Ident)) {
+      type->id = parse_ident(tok, p);
+      return true;
+   } 
+   if (tok.kind == Token::Amp) {
+      type->reference = true;
+      return true;
+   }
+   return false;
+}
+
 Type *Parser::parse_type() {
    Type *type = new Type();
-   Token tok;
-   while (true) {
+   Pos p = _in.pos();
+   _in.save();
+   Token tok = _in.next_token();
+   while (_parse_type_process_token(type, tok, p)) {
+      _in.discard();
       _in.save();
-      Pos p = _in.pos();
-      tok = _in.next_token();
-      if (tok.group & Token::TypeQual) {
-         _in.discard();
-         switch (tok.kind) {
-         case Token::Const:    type->qual.push_back(Type::Const);    break;
-         case Token::Auto:     type->qual.push_back(Type::Auto);     break;
-         case Token::Mutable:  type->qual.push_back(Type::Mutable);  break;
-         case Token::Register: type->qual.push_back(Type::Register); break;
-         case Token::Volatile: type->qual.push_back(Type::Volatile); break;
-         case Token::Extern:   type->qual.push_back(Type::Extern);   break;
-         default: /* TODO: acabar! */ break;
-         }
-         _skip(type);
-      } else if (tok.group & Token::BasicType) {
-         _in.discard();
-         Ident *id = new Ident(tok.str);
-         if (type->id != 0) {
-            error(type, _T("Basic types are not templates"));
-         }
-         type->id = id;
-         _skip(id);
-      } else if (type->id == 0 and (tok.group & Token::Ident)) {
-         type->id = parse_ident(tok, p);
-         _skip(type);
-      } else if (tok.kind == Token::Amp) {
-         type->reference = true;
-         _skip(type);
-         break;
-      } else {
-         _in.restore();
-         break;
-      }
+      _skip(type);
+      p = _in.pos(), tok = _in.next_token();
    }
+   _in.restore();
    return type;
 }
 
@@ -289,12 +288,11 @@ void Parser::parse_function(FuncDecl *fn) {
    // parameter list
    _in.consume('(');
    while (true) {
-      FuncDecl::Param *p = new FuncDecl::Param();
       _skip(fn);
       if (_in.curr() == ')') {
-         delete p;
          break;
       }
+      FuncDecl::Param *p = new FuncDecl::Param();
       p->type = parse_type();
       _skip(fn);
       Token tok = _in.read_id();
@@ -437,6 +435,7 @@ ExprStmt *Parser::parse_exprstmt(bool is_return) {
       stmt->expr->ini = eini;
       stmt->expr->fin = efin;
    }
+   _skip(stmt);
    if (!_in.expect(";")) {
       error(stmt, _in.pos().str() + ": " + _T("Expected ';' after expression"));
       _in.skip_to(";\n"); // resync...
@@ -455,6 +454,7 @@ Expr *Parser::parse_primary_expr() {
       e = parse_expr();
       e->paren = true;
       e->comments.insert(e->comments.begin(), cn);
+      _skip(e);
       if (!_in.expect(")")) {
          error(e, _in.pos().str() + ": Expected ')'");
       }
@@ -611,7 +611,6 @@ Expr *Parser::parse_unary_expr() {
       break;
    }
    e->ini = ini;
-   _skip(e);
    return e;
 }
 
@@ -621,19 +620,23 @@ Expr *Parser::parse_expr(BinaryExpr::Kind max) {
    Expr *left = parse_unary_expr();
 
    while (true) {
-      _in.save();
-      Token tok = _in.read_operator();
-      BinaryExpr::Kind kind = BinaryExpr::tok2kind(tok.kind);
-      if (tok.kind == Token::Empty or kind > max) {
-         _in.restore();
+      Token tok = _in.peek_operator();
+      if (!(tok.group & Token::Operator)) {
          break;
       }
-      _in.discard();
+      BinaryExpr::Kind kind = BinaryExpr::tok2kind(tok.kind);
+      if (tok.kind == Token::Empty or kind > max) {
+         break;
+      }
+      CommentSeq *c0 = _in.skip("\n\t ");
+      tok = _in.read_operator();
       if (tok.kind == Token::QMark) { // (... ? ... : ...)
          CondExpr *e = new CondExpr();
          e->cond = left;
+         e->comments.push_back(c0);
          _skip(e);
          e->then = parse_expr(Expr::Assignment); // Expr::comma?
+         _skip(e);
          Token colon = _in.read_operator();
          if (colon.kind != Token::Colon) {
             error(e, _T("Expected '%s' here.", ":"));
@@ -645,6 +648,7 @@ Expr *Parser::parse_expr(BinaryExpr::Kind max) {
          BinaryExpr *e = new BinaryExpr();
          e->op = _in.substr(tok);
          e->set(kind);
+         e->comments.push_back(c0);
          _skip(e);
          Expr::Kind submax = 
             Expr::Kind(Expr::right_associative(kind) 
@@ -657,7 +661,6 @@ Expr *Parser::parse_expr(BinaryExpr::Kind max) {
          e->fin = right->fin;
          left = e;
       }
-      _skip(left);
    } 
    return left;
 }
@@ -665,21 +668,23 @@ Expr *Parser::parse_expr(BinaryExpr::Kind max) {
 Expr *Parser::parse_callexpr(Expr *x) {
    CallExpr *e = new CallExpr();
    e->func = x;
+   _skip(e);
    _in.consume('(');
    _skip(e);
    if (_in.curr() != ')') {
       e->args.push_back(parse_expr(Expr::Assignment));
+      _skip(e);
       while (_in.curr() == ',') {
          _in.next();
          _skip(e);
          e->args.push_back(parse_expr(Expr::Assignment));
+         _skip(e);
       }
    }
    if (!_in.expect(")")) {
       error(e, _in.pos().str() + ": " + _T("Expected '%s' here.", ")"));
    }
    e->fin = _in.pos();
-   _skip(e);
    return e;
 }
 
@@ -704,7 +709,6 @@ Expr *Parser::parse_fieldexpr(Expr *x, Token tok) {
    Token id = _in.read_id();
    e->field = new Ident(id.str);
    e->fin = _in.pos();
-   _skip(e->field);
    return e;
 }
 
@@ -715,7 +719,6 @@ Expr *Parser::parse_increxpr(Expr *x, Token tok) {
    e->expr = x;
    _in.consume(tok.kind == Token::PlusPlus ? "++" : "--");
    e->fin = _in.pos();
-   _skip(e);
    return e;
 }
 

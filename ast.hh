@@ -7,6 +7,7 @@
 #include <vector>
 #include <list>
 #include <map>
+#include <algorithm>
 #include "input.hh"
 
 class AstVisitor;
@@ -63,6 +64,14 @@ struct CommentSeq {
       const int sz = items.size();
       return sz >= 2 and 
          (items[sz-2].kind == Comment::endline and items[sz-1].kind == Comment::endline);
+   }
+
+   void remove_endls() {
+      items.erase(std::remove_if(items.begin(), items.end(), 
+                                 [](Comment& c) {
+                                    return c.kind == Comment::endline; 
+                                 }),
+                  items.end());
    }
 
    void only_one_endl_at_end() {

@@ -31,6 +31,7 @@ class Parser {
 
    void parse_expr_seq(AstNode *n, std::vector<Expr*>& v);
    void parse_type_seq(AstNode *n, std::vector<Type*>& v);
+   bool _parse_type_process_token(Type *type, Token tok, Pos p);
 
    Decl *_parse_vardecl(std::string name, Decl::Kind kind, CommentSeq *comm);
    Decl *_parse_arraydecl(std::string name, Decl::Kind kind, CommentSeq *comm);

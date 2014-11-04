@@ -13,11 +13,11 @@ struct {
 } toktab[] = {
    { "",           Token::Empty, Token::None },
 
-   { ",",          Token::Comma, Token::None },
    { ";",      Token::SemiColon, Token::None },
    { ":",          Token::Colon, Token::None },
    { "::",    Token::ColonColon, Token::None },
-   { "?",          Token::QMark, Token::None },
+   { ",",          Token::Comma, Token::Operator },
+   { "?",          Token::QMark, Token::Operator },
 
    { "||",        Token::BarBar, Token::Operator },
    { "&&",        Token::AmpAmp, Token::Operator },
@@ -49,10 +49,13 @@ struct {
 
    { "!",        Token::Not,        Token::Operator },
    { "&",        Token::Amp,        Token::Operator },
+   { "|",        Token::Pipe,       Token::Operator },
+   { "^",        Token::Circum,     Token::Operator },
    { "+",        Token::Plus,       Token::Operator },
    { "-",        Token::Minus,      Token::Operator },
    { "*",        Token::Star,       Token::Operator },
    { "/",        Token::Slash,      Token::Operator },
+   { "%",        Token::Percent,    Token::Operator },
    { "++",       Token::PlusPlus,   Token::Operator },
    { "--",       Token::MinusMinus, Token::Operator },
 

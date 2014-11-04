@@ -9,20 +9,23 @@ using namespace std;
 class CommentPrinter {
    AstNode *x;
    int i;
-   bool had_endl;
+   bool was_empty, had_endl;
    PrettyPrinter *pr;
 
    CommentSeq *commseq() { 
       CommentSeq *c = (i < x->comments.size() ? x->comments[i++] : 0);
+      was_empty = (c == 0);
       had_endl = (c != 0 ? c->has_endl() : false);
       return c;
    }
    string CMT(bool pre, bool post, bool _endl, bool missing);
 public:
-   CommentPrinter(AstNode *_x, PrettyPrinter *_pr) : x(_x), pr(_pr), i(0) {}
+   CommentPrinter(AstNode *_x, PrettyPrinter *_pr) 
+      : x(_x), pr(_pr), i(0), had_endl(false), was_empty(true) {}
 
-   CommentSeq *next() const { return (i < x->comments.size() ? x->comments[i] : 0); }
-   bool last_had_endl() const { return had_endl; }
+   CommentSeq *next()    const { return (i < x->comments.size() ? x->comments[i] : 0); }
+   bool last_had_endl()  const { return had_endl; }
+   bool last_was_empty() const { return was_empty; }
 
    string _cmt ()  { return CMT(1, 0, 0, 0); }
    string _cmt_()  { return CMT(1, 1, 0, 0); }
@@ -59,7 +62,7 @@ ostream& print_comment_seq(ostream& o, CommentSeq* C, string indentation) {
 string CommentPrinter::CMT(bool pre, bool post, bool _endl, bool missing) {
    CommentSeq *cn = commseq();
    ostringstream out;
-   if (cn != 0) {
+   if (cn != 0 and !cn->items.empty()) {
       if (pre and !cn->starts_with_endl()) {
          out << " ";
       }
@@ -87,9 +90,9 @@ void PrettyPrinter::visit_program(Program* x) {
    for (i = 0; i < x->nodes.size(); i++) {
       out() << cp.cmt();
       AstNode *n = x->nodes[i];
-      if (i > 0 and 
-          n->is<FuncDecl>() and 
-          (x->comments[i] and !x->comments[i]->ends_with_empty_line())) {
+      if ((!cp.last_was_empty() and !cp.last_had_endl()) or
+          (i > 0 and n->is<FuncDecl>() and 
+           (x->comments[i] and !x->comments[i]->ends_with_empty_line()))) {
          out() << endl;
       }
       n->visit(this);
@@ -135,10 +138,8 @@ void PrettyPrinter::visit_type(Type *x) {
    }
    x->id->visit(this);
    if (x->reference) {
-      out() << cp._cmt_() << "&" << cp._cmt_();
-   } else {
-      out() << cp._cmt_();
-   }   
+      out() << cp._cmt_() << "&";
+   }
 }
 
 void PrettyPrinter::visit_enumdecl(EnumDecl *x) {
@@ -163,7 +164,7 @@ void PrettyPrinter::visit_typedefdecl(TypedefDecl *x) {
    CommentPrinter cp(x, this);
    out() << "typedef " << cp.cmt_();
    x->decl->type->visit(this);
-   out() << cp.cmt_() << ' ';
+   out() << " " << cp.cmt_();
    x->decl->visit(this);
    out() << ";" << cp._cmt();
 }
@@ -200,24 +201,31 @@ void PrettyPrinter::visit_funcdecl(FuncDecl *x) {
    visit_type(x->return_type);
    out() << " " << cp.cmt_();
    x->id->visit(this);
-   out() << cp.cmt();
-   out() << "(";
-   for (int i = 0; i < x->params.size(); i++) {
-      if (i > 0) {
-         out() << ", ";
+   out() << cp._cmt_();
+   if (x->params.empty()) {
+      out() << "(" << cp.cmt() << ")";
+   } else {
+      out() << "(";
+      for (int i = 0; i < x->params.size(); i++) {
+         if (i > 0) {
+            out() << ", ";
+         }
+         out() << cp.cmt_();
+         visit_type(x->params[i]->type);
+         out() << " " << cp.cmt_();
+         out() << x->params[i]->name;
+         out() << cp._cmt();
       }
-      out() << cp.cmt_();
-      visit_type(x->params[i]->type);
-      out() << " " << cp.cmt_();
-      out() << x->params[i]->name;
-      out() << cp._cmt();
+      out() << ")";
    }
-   out() << ")";
+   if (cp.next()) {
+      cp.next()->remove_endls();
+   }
    if (x->block) {
-      out() << " ";
+      out() << " " << cp.cmt_();
       x->block->visit(this);
    } else {
-      out() << ";";
+      out() << cp._cmt() << ";";
    }
 }
 
@@ -242,7 +250,7 @@ void PrettyPrinter::visit_ident(Ident *x) {
    CommentPrinter cp(x, this);
    for (Ident *pre : x->prefix) {
       pre->visit(this);
-      out() << "::";
+      out() << cp._cmt_() << "::" << cp._cmt_();
    }
    out() << x->id;
    if (!x->subtypes.empty()) {
@@ -254,9 +262,7 @@ void PrettyPrinter::visit_ident(Ident *x) {
          x->subtypes[i]->visit(this);
          out() << cp._cmt();
       }
-      out() << ">" << cp._cmt();
-   } else { 
-      out() << cp._cmt();
+      out() << ">";
    }
 }
 
@@ -286,7 +292,7 @@ void PrettyPrinter::visit_binaryexpr(BinaryExpr *x) {
    }
    x->left->visit(this);
    if (x->op != ",") {
-      out() << " ";
+      out() << cp._cmt() << " ";
    }
    out() << x->op << " " << cp.cmt_();
    x->right->visit(this);
@@ -348,12 +354,11 @@ void PrettyPrinter::visit_objdecl(ObjDecl *x) {
 void PrettyPrinter::visit_declstmt(DeclStmt* x) {
    CommentPrinter cp(x, this);
    x->type->visit(this);
-   out() << " ";
+   out() << " " << cp.cmt_();
    for (int i = 0; i < x->items.size(); i++) {
       if (i > 0) {
-         out() << ", ";
+         out() << ", " << cp.cmt_();
       }
-      out() << cp.cmt_();
       DeclStmt::Item& item = x->items[i];
       item.decl->visit(this);
       if (item.init) {
@@ -373,7 +378,7 @@ void PrettyPrinter::visit_exprstmt(ExprStmt* x) {
    if (x->expr) {
       x->expr->visit(this);
    }
-   out() << ";" << cp.cmt();
+   out() << cp._cmt() << ";";
 }
 
 void PrettyPrinter::visit_ifstmt(IfStmt *x) {
@@ -434,18 +439,18 @@ void PrettyPrinter::visit_callexpr(CallExpr *x) {
       out() << "(";
    }
    x->func->visit(this);
-   if (x->func->comments[0] != 0 and !x->func->comments[0]->ends_with_endl()) {
+   if (cp.next() and cp.next()->ends_with_endl()) {
       out() << " ";
    }
-   out() << "(";
+   out() << cp._cmt_() << "(";
    for (int i = 0; i < x->args.size(); i++) {
       if (i > 0) {
-         out() << ", ";
+         out() << ", " << cp.cmt_();
       }
       out() << cp.cmt_();
       x->args[i]->visit(this);
    }
-   out() << ")" << cp._cmt_();
+   out() << ")";
    if (x->paren) {
       out() << ")";
    }
@@ -482,9 +487,9 @@ void PrettyPrinter::visit_condexpr(CondExpr *x) {
       out() << "(";
    }
    x->cond->visit(this);
-   out() << " ? " << cp.cmt_();
+   out() << cp._cmt() << " ? " << cp.cmt_();
    x->then->visit(this);
-   out() << " : " << cp.cmt_();
+   out() << cp._cmt() << " : " << cp.cmt_();
    x->els->visit(this);
    if (x->paren) {
       out() << ")";

@@ -199,7 +199,16 @@ Token Input::next_token() {
 
 Token Input::peek_token() {
    save();
+   skip("\n\t ");
    Token tok = next_token();
+   restore();
+   return tok;
+}
+
+Token Input::peek_operator() {
+   save();
+   skip("\n\t ");
+   Token tok = read_operator();
    restore();
    return tok;
 }

@@ -1,5 +1,6 @@
 #include <sstream>
 #include <fstream>
+#include <algorithm>
 using namespace std;
 
 #include "parser.hh"

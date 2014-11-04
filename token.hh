@@ -10,7 +10,7 @@ public:
       Empty,
       Int, Void, Char, Double, Float, Bool, String,
       True, False,
-      Sharp, Not, Amp, Star, Slash, Div,
+      Sharp, Not, Amp, Pipe, Star, Slash, Percent, Div,
       Plus, Minus, PlusPlus, MinusMinus,
       LCurly, RCurly, LParen, LBrack, Dot, Arrow,
       If, Else, While, For, Switch, 
