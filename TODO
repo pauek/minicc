@@ -1,3 +1,4 @@
+- Esborrar AST correctament (almenys).
 - Implementar tablas de más de una dimensión.
 - Terminar traducción de todo a inglés (+ català).
 - Testear a fondo el stepper.
