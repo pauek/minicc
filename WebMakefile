@@ -21,8 +21,8 @@ web/js/minicc.js: $(BCFILES)
 	emcc -c $(CXXFLAGS) -o $@ $<
 
 token.bc:       token.hh
-ast.bc:         ast.hh input.hh token.hh
 input.bc:       ast.hh input.hh token.hh
+ast.bc:         ast.hh input.hh token.hh translator.hh
 parser.bc:      ast.hh input.hh token.hh parser.hh translator.hh
 astpr.bc:       ast.hh astpr.hh
 prettypr.bc:    ast.hh prettypr.hh

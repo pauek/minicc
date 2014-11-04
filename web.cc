@@ -12,6 +12,7 @@ using namespace std;
 #include "prettypr.hh"
 #include "stepper.hh"
 #include "interpreter.hh"
+#include "translator.hh"
 
 AstNode *program;
 
@@ -58,6 +59,7 @@ class EmbindStepper {
    Stepper *S;
 public:
    EmbindStepper() {
+      Translator::translator.set_language("ca");
       S = new Stepper(&cin, &cout);
       program->visit(S);
    }

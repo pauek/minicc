@@ -97,7 +97,102 @@ const char* Translator::_translations[100][Translator::NUM_LANGS] = { /*
       "Expected an integer here.",
       "Esperaba un entero aquí.",
       "Esperaba un enter aquí."     
+   }, {
+      "The 'main' function does not exist.",
+      "La función 'main' no existe.",
+      "La funció 'main no existeix."
+   }, {
+      "The program begins.",
+      "Empieza el programa.",
+      "Comença el programa."
+   }, {
+      "The program ends.",
+      "Termina el programa.",
+      "Acaba el programa."
+   }, {
+      "The 'if's condition must be a value of type 'bool'.",
+      "La condición de un 'if' debe ser un valor de tipo 'bool'.",
+      "La condició d'un 'if' ha de ser un valor de tipus 'bool'."
+   }, {
+      "The condition is 'true', we take the first branch.",
+      "La condición vale 'true', seguimos por la primera rama.",
+      "La condició val 'true', seguim per la primera branca."
+   }, {
+      "The condition is 'false', we take the second branch.",
+      "La condición vale 'false', seguimos por la segunda rama.",
+      "La condició val 'false', seguim per la segona branca."
+   }, {
+      "The condition is 'false', we continue.",
+      "La condición vale 'false', continuamos.",
+      "La condició val 'false', continuem."
+   }, {
+      "The condition in a '%s' must be a value of type 'bool'.",
+      "La condición de un '%s' debe ser un valor de tipo 'bool'.",
+      "La condició a un '%s' ha de ser un valor de tipus 'bool'."
+   }, {
+      "The condition is 'false', we exit the %s.",
+      "La condición vale 'false', salimos del %s.",
+      "La condició és 'false', sortim del %s."
+   }, {
+      "The condition is 'true', we enter the %s.",
+      "La condición vale 'true', entramos en el %s.",
+      "La condició val 'true', entrem al %s."
+   }, {
+      "%s is returned.",
+      "Se retorna %s.",
+      "Es retorna %s."
+   }, {
+      "Some output is written.",
+      "Se escribe a la salida.",
+      "S'escriu a la sortida."
+   }, {
+      "Some input is read.",
+      "Se lee de la entrada.",
+      "Es llegeix de l'entrada."
+   }, {
+      "The expression evaluated to %s.",
+      "La expresión ha dado %s.",
+      "L'expressió ha donat %s."
+   }, {
+      "We assign the value.",
+      "Asignamos el valor.",
+      "Assignem el valor."
+   }, {
+      "We evaluate the %s parameter.",
+      "Se evalúa el %s parámetro.",
+      "S'avalua el %s paràmetre."
+   }, {
+      "first", "primero", "primer"
+   }, {
+      "second", "segundo", "segon"
+   }, {
+      "third", "tercero", "tercer"
+   }, {
+      "fourth", "cuarto", "quart"
+   }, {
+      "fifth", "quinto", "cinquè"
+   }, {
+      "sixth", "sexto", "sisè"
+   }, {
+      "seventh", "séptimo", "setè"
+   }, {
+      "We evaluate parameter number %d.",
+      "Se evalúa el parámetro número %d.",
+      "S'avalua el paràmetre número %d."
+   }, {
+      "We jump to function '%s'.",
+      "Saltamos a la función '%s'.",
+      "Saltem a la funció '%s'."
+   }, {
+      "Variable '%s' is declared.",
+      "Se declara la variable '%s'.",
+      "Es declara la variable '%s'."
+   }, {
+      "Variables %s are declared.",
+      "Se declaran las variables %s.",
+      "Es declaren les variables %s."
+   }, {
+      " and ", " y ", " i "
    },
-      
    { "END" }
 };

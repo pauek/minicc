@@ -1,8 +1,10 @@
 #include <iostream>
 #include <sstream>
 #include <assert.h>
-#include "ast.hh"
 using namespace std;
+
+#include "ast.hh"
+#include "translator.hh"
 
 // OJO: El orden de la tabla es importante!
 // Hay que dejarla antes que el initializer y el map...
@@ -360,36 +362,35 @@ string ExprStmt::describe() const {
 string IncrExpr::describe() const {
    Ident *id = dynamic_cast<Ident*>(expr);
    if (id != 0) {
-      return "Se incrementa la variable '" + id->id + "'.";
+      return _T("Se incrementa la variable '%s'.", id->id.c_str());
    }
-   return "UNIMPLEMENTED";
+   return _T("UNIMPLEMENTED");
 }
 
 string BinaryExpr::describe() const {
    if (is_write_expr()) {
-      return "Se escribe a la salida.";
+      return _T("Some output is written.");
    }
    if (is_read_expr()) {
-      return "Se lee de la entrada.";
+      return _T("Some input is read.");
    }
-   return "UNIMPLEMENTED";
+   return _T("UNIMPLEMENTED");
 }
 
 string DeclStmt::describe() const {
+   if (items.size() == 1) {
+      return _T("Se declara la variable '%s'.", items[0].decl->name.c_str());
+   }
    ostringstream S;
-   S << "Se declara" << (items.size() > 1 ? "n " : " ");
-   string plural = (items.size() > 1 ? "s" : "");
-   S << "la" << plural << " variable" << plural << " ";
    for (int i = 0; i < items.size(); i++) {
       if (i > 0) {
          if (i == items.size() - 1) {
-            S << " y ";
+            S << _T(" and ");
          } else {
             S << ", ";
          }
       }
       S << "'" << items[i].decl->name << "'";
    }
-   S << ".";
-   return S.str();
+   return _T("Variables %s are declared.", S.str().c_str());
 }

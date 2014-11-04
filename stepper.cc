@@ -2,8 +2,10 @@
 #include <sstream>
 #include <iomanip>
 #include <stdint.h>
-#include "stepper.hh"
 using namespace std;
+
+#include "stepper.hh"
+#include "translator.hh"
 
 bool Stepper::step() {
    _err = 0;
@@ -49,9 +51,9 @@ void Stepper::visit_program(Program *x) {
    I.visit_program_prepare(x);
    FuncDecl *main = I.visit_program_find_main();
    if (main == 0) {
-      _error("La funcion 'main' no existe");
+      _error(_T("The 'main' function does not exist."));
    }
-   status("Empieza el programa.");
+   status(_T("The program begins."));
    I.invoke_func_prepare(main, vector<Value*>());
    I._env.back().active = true;
    push(new ProgramVisitState(main));
@@ -76,7 +78,7 @@ Todo Stepper::ProgramVisitState::step(Stepper *S) {
    } 
    case End: {
       at = Finished;
-      S->status("Termina el programa.");
+      S->status(_T("The program ends."));
       return Stop;
    }
    case Finished: {
@@ -111,18 +113,18 @@ void Stepper::visit_ifstmt(IfStmt *x) {
    x->cond->visit(&I);
    Value *c = I._curr;
    if (c->kind != Value::Bool) {
-      _error("La condición de un 'if' debe ser un valor de tipo 'bool'.");
+      _error(_T("The condition in a '%s' has to be a value of type 'bool'.", "if"));
    }
    Stmt *next;
    if (c->val.as_bool) {
-      status("La condición vale 'true', tomamos la primera rama.");
+      status(_T("The condition is 'true', we take the first branch."));
       next = x->then;
    } else {
       if (x->els != 0) {
-         status("La condición vale 'false', tomamos la segunda rama.");
+         status(_T("The condition is 'false', we take the second branch."));
          next = x->els;
       } else {
-         status("La condición vale 'false', continuamos.");
+         status(_T("The condition is 'false', we continue."));
          next = 0;
       }
    }
@@ -163,13 +165,13 @@ Todo Stepper::ForVisitState::step(Stepper *S) {
       S->visit(x->cond);
       Value *cond = S->I._curr;
       if (cond->kind != Value::Bool) {
-         S->_error("La condición de un 'for' debe ser un valor de tipo 'bool'");
+         S->_error(_T("The condition in a '%s' must be a value of type 'bool'.", "for"));
       }
       if (!cond->val.as_bool) {
-         S->status("La condición vale 'false', salimos del for.");
+         S->status(_T("The condition is 'false', we exit the %s.", "for"));
          at = Stepper::ForVisitState::Leave;
       } else {
-         S->status("La condición vale 'true', entramos en el for.");
+         S->status(_T("The condition is 'true', we enter the %s.", "for"));
          at = Stepper::ForVisitState::Block;
       }
       return Stop;
@@ -198,13 +200,13 @@ Todo Stepper::WhileVisitState::step(Stepper *S) {
       S->visit(x->cond);
       Value *cond = S->I._curr;
       if (cond->kind != Value::Bool) {
-         S->_error("La condición de un 'while' debe ser un valor de tipo 'bool'");
+         S->_error(_T("The condition in a '%s' must be a value of type 'bool'.", "while"));
       }
       if (!cond->val.as_bool) {
-         S->status("La condición vale 'false', salimos del while.");
+         S->status(_T("The condition is 'false', we exit the %s.", "while"));
          at = Stepper::WhileVisitState::Leave;
       } else {
-         S->status("La condición vale 'true', entramos en el while.");
+         S->status(_T("The condition is 'true', we enter the %s.", "while"));
          at = Stepper::WhileVisitState::Block;
       }
       return Stop;
@@ -233,8 +235,8 @@ void Stepper::visit_exprstmt(ExprStmt *x) {
       I.visit(x->expr);
       if (x->is_return) {
          ostringstream oss;
-         oss << "Se retorna " << *I._curr << ".";
-         status(oss.str());
+         oss << *I._curr;
+         status(_T("%s is returned.", oss.str().c_str()));
       } else {
          status(x->expr->describe());
       }
@@ -247,7 +249,7 @@ Range Stepper::WriteExprVisitState::span() const {
 }
 
 Todo Stepper::WriteExprVisitState::step_waiting(Stepper* S) {
-   S->status("Se escribe a la salida.");
+   S->status(_T("Some output is written."));
    S->_out << *S->I._curr;
    exprs.pop_front();
    waiting = false;
@@ -284,8 +286,8 @@ void Stepper::visit_assignment(BinaryExpr *e) {
       right = right->ref();
    }
    ostringstream oss;
-   oss << "La expresión ha dado " << *right << ".";
-   status(oss.str());
+   oss << *right;
+   status(_T("La expresión ha dado %s.", oss.str().c_str()));
    push(new AssignmentVisitState(e, right));
 }
 
@@ -310,7 +312,7 @@ Todo Stepper::AssignmentVisitState::step(Stepper *S) {
    } else if (x->op.size() == 2 and x->op[1] == '=') {
       S->I.visit_binaryexpr_op_assignment(x->op[0], left, right);
    }
-   S->status("Asignamos el valor.");
+   S->status(_T("We assign the value."));
    return Stop;
 }
 
@@ -323,8 +325,8 @@ void Stepper::visit_callexpr(CallExpr *x) {
    push(s);
 }
 
-string numeral[] = {
-   "primer", "segundo", "tercer", "cuarto", "quinto", "sexto", "séptimo"
+const char *numeral[] = {
+   "first", "second", "third", "fourth", "fifth", "sixth", "seventh"
 };
 
 const int Stepper::CallExprVisitState::Block  = -1;
@@ -353,11 +355,9 @@ Todo Stepper::CallExprVisitState::step(Stepper *S) {
       return Stop;
    } else if (curr < size) {
       if (curr < 7) {
-         S->status("Se evalúa el " + numeral[curr] + " parámetro.");
+         S->status(_T("We evaluate the %s parameter.", _T(numeral[curr]).c_str()));
       } else {
-         ostringstream oss;
-         oss << "Se evalúa el parámetro número " << curr << ".";
-         S->status(oss.str());
+         S->status(_T("We evaluate parameter number %d.", curr));
       }
       S->I.visit(x->args[curr]);
       Value *v = S->I._curr;
@@ -368,7 +368,7 @@ Todo Stepper::CallExprVisitState::step(Stepper *S) {
       ++curr;
       return Stop;
    } else {
-      S->status("Saltamos a la función '" + fn->id->str() + "'.");
+      S->status(_T("We jump to function '%s'.", fn->id->str().c_str()));
       S->I.actenv();
       curr = Block;
       return Stop;
