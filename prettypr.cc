@@ -405,7 +405,7 @@ void PrettyPrinter::visit_iterstmt(IterStmt *x) {
    } else {
       out() << "while " << cp.cmt_() << "(" << cp.cmt_();
       x->cond->visit(this);
-      out() << ")";
+      out() << cp._cmt() << ")";
    }
    out() << cp._cmt();
    if (!cp.last_had_endl()) {

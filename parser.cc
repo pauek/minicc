@@ -753,6 +753,7 @@ Stmt *Parser::parse_while() {
    }
    _skip(stmt);
    stmt->cond = parse_expr();
+   _skip(stmt);
    if (!_in.expect(")")) {
       error(stmt, _in.pos().str() + ": " + _T("Expected '%s' here.", ")"));
    }
