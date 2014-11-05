@@ -162,11 +162,11 @@ const char* Translator::_translations[100][Translator::NUM_LANGS] = { /*
       "Se evalúa el %s parámetro.",
       "S'avalua el %s paràmetre."
    }, {
-      "first", "primero", "primer"
+      "first", "primer", "primer"
    }, {
       "second", "segundo", "segon"
    }, {
-      "third", "tercero", "tercer"
+      "third", "tercer", "tercer"
    }, {
       "fourth", "cuarto", "quart"
    }, {

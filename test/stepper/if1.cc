@@ -23,7 +23,7 @@ Se declara la variable 'a'.
 Se lee de la entrada.
 
 7:7-7:14: a == 42
-La condición vale 'false', tomamos la segunda rama.
+La condición vale 'false', seguimos por la segunda rama.
 
 10:14-10:18: "no"
 Se escribe a la salida.

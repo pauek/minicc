@@ -7,6 +7,7 @@ using namespace std;
 #include "astpr.hh"
 #include "prettypr.hh"
 #include "interpreter.hh"
+#include "translator.hh"
 #include "stepper.hh"
 #include "walker.hh"
 
@@ -105,6 +106,7 @@ void test_visitor(string filename, VisitorType vtype) {
    // Run it
    try {
       if (vtype == stepper) {
+         Translator::translator.set_language("es");
          Stepper S(&Sin, &Saux);
          program->visit(&S);
          while (!S.finished()) {
