@@ -73,7 +73,7 @@ void Interpreter::invoke_func_prepare(FuncDecl *fn, const vector<Value*>& args) 
 
 void Interpreter::invoke_func(FuncDecl *fn, const vector<Value*>& args) {
    invoke_func_prepare(fn, args);
-   fn->block->visit(this);
+   fn->block->accept(this);
    popenv();
 }
 
@@ -88,7 +88,7 @@ void Interpreter::visit_program_prepare(Program *x) {
    setenv("cin",  &Value::cin,     hidden);
 
    for (AstNode *n : x->nodes) {
-      n->visit(this);
+      n->accept(this);
    }
 }
 
@@ -268,7 +268,7 @@ bool Interpreter::visit_comparison(Value *left, Value *right) {
 }
 
 void Interpreter::visit_binaryexpr(BinaryExpr *x) {
-   x->left->visit(this);
+   x->left->accept(this);
    Value *left = _curr;
    if (x->kind != Expr::Assignment) {
       if (left->kind == Value::Ref) {
@@ -279,7 +279,7 @@ void Interpreter::visit_binaryexpr(BinaryExpr *x) {
    // cout << ...
    if (left == &Value::cout && x->op == "<<") {
       Value *old = _curr;
-      x->right->visit(this);
+      x->right->accept(this);
       out() << *_curr;
       _curr = old;
       return;
@@ -301,7 +301,7 @@ void Interpreter::visit_binaryexpr(BinaryExpr *x) {
       return;
    }
 
-   x->right->visit(this);
+   x->right->accept(this);
    Value *right = _curr;
    if (right->kind == Value::Ref) {
       right = right->ref();
@@ -457,7 +457,7 @@ void Interpreter::visit_binaryexpr_op_assignment(char op, Value *left, Value *ri
 
 void Interpreter::visit_block(Block *x) {
    for (Stmt *stmt : x->stmts) {
-      stmt->visit(this);
+      stmt->accept(this);
    }
 }
 
@@ -477,7 +477,7 @@ Value *Interpreter::visit_vardecl_struct_new(StructDecl *D, Value *init) {
             _curr = 0;
          }
          DeclStmt::Item item = D->decls[i]->items[j];
-         item.decl->visit(this);
+         item.decl->accept(this);
       }
    }
    Value *res = new Value(Value::Struct, D->type_str());
@@ -537,7 +537,7 @@ void Interpreter::visit_vardecl(VarDecl *x) {
 void Interpreter::visit_arraydecl(ArrayDecl *x) {
    Value *init = _curr;
 
-   x->size->visit(this);
+   x->size->accept(this);
    if (_curr->kind != Value::Int) {
       _error("El tamaño de una tabla debe ser un entero");
    }
@@ -585,31 +585,31 @@ void Interpreter::visit_arraydecl(ArrayDecl *x) {
 void Interpreter::visit_declstmt(DeclStmt* x) {
    for (DeclStmt::Item& item : x->items) {
       if (item.init) {
-         item.init->visit(this);
+         item.init->accept(this);
       } else {
          _curr = 0;
       }
-      item.decl->visit(this);
+      item.decl->accept(this);
    }
 }
 
 void Interpreter::visit_exprstmt(ExprStmt* x) {
-   x->expr->visit(this);
+   x->expr->accept(this);
    if (x->is_return) {
       _ret = _curr;
    }
 }
 
 void Interpreter::visit_ifstmt(IfStmt *x) {
-   x->cond->visit(this);
+   x->cond->accept(this);
    if (_curr->kind != Value::Bool) {
       _error("An if's condition needs to be a bool value");
    }
    if (_curr->val.as_bool) {
-      x->then->visit(this);
+      x->then->accept(this);
    } else {
       if (x->els != 0) {
-         x->els->visit(this);
+         x->els->accept(this);
       }
    }
 }
@@ -617,10 +617,10 @@ void Interpreter::visit_ifstmt(IfStmt *x) {
 void Interpreter::visit_iterstmt(IterStmt *x) {
    pushenv("");
    if (x->init) {
-      x->init->visit(this);
+      x->init->accept(this);
    }
    while (true) {
-      x->cond->visit(this);
+      x->cond->accept(this);
       if (_curr->kind != Value::Bool) {
          _error(string("La condición de un '") + (x->is_for() ? "for" : "while") + 
                 "' debe ser un valor de tipo 'bool'");
@@ -628,9 +628,9 @@ void Interpreter::visit_iterstmt(IterStmt *x) {
       if (!_curr->val.as_bool) {
          break;
       }
-      x->substmt->visit(this);
+      x->substmt->accept(this);
       if (x->post) {
-         x->post->visit(this);
+         x->post->accept(this);
       }
    }
    popenv();
@@ -653,7 +653,7 @@ void Interpreter::visit_callexpr(CallExpr *x) {
    FuncDecl *func = visit_callexpr_getfunc(x);
    vector<Value*> args;
    for (int i = 0; i < x->args.size(); i++) {
-      x->args[i]->visit(this);
+      x->args[i]->accept(this);
       args.push_back(_curr);
    }
    invoke_func(func, args);
@@ -664,7 +664,7 @@ void Interpreter::visit_callexpr(CallExpr *x) {
 }
 
 void Interpreter::visit_indexexpr(IndexExpr *x) {
-   x->base->visit(this);
+   x->base->accept(this);
    if (_curr->kind == Value::Ref) {
       _curr = _curr->ref();
    }
@@ -672,7 +672,7 @@ void Interpreter::visit_indexexpr(IndexExpr *x) {
       _error("Las expresiones de índice debe usarse sobre tablas o vectores");
    }
    vector<Value*> *vals = static_cast<vector<Value*>*>(_curr->val.as_ptr);
-   x->index->visit(this);
+   x->index->accept(this);
    if (_curr->kind == Value::Ref) {
       _curr = _curr->ref();
    }
@@ -692,7 +692,7 @@ void Interpreter::visit_indexexpr(IndexExpr *x) {
 }
 
 void Interpreter::visit_fieldexpr(FieldExpr *x) {
-   x->base->visit(this);
+   x->base->accept(this);
    if (_curr->kind == Value::Ref) {
       _curr = _curr->ref();
    }
@@ -709,16 +709,16 @@ void Interpreter::visit_fieldexpr(FieldExpr *x) {
 }
 
 void Interpreter::visit_condexpr(CondExpr *x) {
-   x->cond->visit(this);
+   x->cond->accept(this);
    if (_curr->kind != Value::Bool) {
       _error("Una expresión condicional debe tener valor "
              "de tipo 'bool' antes del interrogante");
    }
    if (_curr->val.as_bool) {
-      x->then->visit(this);
+      x->then->accept(this);
    } else {
       if (x->els != 0) {
-         x->els->visit(this);
+         x->els->accept(this);
       }
    }
 }
@@ -726,7 +726,7 @@ void Interpreter::visit_condexpr(CondExpr *x) {
 void Interpreter::visit_exprlist(ExprList *x) {
    vector<Value*> *v = new vector<Value*>();
    for (Expr *e : x->exprs) {
-      e->visit(this);
+      e->accept(this);
       v->push_back(_curr);
    }
    _curr = new Value(Value::ExprList, "ExprList");
@@ -734,7 +734,7 @@ void Interpreter::visit_exprlist(ExprList *x) {
 }
 
 void Interpreter::visit_signexpr(SignExpr *x) {
-   x->expr->visit(this);
+   x->expr->accept(this);
    if (x->kind == SignExpr::Positive) {
       return;
    }
@@ -760,7 +760,7 @@ void Interpreter::visit_signexpr(SignExpr *x) {
 }
 
 void Interpreter::visit_increxpr(IncrExpr *x) {
-   x->expr->visit(this);
+   x->expr->accept(this);
    if (_curr->kind != Value::Ref) {
       _error("Hay que incrementar una variable, no un valor");
    }
@@ -783,7 +783,7 @@ void Interpreter::visit_increxpr(IncrExpr *x) {
 }
 
 void Interpreter::visit_negexpr(NegExpr *x) {
-   x->expr->visit(this);
+   x->expr->accept(this);
    if (_curr->kind != Value::Bool) {
       _error("Para negar una expresión ésta debe ser de tipo 'bool'");
    }

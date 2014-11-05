@@ -11,7 +11,7 @@ public:
    AstPrinter(std::ostream *o = &std::cout) 
       : ReadWriter(o) {}
 
-   void print(AstNode* x) { x->visit(this); }
+   void print(AstNode* x) { x->accept(this); }
 
    void visit_comment(CommentSeq *x);
    void visit_include(Include *x);

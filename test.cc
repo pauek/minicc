@@ -108,7 +108,7 @@ void test_visitor(string filename, VisitorType vtype) {
       if (vtype == stepper) {
          Translator::translator.set_language("es");
          Stepper S(&Sin, &Saux);
-         program->visit(&S);
+         program->accept(&S);
          while (!S.finished()) {
             Sout << S.span() << ": " << P.input().substr(S.span()) << endl;
             Sout << S.status() << endl;
@@ -122,7 +122,7 @@ void test_visitor(string filename, VisitorType vtype) {
             }
          }
       } else {
-         program->visit(v);
+         program->accept(v);
          vector<Error*> ve;
          collect_errors(program, ve);
          for (Error *e : ve) {

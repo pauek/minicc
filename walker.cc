@@ -19,60 +19,60 @@ void Walker::visit_enumdecl(EnumDecl *x)     { walk(x); }
 void Walker::visit_program(Program* x) {
    walk(x);
    for (AstNode* n : x->nodes) {
-      n->visit(this);
+      n->accept(this);
    }
 }
 
 void Walker::visit_type(Type *x) {
    walk(x);
-   x->id->visit(this);
+   x->id->accept(this);
 }
 
 void Walker::visit_typedefdecl(TypedefDecl *x) {
    walk(x);
-   x->decl->visit(this);
+   x->decl->accept(this);
 }
 
 void Walker::visit_structdecl(StructDecl *x) {
    walk(x);
-   x->id->visit(this);
+   x->id->accept(this);
    for (auto decl : x->decls) {
-      decl->visit(this);
+      decl->accept(this);
    }
 }
 
 void Walker::visit_funcdecl(FuncDecl *x) {
    walk(x);
-   x->return_type->visit(this);
+   x->return_type->accept(this);
    if (x->block) {
-      x->block->visit(this);
+      x->block->accept(this);
    }
 }
 
 void Walker::visit_block(Block *x) {
    walk(x);
    for (Stmt *s : x->stmts) {
-      s->visit(this);
+      s->accept(this);
    }
 }
 
 void Walker::visit_binaryexpr(BinaryExpr *x) {
    walk(x);
    if (x->left) {
-      x->left->visit(this);
+      x->left->accept(this);
    }
    if (x->right) {
-      x->right->visit(this);
+      x->right->accept(this);
    }
 }
 
 void Walker::visit_declstmt(DeclStmt* x) {
    walk(x);
-   x->type->visit(this);
+   x->type->accept(this);
    for (DeclStmt::Item item : x->items) {
-      item.decl->visit(this);
+      item.decl->accept(this);
       if (item.init) {
-         item.init->visit(this);
+         item.init->accept(this);
       }
    }
 }
@@ -80,86 +80,86 @@ void Walker::visit_declstmt(DeclStmt* x) {
 void Walker::visit_exprstmt(ExprStmt* x) {
    walk(x);
    if (x->expr) {
-      x->expr->visit(this);
+      x->expr->accept(this);
    } 
 }
 
 void Walker::visit_ifstmt(IfStmt *x) {
    walk(x);
-   x->cond->visit(this);
-   x->then->visit(this);
+   x->cond->accept(this);
+   x->then->accept(this);
    if (x->els) {
-      x->els->visit(this);
+      x->els->accept(this);
    }
 }
 
 void Walker::visit_iterstmt(IterStmt *x) {
    walk(x);
    if (x->is_for()) {
-      x->init->visit(this);
-      x->cond->visit(this);
-      x->post->visit(this);
+      x->init->accept(this);
+      x->cond->accept(this);
+      x->post->accept(this);
    } else {
-      x->cond->visit(this);
+      x->cond->accept(this);
    }
-   x->substmt->visit(this);
+   x->substmt->accept(this);
 }
 
 void Walker::visit_callexpr(CallExpr *x) {
    walk(x);
-   x->func->visit(this);
+   x->func->accept(this);
    for (int i = 0; i < x->args.size(); i++) {
-      x->args[i]->visit(this);
+      x->args[i]->accept(this);
    }
 }
 
 void Walker::visit_indexexpr(IndexExpr *x) {
    walk(x);
-   x->base->visit(this);
-   x->index->visit(this);
+   x->base->accept(this);
+   x->index->accept(this);
 }
 
 void Walker::visit_fieldexpr(FieldExpr *x) {
    walk(x);
-   x->base->visit(this);
-   x->field->visit(this);
+   x->base->accept(this);
+   x->field->accept(this);
 }
 
 void Walker::visit_condexpr(CondExpr *x) {
    walk(x);
-   x->cond->visit(this);
-   x->then->visit(this);
-   x->els->visit(this);
+   x->cond->accept(this);
+   x->then->accept(this);
+   x->els->accept(this);
 }
 
 void Walker::visit_exprlist(ExprList *x) {
    walk(x);
    for (Expr *e : x->exprs) {
-      e->visit(this);
+      e->accept(this);
    }
 }
 
 void Walker::visit_signexpr(SignExpr *x) {
    walk(x);
-   x->expr->visit(this);
+   x->expr->accept(this);
 }
 
 void Walker::visit_increxpr(IncrExpr *x) {
    walk(x);
-   x->expr->visit(this);
+   x->expr->accept(this);
 }
 
 void Walker::visit_negexpr(NegExpr *x) {
    walk(x);
-   x->expr->visit(this);
+   x->expr->accept(this);
 }
 
 void Walker::visit_addrexpr(AddrExpr *x) {
    walk(x);
-   x->expr->visit(this);
+   x->expr->accept(this);
 }
 
 void Walker::visit_derefexpr(DerefExpr *x) {
    walk(x);
-   x->expr->visit(this);
+   x->expr->accept(this);
 }

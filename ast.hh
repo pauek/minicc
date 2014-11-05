@@ -24,7 +24,7 @@ struct AstNode {
  std::vector<CommentSeq*> comments;
 
    virtual            ~AstNode() {}
-   virtual        void visit(AstVisitor* v) = 0;
+   virtual        void accept(AstVisitor* v) = 0;
    virtual         int num_children() const { return 0; }
    virtual    AstNode* child(int n)   const { return 0; }
    virtual        bool has_errors()   const { return !errors.empty(); }
@@ -95,7 +95,7 @@ struct Program : public AstNode {
    int      num_children() const { return nodes.size(); }
    AstNode* child(int n)         { return nodes[n]; }
    void     add(AstNode* n)      { nodes.push_back(n); }
-   void     visit(AstVisitor* v);
+   void     accept(AstVisitor* v);
 
    bool     has_errors() const;
 };
@@ -107,18 +107,18 @@ struct Include : public AstNode {
    Include(std::string _filename = "", bool _global = false) 
       : filename(_filename), global(_global) {}
 
-   void visit(AstVisitor* v);
+   void accept(AstVisitor* v);
 };
 
 struct Macro : public AstNode {
    std::string macro;
    Macro(std::string _macro) : macro(_macro) {}
-   void visit(AstVisitor *v);
+   void accept(AstVisitor *v);
 };
 
 struct Using : public AstNode {
    std::string namespc;
-   void visit(AstVisitor *v);
+   void accept(AstVisitor *v);
 };
 
 // Statements //////////////////////////////////////////////
@@ -126,20 +126,20 @@ struct Using : public AstNode {
 struct Expr;
 
 struct Stmt : public AstNode {
-   void visit(AstVisitor *v);
+   void accept(AstVisitor *v);
    struct Error;
 };
 
 struct Stmt::Error : public Stmt {
    std::string code;
-   void visit(AstVisitor *v);
+   void accept(AstVisitor *v);
 };
 
 struct ExprStmt : public Stmt {
    Expr *expr;
    bool is_return;
    ExprStmt() : expr(0), is_return(false) {}
-   void visit(AstVisitor *v);
+   void accept(AstVisitor *v);
    bool has_errors() const;
    std::string describe() const;
 };
@@ -149,7 +149,7 @@ struct IfStmt : public Stmt {
    Stmt *then, *els;
 
    IfStmt() : cond(0), then(0), els(0) {}
-   void visit(AstVisitor *v);
+   void accept(AstVisitor *v);
    bool has_errors() const;
 };
 
@@ -159,7 +159,7 @@ struct IterStmt : public Stmt { // while + for
    Stmt *substmt;
 
    IterStmt() : cond(0), init(0), substmt(0), post(0) {}
-   void visit(AstVisitor *v);
+   void accept(AstVisitor *v);
    bool is_for() { return init != 0 and post != 0; }
    bool has_errors() const;
 };
@@ -174,20 +174,20 @@ struct Decl : public AstNode {
 struct VarDecl : public Decl {
    Kind kind;
    VarDecl() : kind(Normal) {}
-   void visit(AstVisitor *v);
+   void accept(AstVisitor *v);
 };
 
 struct ArrayDecl : public Decl {
    Expr *size;
    Kind kind;
    ArrayDecl() : size(0), kind(Normal) {}
-   void visit(AstVisitor *v);
+   void accept(AstVisitor *v);
    std::string type_str() const;
 };
 
 struct ObjDecl : public Decl {
    std::vector<Expr *> args;
-   void visit(AstVisitor *v);
+   void accept(AstVisitor *v);
 };
 
 struct DeclStmt : public Stmt {
@@ -199,7 +199,7 @@ struct DeclStmt : public Stmt {
    };
    std::vector<Item> items;
 
-   void visit(AstVisitor *v);
+   void accept(AstVisitor *v);
    bool has_errors() const;
    std::string describe() const;
 };
@@ -211,14 +211,14 @@ struct JumpStmt : public Stmt {
    std::string label;
 
    JumpStmt() : kind(Unknown) {}
-   void visit(AstVisitor *v);
+   void accept(AstVisitor *v);
 
    static Kind keyword2type(std::string s);
 };
 
 struct Block : public Stmt {
    std::vector<Stmt*> stmts;
-   void visit(AstVisitor *v);
+   void accept(AstVisitor *v);
    bool has_errors() const;
 };
 
@@ -255,7 +255,7 @@ struct Expr : public AstNode {
 
 struct Expr::Error : public Expr {
    std::string code;
-   void visit(AstVisitor *v);
+   void accept(AstVisitor *v);
 };
 
 struct Literal : public Expr {
@@ -275,7 +275,7 @@ struct Literal : public Expr {
    bool L; // for strings
 
    Literal(Type t) : type(t) {}
-   void visit(AstVisitor *v);
+   void accept(AstVisitor *v);
 
    static std::string escape(std::string s, char delim);
 };
@@ -286,7 +286,7 @@ struct Ident : public Expr {
    std::vector<Ident*> prefix;  // for classes & namespaces;
 
    Ident(std::string _id = "") : id(_id) {}
-   void visit(AstVisitor *v);
+   void accept(AstVisitor *v);
    bool has_errors() const;
    std::string str() const;
 
@@ -308,7 +308,7 @@ struct BinaryExpr : public Expr {
 
    BinaryExpr(Kind k = Unknown) : kind(k), op("") {}
 
-   void visit(AstVisitor *v);
+   void accept(AstVisitor *v);
    void set(Expr::Kind _kind);
    bool has_errors() const;
 
@@ -329,7 +329,7 @@ struct SignExpr : public UnaryExpr {
    enum Kind { Positive, Negative };
    Kind kind;
    SignExpr(Kind k) : kind(k) {}
-   void visit(AstVisitor *v);
+   void accept(AstVisitor *v);
 };
 
 struct IncrExpr : public UnaryExpr {
@@ -337,34 +337,34 @@ struct IncrExpr : public UnaryExpr {
    Kind kind;
    bool preincr;
    IncrExpr(Kind k, bool pre = false) : kind(k), preincr(pre) {}
-   void visit(AstVisitor *v);
+   void accept(AstVisitor *v);
    std::string describe() const;
 };
 
 struct NegExpr : public UnaryExpr { 
-   void visit(AstVisitor *v);
+   void accept(AstVisitor *v);
 };
 
 struct AddrExpr : public UnaryExpr { 
-   void visit(AstVisitor *v);
+   void accept(AstVisitor *v);
 };
 
 struct DerefExpr : public UnaryExpr { 
-   void visit(AstVisitor *v);
+   void accept(AstVisitor *v);
 };
 
 struct CallExpr : public Expr {
    Expr *func;
    std::vector<Expr *> args;
    CallExpr() : func(0) {}
-   void visit(AstVisitor *v);
+   void accept(AstVisitor *v);
    bool has_errors() const;
 };
 
 struct IndexExpr : public Expr {
    Expr *base, *index;
    IndexExpr() : base(0), index(0) {}
-   void visit(AstVisitor *v);
+   void accept(AstVisitor *v);
    bool has_errors() const;
 };
 
@@ -374,20 +374,20 @@ struct FieldExpr : public Expr {
    bool pointer;
 
    FieldExpr() : base(0), field(0) {}
-   void visit(AstVisitor *v);
+   void accept(AstVisitor *v);
    bool has_errors() const;
 };
 
 struct CondExpr : public Expr {
    Expr *cond, *then, *els;
    CondExpr() : cond(0), then(0), els(0) {}
-   void visit(AstVisitor *v);
+   void accept(AstVisitor *v);
    bool has_errors() const;
 };
 
 struct ExprList : public Expr {
    std::vector<Expr*> exprs;
-   void visit(AstVisitor *v);
+   void accept(AstVisitor *v);
    bool has_errors() const;
 };
 
@@ -404,7 +404,7 @@ struct Type : public AstNode {
    Ident                  *id;
 
    Type() : id(0), reference(false) {}
-   void visit(AstVisitor *v);
+   void accept(AstVisitor *v);
    bool has_errors() const;
    std::string str() const;
 };
@@ -424,7 +424,7 @@ struct FuncDecl : public AstNode {
    Block* block;
    
    FuncDecl(Ident *_id) : id(_id) {}
-   void visit(AstVisitor *v);
+   void accept(AstVisitor *v);
    bool has_errors() const;
 };
 
@@ -433,7 +433,7 @@ struct StructDecl : public AstNode {
    std::vector<DeclStmt*> decls;
    
    StructDecl() : id(0) {}
-   void visit(AstVisitor *v);
+   void accept(AstVisitor *v);
    bool has_errors() const;
    std::string type_str() const;
    int num_fields() const;
@@ -442,7 +442,7 @@ struct StructDecl : public AstNode {
 struct TypedefDecl : public AstNode {
    Decl *decl;
    TypedefDecl() : decl(0) {}
-   void visit(AstVisitor *v);
+   void accept(AstVisitor *v);
    bool has_errors() const;
 };
 
@@ -457,7 +457,7 @@ struct EnumDecl : public AstNode {
    std::string name;
    std::vector<Value> values;
 
-   void visit(AstVisitor *v);
+   void accept(AstVisitor *v);
 };
 
 // AstVisitor
@@ -504,7 +504,7 @@ public:
 
 class AstVisitor {
 public:
-   void visit(AstNode *x) { x->visit(this); }
+   void visit(AstNode *x) { x->accept(this); }
 
    virtual void visit_program(Program*)           { assert(false); }
    virtual void visit_include(Include*)           { assert(false); }
@@ -543,42 +543,42 @@ public:
 };
 
 // Visit implementations
-inline void Program::visit(AstVisitor *v)       { v->visit_program(this); }
-inline void Include::visit(AstVisitor *v)       { v->visit_include(this); }
-inline void Macro::visit(AstVisitor *v)         { v->visit_macro(this); }
-inline void Using::visit(AstVisitor *v)         { v->visit_using(this); }
-inline void FuncDecl::visit(AstVisitor* v)      { v->visit_funcdecl(this); }
-inline void StructDecl::visit(AstVisitor* v)    { v->visit_structdecl(this); }
-inline void TypedefDecl::visit(AstVisitor* v)   { v->visit_typedefdecl(this); }
-inline void EnumDecl::visit(AstVisitor* v)      { v->visit_enumdecl(this); }
-inline void Type::visit(AstVisitor *v)          { v->visit_type(this); }
-inline void Block::visit(AstVisitor *v)         { v->visit_block(this); }
-inline void Ident::visit(AstVisitor *v)         { v->visit_ident(this); }
-inline void BinaryExpr::visit(AstVisitor *v)    { v->visit_binaryexpr(this); }
-inline void VarDecl::visit(AstVisitor *v)       { v->visit_vardecl(this); }
-inline void ArrayDecl::visit(AstVisitor *v)     { v->visit_arraydecl(this); }
-inline void ObjDecl::visit(AstVisitor *v)       { v->visit_objdecl(this); }
-inline void DeclStmt::visit(AstVisitor *v)      { v->visit_declstmt(this); }
-inline void ExprStmt::visit(AstVisitor *v)      { v->visit_exprstmt(this); }
-inline void IfStmt::visit(AstVisitor *v)        { v->visit_ifstmt(this); }
-inline void IterStmt::visit(AstVisitor *v)      { v->visit_iterstmt(this); }
-inline void JumpStmt::visit(AstVisitor *v)      { v->visit_jumpstmt(this); }
-inline void CallExpr::visit(AstVisitor *v)      { v->visit_callexpr(this); }
-inline void IndexExpr::visit(AstVisitor *v)     { v->visit_indexexpr(this); }
-inline void FieldExpr::visit(AstVisitor *v)     { v->visit_fieldexpr(this); }
-inline void CondExpr::visit(AstVisitor *v)      { v->visit_condexpr(this); }
-inline void ExprList::visit(AstVisitor *v)      { v->visit_exprlist(this); }
-inline void SignExpr::visit(AstVisitor *v)      { v->visit_signexpr(this); }
-inline void IncrExpr::visit(AstVisitor *v)      { v->visit_increxpr(this); }
-inline void NegExpr::visit(AstVisitor *v)       { v->visit_negexpr(this); }
-inline void AddrExpr::visit(AstVisitor *v)      { v->visit_addrexpr(this); }
-inline void DerefExpr::visit(AstVisitor *v)     { v->visit_derefexpr(this); }
-inline void Literal::visit(AstVisitor *v)       { v->visit_literal(this); }
+inline void Program::accept(AstVisitor *v)       { v->visit_program(this); }
+inline void Include::accept(AstVisitor *v)       { v->visit_include(this); }
+inline void Macro::accept(AstVisitor *v)         { v->visit_macro(this); }
+inline void Using::accept(AstVisitor *v)         { v->visit_using(this); }
+inline void FuncDecl::accept(AstVisitor* v)      { v->visit_funcdecl(this); }
+inline void StructDecl::accept(AstVisitor* v)    { v->visit_structdecl(this); }
+inline void TypedefDecl::accept(AstVisitor* v)   { v->visit_typedefdecl(this); }
+inline void EnumDecl::accept(AstVisitor* v)      { v->visit_enumdecl(this); }
+inline void Type::accept(AstVisitor *v)          { v->visit_type(this); }
+inline void Block::accept(AstVisitor *v)         { v->visit_block(this); }
+inline void Ident::accept(AstVisitor *v)         { v->visit_ident(this); }
+inline void BinaryExpr::accept(AstVisitor *v)    { v->visit_binaryexpr(this); }
+inline void VarDecl::accept(AstVisitor *v)       { v->visit_vardecl(this); }
+inline void ArrayDecl::accept(AstVisitor *v)     { v->visit_arraydecl(this); }
+inline void ObjDecl::accept(AstVisitor *v)       { v->visit_objdecl(this); }
+inline void DeclStmt::accept(AstVisitor *v)      { v->visit_declstmt(this); }
+inline void ExprStmt::accept(AstVisitor *v)      { v->visit_exprstmt(this); }
+inline void IfStmt::accept(AstVisitor *v)        { v->visit_ifstmt(this); }
+inline void IterStmt::accept(AstVisitor *v)      { v->visit_iterstmt(this); }
+inline void JumpStmt::accept(AstVisitor *v)      { v->visit_jumpstmt(this); }
+inline void CallExpr::accept(AstVisitor *v)      { v->visit_callexpr(this); }
+inline void IndexExpr::accept(AstVisitor *v)     { v->visit_indexexpr(this); }
+inline void FieldExpr::accept(AstVisitor *v)     { v->visit_fieldexpr(this); }
+inline void CondExpr::accept(AstVisitor *v)      { v->visit_condexpr(this); }
+inline void ExprList::accept(AstVisitor *v)      { v->visit_exprlist(this); }
+inline void SignExpr::accept(AstVisitor *v)      { v->visit_signexpr(this); }
+inline void IncrExpr::accept(AstVisitor *v)      { v->visit_increxpr(this); }
+inline void NegExpr::accept(AstVisitor *v)       { v->visit_negexpr(this); }
+inline void AddrExpr::accept(AstVisitor *v)      { v->visit_addrexpr(this); }
+inline void DerefExpr::accept(AstVisitor *v)     { v->visit_derefexpr(this); }
+inline void Literal::accept(AstVisitor *v)       { v->visit_literal(this); }
 
-inline void Stmt::Error::visit(AstVisitor *v)   { v->visit_errorstmt(this); }
-inline void Expr::Error::visit(AstVisitor *v)   { v->visit_errorexpr(this); }
+inline void Stmt::Error::accept(AstVisitor *v)   { v->visit_errorstmt(this); }
+inline void Expr::Error::accept(AstVisitor *v)   { v->visit_errorexpr(this); }
 
-inline void Stmt::visit(AstVisitor *v)          { assert(false); }
+inline void Stmt::accept(AstVisitor *v)          { assert(false); }
 
 
 #endif

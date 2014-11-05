@@ -9,7 +9,7 @@ void AstPrinter::visit_program(Program* x) {
    indent(+1);
    for (AstNode* n : x->nodes) {
       out(beginl);
-      n->visit(this);
+      n->accept(this);
       out() << endl;
    }
    indent(-1);
@@ -31,7 +31,7 @@ void AstPrinter::visit_using(Using* x) {
 
 void AstPrinter::visit_type(Type *x) {
    out() << "Type" << (x->reference ? "<&>" : "") << "(";
-   x->id->visit(this);
+   x->id->accept(this);
    if (!x->qual.empty()) {
       out() << ", {";
       int i = 0, numq = 0;
@@ -66,18 +66,18 @@ void AstPrinter::visit_enumdecl(EnumDecl *x) {
 
 void AstPrinter::visit_typedefdecl(TypedefDecl *x) {
    out() << "TypedefDecl(\"" << x->decl->name << "\" = ";
-   x->decl->type->visit(this);
+   x->decl->type->accept(this);
    out() << ")";
 }
 
 void AstPrinter::visit_structdecl(StructDecl *x) {
    out() << "StructDecl(";
-   x->id->visit(this);
+   x->id->accept(this);
    out() << ", {" << endl;
    indent(+1);
    for (DeclStmt *decl : x->decls) {
       out(beginl);
-      decl->visit(this);
+      decl->accept(this);
       out() << endl;
    }
    indent(-1);
@@ -86,22 +86,22 @@ void AstPrinter::visit_structdecl(StructDecl *x) {
 
 void AstPrinter::visit_funcdecl(FuncDecl *x) {
    out() << "FuncDecl(";
-   x->id->visit(this);
+   x->id->accept(this);
    out() << ", ";
-   x->return_type->visit(this);
+   x->return_type->accept(this);
    out() << ", Params = {";
    for (int i = 0; i < x->params.size(); i++) {
       if (i > 0) {
          out() << ", ";
       }
       out() << "\"" << x->params[i]->name << "\": ";
-      x->params[i]->type->visit(this);
+      x->params[i]->type->accept(this);
    }
    if (x->block) {
       out() << "}, {" << endl;
       indent(+1);
       out(beginl);
-      x->block->visit(this);
+      x->block->accept(this);
       out() << endl;
       indent(-1);
       out(beginl);
@@ -119,7 +119,7 @@ void AstPrinter::visit_block(Block *x) {
    indent(+1);
    for (Stmt *s : x->stmts) {
       out(beginl);
-      s->visit(this);
+      s->accept(this);
       out() << endl;
    }
    indent(-1);
@@ -134,7 +134,7 @@ void AstPrinter::visit_ident(Ident *x) {
          if (i > 0) {
             out() << ", ";
          }
-         x->prefix[i]->visit(this);
+         x->prefix[i]->accept(this);
       }
       out() << ']';
    }
@@ -145,7 +145,7 @@ void AstPrinter::visit_ident(Ident *x) {
          if (i > 0) {
             out() << ", ";
          }
-         x->subtypes[i]->visit(this);
+         x->subtypes[i]->accept(this);
       }
       out() << ">";
    }
@@ -192,11 +192,11 @@ void AstPrinter::visit_binaryexpr(BinaryExpr *x) {
    default:
       out() << x->op << "(";
       if (x->left) {
-         x->left->visit(this);
+         x->left->accept(this);
       }
       if (x->right) {
          out() << ", ";
-         x->right->visit(this);
+         x->right->accept(this);
       }
       out() << ")";
    }
@@ -213,18 +213,18 @@ void AstPrinter::visit_vardecl(VarDecl *x) {
    /*
    if (x->init) {
       out() << " = ";
-      x->init->visit(this);
+      x->init->accept(this);
    }
    */
 }
 
 void AstPrinter::visit_arraydecl(ArrayDecl *x) {
    out() << '"' << x->name << "\"(Size = ";
-   x->size->visit(this);
+   x->size->accept(this);
    /*
    if (x->init) {
       out() << ", Init = ";
-      x->init->visit(this);
+      x->init->accept(this);
    }
    */
    out() << ")";
@@ -236,7 +236,7 @@ void AstPrinter::visit_exprlist(ExprList *x) {
       if (i > 0) {
          out() << ", ";
       }
-      x->exprs[i]->visit(this);
+      x->exprs[i]->accept(this);
    }
    out() << "}";
 }
@@ -249,7 +249,7 @@ void AstPrinter::visit_objdecl(ObjDecl *x) {
          if (i > 0) {
             out() << ", ";
          }
-         x->args[i]->visit(this);
+         x->args[i]->accept(this);
       }
       out () << "}";
    }
@@ -258,17 +258,17 @@ void AstPrinter::visit_objdecl(ObjDecl *x) {
 
 void AstPrinter::visit_declstmt(DeclStmt* x) {
    out() << "DeclStmt(";
-   x->type->visit(this);
+   x->type->accept(this);
    out() << ", Vars = {";
    bool first = true;
    for (DeclStmt::Item item : x->items) {
       if (!first) {
          out() << ", ";
       }
-      item.decl->visit(this);
+      item.decl->accept(this);
       if (item.init) {
          out() << " = ";
-         item.init->visit(this);
+         item.init->accept(this);
       }
       first = false;
    }
@@ -278,19 +278,19 @@ void AstPrinter::visit_declstmt(DeclStmt* x) {
 void AstPrinter::visit_exprstmt(ExprStmt* x) {
    out() << "ExprStmt" << (x->is_return ? "<return>" : "") << "(";
    if (x->expr) {
-      x->expr->visit(this);
+      x->expr->accept(this);
    } 
    out() << ")";
 }
 
 void AstPrinter::visit_ifstmt(IfStmt *x) {
    out() << "IfStmt(";
-   x->cond->visit(this);
+   x->cond->accept(this);
    out() << ", ";
-   x->then->visit(this);
+   x->then->accept(this);
    if (x->els) {
       out() << ", ";
-      x->els->visit(this);
+      x->els->accept(this);
    }
    out() << ")";
 }
@@ -298,20 +298,20 @@ void AstPrinter::visit_ifstmt(IfStmt *x) {
 void AstPrinter::visit_iterstmt(IterStmt *x) {
    if (x->is_for()) {
       out() << "IterStmt<for>(";
-      x->init->visit(this);
+      x->init->accept(this);
       out() << ", ";
-      x->cond->visit(this);
+      x->cond->accept(this);
       out() << ", ";
-      x->post->visit(this);
+      x->post->accept(this);
       out() << ", {" << endl;
    } else {
       out() << "IterStmt<while>(";
-      x->cond->visit(this);
+      x->cond->accept(this);
       out() << ", {" << endl;
    }
    indent(+1);
    out(beginl);
-   x->substmt->visit(this);
+   x->substmt->accept(this);
    out() << endl;
    indent(-1);
    out(beginl) << "})";
@@ -328,22 +328,22 @@ void AstPrinter::visit_jumpstmt(JumpStmt *x) {
 
 void AstPrinter::visit_callexpr(CallExpr *x) {
    out() << "CallExpr(";
-   x->func->visit(this);
+   x->func->accept(this);
    out() << ", Args = {";
    for (int i = 0; i < x->args.size(); i++) {
       if (i > 0) {
          out() << ", ";
       }
-      x->args[i]->visit(this);
+      x->args[i]->accept(this);
    }
    out() << "})";
 }
 
 void AstPrinter::visit_indexexpr(IndexExpr *x) {
    out() << "IndexExpr(";
-   x->base->visit(this);
+   x->base->accept(this);
    out() << ", ";
-   x->index->visit(this);
+   x->index->accept(this);
    out() << ")";
 }
 
@@ -353,9 +353,9 @@ void AstPrinter::visit_fieldexpr(FieldExpr *x) {
       out() << "<pointer>";
    }
    out() << "(";
-   x->base->visit(this);
+   x->base->accept(this);
    out() << ", ";
-   x->field->visit(this);
+   x->field->accept(this);
    out() << ")";
 }
 
@@ -364,11 +364,11 @@ void AstPrinter::visit_condexpr(CondExpr *x) {
       out() << "("; 
    }
    out() << "CondExpr(";
-   x->cond->visit(this);
+   x->cond->accept(this);
    out() << ", ";
-   x->then->visit(this);
+   x->then->accept(this);
    out() << ", ";
-   x->els->visit(this);
+   x->els->accept(this);
    out() << ")";
    if (x->paren) { 
       out() << ")"; 
@@ -379,7 +379,7 @@ void AstPrinter::visit_signexpr(SignExpr *x) {
    out() << "SignExpr<";
    out() << (x->kind == SignExpr::Positive ? "+" : "-");
    out() << ">(";
-   x->expr->visit(this);
+   x->expr->accept(this);
    out() << ")";
 }
 
@@ -388,25 +388,25 @@ void AstPrinter::visit_increxpr(IncrExpr *x) {
    out() << (x->kind == IncrExpr::Positive ? "++" : "--") << ", ";
    out() << (x->preincr ? "pre" : "post");
    out() << ">(";
-   x->expr->visit(this);
+   x->expr->accept(this);
    out() << ")";
 }
 
 void AstPrinter::visit_negexpr(NegExpr *x) {
    out() << "NegExpr(";
-   x->expr->visit(this);
+   x->expr->accept(this);
    out() << ")";
 }
 
 void AstPrinter::visit_addrexpr(AddrExpr *x) {
    out() << "AddrExpr(";
-   x->expr->visit(this);
+   x->expr->accept(this);
    out() << ")";
 }
 
 void AstPrinter::visit_derefexpr(DerefExpr *x) {
    out() << "DerefExpr(";
-   x->expr->visit(this);
+   x->expr->accept(this);
    out() << ")";
 }
 

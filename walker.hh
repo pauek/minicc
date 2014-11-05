@@ -62,7 +62,7 @@ struct ErrorCollector : public Walker {
 inline void collect_errors(AstNode *x, std::vector<Error*>& v) {
    if (x != 0) {
       ErrorCollector e(v);
-      x->visit(&e);
+      x->accept(&e);
    }
 }
 

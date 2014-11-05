@@ -35,7 +35,7 @@ Todo Stepper::PopState::step(Stepper *S) {
 }
 
 void Stepper::generic_visit(AstNode *x) {
-   x->visit(&I);
+   x->accept(&I);
    status(x->describe());
    push(new PopState(x->span()));
 }
@@ -43,9 +43,9 @@ void Stepper::generic_visit(AstNode *x) {
 void Stepper::visit_declstmt(DeclStmt *x)     { generic_visit(x); }
 void Stepper::visit_increxpr(IncrExpr *x)     { generic_visit(x); }
 void Stepper::visit_binaryexpr(BinaryExpr *x) { generic_visit(x); }
-void Stepper::visit_literal(Literal *x)       { x->visit(&I); }
-void Stepper::visit_ident(Ident *x)           { x->visit(&I); }
-void Stepper::visit_fieldexpr(FieldExpr *x)   { x->visit(&I); }
+void Stepper::visit_literal(Literal *x)       { x->accept(&I); }
+void Stepper::visit_ident(Ident *x)           { x->accept(&I); }
+void Stepper::visit_fieldexpr(FieldExpr *x)   { x->accept(&I); }
 
 void Stepper::visit_program(Program *x) {
    I.visit_program_prepare(x);
@@ -72,7 +72,7 @@ Range Stepper::ProgramVisitState::span() const {
 Todo Stepper::ProgramVisitState::step(Stepper *S) {
    switch (at) {
    case Begin: {
-      x->block->visit(S);
+      x->block->accept(S);
       at = End;
       return Stop;
    } 
@@ -94,7 +94,7 @@ Todo Stepper::ProgramVisitState::step(Stepper *S) {
 
 void Stepper::visit_block(Block *x) {
    push(new BlockVisitState(x));
-   x->stmts[0]->visit(this);
+   x->stmts[0]->accept(this);
 }
 
 Todo Stepper::BlockVisitState::step(Stepper *S) {
@@ -105,12 +105,12 @@ Todo Stepper::BlockVisitState::step(Stepper *S) {
       delete this;
       return Next;
    }
-   x->stmts[curr]->visit(S);
+   x->stmts[curr]->accept(S);
    return Stop;
 }
 
 void Stepper::visit_ifstmt(IfStmt *x) {
-   x->cond->visit(&I);
+   x->cond->accept(&I);
    Value *c = I._curr;
    if (c->kind != Value::Bool) {
       _error(_T("The condition in a '%s' has to be a value of type 'bool'.", "if"));
@@ -137,7 +137,7 @@ Todo Stepper::IfVisitState::step(Stepper *S) {
    if (next == 0) {
       todo = Next;
    } else {
-      next->visit(S);
+      next->accept(S);
    }
    delete this;
    return todo;
@@ -146,7 +146,7 @@ Todo Stepper::IfVisitState::step(Stepper *S) {
 void Stepper::visit_iterstmt(IterStmt *x) {
    if (x->is_for()) {
       push(new ForVisitState(x));
-      x->init->visit(this);
+      x->init->accept(this);
    } else {
       WhileVisitState *s = new WhileVisitState(x);
       s->step(this);
@@ -177,12 +177,12 @@ Todo Stepper::ForVisitState::step(Stepper *S) {
       return Stop;
    }
    case Stepper::ForVisitState::Block: {
-      x->substmt->visit(S);
+      x->substmt->accept(S);
       at = Stepper::ForVisitState::Post;
       return Stop;
    }
    case Stepper::ForVisitState::Post: {
-      x->post->visit(S);
+      x->post->accept(S);
       at = Stepper::ForVisitState::Cond;
       return Stop;
    }
@@ -212,7 +212,7 @@ Todo Stepper::WhileVisitState::step(Stepper *S) {
       return Stop;
    }
    case Stepper::WhileVisitState::Block:
-      x->substmt->visit(S);
+      x->substmt->accept(S);
       at = Stepper::WhileVisitState::Cond;
       return Stop;
    }
@@ -263,7 +263,7 @@ Todo Stepper::WriteExprVisitState::step(Stepper* S) {
       } else {
          curr = exprs.front();
          const int old_sz = S->_stack.size();
-         curr->visit(S);
+         curr->accept(S);
          if (S->_stack.size() > old_sz) {
             waiting = true;
             return Stop;
@@ -350,7 +350,7 @@ Todo Stepper::CallExprVisitState::step(Stepper *S) {
       delete this;
       return Next;
    } else if (curr == CallExprVisitState::Block) {
-      fn->block->visit(S);
+      fn->block->accept(S);
       curr = CallExprVisitState::Return;
       return Stop;
    } else if (curr < size) {

@@ -69,7 +69,7 @@ int main(int argc, char *argv[]) {
          } else {
             v = new Interpreter(&cin, &cout);
          }
-         program->visit(v);
+         program->accept(v);
          collect_errors(program, ve);
          for (Error *e : ve) {
             cerr << e->msg << endl;
@@ -77,7 +77,7 @@ int main(int argc, char *argv[]) {
          return (ve.empty() ? 0 : 1);
       } else {
          Stepper S;
-         program->visit(&S);
+         program->accept(&S);
          while (!S.finished()) {
             cout << S.span() << ": " << P.input().substr(S.span()) << endl;
             cout << S.status() << endl;
