@@ -514,6 +514,9 @@ void Interpreter::visit_vardecl(VarDecl *x) {
       visit_vardecl_struct(x, it->second);
    } else {
       if (_curr) {
+         if (_curr->kind == Value::Ref) {
+            _curr = _curr->ref();
+         }
          string left = x->type->str(), right = _curr->type;
          if (left != right) {
             // Conversiones implícitas!
@@ -523,6 +526,7 @@ void Interpreter::visit_vardecl(VarDecl *x) {
                       "a una variable de tipo '" + x->type->str() + "'");
             }
          }
+         _curr = new Value(*_curr);
       } else {
          _curr = new Value(Value::Unknown, x->type->str());
       }
