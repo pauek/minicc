@@ -100,6 +100,9 @@ public:
    void visit_increxpr(IncrExpr *x);
    void visit_negexpr(NegExpr *x);
    void visit_literal(Literal *x);
+
+   void visit_objdecl(ObjDecl *x);
+   void visit_objdecl_vector(ObjDecl *x);
 };
 
 #endif

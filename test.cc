@@ -105,8 +105,8 @@ void test_visitor(string filename, VisitorType vtype) {
 
    // Run it
    try {
+      Translator::translator.set_language("es");
       if (vtype == stepper) {
-         Translator::translator.set_language("es");
          Stepper S(&Sin, &Saux);
          program->accept(&S);
          while (!S.finished()) {

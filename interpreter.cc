@@ -668,7 +668,7 @@ void Interpreter::visit_indexexpr(IndexExpr *x) {
    if (_curr->kind == Value::Ref) {
       _curr = _curr->ref();
    }
-   if (_curr->kind != Value::Array) {
+   if (_curr->kind != Value::Array and _curr->kind != Value::Vector) {
       _error("Las expresiones de índice debe usarse sobre tablas o vectores");
    }
    vector<Value*> *vals = static_cast<vector<Value*>*>(_curr->val.as_ptr);
@@ -790,3 +790,53 @@ void Interpreter::visit_negexpr(NegExpr *x) {
    _curr->val.as_bool = !_curr->val.as_bool;
 }
 
+void Interpreter::visit_objdecl_vector(ObjDecl *x) {
+   if (x->args.empty()) {
+      _error(_T("The vector constructor needs at least 1 parameter."));
+   } else if (x->args.size() > 2) {
+      _error(_T("The vector constructor receives at most 2 parameters."));
+   }
+   x->args[0]->accept(this);
+   if (_curr->kind != Value::Int) {
+      _error(_T("The size of a vector must be an integer."));
+   }
+   if (_curr->val.as_int <= 0) {
+      _error(_T("The size of a vector must be a positive integer."));
+   }
+   const int sz = _curr->val.as_int;
+   Value *init = 0;
+   if (x->args.size() == 2) { // initialization
+      x->args[1]->accept(this);
+      init = _curr;
+   } else {
+      // Valor por defecto para cada tipo
+      Type *celltype = x->type->id->subtypes[0];
+      if (celltype->str() == "int") {
+         init = new Value(0);
+      } else if (celltype->str() == "bool") {
+         init = new Value(false);
+      } else if (celltype->str() == "float") {
+         init = new Value(0.0f);
+      } else if (celltype->str() == "double") {
+         init = new Value(0.0);
+      } else if (celltype->str() == "char") {
+         init = new Value('\0');
+      }
+   }
+   Value *v = new Value(Value::Vector, x->type->str());
+   vector<Value*> *vec = new vector<Value*>(sz);
+   for (Value *&v : *vec) {
+      v = new Value(*init);
+   }
+   v->val.as_ptr = vec;
+   setenv(x->name, v);
+}
+
+void Interpreter::visit_objdecl(ObjDecl *x) {
+   if (x->type->is_vector()) {
+      visit_objdecl_vector(x);
+      return;
+   }
+   _error(_T("The type '%s' is not implemented in MiniCC", 
+             x->type->str().c_str()));
+}

@@ -193,6 +193,26 @@ const char* Translator::_translations[100][Translator::NUM_LANGS] = { /*
       "Es declaren les variables %s."
    }, {
       " and ", " y ", " i "
+   }, {
+      "The vector constructor needs at least 1 parameter.",
+      "El constructor de vector tiene almenos 1 parámetro.",
+      "El constructor de vector té almenys 1 parámetre."
+   }, {
+      "The size of a vector must be an integer.",
+      "El tamaño de un vector debe ser un entero.",
+      "El tamany d'un vector ha de ser un enter."
+   }, {
+      "The size of a vector must be a positive integer.",
+      "El tamaño de un vector debe ser un entero positivo.",
+      "El tamany d'un vector ha de ser un enter positiu."
+   }, {
+      "The vector constructor receives at most 2 parameters.",
+      "El constructor de vector recibe como mucho 2 parámetros.",
+      "El constructor de vector rep com a molt 2 paràmetres."
+   }, {
+      "The type '%s' is not implemented in MiniCC.",
+      "El tipo '%s' no se ha implementado en MiniCC.",
+      "El tipus '%s' no està implementat a MiniCC."
    },
    { "END" }
 };
