@@ -23,7 +23,7 @@ void Walker::visit_program(Program* x) {
    }
 }
 
-void Walker::visit_type(Type *x) {
+void Walker::visit_typespec(TypeSpec *x) {
    walk(x);
    x->id->accept(this);
 }

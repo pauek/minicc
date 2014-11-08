@@ -30,8 +30,8 @@ class Parser {
    typename Node::Error *error(std::string msg);
 
    void parse_expr_seq(AstNode *n, std::vector<Expr*>& v);
-   void parse_type_seq(AstNode *n, std::vector<Type*>& v);
-   bool _parse_type_process_token(Type *type, Token tok, Pos p);
+   void parse_type_seq(AstNode *n, std::vector<TypeSpec*>& v);
+   bool _parse_type_process_token(TypeSpec *type, Token tok, Pos p);
 
    Decl *_parse_vardecl(std::string name, Decl::Kind kind, CommentSeq *comm);
    Decl *_parse_arraydecl(std::string name, Decl::Kind kind, CommentSeq *comm);
@@ -59,7 +59,7 @@ const Input& input() const { return _in; }
        Stmt *parse_decl_or_expr_stmt();
        Stmt *parse_jumpstmt();
 
-       Type *parse_type();
+   TypeSpec *parse_type();
       Ident *parse_ident(Token tok, Pos ini);
 
  StructDecl *parse_struct();

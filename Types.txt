@@ -1,0 +1,96 @@
+
+Tipos
+-----
+
+Para el intérprete y el stepper.
+
+- Hay un map de tipos, organizado por el nombre de cada tipo.
+
+- Cada tipo permite centralizar la siguiente información:
+  - nombre.
+  - si es tipo básico o no.
+  - si es tipo emulado o definido por el usuario.
+  - si es una tupla/clase:
+    - campos
+    - métodos
+  - Los templates tienen un tipo de estos asociado, y
+    referencian otro tipo para lo que necesiten.
+
+- A partir de la información de un tipo se puede:
+
+   - Crear objetos nuevos por defecto.
+     (en los tipos básicos es Value::Undefined, pero
+      en std::string o std::vector hay un constructor concreto). 
+     Esto se usa cuando se declara una variable sin inicializar,
+     y hay que actualizar el entorno.
+
+      Value *create_object() const;
+
+   - Crear objetos a partir de un valor de inicialización 
+     o parámetros de constructor.
+
+      Value *create_object(Value *init) const;
+      Value *construct_object(const vector<Value*>& args) const;
+
+   - Determinar si dos tipos son el mismo en realidad
+     (ordenación de tipos?).
+
+      bool operator==(const Type& t) const;
+
+   - Producir un string que identifica el tipo inequívocamente.
+
+      std::string to_string() const;
+
+
+Cada Value tiene un puntero al tipo que es??
+
+struct Value {
+   void *data;
+   Type *type;
+   
+   template<typename T>
+   bool as<T>(T& t) { 
+      return type->as<T>(data, t); 
+   }
+};
+
+Ventajas:
+- Un Value es un puntero opaco, que gestiona el Type correspondiente.
+- Añadir tipos es trivial.
+- Determinar si dos valores son del mismo tipo es comparar punteros.
+- Obtener el valor C++ del tipo es llamar a un método como:
+
+     template<typename T>
+     virtual bool as<T>(void *data, T& res);
+
+  Cada tipo implementa solo una de las funciones, las otras devuelven falso.
+
+
+struct Type {
+   std::string name;
+
+   virtual Value *create_object() const;
+   virtual Value *create_object(Value *v) const;
+   virtual Value *construct_object(vector<Value*> args) const;
+   
+   bool operator==(const Type& t) const;
+
+   template<typename T>
+   virtual bool as<int>(void *data, T& res) {
+      return false;
+   }
+
+   Type(std::string _name) : name(_name) {}
+};
+
+struct BasicType<T> : public Type {
+   BasicType<T>(std::string name) : Type(name) {}
+
+   bool as<T>(void *data, T& res) {
+      res = (T)data;
+      return true;
+   }
+};
+
+BasicType<int>  Int("int");
+BasicType<char> Char("char");

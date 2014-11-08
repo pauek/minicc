@@ -29,18 +29,18 @@ void AstPrinter::visit_using(Using* x) {
    out() << "Using(" << x->namespc << ")";
 }
 
-void AstPrinter::visit_type(Type *x) {
+void AstPrinter::visit_typespec(TypeSpec *x) {
    out() << "Type" << (x->reference ? "<&>" : "") << "(";
    x->id->accept(this);
    if (!x->qual.empty()) {
       out() << ", {";
       int i = 0, numq = 0;
-      for (int q = Type::Const; q <= Type::Extern; q++) {
+      for (int q = TypeSpec::Const; q <= TypeSpec::Extern; q++) {
          if (find(x->qual.begin(), x->qual.end(), q) != x->qual.end()) {
             if (numq > 0) {
                out() << ", ";
             }
-            out() << Type::QualifiersNames[i];
+            out() << TypeSpec::QualifiersNames[i];
             numq++;
          }
          i++;

@@ -130,11 +130,11 @@ void PrettyPrinter::visit_using(Using* x) {
          << x->namespc << cp._cmt() << ";" << cp.cmt();
 }
 
-void PrettyPrinter::visit_type(Type *x) {
+void PrettyPrinter::visit_typespec(TypeSpec *x) {
    CommentPrinter cp(x, this);
    int i = 0, c = 0;
    for (int q : x->qual) {
-      out() << Type::QualifiersNames[q] << " " << cp.cmt_();
+      out() << TypeSpec::QualifiersNames[q] << " " << cp.cmt_();
    }
    x->id->accept(this);
    if (x->reference) {
@@ -198,7 +198,7 @@ void PrettyPrinter::visit_structdecl(StructDecl *x) {
 
 void PrettyPrinter::visit_funcdecl(FuncDecl *x) {
    CommentPrinter cp(x, this);
-   visit_type(x->return_type);
+   visit_typespec(x->return_type);
    out() << " " << cp.cmt_();
    x->id->accept(this);
    out() << cp._cmt_();
@@ -211,7 +211,7 @@ void PrettyPrinter::visit_funcdecl(FuncDecl *x) {
             out() << ", ";
          }
          out() << cp.cmt_();
-         visit_type(x->params[i]->type);
+         visit_typespec(x->params[i]->type);
          out() << " " << cp.cmt_();
          out() << x->params[i]->name;
          out() << cp._cmt();

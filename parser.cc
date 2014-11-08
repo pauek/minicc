@@ -208,7 +208,7 @@ Ident *Parser::parse_ident(Token tok, Pos ini) {
    return id;
 }
 
-bool Parser::_parse_type_process_token(Type *type, Token tok, Pos p) {
+bool Parser::_parse_type_process_token(TypeSpec *type, Token tok, Pos p) {
    if (tok.group & Token::BasicType) {
       Ident *id = new Ident(tok.str);
       if (type->id != 0) {
@@ -219,12 +219,12 @@ bool Parser::_parse_type_process_token(Type *type, Token tok, Pos p) {
    } 
    if (tok.group & Token::TypeQual) {
       switch (tok.kind) {
-      case Token::Const:    type->qual.push_back(Type::Const);    break;
-      case Token::Auto:     type->qual.push_back(Type::Auto);     break;
-      case Token::Mutable:  type->qual.push_back(Type::Mutable);  break;
-      case Token::Register: type->qual.push_back(Type::Register); break;
-      case Token::Volatile: type->qual.push_back(Type::Volatile); break;
-      case Token::Extern:   type->qual.push_back(Type::Extern);   break;
+      case Token::Const:    type->qual.push_back(TypeSpec::Const);    break;
+      case Token::Auto:     type->qual.push_back(TypeSpec::Auto);     break;
+      case Token::Mutable:  type->qual.push_back(TypeSpec::Mutable);  break;
+      case Token::Register: type->qual.push_back(TypeSpec::Register); break;
+      case Token::Volatile: type->qual.push_back(TypeSpec::Volatile); break;
+      case Token::Extern:   type->qual.push_back(TypeSpec::Extern);   break;
       default: /* TODO: acabar! */ break;
       }
       return true;
@@ -240,8 +240,8 @@ bool Parser::_parse_type_process_token(Type *type, Token tok, Pos p) {
    return false;
 }
 
-Type *Parser::parse_type() {
-   Type *type = new Type();
+TypeSpec *Parser::parse_type() {
+   TypeSpec *type = new TypeSpec();
    Pos p = _in.pos();
    _in.save();
    Token tok = _in.next_token();
@@ -260,7 +260,7 @@ AstNode *Parser::parse_func_or_var() {
    CommentSeq *c[2] = { 0, 0 };
    Pos ini = _in.pos();
    _in.save();
-   Type *type = parse_type();
+   TypeSpec *type = parse_type();
    c[0] = _in.skip("\n\t ");
    Pos id_ini = _in.pos();
    Token tok = _in.read_id();
@@ -807,7 +807,7 @@ void Parser::parse_expr_seq(AstNode *n, vector<Expr*>& exprs) {
    }
 }
 
-void Parser::parse_type_seq(AstNode *n, vector<Type*>& v) {
+void Parser::parse_type_seq(AstNode *n, vector<TypeSpec*>& v) {
    v.push_back(parse_type());
    _skip(n);
    while (_in.curr() == ',') {
@@ -879,7 +879,7 @@ Decl *Parser::_parse_objdecl(string name, CommentSeq *comm) {
 DeclStmt *Parser::parse_declstmt(bool is_typedef) {
    DeclStmt *stmt = new DeclStmt();
    stmt->ini = _in.pos();
-   Type *type = parse_type();
+   TypeSpec *type = parse_type();
    _skip(stmt); // before identifier
    stmt->type = type;
    while (true) {

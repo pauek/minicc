@@ -14,7 +14,7 @@ class AstVisitor;
 
 struct Error;
 struct CommentSeq;
-struct Type;
+struct TypeSpec;
 
 std::ostream& operator<<(std::ostream& o, CommentSeq* C);
 
@@ -166,7 +166,7 @@ struct IterStmt : public Stmt { // while + for
 
 struct Decl : public AstNode {
    enum Kind { Normal, Pointer };
-   Type *type;
+   TypeSpec *type;
    std::string name;
    Decl() : type(0) {}
 };
@@ -191,7 +191,7 @@ struct ObjDecl : public Decl {
 };
 
 struct DeclStmt : public Stmt {
-   Type *type;
+   TypeSpec *type;
    struct Item {
       Decl *decl;
       Expr *init;
@@ -282,7 +282,7 @@ struct Literal : public Expr {
 
 struct Ident : public Expr {
    std::string id;
-   std::vector<Type*> subtypes; // for templates
+   std::vector<TypeSpec*> subtypes; // for templates
    std::vector<Ident*> prefix;  // for classes & namespaces;
 
    Ident(std::string _id = "") : id(_id) {}
@@ -384,7 +384,7 @@ struct ExprList : public Expr {
    bool has_errors() const;
 };
 
-struct Type : public AstNode {
+struct TypeSpec : public AstNode {
    static const std::string QualifiersNames[];
 
    enum Qualifiers {
@@ -396,7 +396,7 @@ struct Type : public AstNode {
    std::vector<Qualifiers> qual;
    Ident                  *id;
 
-   Type() : id(0), reference(false) {}
+   TypeSpec() : id(0), reference(false) {}
    void accept(AstVisitor *v);
    bool has_errors() const;
    std::string str() const;
@@ -408,12 +408,12 @@ struct Type : public AstNode {
 
 struct FuncDecl : public AstNode {
    struct Param {
-      Type *type;
+      TypeSpec *type;
       std::string name;
       Param() : type(0) {}
    };
 
-   Type *return_type;
+   TypeSpec *return_type;
    Ident *id;
    std::vector<Param*> params;
    Block* block;
@@ -509,7 +509,7 @@ public:
    virtual void visit_structdecl(StructDecl *)    { assert(false); }
    virtual void visit_typedefdecl(TypedefDecl *)  { assert(false); }
    virtual void visit_enumdecl(EnumDecl *)        { assert(false); }
-   virtual void visit_type(Type *)                { assert(false); }
+   virtual void visit_typespec(TypeSpec *)        { assert(false); }
    virtual void visit_block(Block *)              { assert(false); }
    virtual void visit_ident(Ident *)              { assert(false); }
    virtual void visit_binaryexpr(BinaryExpr *)    { assert(false); }
@@ -546,7 +546,7 @@ inline void FuncDecl::accept(AstVisitor* v)      { v->visit_funcdecl(this); }
 inline void StructDecl::accept(AstVisitor* v)    { v->visit_structdecl(this); }
 inline void TypedefDecl::accept(AstVisitor* v)   { v->visit_typedefdecl(this); }
 inline void EnumDecl::accept(AstVisitor* v)      { v->visit_enumdecl(this); }
-inline void Type::accept(AstVisitor *v)          { v->visit_type(this); }
+inline void TypeSpec::accept(AstVisitor *v)      { v->visit_typespec(this); }
 inline void Block::accept(AstVisitor *v)         { v->visit_block(this); }
 inline void Ident::accept(AstVisitor *v)         { v->visit_ident(this); }
 inline void BinaryExpr::accept(AstVisitor *v)    { v->visit_binaryexpr(this); }

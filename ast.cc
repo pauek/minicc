@@ -66,7 +66,7 @@ struct {
    { "END", Token::Unknown,      Expr::Unknown }
 };
 
-const string Type::QualifiersNames[] = { 
+const string TypeSpec::QualifiersNames[] = { 
    "const",    "volatile", "mutable", 
    "register", "auto",     "extern"
 };
@@ -189,7 +189,7 @@ bool Block::has_errors() const {
 }
 
 bool Ident::has_errors() const {
-   for (Type *t : subtypes) {
+   for (TypeSpec *t : subtypes) {
       _ERRORS(t);
    }
    for (Ident *id : prefix) {
@@ -237,7 +237,7 @@ bool ExprList::has_errors() const {
    return false;
 }
 
-bool Type::has_errors() const {
+bool TypeSpec::has_errors() const {
    _ERRORS(id);
    return AstNode::has_errors();
 }
@@ -283,14 +283,14 @@ string Ident::str() const {
    return _id;
 }
 
-string Type::str() const {
+string TypeSpec::str() const {
    string _id;
    int i = 0, numquals = 0;
    static const string names[] = { 
       "const", "volatile", "mutable", "register", "auto", "extern"
    };
-   while (Type::Qualifiers(1 << i) <= Type::Extern) {
-      int q = Type::Qualifiers(1 << i);
+   while (TypeSpec::Qualifiers(1 << i) <= TypeSpec::Extern) {
+      int q = TypeSpec::Qualifiers(1 << i);
       if (find(qual.begin(), qual.end(), q) != qual.end()) {
          if (numquals > 0) {
             _id += " ";

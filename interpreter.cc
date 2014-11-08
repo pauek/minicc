@@ -809,7 +809,7 @@ void Interpreter::visit_objdecl_vector(ObjDecl *x) {
       init = _curr;
    } else {
       // Valor por defecto para cada tipo
-      Type *celltype = x->type->id->subtypes[0];
+      TypeSpec *celltype = x->type->id->subtypes[0];
       if (celltype->str() == "int") {
          init = new Value(0);
       } else if (celltype->str() == "bool") {

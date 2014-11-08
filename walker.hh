@@ -16,7 +16,7 @@ public:
    void visit_macro(Macro *x);
    void visit_program(Program *x);
    void visit_using(Using *x);
-   void visit_type(Type *x);
+   void visit_typespec(TypeSpec *x);
    void visit_funcdecl(FuncDecl *x);
    void visit_structdecl(StructDecl *x);
    void visit_typedefdecl(TypedefDecl *x);
