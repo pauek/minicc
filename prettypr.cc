@@ -69,7 +69,7 @@ string CommentPrinter::CMT(bool pre, bool post, bool _endl, bool missing) {
       print_comment_seq(out, cn, pr->indentation());
       if (_endl and !cn->has_endl()) {
          out << endl << pr->indentation();
-      } else {
+      } else if (!_endl) {
          out << (post ? " " : "");
       }
    } else {
@@ -232,7 +232,13 @@ void PrettyPrinter::visit_funcdecl(FuncDecl *x) {
 void PrettyPrinter::print_block(Block *x) {
    CommentPrinter cp(x, this);
    if (x->stmts.empty()) {
-      out() << "{" << cp._cmt_() << "}";
+      out() << "{";
+      if (cp.next() and cp.next()->has_endl()) {
+         out() << cp._cmt();
+      } else {
+         out() << cp._cmt_();
+      }
+      out() << "}";
       return;
    } 
    indent(+1);

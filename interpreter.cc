@@ -1,4 +1,3 @@
-#include <sstream>
 #include "ast.hh"
 #include "translator.hh"
 #include "interpreter.hh"

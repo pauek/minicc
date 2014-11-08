@@ -394,3 +394,20 @@ string DeclStmt::describe() const {
    }
    return _T("Variables %s are declared.", S.str().c_str());
 }
+
+
+void Ident::shift(string new_id) {
+   Ident *pre = new Ident(id);
+   pre->subtypes.swap(subtypes);
+   pre->comments.swap(comments);
+   pre->errors.swap(errors);
+   // the last two comments are the ones surrounding the "::", 
+   // copy them over to new_id
+   const int commsz = pre->comments.size();
+   comments.push_back(pre->comments[commsz-2]);
+   comments.push_back(pre->comments[commsz-1]);
+   pre->comments.resize(commsz-2);
+
+   prefix.push_back(pre);
+   id = new_id;
+}

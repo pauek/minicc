@@ -290,14 +290,7 @@ struct Ident : public Expr {
    bool has_errors() const;
    std::string str() const;
 
-   void shift(std::string new_id) {
-      Ident *pre = new Ident(id);
-      pre->subtypes.swap(subtypes);
-      pre->comments.swap(comments);
-      pre->errors.swap(errors);
-      prefix.push_back(pre);
-      id = new_id;
-   }
+   void shift(std::string new_id);
 };
 
 struct BinaryExpr : public Expr {
