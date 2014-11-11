@@ -54,6 +54,7 @@ void Stepper::visit_program(Program *x) {
       _error(_T("The 'main' function does not exist."));
    }
    status(_T("The program begins."));
+   I.pushenv("main");
    I.invoke_func_prepare(main, vector<Value*>());
    I._env.back().active = true;
    push(new ProgramVisitState(main));
@@ -320,6 +321,7 @@ void Stepper::visit_callexpr(CallExpr *x) {
    FuncDecl *fn = I.visit_callexpr_getfunc(x);
    CallExprVisitState *s = new CallExprVisitState(x, fn);
    vector<Value*> args(fn->params.size(), 0);
+   I.pushenv(fn->id->str());
    I.invoke_func_prepare(fn, args);
    s->step(this);
    push(s);

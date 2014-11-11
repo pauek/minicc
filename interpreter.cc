@@ -45,7 +45,6 @@ string Interpreter::env2json() const {
 }
 
 void Interpreter::invoke_func_prepare(FuncDecl *fn, const vector<Value*>& args) {
-   pushenv(fn->id->str());
    if (fn->params.size() != args.size()) {
       _error("Error en el número de argumentos al llamar a '" + fn->id->str() + "'");
    }
@@ -71,6 +70,7 @@ void Interpreter::invoke_func_prepare(FuncDecl *fn, const vector<Value*>& args) 
 }
 
 void Interpreter::invoke_func(FuncDecl *fn, const vector<Value*>& args) {
+   pushenv(fn->id->str());
    invoke_func_prepare(fn, args);
    fn->block->accept(this);
    popenv();
