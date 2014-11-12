@@ -4,6 +4,48 @@
 #include <cstring>
 #include "ast.hh"
 
+struct refcounted {
+   int count;
+};
+
+struct Type;
+class Value_ { // new value
+   struct Box {
+      int         count;
+      const Type *type;
+      void       *data;
+      Box(const Type *t, void *d) : count(0), type(t), data(d) {}
+      Box() : count(0), type(0), data(0) {}
+   };
+   Box *_box;
+
+   void _detach(Box *b);
+   void _attach(Box *b);
+
+public:
+   Value_(const Type *t = 0, void *d = 0);
+
+   Value_(int x);
+   Value_(char x);
+   Value_(bool x);
+   Value_(float x);
+   Value_(double x);
+   Value_(const char *x); // string!
+
+   const Type *type() const { return _box->type; }
+
+   template<typename T> bool is() const;
+   template<typename T> typename T::cpp_type as() const;
+   bool is(Type *t) const { return _box->type == t; }
+
+   ~Value_();
+
+   Value_(const Value_& v);
+   const Value_& operator=(const Value_& v);
+
+   friend class Reference;
+};
+
 struct Value 
 {
    union Any {
@@ -75,8 +117,8 @@ inline bool operator!=(const Value& a, const Value& b) {
 struct Environment {
    struct Item {
       std::string  name;
-      Value *value;
-      bool  hidden;
+      Value       *value;
+      bool         hidden;
       Item(std::string n, Value *v, bool h = false)
          : name(n), value(v), hidden(h) {}
    };

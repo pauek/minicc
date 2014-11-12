@@ -2,10 +2,51 @@
 #include <iomanip>
 #include <sstream>
 #include <map>
+#include <typeinfo>
 #include <assert.h>
 using namespace std;
 
 #include "value.hh"
+#include "types.hh"
+
+void Value_::_attach(Box *b) {
+   _box = b;
+   (_box->count)++;
+}
+
+void Value_::_detach(Box *b) {
+   if (--(b->count) == 0) {
+      b->type->destroy(b->data);
+      delete b;
+   }
+}
+
+Value_::Value_(const Type *t, void *d) {
+   _attach(new Box(t, d));
+}
+
+Value_::~Value_() {
+   _detach(_box);
+}
+
+Value_::Value_(const Value_& v) {
+   _attach(v._box);
+}
+
+const Value_& Value_::operator=(const Value_& v) {
+   _detach(_box);
+   _attach(v._box);
+   return *this;
+}
+
+Value_::Value_(int x)    { _attach(new Box(Int::self,    Int::self->alloc(x))); }
+Value_::Value_(char x)   { _attach(new Box(Char::self,   Char::self->alloc(x))); }
+Value_::Value_(bool x)   { _attach(new Box(Bool::self,   Bool::self->alloc(x))); }
+Value_::Value_(float x)  { _attach(new Box(Float::self,  Float::self->alloc(x))); }
+Value_::Value_(double x) { _attach(new Box(Double::self, Double::self->alloc(x))); }
+Value_::Value_(const char *x) { _attach(new Box(String::self, String::self->alloc(string(x)))); }
+
+// old Value /////////////////////////////////////////////////////////
 
 Value Value::cout(Cout), Value::cin(Cin), Value::cerr(Cerr);
 

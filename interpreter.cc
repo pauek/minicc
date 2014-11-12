@@ -3,6 +3,14 @@
 #include "interpreter.hh"
 using namespace std;
 
+void Interpreter::_init() {
+   _types["int"]    = Int::self;
+   _types["float"]  = Float::self;
+   _types["double"] = Double::self;
+   _types["char"]   = Char::self;
+   _types["bool"]   = Bool::self;
+}
+
 void Interpreter::setenv(string id, Value *val, bool hidden) {
    _env.back().set(id, val, hidden);
 }

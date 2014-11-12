@@ -5,8 +5,10 @@
 #include <iostream>
 #include <vector>
 #include <map>
+
 #include "ast.hh"
 #include "value.hh"
+#include "types.hh"
 
 struct EvalError {
    std::string msg;
@@ -19,6 +21,8 @@ class Interpreter : public AstVisitor, public ReadWriter {
             std::vector<Environment> _env;
     std::map<std::string, FuncDecl*> _funcs;
   std::map<std::string, StructDecl*> _structs;
+
+        std::map<std::string, Type*> _types;
 
    bool  is_struct(std::string name) {
       return _structs.find(name) != _structs.end();
@@ -66,12 +70,14 @@ std::string env2json() const;
 
     friend class Stepper;
 
+   void _init();
+
 public:
    Interpreter() 
-      : _curr(0), _ret(0) {}
+      : _curr(0), _ret(0) { _init(); }
 
    Interpreter(std::istream *i, std::ostream *o)
-      : ReadWriter(i, o), _curr(0), _ret(0) {}
+      : ReadWriter(i, o), _curr(0), _ret(0) { _init(); }
 
    ~Interpreter() {}
 
