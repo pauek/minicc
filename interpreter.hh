@@ -16,23 +16,21 @@ struct EvalError {
 };
 
 class Interpreter : public AstVisitor, public ReadWriter {
-    Value *_curr, *_ret;
+    Value _curr, _ret;
 
             std::vector<Environment> _env;
     std::map<std::string, FuncDecl*> _funcs;
-  std::map<std::string, StructDecl*> _structs;
-
-        std::map<std::string, Type*> _types;
 
    bool  is_struct(std::string name) {
-      return _structs.find(name) != _structs.end();
+      Type *t = Type::find(name);
+      return t != 0 and t->is<Struct>();
    }
 
-   void   pushenv(std::string name) { _env.push_back(Environment(name));  }
-   void   popenv();
-   void   actenv();
-   void   setenv(std::string id, Value *val, bool hidden = false);
-   Value* getenv(std::string id);
+   void  pushenv(std::string name) { _env.push_back(Environment(name));  }
+   void  popenv();
+   void  actenv();
+   void  setenv(std::string id, Value v, bool hidden = false);
+   bool  getenv(std::string id, Value& v);
 
 std::string env2json() const;
 
@@ -42,42 +40,38 @@ std::string env2json() const;
 
      Value new_value_from_structdecl(StructDecl *x);
 
-     void  invoke_func_prepare(FuncDecl *x, const std::vector<Value*>& args);
-     void  invoke_func(FuncDecl *, const std::vector<Value*>&);
+     void  invoke_func_prepare(FuncDecl *x, const std::vector<Value>& args);
+     void  invoke_func(FuncDecl *, const std::vector<Value>&);
 
      void  visit_program_prepare(Program *x);
  FuncDecl *visit_program_find_main();
-     void  visit_binaryexpr_assignment(Value *, Value *);
-     void  visit_binaryexpr_op_assignment(char, Value *, Value *);
+     void  visit_binaryexpr_assignment(Value left, Value right);
+     void  visit_binaryexpr_op_assignment(char, Value left, Value right);
  FuncDecl *visit_callexpr_getfunc(CallExpr *x);
-     void  visit_vardecl_struct(VarDecl *x, StructDecl *decl);
-    Value *visit_vardecl_struct_new(StructDecl *D, Value *init);
 
    template<class Op>
-     bool  visit_op_assignment(Value *left, Value *right);
+     bool  visit_op_assignment(Value left, Value right);
 
    template<class Op>
-     bool  visit_bitop_assignment(Value *left, Value *right);
+     bool  visit_bitop_assignment(Value left, Value right);
 
    template<class Op>
-     bool  visit_sumprod(Value *left, Value *right);
+     bool  visit_sumprod(Value left, Value right);
 
    template<class Op>
-     bool  visit_bitop(Value *left, Value *right);
+     bool  visit_bitop(Value left, Value right);
 
    template<class Op>
-     bool  visit_comparison(Value *left, Value *right);
+     bool  visit_comparison(Value left, Value right);
 
     friend class Stepper;
 
    void _init();
 
 public:
-   Interpreter() 
-      : _curr(0), _ret(0) { _init(); }
-
+   Interpreter() { _init(); }
    Interpreter(std::istream *i, std::ostream *o)
-      : ReadWriter(i, o), _curr(0), _ret(0) { _init(); }
+      : ReadWriter(i, o) { _init(); }
 
    ~Interpreter() {}
 

@@ -1,3 +1,4 @@
+#include <csignal>
 #include <sstream>
 #include <fstream>
 #include <algorithm>

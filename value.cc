@@ -9,116 +9,140 @@ using namespace std;
 #include "value.hh"
 #include "types.hh"
 
-void Value_::_attach(Box *b) {
+Value Value::null;
+
+void Value::_attach(Box *b) {
+   assert(b != 0);
    _box = b;
    (_box->count)++;
 }
 
-void Value_::_detach(Box *b) {
-   if (--(b->count) == 0) {
+void Value::_detach(Box *b) {
+   if (b and --(b->count) == 0) {
       b->type->destroy(b->data);
       delete b;
    }
 }
 
-Value_::Value_(const Type *t, void *d) {
+Value::Value(const Type *t, void *d) {
+   assert(t != 0);
    _attach(new Box(t, d));
 }
 
-Value_::~Value_() {
-   _detach(_box);
+Value::Value(Box *box) { 
+   _attach(box); 
 }
-
-Value_::Value_(const Value_& v) {
-   _attach(v._box);
-}
-
-const Value_& Value_::operator=(const Value_& v) {
-   _detach(_box);
-   _attach(v._box);
-   return *this;
-}
-
-Value_::Value_(int x)    { _attach(new Box(Int::self,    Int::self->alloc(x))); }
-Value_::Value_(char x)   { _attach(new Box(Char::self,   Char::self->alloc(x))); }
-Value_::Value_(bool x)   { _attach(new Box(Bool::self,   Bool::self->alloc(x))); }
-Value_::Value_(float x)  { _attach(new Box(Float::self,  Float::self->alloc(x))); }
-Value_::Value_(double x) { _attach(new Box(Double::self, Double::self->alloc(x))); }
-Value_::Value_(const char *x) { _attach(new Box(String::self, String::self->alloc(string(x)))); }
-
-// old Value /////////////////////////////////////////////////////////
-
-Value Value::cout(Cout), Value::cin(Cin), Value::cerr(Cerr);
 
 Value::~Value() {
-   switch (kind) {
-   case String: 
-      delete static_cast<string*>(val.as_ptr);
-      break;
-
-   default:
-   case Array: case Vector: case List: case Map: case Struct: 
-      // TODO
-      break;
-   }
+   _detach(_box);
 }
 
 Value::Value(const Value& v) {
-   _clear();
-   kind = v.kind;
-   type = v.type;
-   switch (v.kind) {
-   case String:
-      val.as_ptr = new string(*static_cast<string*>(v.val.as_ptr));
-      break;
-   default:
-      memcpy(&val, &v.val, sizeof(Value::Any));
-      break;
+   if (v.is_null()) {
+      _box = 0;
+   } else {
+      _attach(v._box);
    }
 }
 
-Value Value::operator=(const Value& v) {
-   if (kind == Value::String) {
-      delete static_cast<string*>(val.as_ptr);
-   }
-   kind = v.kind;
-   type = v.type;
-   switch (v.kind) {
-   case String:
-      val.as_ptr = new string(*static_cast<string*>(v.val.as_ptr));
-      break;
-
-   case Struct: 
-      val.as_ptr = new Environment(*static_cast<Environment*>(v.val.as_ptr));
-      break;
-
-   case Vector: case List: case Map:
-      assert(false);
-      break;
-
-   default:
-      memcpy(&val, &v.val, sizeof(Value::Any));
-      break;
+const Value& Value::operator=(const Value& v) {
+   _detach(_box);
+   if (v.is_null()) {
+      _box = 0;
+   } else {
+      _attach(v._box);
    }
    return *this;
 }
 
-bool operator==(const Value& a, const Value& b) {
-   if (a.kind != b.kind || a.type != b.type) {
+Value Value::clone() const {
+   if (is_null()) {
+      return Value();
+   }
+   return Value(_box->type, _box->type->clone(_box->data));
+}
+
+bool Value::assign(const Value& v) {
+   if (v.is_null()) {
+      _detach(_box);
+      _box = 0;
+      return true;
+   }
+   if (!same_type_as(v)) {
       return false;
    }
-   switch (a.kind) {
-   case Value::Cout: case Value::Cerr: case Value::Cin: 
-      return true;
-   case Value::String: {
-      string *sa = static_cast<string*>(a.val.as_ptr);
-      string *sb = static_cast<string*>(b.val.as_ptr);
-      return *sa == *sb;
-   }
-   default:
-      return memcmp(&a.val, &b.val, sizeof(Value::Any)) == 0;
-   }
+   _box->type->destroy(_box->data);
+   _box->data = _box->type->clone(v._box->data);
+   return true;
 }
+
+void Value::write(ostream& o) const {
+   assert(!is_null());
+   _box->type->write(o, _box->data);
+}
+
+void Value::read(istream& i) {
+   assert(!is_null());
+   _box->data = _box->type->read(i, _box->data);
+}
+
+bool Value::equals(const Value& v) const {
+   if (is_null()) {
+      return v.is_null();
+   }
+   if (!same_type_as(v)) {
+      return false;
+   }
+   return _box->type->equals(_box->data, v._box->data);
+}
+
+string Value::type_name() const {
+   assert(_box != 0);
+   return _box->type->name();
+}
+
+string Value::to_json() const {
+   assert(!is_null());
+   return _box->type->to_json(_box->data);
+}
+
+Value::Value(int x)         { _attach(new Box(Int::self,    Int::self->alloc(x))); }
+Value::Value(char x)        { _attach(new Box(Char::self,   Char::self->alloc(x))); }
+Value::Value(bool x)        { _attach(new Box(Bool::self,   Bool::self->alloc(x))); }
+Value::Value(float x)       { _attach(new Box(Float::self,  Float::self->alloc(x))); }
+Value::Value(double x)      { _attach(new Box(Double::self, Double::self->alloc(x))); }
+Value::Value(string x)      { _attach(new Box(String::self, String::self->alloc(x))); }
+Value::Value(ostream& o)    { _attach(new Box(Ostream::self, &o)); }
+Value::Value(istream& i)    { _attach(new Box(Istream::self, &i)); }
+Value::Value(const char *x) { _attach(new Box(String::self, String::self->alloc(string(x)))); }
+
+std::ostream& operator<<(std::ostream& o, const Value& v) {
+   v.write(o);
+   return o;
+}
+
+std::istream& operator>>(std::istream& i, Value& v) {
+   v.read(i);
+   return i;
+}
+
+
+string Environment::to_json() const {
+   ostringstream json;
+   json << "{\"<active>\":" << (active ? "true" : "false");
+   for (int i = 0; i < tab.size(); i++) {
+      if (tab[i]._hidden) {
+         continue;
+      }
+      json << ",\"" << tab[i].name() << "\":";
+      json << tab[i].data().to_json();
+   }
+   json << "}";
+   return json.str();
+}
+
+
+/*
 
 ostream& operator<<(ostream& o, const Value& v) {
    switch (v.kind) {
@@ -207,8 +231,9 @@ Value::Kind Value::type2kind(string type) {
       return Value::Unknown;
    }
 }
+*/
 
-string Value::to_json() const {
+/*
    ostringstream json;
    switch (kind) {
    case Value::Unknown: json << "null"; break;
@@ -254,7 +279,10 @@ string Value::to_json() const {
    }
    return json.str();
 }
+*/
 
+
+/*
 vector<Value*> *Value::exprlist() {
    return static_cast<vector<Value*>*>(val.as_ptr);
 }
@@ -263,40 +291,4 @@ const vector<Value*> *Value::exprlist() const {
    return static_cast<vector<Value*>*>(val.as_ptr);
 }
 
-Environment::Item *Environment::_get(std::string name) {
-   for (int i = 0; i < tab.size(); i++) {
-      if (tab[i].name == name) {
-         return &tab[i];
-      }
-   }
-   return 0;
-}
-
-void Environment::to_json(ostream& json) const {
-   json << "{\"<active>\":" << (active ? "true" : "false");
-   for (int i = 0; i < tab.size(); i++) {
-      if (tab[i].hidden) {
-         continue;
-      }
-      json << ",\"" << tab[i].name << "\":";
-      json << tab[i].value->to_json();
-   }
-   json << "}";
-}
-
-string json_encode(string s) {
-   ostringstream json;
-   for (int i = 0; i < s.size(); i++) {
-      if (uint8_t(s[i]) < 0x7F) {
-         json << s[i];
-      } else if ((uint8_t(s[i]) & 0x000000E0) == 0x000000C0) {
-         // Gran cutrada...
-         json << "\\u" << hex << setfill('0') << setw(4) 
-              << ((uint8_t(s[i] & 0x1F) << 6) + uint8_t(s[i+1] & 0x3F));
-         i++;
-      } else {
-         assert(false);
-      }
-   }
-   return json.str();
-}
+*/

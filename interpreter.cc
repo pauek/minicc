@@ -3,26 +3,19 @@
 #include "interpreter.hh"
 using namespace std;
 
-void Interpreter::_init() {
-   _types["int"]    = Int::self;
-   _types["float"]  = Float::self;
-   _types["double"] = Double::self;
-   _types["char"]   = Char::self;
-   _types["bool"]   = Bool::self;
+void Interpreter::_init() {}
+
+void Interpreter::setenv(string id, Value v, bool hidden) {
+   _env.back().set(id, v, hidden);
 }
 
-void Interpreter::setenv(string id, Value *val, bool hidden) {
-   _env.back().set(id, val, hidden);
-}
-
-Value *Interpreter::getenv(string id) {
+bool Interpreter::getenv(string id, Value& v) {
    for (int i = _env.size()-1; i >= 0; i--) {
-      Value *v = _env[i].get(id);
-      if (v) {
-         return v;
+      if (_env[i].get(id, v)) {
+         return true;
       }
    }
-   return 0;
+   return false;
 }
 
 void Interpreter::actenv() {
@@ -37,6 +30,7 @@ void Interpreter::popenv() {
    _env.back().active = true;
 }
 
+
 string Interpreter::env2json() const {
    ostringstream json;
    json << "[";
@@ -45,25 +39,27 @@ string Interpreter::env2json() const {
          json << ",";
       }
       json << "{\"name\":\"" << _env[i].name << "\",\"tab\":";
-      _env[i].to_json(json);
+      json << _env[i].to_json();
       json << "}";
    }
    json << "]";
    return json.str();
 }
 
-void Interpreter::invoke_func_prepare(FuncDecl *fn, const vector<Value*>& args) {
+
+void Interpreter::invoke_func_prepare(FuncDecl *fn, const vector<Value>& args) {
    if (fn->params.size() != args.size()) {
       _error("Error en el número de argumentos al llamar a '" + fn->id->str() + "'");
    }
    for (int i = 0; i < args.size(); i++) {
-      if (args[i] == 0) {
+      /*if (args[i] == 0) {
          string type = fn->params[i]->type->str();
-         setenv(fn->params[i]->name, new Value(Value::Unknown, type));
-      } else if (args[i]->kind == Value::Ref) {
-         Value *v = args[i];
+         setenv(fn->params[i]->name, Value(Type::find(type)));
+      } else */
+      if (args[i].is<Reference>()) {
+         Value v = args[i];
          if (!fn->params[i]->type->reference) {
-            v = v->ref();
+            v = Reference::deref(v);
          }
          setenv(fn->params[i]->name, v);
       } else {
@@ -77,7 +73,7 @@ void Interpreter::invoke_func_prepare(FuncDecl *fn, const vector<Value*>& args) 
    }
 }
 
-void Interpreter::invoke_func(FuncDecl *fn, const vector<Value*>& args) {
+void Interpreter::invoke_func(FuncDecl *fn, const vector<Value>& args) {
    pushenv(fn->id->str());
    invoke_func_prepare(fn, args);
    fn->block->accept(this);
@@ -90,9 +86,9 @@ void Interpreter::visit_program_prepare(Program *x) {
    _env.push_back(Environment("<global>"));
 
    bool hidden = true;
-   setenv("endl", new Value("\n"), hidden);
-   setenv("cout", &Value::cout,    hidden);
-   setenv("cin",  &Value::cin,     hidden);
+   setenv("endl", Endl, hidden);
+   setenv("cout", Cout, hidden);
+   setenv("cin",  Cin,  hidden);
 
    for (AstNode *n : x->nodes) {
       n->accept(this);
@@ -110,7 +106,7 @@ void Interpreter::visit_program(Program* x) {
    if (main == 0) {
       _error(_T("The '%s' function does not exist.", "main"));
    } else {
-      invoke_func(main, vector<Value*>());
+      invoke_func(main, vector<Value>());
    }
 }
 
@@ -133,44 +129,44 @@ void Interpreter::visit_funcdecl(FuncDecl *x) {
 }
 
 void Interpreter::visit_structdecl(StructDecl *x) {
-   _structs[x->id->id] = x;
+   // Create a new Struct type now
+   Struct *type = new Struct(x->struct_name());
+   for (int i = 0; i < x->decls.size(); i++) {
+      DeclStmt& decl = *x->decls[i];
+      Type *field_type = Type::find(decl.type->str());
+      assert(type != 0);
+      for (DeclStmt::Item& item : decl.items) {
+         if (item.decl->is<ArrayDecl>()) {
+            Expr *size_expr = dynamic_cast<ArrayDecl*>(item.decl)->size;
+            Literal *size_lit = dynamic_cast<Literal*>(size_expr);
+            assert(size_lit != 0);
+            assert(size_lit->type == Literal::Int);
+            const int sz = size_lit->val.as_int;
+            type->add(item.decl->name, Array::mktype(field_type, sz));
+         } else {
+            type->add(item.decl->name, field_type);
+         }
+      }
+   }
+   Type::register_type(type);
 }
 
 void Interpreter::visit_ident(Ident *x) {
-   Value *v = getenv(x->id);
-   if (v == 0) {
+   Value v;
+   if (!getenv(x->id, v)) {
       _error("La variable '" + x->id + "' no existe.");
    }
-   if (v->kind == Value::Ref) {
-      _curr = v;
-   } else {
-      _curr = new Value(Value::Ref, v->type + "&");
-      _curr->val.as_ptr = v;
-   }
+   _curr = (v.is<Reference>() ? v : Reference::mkref(v));
 }
 
 void Interpreter::visit_literal(Literal *x) {
    switch (x->type) {
-   case Literal::String:
-      _curr = new Value(*x->val.as_string.s);
+   case Literal::String: _curr = Value(*x->val.as_string.s); break;
+   case Literal::Int:    _curr = Value(x->val.as_int);       break;
+   case Literal::Double: _curr = Value(x->val.as_double);    break;
+   case Literal::Bool:   _curr = Value(x->val.as_bool);      break;
+   case Literal::Char:   _curr = Value((*x->val.as_string.s)[0] /* FIXME */);
       break;
-
-   case Literal::Int:
-      _curr = new Value(x->val.as_int);
-      break;
-
-   case Literal::Double:
-      _curr = new Value(x->val.as_double);
-      break;
-
-   case Literal::Bool:
-      _curr = new Value(x->val.as_bool);
-      break;
-
-   case Literal::Char:
-      _curr = new Value((*x->val.as_string.s)[0] /* FIXME */);
-      break;
-
    default:
       _error("Interpreter::visit_literal: UNIMPLEMENTED");
    }
@@ -200,75 +196,76 @@ struct _Ge { template<typename T> static bool eval(const T& a, const T& b) { ret
 
 
 template<class Op>
-bool Interpreter::visit_op_assignment(Value *left, Value *right) {
-   if (left->kind == Value::Int and right->kind == Value::Int) {
-      Op::eval(left->val.as_int, right->val.as_int);
+bool Interpreter::visit_op_assignment(Value left, Value _right) {
+   Value right = left.type()->convert(_right);
+   if (left.is<Int>() and right.is<Int>()) {
+      Op::eval(left.as<Int>(), right.as<Int>());
       return true;
    } 
-   if (left->kind == Value::Float and right->kind == Value::Float) {
-      Op::eval(left->val.as_float, right->val.as_float);
+   if (left.is<Float>() and right.is<Float>()) {
+      Op::eval(left.as<Float>(), right.as<Float>());
       return true;
    }
-   if (left->kind == Value::Double and right->kind == Value::Double) {
-      Op::eval(left->val.as_double, right->val.as_double);
+   if (left.is<Double>() and right.is<Double>()) {
+      Op::eval(left.as<Double>(), right.as<Double>());
       return true;
    }
    return false;
 }
 
 template<class Op>
-bool Interpreter::visit_bitop_assignment(Value *left, Value *right) {
-   if (left->kind == Value::Int and right->kind == Value::Int) {
-      Op::eval(left->val.as_int, right->val.as_int);
+bool Interpreter::visit_bitop_assignment(Value left, Value _right) {
+   Value right = left.type()->convert(_right);
+   if (left.is<Int>() and right.is<Int>()) {
+      Op::eval(left.as<Int>(), right.as<Int>());
       return true;
    } 
    return false;
 }
 
 template<class Op>
-bool Interpreter::visit_sumprod(Value *left, Value *right) {
-   if (left->kind == Value::Int and right->kind == Value::Int) {
-      _curr = new Value(Op::eval(left->val.as_int, right->val.as_int));
+bool Interpreter::visit_sumprod(Value left, Value _right) {
+   Value right = left.type()->convert(_right);
+   if (left.is<Int>()) {
+      _curr = Value(Op::eval(left.as<Int>(), right.as<Int>()));
       return true;
    }
-   if (left->kind == Value::Float and right->kind == Value::Float) {
-      _curr = new Value(Op::eval(left->val.as_float, right->val.as_float));
+   if (left.is<Float>()) {
+      _curr = Value(Op::eval(left.as<Float>(), right.as<Float>()));
       return true;
    }
-   if (left->kind == Value::Double and right->kind == Value::Double) {
-      _curr = new Value(Op::eval(left->val.as_double, right->val.as_double));
-      return true;
-   }
-   return false;
-}
-
-template<class Op>
-bool Interpreter::visit_bitop(Value *left, Value *right) {
-   if (left->kind == Value::Int and right->kind == Value::Int) {
-      _curr = new Value(Op::eval(left->val.as_int, right->val.as_int));
+   if (left.is<Double>()) {
+      _curr = Value(Op::eval(left.as<Double>(), right.as<Double>()));
       return true;
    }
    return false;
 }
 
 template<class Op>
-bool Interpreter::visit_comparison(Value *left, Value *right) {
-   if (left->kind == Value::Int and right->kind == Value::Int) {
-      _curr = new Value(Op::eval(left->val.as_int, right->val.as_int));
+bool Interpreter::visit_bitop(Value left, Value right) {
+   if (left.is<Int>() and right.is<Int>()) {
+      _curr = Value(Op::eval(left.as<Int>(), right.as<Int>()));
       return true;
    }
-   if (left->kind == Value::Float and right->kind == Value::Float) {
-      _curr = new Value(Op::eval(left->val.as_float, right->val.as_float));
+   return false;
+}
+
+template<class Op>
+bool Interpreter::visit_comparison(Value left, Value right) {
+   if (left.is<Int>() and right.is<Int>()) {
+      _curr = Value(Op::eval(left.as<Int>(), right.as<Int>()));
       return true;
    }
-   if (left->kind == Value::Double and right->kind == Value::Double) {
-      _curr = new Value(Op::eval(left->val.as_double, right->val.as_double));
+   if (left.is<Float>() and right.is<Float>()) {
+      _curr = Value(Op::eval(left.as<Float>(), right.as<Float>()));
       return true;
    }
-   if (left->kind == Value::String and right->kind == Value::String) {
-      string *s1 = static_cast<string*>(left->val.as_ptr);
-      string *s2 = static_cast<string*>(right->val.as_ptr);
-      _curr = new Value(Op::eval(*s1, *s2));
+   if (left.is<Double>() and right.is<Double>()) {
+      _curr = Value(Op::eval(left.as<Double>(), right.as<Double>()));
+      return true;
+   }
+   if (left.is<String>() and right.is<String>()) {
+      _curr = Value(Op::eval(left.as<String>(), right.as<String>()));
       return true;
    }
    return false;
@@ -276,44 +273,42 @@ bool Interpreter::visit_comparison(Value *left, Value *right) {
 
 void Interpreter::visit_binaryexpr(BinaryExpr *x) {
    x->left->accept(this);
-   Value *left = _curr;
+   Value left = _curr;
+   Value leftderef = Reference::deref(left);
    if (x->kind != Expr::Assignment) {
-      if (left->kind == Value::Ref) {
-         left = left->ref();
-      }
+      left = Reference::deref(left);
    }
 
    // cout << ...
-   if (left == &Value::cout && x->op == "<<") {
-      Value *old = _curr;
+   if (leftderef == Cout && x->op == "<<") {
+      Value old = _curr;
       x->right->accept(this);
-      out() << *_curr;
+      out() << Reference::deref(_curr);
       _curr = old;
       return;
    }
 
    // cin >> ...
-   if (left == &Value::cin && x->op == ">>") {
-      Value *old = _curr;
+   if (leftderef == Cin && x->op == ">>") {
+      Value old = _curr;
       Ident *id = dynamic_cast<Ident*>(x->right);
       if (id == 0) {
          _error("La lectura con 'cin' requiere que pongas variables");
       }
-      Value *right = getenv(id->id);
-      if (right == 0) {
+      Value right;
+      if (!getenv(id->id, right)) {
          _error("La variable '" + id->id + "' no está declarada");
       }
-      in() >> *right;
+      assert(leftderef.as<Istream>() == cin);
+      right = Reference::deref(right);
+      in() >> right;
       _curr = old;
       return;
    }
 
    x->right->accept(this);
-   Value *right = _curr;
-   if (right->kind == Value::Ref) {
-      right = right->ref();
-   }
-   
+   Value right = _curr;
+   right = Reference::deref(right);
    if (x->op == "=") {
       visit_binaryexpr_assignment(left, right);
       return;
@@ -339,9 +334,8 @@ void Interpreter::visit_binaryexpr(BinaryExpr *x) {
       bool ret = false;
       switch (x->op[0]) {
       case '+': {
-         if (left->kind == Value::String and right->kind == Value::String) {
-            _curr = new Value(*static_cast<string*>(left->val.as_ptr) +
-                              *static_cast<string*>(right->val.as_ptr));
+         if (left.is<String>() and right.is<String>()) {
+            _curr = Value(left.as<String>() + right.as<String>());
             ret = true;
          } else {
             ret = visit_sumprod<_Add>(left, right);
@@ -358,35 +352,35 @@ void Interpreter::visit_binaryexpr(BinaryExpr *x) {
       _error("Los operandos de '*' no son compatibles");
    }
    else if (x->op == "%") {
-      if (left->kind == Value::Int and right->kind == Value::Int) {
-         _curr = new Value(left->val.as_int % right->val.as_int);
+      if (left.is<Int>() and right.is<Int>()) {
+         _curr = Value(left.as<Int>() % right.as<Int>());
          return;
       }
       _error("Los operandos de '%' no son compatibles");
    }
    else if (x->op == "%=") {
-      if (left->kind != Value::Ref) {
+      if (!left.is<Reference>()) {
          _error("Para usar '" + x->op + "' se debe poner una variable a la izquierda");
       }
-      left = left->ref();
-      if (left->kind == Value::Int and right->kind == Value::Int) {
-         left->val.as_int %= right->val.as_int;
+      left = Reference::deref(left);
+      if (left.is<Int>() and right.is<Int>()) {
+         left.as<Int>() %= right.as<Int>();
          return;
       }
       _error("Los operandos de '%=' no son compatibles");
    }
    else if (x->op == "&&" or x->op == "and" || x->op == "||" || x->op == "or")  {
-      if (left->kind == Value::Bool and right->kind == Value::Bool) {
-         _curr = new Value(x->op == "&&" or x->op == "and" 
-                           ? left->val.as_bool and right->val.as_bool
-                           : left->val.as_bool or right->val.as_bool);
+      if (left.is<Bool>() and right.is<Bool>()) {
+         _curr = Value(x->op == "&&" or x->op == "and" 
+                       ? left.as<Bool>() and right.as<Bool>()
+                       : left.as<Bool>() or  right.as<Bool>());
          return;
       }
       _error("Los operandos de '" + x->op + "' no son de tipo 'bool'");
    }
    else if (x->op == "==" || x->op == "!=") {
-      if (left->kind == right->kind) {
-         _curr = new Value(x->op == "==" ? *left == *right : *left != *right);
+      if (left.same_type_as(right)) {
+         _curr = Value(x->op == "==" ? left.equals(right) : !left.equals(right));
          return;
       }
       _error("Los operandos de '" + x->op + "' no son del mismo tipo");
@@ -410,40 +404,38 @@ void Interpreter::visit_binaryexpr(BinaryExpr *x) {
    _error("Interpreter::visit_binaryexpr: UNIMPLEMENTED (" + x->op + ")");
 }
 
-inline bool assignment_types_ok(string a, string b) {
+inline bool assignment_types_ok(const Value& a, const Value& b) {
    return 
-      (a == b) or
-      (a == "float"  and b == "double") or
-      (a == "double" and b == "float");
+      (a.same_type_as(b)) or
+      (a.is<Float>() and b.is<Double>()) or
+      (a.is<Double>() and b.is<Float>());
 }
 
-void Interpreter::visit_binaryexpr_assignment(Value *left, Value *right) {
-   if (left->kind != Value::Ref) {
+void Interpreter::visit_binaryexpr_assignment(Value left, Value right) {
+   if (!left.is<Reference>()) {
       _error("Intentas asignar sobre algo que no es una variable");
    }
-   left = left->ref();
-   if (assignment_types_ok(left->type, right->type)) {
-      *left = *right; // DANGER!
-   } else { 
+   left = Reference::deref(left);
+   right = left.type()->convert(right);
+   if (right == Value::null) {
       _error(string() + 
              "La asignación no se puede hacer porque los tipos no son compatibles (" +
-             left->type + " vs " + right->type + ")");
+             left.type_name() + " vs " + right.type_name() + ")");
    }
+   left.assign(right);
    _curr = left;
 }
 
-void Interpreter::visit_binaryexpr_op_assignment(char op, Value *left, Value *right) {
-   if (left->kind != Value::Ref) {
+void Interpreter::visit_binaryexpr_op_assignment(char op, Value left, Value right) {
+   if (!left.is<Reference>()) {
       _error(string("Para usar '") + op + "=' se debe poner una variable a la izquierda");
    }
-   left = left->ref();
+   left = Reference::deref(left);
    bool ok = false;
    switch (op) {
    case '+': {
-      if (left->kind == Value::String and right->kind == Value::String) {
-         string *s1 = static_cast<string*>(left->val.as_ptr);
-         string *s2 = static_cast<string*>(right->val.as_ptr);
-         *s1 += *s2;
+      if (left.is<String>() and right.is<String>()) {
+         left.as<String>() += right.as<String>();
          ok = true;
       } else {
          ok = visit_op_assignment<_AAdd>(left, right);
@@ -458,7 +450,7 @@ void Interpreter::visit_binaryexpr_op_assignment(char op, Value *left, Value *ri
    case '^': ok = visit_bitop_assignment<_AXor>(left, right); break;
    }
    if (!ok) {
-      _error(string("Los operandos de '") + op + "=' no son compatibles");
+      _error(string("Los operandos de '") + op + "=' no son compatibles: " + left.type_name() + " " + right.type_name());
    }
 }
 
@@ -468,125 +460,38 @@ void Interpreter::visit_block(Block *x) {
    }
 }
 
-Value *Interpreter::visit_vardecl_struct_new(StructDecl *D, Value *init) {
-   if (init and init->kind != Value::ExprList) {
-      _error("Inicializas una tupla con algo que no es una lista de valores");
-      return 0;
-   }
-   vector<Value*> *values = (init ? init->exprlist() : 0);
-   int k = 0;
-   pushenv("[struct]");
-   for (int i = 0; i < D->decls.size(); i++) {
-      for (int j = 0; j < D->decls[i]->items.size(); j++, k++) {
-         if (values and (k < values->size())) {
-            _curr = (*values)[k];
-         } else {
-            _curr = 0;
-         }
-         DeclStmt::Item item = D->decls[i]->items[j];
-         item.decl->accept(this);
-      }
-   }
-   Value *res = new Value(Value::Struct, D->type_str());
-   res->val.as_ptr = new Environment(_env.back());
-   popenv();
-   return res;
-}
-
-void Interpreter::visit_vardecl_struct(VarDecl *x, StructDecl *D) {
-   string struct_id = x->type->id->id;
-   auto it = _structs.find(struct_id);
-   if (it == _structs.end()) {
-      _error("El tipo '" + struct_id + "' no es una tupla");
-   }
-   if (_curr) {
-      if (_curr->kind != Value::ExprList) {
-         _error("Para inicializar una tupla hace falta una lista de expresiones entre '{' y '}'");
-         return;
-      }
-      vector<Value*> *values = _curr->exprlist();
-      assert(values != 0);
-      if (values->size() > D->num_fields()) {
-         _error("Demasiados valores al inicializar la tupla de tipo '" + struct_id + "'");
-         return;
-      }
-   }
-   setenv(x->name, visit_vardecl_struct_new(D, _curr));
-}
-
 void Interpreter::visit_vardecl(VarDecl *x) {
-   auto it = _structs.find(x->type->id->id);
-   bool is_struct = (it != _structs.end());
-   if (is_struct) {
-      visit_vardecl_struct(x, it->second);
-   } else {
-      if (_curr) {
-         if (_curr->kind == Value::Ref) {
-            _curr = _curr->ref();
-         }
-         string left = x->type->str(), right = _curr->type;
-         if (left != right) {
-            // Conversiones implícitas!
-            if (!(left == "float"  and right == "double") and
-                !(left == "double" and right == "float")) {
-               _error("Asignas el tipo '" + _curr->type + "' " +
-                      "a una variable de tipo '" + x->type->str() + "'");
-            }
-         }
-         _curr = new Value(*_curr);
-      } else {
-         _curr = new Value(Value::Unknown, x->type->str());
-      }
-      setenv(x->name, _curr);
-   } 
+   string type_name = x->type->str();
+   Type *type = Type::find(type_name);
+   if (type == 0) {
+      _error("El tipo '" + type_name + "' no existe.");
+   }
+   _curr = Reference::deref(_curr);
+   try {
+      setenv(x->name, (_curr.is_null() ? type->create() : type->convert(_curr)));
+   } catch (TypeError& e) {
+      _error(e.msg);
+   }
 }
 
 void Interpreter::visit_arraydecl(ArrayDecl *x) {
-   Value *init = _curr;
-
+   Value init = _curr;
    x->size->accept(this);
-   if (_curr->kind != Value::Int) {
+   if (!_curr.is<Int>()) {
       _error("El tamaño de una tabla debe ser un entero");
    }
-   if (_curr->val.as_int <= 0) {
+   if (_curr.as<Int>() <= 0) {
       _error("El tamaño de una tabla debe ser un entero positivo");
    }
-   const int sz = _curr->val.as_int;
-   Value *v = new Value(Value::Array, x->type_str());
-   vector<Value*> *vals = new vector<Value*>(sz);
-   string cell_type = x->type->str();
-   int num_inited = 0;
-   if (init) {
-      if (init->kind != Value::ExprList) {
-         _error("Inicializas una tabla con algo que no es una lista de valores");
-         return;
-      }
-      vector<Value*> *elist = init->exprlist();
-      assert(elist != 0);
-      if (elist->size() > sz) {
-         _error("Demasiados valores al inicializar la tabla");
-         return;
-      }
-      for (int i = 0; i < elist->size(); i++) {
-         if ((*elist)[i]->type != cell_type) {
-            ostringstream S;
-            S << "La inicialización de la casilla " << i 
-              << " tiene tipo '" << _curr->type << "'" 
-              << " cuando debería ser '" << cell_type << "'";
-            _error(S.str());
-         }
-         (*vals)[i] = (*elist)[i];
-      }
-      num_inited = elist->size();
+   const int sz = _curr.as<Int>();
+   Type *celltype = Type::find(x->type->str());
+   if (celltype == 0) {
+      _error("El tipo '" + x->type->str() + "' no existe");
    }
-   for (int i = num_inited; i < vals->size(); i++) {
-      auto it = _structs.find(cell_type);
-      (*vals)[i] = (it != _structs.end()
-                    ? visit_vardecl_struct_new(it->second, 0)
-                    : new Value(Value::Unknown, cell_type));
-   }
-   v->val.as_ptr = vals;
-   setenv(x->name, v);
+   Type *arraytype = Array::mktype(celltype, sz);
+   setenv(x->name, (init.is_null() 
+                    ? arraytype->create()
+                    : arraytype->convert(init)));
 }
 
 void Interpreter::visit_declstmt(DeclStmt* x) {
@@ -594,7 +499,7 @@ void Interpreter::visit_declstmt(DeclStmt* x) {
       if (item.init) {
          item.init->accept(this);
       } else {
-         _curr = 0;
+         _curr = Value::null;
       }
       item.decl->accept(this);
    }
@@ -609,10 +514,10 @@ void Interpreter::visit_exprstmt(ExprStmt* x) {
 
 void Interpreter::visit_ifstmt(IfStmt *x) {
    x->cond->accept(this);
-   if (_curr->kind != Value::Bool) {
+   if (!_curr.is<Bool>()) {
       _error("An if's condition needs to be a bool value");
    }
-   if (_curr->val.as_bool) {
+   if (_curr.as<Bool>()) {
       x->then->accept(this);
    } else {
       if (x->els != 0) {
@@ -628,11 +533,11 @@ void Interpreter::visit_iterstmt(IterStmt *x) {
    }
    while (true) {
       x->cond->accept(this);
-      if (_curr->kind != Value::Bool) {
+      if (!_curr.is<Bool>()) {
          _error(string("La condición de un '") + (x->is_for() ? "for" : "while") + 
                 "' debe ser un valor de tipo 'bool'");
       }
-      if (!_curr->val.as_bool) {
+      if (!_curr.as<Bool>()) {
          break;
       }
       x->substmt->accept(this);
@@ -658,13 +563,13 @@ FuncDecl *Interpreter::visit_callexpr_getfunc(CallExpr *x) {
 
 void Interpreter::visit_callexpr(CallExpr *x) {
    FuncDecl *func = visit_callexpr_getfunc(x);
-   vector<Value*> args;
+   vector<Value> args;
    for (int i = 0; i < x->args.size(); i++) {
       x->args[i]->accept(this);
       args.push_back(_curr);
    }
    invoke_func(func, args);
-   if (_ret == 0 && func->return_type->str() != "void") {
+   if (_ret == Value::null && func->return_type->str() != "void") {
       _error("La función '" + func->id->str() 
              + "' debería devolver un '" + func->return_type->str() + "'");
    }
@@ -672,56 +577,47 @@ void Interpreter::visit_callexpr(CallExpr *x) {
 
 void Interpreter::visit_indexexpr(IndexExpr *x) {
    x->base->accept(this);
-   if (_curr->kind == Value::Ref) {
-      _curr = _curr->ref();
+   _curr = Reference::deref(_curr);
+   if (!_curr.is<Array>() and !_curr.is<Vector>()) {
+      _error("Las expresiones de índice deben usarse sobre tablas o vectores");
    }
-   if (_curr->kind != Value::Array and _curr->kind != Value::Vector) {
-      _error("Las expresiones de índice debe usarse sobre tablas o vectores");
-   }
-   vector<Value*> *vals = static_cast<vector<Value*>*>(_curr->val.as_ptr);
+   vector<Value>& vals = (_curr.is<Array>() ? _curr.as<Array>() : _curr.as<Vector>());
    x->index->accept(this);
-   if (_curr->kind == Value::Ref) {
-      _curr = _curr->ref();
-   }
-   if (_curr->kind != Value::Int) {
+   _curr = Reference::deref(_curr);
+   if (!_curr.is<Int>()) {
       // FIXME: maps!
       _error("El índice en un acceso a tabla debe ser un entero");
    }
-   int i = _curr->val.as_int;
-   if (i < 0 || i >= vals->size()) {
+   const int i = _curr.as<Int>();
+   if (i < 0 || i >= vals.size()) {
       ostringstream S;
       S << "La casilla " << i << " no existe";
       _error(S.str());
    }
-   Value *v = (*vals)[i];
-   _curr = new Value(Value::Ref, v->type + "&");
-   _curr->val.as_ptr = v;
+   _curr = Reference::mkref(vals[i]);
 }
 
 void Interpreter::visit_fieldexpr(FieldExpr *x) {
    x->base->accept(this);
-   if (_curr->kind == Value::Ref) {
-      _curr = _curr->ref();
-   }
-   if (_curr->kind != Value::Struct) {
+   _curr = Reference::deref(_curr);
+   if (!_curr.is<Struct>()) {
       _error("El acceso a campos debe hacerse sobre tuplas u objetos");
    }
-   Environment *fields = static_cast<Environment*>(_curr->val.as_ptr);
-   Value *v = fields->get(x->field->id);
-   if (v == 0) {
+   SimpleTable<Value>& fields = _curr.as<Struct>();
+   Value v;
+   if (!fields.get(x->field->id, v)) {
       _error("No existe el campo '" + x->field->id + "'");
    }
-   _curr = new Value(Value::Ref, v->type + "&");
-   _curr->val.as_ptr = v;
+   _curr = Reference::mkref(v);
 }
 
 void Interpreter::visit_condexpr(CondExpr *x) {
    x->cond->accept(this);
-   if (_curr->kind != Value::Bool) {
+   if (!_curr.is<Bool>()) {
       _error("Una expresión condicional debe tener valor "
              "de tipo 'bool' antes del interrogante");
    }
-   if (_curr->val.as_bool) {
+   if (_curr.as<Bool>()) {
       x->then->accept(this);
    } else {
       if (x->els != 0) {
@@ -731,13 +627,13 @@ void Interpreter::visit_condexpr(CondExpr *x) {
 }
 
 void Interpreter::visit_exprlist(ExprList *x) {
-   vector<Value*> *v = new vector<Value*>();
+   Value v = VectorValue::make();
+   vector<Value>& vals = v.as<VectorValue>();
    for (Expr *e : x->exprs) {
       e->accept(this);
-      v->push_back(_curr);
+      vals.push_back(_curr);
    }
-   _curr = new Value(Value::ExprList, "ExprList");
-   _curr->val.as_ptr = v;
+   _curr = v;
 }
 
 void Interpreter::visit_signexpr(SignExpr *x) {
@@ -745,56 +641,43 @@ void Interpreter::visit_signexpr(SignExpr *x) {
    if (x->kind == SignExpr::Positive) {
       return;
    }
-   if (_curr->kind == Value::Ref) {
-      _curr = static_cast<Value*>(_curr->val.as_ptr);
-   }
-   switch (_curr->kind) {
-   case Value::Int:
-      _curr->val.as_int = -_curr->val.as_int;
-      break;
-
-   case Value::Float:
-      _curr->val.as_float = -_curr->val.as_float;
-      break;
-
-   case Value::Double:
-      _curr->val.as_double = -_curr->val.as_double;
-      break;
-
-   default:
-      _error("El cambio de signo para '" + _curr->type + "' no tiene sentido");
+   _curr = Reference::deref(_curr);
+   if (_curr.is<Int>()) {
+      _curr.as<Int>() = -_curr.as<Int>();
+   } else if (_curr.is<Float>()) {
+      _curr.as<Float>() = -_curr.as<Float>();
+   } else if (_curr.is<Double>()) {
+      _curr.as<Double>() = -_curr.as<Double>();
+   } else {
+      _error("El cambio de signo para '" + _curr.type_name() + "' no tiene sentido");
    }
 }
 
 void Interpreter::visit_increxpr(IncrExpr *x) {
    x->expr->accept(this);
-   if (_curr->kind != Value::Ref) {
+   if (!_curr.is<Reference>()) {
       _error("Hay que incrementar una variable, no un valor");
    }
-   Value *target = static_cast<Value*>(_curr->val.as_ptr);
-   Value *before = new Value(*target);
-   switch (target->kind) {
-   case Value::Int:
+   Value after  = Reference::deref(_curr);
+   Value before = after.clone();
+   if (after.is<Int>()) {
       if (x->kind == IncrExpr::Positive) {
-         target->val.as_int++;
+         after.as<Int>()++;
       } else {
-         target->val.as_int--;
+         after.as<Int>()--;
       }
-      break;
-
-   default:
-      _error("Estás incrementando un valor de tipo '" + target->type + "'");
+   } else {
+      _error("Estás incrementando un valor de tipo '" + after.type_name() + "'");
    }
-   Value *after = target;
    _curr = (x->preincr ? before : after);
 }
 
 void Interpreter::visit_negexpr(NegExpr *x) {
    x->expr->accept(this);
-   if (_curr->kind != Value::Bool) {
+   if (!_curr.is<Bool>()) {
       _error("Para negar una expresión ésta debe ser de tipo 'bool'");
    }
-   _curr->val.as_bool = !_curr->val.as_bool;
+   _curr.as<Bool>() = !_curr.as<Bool>();
 }
 
 void Interpreter::visit_objdecl_vector(ObjDecl *x) {
@@ -803,40 +686,44 @@ void Interpreter::visit_objdecl_vector(ObjDecl *x) {
    } else if (x->args.size() > 2) {
       _error(_T("The vector constructor receives at most 2 parameters."));
    }
+   vector<Value> args;
    x->args[0]->accept(this);
-   if (_curr->kind != Value::Int) {
+   if (!_curr.is<Int>()) {
       _error(_T("The size of a vector must be an integer."));
    }
-   if (_curr->val.as_int <= 0) {
+   const int sz = _curr.as<Int>();
+   if (sz <= 0) {
       _error(_T("The size of a vector must be a positive integer."));
    }
-   const int sz = _curr->val.as_int;
-   Value *init = 0;
+   args.push_back(_curr);
+   TypeSpec *celltype = x->type->id->subtypes[0];
+   string cell_typename = celltype->str();
+   Value init;
    if (x->args.size() == 2) { // initialization
       x->args[1]->accept(this);
       init = _curr;
    } else {
-      // Valor por defecto para cada tipo
-      TypeSpec *celltype = x->type->id->subtypes[0];
-      if (celltype->str() == "int") {
-         init = new Value(0);
-      } else if (celltype->str() == "bool") {
-         init = new Value(false);
-      } else if (celltype->str() == "float") {
-         init = new Value(0.0f);
-      } else if (celltype->str() == "double") {
-         init = new Value(0.0);
-      } else if (celltype->str() == "char") {
-         init = new Value('\0');
+      // Valor por defecto para cada tipo controlado por vector!
+      if (cell_typename == "int") {
+         init = Value(0);
+      } else if (cell_typename == "bool") {
+         init = Value(false);
+      } else if (cell_typename == "float") {
+         init = Value(0.0f);
+      } else if (cell_typename == "double") {
+         init = Value(0.0);
+      } else if (cell_typename == "char") {
+         init = Value('\0');
+      } else {
+         init = Type::find(cell_typename)->create();
       }
    }
-   Value *v = new Value(Value::Vector, x->type->str());
-   vector<Value*> *vec = new vector<Value*>(sz);
-   for (Value *&v : *vec) {
-      v = new Value(*init);
+   args.push_back(init);
+   Type *vtype = Type::find(x->type->str());
+   if (vtype == 0) {
+      vtype = new Vector(Type::find(cell_typename)); // will auto-register
    }
-   v->val.as_ptr = vec;
-   setenv(x->name, v);
+   setenv(x->name, vtype->construct(args));
 }
 
 void Interpreter::visit_objdecl(ObjDecl *x) {

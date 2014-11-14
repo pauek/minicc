@@ -430,6 +430,7 @@ struct StructDecl : public AstNode {
    StructDecl() : id(0) {}
    void accept(AstVisitor *v);
    bool has_errors() const;
+   std::string struct_name() const { return id->id; }
    std::string type_str() const;
    int num_fields() const;
 };

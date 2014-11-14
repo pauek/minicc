@@ -3,48 +3,93 @@
 
 #include <cstring>
 #include "ast.hh"
-
-struct refcounted {
-   int count;
-};
+#include "util.hh"
 
 struct Type;
-class Value_ { // new value
+class Value { // new value
    struct Box {
       int         count;
       const Type *type;
       void       *data;
-      Box(const Type *t, void *d) : count(0), type(t), data(d) {}
+
       Box() : count(0), type(0), data(0) {}
+      Box(const Type *t, void *d) : count(0), type(t), data(d) {}
    };
    Box *_box;
 
    void _detach(Box *b);
    void _attach(Box *b);
 
+   explicit Value(Box *box);
+
 public:
-   Value_(const Type *t = 0, void *d = 0);
+   explicit Value() : _box(0) {}
+   explicit Value(const Type *t, void *d);
+   Value(const Value& v);
 
-   Value_(int x);
-   Value_(char x);
-   Value_(bool x);
-   Value_(float x);
-   Value_(double x);
-   Value_(const char *x); // string!
+   explicit Value(int x);
+   explicit Value(char x);
+   explicit Value(bool x);
+   explicit Value(float x);
+   explicit Value(double x);
+   explicit Value(std::string x);
+   explicit Value(const char *x); // string!
+   explicit Value(std::ostream& o);
+   explicit Value(std::istream& i);
 
-   const Type *type() const { return _box->type; }
+   ~Value();
+
+   const Type *type() const { return (_box == 0 ? 0 : _box->type); }
 
    template<typename T> bool is() const;
-   template<typename T> typename T::cpp_type as() const;
-   bool is(Type *t) const { return _box->type == t; }
+   template<typename T> typename T::cpp_type& as() const;
+   bool has_type(const Type *t) const { return _box->type == t; }
 
-   ~Value_();
+   static Value null;
+   bool is_null() const { return _box == 0; }
 
-   Value_(const Value_& v);
-   const Value_& operator=(const Value_& v);
+   std::string type_name() const;
+
+   bool same_type_as(const Value& v) const { 
+      return _box->type == v._box->type; 
+   }
+   
+   // This means "it is the same object" (the same Box), like in Java
+   const bool operator==(const Value& v) const {
+      return _box == v._box;
+   }
+   bool equals(const Value& v) const; // Comparison of data
+
+   const Value& operator=(const Value& v); // copies reference, not Box!
+   bool assign(const Value& v); // copies content of Box
+   Value clone() const;
+
+   void write(std::ostream& o) const;
+   void read(std::istream& i);
+   std::string to_json() const;
 
    friend class Reference;
 };
+
+std::ostream& operator<<(std::ostream& o, const Value& v);
+std::istream& operator>>(std::istream& o, Value& v);
+
+
+struct Environment : public SimpleTable<Value> {
+   std::string name;
+   bool        active;
+public:
+   Environment(std::string n) : name(n), active(false) {}
+   std::string to_json() const;
+};
+
+std::string json_encode(std::string s);
+
+extern Value Cout, Cin, Cerr, Endl;
+
+#endif
+
+/*
 
 struct Value 
 {
@@ -107,50 +152,9 @@ struct Value
 };
 
 bool operator==(const Value& a, const Value& b);
-std::ostream& operator<<(std::ostream& o, const Value& v);
-std::istream& operator>>(std::istream& o, Value& v);
 
 inline bool operator!=(const Value& a, const Value& b) {
    return !operator==(a, b);
 }
 
-struct Environment {
-   struct Item {
-      std::string  name;
-      Value       *value;
-      bool         hidden;
-      Item(std::string n, Value *v, bool h = false)
-         : name(n), value(v), hidden(h) {}
-   };
-
-   bool              active;
-   std::string       name;
-   std::vector<Item> tab;
-
-   Item *_get(std::string name);
-
-public:
-   Environment(std::string n) : name(n), active(false) {}
-
-   void set(std::string name, Value *v, bool hidden = false) {
-      Item *i = _get(name);
-      if (i == 0) {
-         tab.push_back(Item(name, v, hidden));
-      } else {
-         i->value = v;
-      }
-   }
-
-   Value *get(std::string name) {
-      Item *i = _get(name);
-      return (i ? i->value : 0);
-   }
-
-   void to_json(std::ostream& o) const;
-   std::map<std::string,Value*> *as_map() const;
-};
-
-std::string json_encode(std::string s);
-
-#endif
-
+*/

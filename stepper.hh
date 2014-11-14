@@ -27,7 +27,7 @@ class Stepper : public AstVisitor {
                  EvalError*  _err;
 
           void _e() const { assert(!_stack.empty()); }
-          void prepare_funcall(FuncDecl *, std::vector<Value*>&);
+          void prepare_funcall(FuncDecl *, std::vector<Value>&);
           void _error(std::string msg) { _errors.push_back(msg); }
 
           void eval(AstNode *x) { x->accept(&I); }
@@ -103,8 +103,8 @@ public:
 
    struct AssignmentVisitState : public StepperState {
       BinaryExpr *x;
-      Value *left, *right;
-      AssignmentVisitState(BinaryExpr *_x, Value *r) : x(_x), right(r), left(0) {}
+      Value left, right;
+      AssignmentVisitState(BinaryExpr *_x, Value r) : x(_x), right(r) {}
       Todo step(Stepper *S);
       Range span() const;
    };
@@ -140,7 +140,7 @@ public:
       int curr;
       FuncDecl *fn;
       CallExpr *x;
-      std::vector<Value*> args;
+      std::vector<Value> args;
       CallExprVisitState(CallExpr *_x, FuncDecl *f) : x(_x), fn(f), curr(0) {
          args.resize(x->args.size());
       }
