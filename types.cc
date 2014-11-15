@@ -70,7 +70,7 @@ Value Reference::mkref(Value& v) {
    return Value(type, (void*)b);
 }
 
-Value Reference::deref(Value& v) {
+Value Reference::deref(const Value& v) {
    if (v.is<Reference>()) {
       Value::Box *b = (Value::Box*)v._box->data;
       return Value(b);
@@ -154,9 +154,10 @@ Value Vector::construct(const vector<Value>& args) const {
    assert(args[0].is<Int>());
    const int sz = args[0].as<Int>();
    vector<Value> *vec = new vector<Value>(sz);
+   Value arg1 = Reference::deref(args[1]);
    for (int i = 0; i < sz; i++) {
       (*vec)[i] = (args.size() == 2 
-                   ? _celltype->convert(args[1]) 
+                   ? _celltype->convert(arg1) 
                    : _celltype->create());
    }
    return Value(this, vec);
@@ -231,20 +232,38 @@ Value Struct::create() const {
 }
 
 Value Struct::convert(Value init) const {
-   if (!init.is<VectorValue>()) {
-      _error("Para inicializar una tupla hace falta una lista de expresiones entre '{' y '}'");
+   if (init.has_type(this)) {
+      return init.clone();
    }
-   vector<Value>& values = init.as<VectorValue>();
-   if (values.size() > _fields.size()) {
-      _error("Demasiados valores al inicializar la tupla de tipo '" + _name + "'");
+   if (init.is<VectorValue>()) {
+      vector<Value>& values = init.as<VectorValue>();
+      if (values.size() > _fields.size()) {
+         _error("Demasiados valores al inicializar la tupla de tipo '" + _name + "'");
+      }
+      SimpleTable<Value> *tab = new SimpleTable<Value>();
+      int k = 0;
+      for (int i = 0; i < _fields.size(); i++) {
+         pair<std::string, Type *> f = _fields[i];
+         tab->set(f.first, (i < values.size() 
+                            ? f.second->convert(values[i])
+                            : f.second->create()));
+      }
+      return Value(this, tab);
    }
-   SimpleTable<Value> *tab = new SimpleTable<Value>();
-   int k = 0;
-   for (int i = 0; i < _fields.size(); i++) {
-      pair<std::string, Type *> f = _fields[i];
-      tab->set(f.first, (i < values.size() 
-                         ? f.second->convert(values[i])
-                         : f.second->create()));
+   _error("Para inicializar una tupla hace falta otra tupla igual"
+          " o una lista de expresiones entre '{' y '}'");
+   return Value::null;
+}
+
+void *Struct::clone(void *data) const {
+   // The copy constructor in SimpleTable<Value> doesn't clone Values
+   // which is what we want here
+   //
+   SimpleTable<Value> *from = static_cast<SimpleTable<Value>*>(data);
+   SimpleTable<Value> *to   = new SimpleTable<Value>();
+   for (int i = 0; i < from->size(); i++) {
+      const pair<string, Value>& f = (*from)[i];
+      to->set(f.first, f.second.clone());
    }
-   return Value(this, tab);
+   return to;
 }

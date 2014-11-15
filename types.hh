@@ -136,7 +136,7 @@ public:
    Value convert(Value init) const;
 
    static Value mkref(Value& v);  // create a reference to a value
-   static Value deref(Value& v);  // obtain the referenced value
+   static Value deref(const Value& v);  // obtain the referenced value
 
    std::string to_json(void *data) {
       Value::Box *b = (Value::Box*)data;
@@ -221,6 +221,7 @@ public:
 
    int   properties() const { return Internal; }
    Value create()     const;
+   void *clone(void *data) const;
    Value convert(Value init) const;
 
    std::string name() const { return _name; }
