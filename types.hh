@@ -4,6 +4,7 @@
 #include <vector>
 #include <map>
 #include <sstream>
+#include "ast.hh"
 #include "value.hh"
 
 using std::string;
@@ -38,11 +39,15 @@ public:
    template<typename T>
    bool is() const { return dynamic_cast<const T*>(this) != 0; }
 
+   template<typename T>
+   const T *as() const { return dynamic_cast<const T*>(this); }
+
    friend class Value;
    friend class Reference;
 
    // Type registry   
    static void register_type(Type *);
+   static Type *find(TypeSpec *);
    static Type *find(std::string);
 private:
    static std::map<std::string, Type*> _typemap;
@@ -210,6 +215,62 @@ class Vector : public BaseType<std::vector<Value>> {
    std::string name() const { return std::string("vector<") + _celltype->name() + ">"; }
 
    std::string to_json(void *data) const;
+};
+
+typedef Value (*CppFunc)(const std::vector<Value>& args);
+typedef Value (*CppMethod)(void *, const std::vector<Value>& args);
+
+struct FuncInfo {
+   std::string name;
+   CppFunc   f;
+   CppMethod m;
+   FuncDecl  *d;
+   FuncInfo(std::string n, CppFunc    x) : name(n), f(x), m(0), d(0) {}
+   FuncInfo(std::string n, CppMethod  x) : name(n), f(0), m(x), d(0) {}
+   FuncInfo(std::string n, FuncDecl  *x) : name(n), f(0), m(0), d(x) {}
+
+   bool operator==(const FuncInfo& x) const {
+      return f == x.f && m == x.m && d == x.d;
+   }
+};
+
+class Function : public BaseType<FuncInfo> {
+   Type *_return_type;
+   std::vector<Type*> _param_types;
+public:
+   Function(Type *ret_type) : _return_type(ret_type) {}
+   void add_param(Type *t) { _param_types.push_back(t); }
+
+   Function(Type *ret_type, Type *arg1) 
+      : _return_type(ret_type), _param_types(1) 
+   {
+      _param_types[0] = arg1;
+   }
+   Function(Type *ret_type, Type *arg1, Type *arg2) 
+      : _return_type(ret_type), _param_types(2) 
+   {
+      _param_types[0] = arg1;
+      _param_types[1] = arg2;
+   }
+   Function(Type *ret_type, Type *arg1, Type *arg2, Type *arg3) 
+      : _return_type(ret_type), _param_types(3) 
+   {
+      _param_types[0] = arg1;
+      _param_types[1] = arg2;
+      _param_types[2] = arg3;
+   }
+
+   int properties() const { return Internal; }
+   std::string name() const;
+
+   Type *return_type() const { return _return_type; }
+   bool is_void() const { return _return_type == 0; }
+
+   Value mkvalue(std::string name, CppFunc f)    { return Value(this, new FuncInfo(name, f)); }
+   Value mkvalue(std::string name, CppMethod m)  { return Value(this, new FuncInfo(name, m)); }
+   Value mkvalue(std::string name, FuncDecl *fd) { return Value(this, new FuncInfo(name, fd)); }
+
+   typedef FuncInfo cpp_type;
 };
 
 class Struct : public BaseType<SimpleTable<Value>> {

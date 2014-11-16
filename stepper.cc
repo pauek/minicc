@@ -49,12 +49,10 @@ void Stepper::visit_fieldexpr(FieldExpr *x)   { x->accept(&I); }
 
 void Stepper::visit_program(Program *x) {
    I.visit_program_prepare(x);
-   FuncDecl *main = I.visit_program_find_main();
-   if (main == 0) {
-      _error(_T("The 'main' function does not exist."));
-   }
+   I.visit_program_find_main();
    status(_T("The program begins."));
    I.pushenv("main");
+   FuncDecl *main = I._curr.as<Function>().d;
    I.invoke_func_prepare(main, vector<Value>());
    I._env.back().active = true;
    push(new ProgramVisitState(main));
@@ -316,7 +314,10 @@ Todo Stepper::AssignmentVisitState::step(Stepper *S) {
 }
 
 void Stepper::visit_callexpr(CallExpr *x) {
-   FuncDecl *fn = I.visit_callexpr_getfunc(x);
+   I.visit_callexpr_getfunc(x);
+   const FuncInfo& info = I._curr.as<Function>();
+   FuncDecl *fn = info.d;
+   assert(fn != 0);
    CallExprVisitState *s = new CallExprVisitState(x, fn);
    vector<Value> args(fn->params.size(), Value::null);
    I.pushenv(fn->id->str());

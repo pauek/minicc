@@ -29,6 +29,18 @@ Value Endl("\n");
 
 // Methods
 
+Type *Type::find(TypeSpec *spec) {
+   auto it = _typemap.find(spec->id->str());
+   if (it == _typemap.end()) {
+      return 0;
+   }
+   Type *type = it->second;
+   if (spec->reference) {
+      type = new Reference(type);
+   }
+   return type;
+}
+
 void Type::register_type(Type *t) {
    const string name = t->name();
    assert(_typemap.find(name) == _typemap.end());
@@ -266,4 +278,20 @@ void *Struct::clone(void *data) const {
       to->set(f.first, f.second.clone());
    }
    return to;
+}
+
+string Function::name() const {
+   ostringstream o;
+   o << "func(";
+   for (int i = 0; i < _param_types.size(); i++) {
+      if (i > 0) {
+         o << ",";
+      }
+      o << _param_types[i]->name();
+   }
+   o << ")";
+   if (_return_type) {
+      o << ":" << _return_type->name();
+   }
+   return o.str();
 }

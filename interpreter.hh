@@ -41,13 +41,13 @@ std::string env2json() const;
      Value new_value_from_structdecl(StructDecl *x);
 
      void  invoke_func_prepare(FuncDecl *x, const std::vector<Value>& args);
-     void  invoke_func(FuncDecl *, const std::vector<Value>&);
+     void  invoke_func(const std::vector<Value>&);
 
      void  visit_program_prepare(Program *x);
- FuncDecl *visit_program_find_main();
+     void  visit_program_find_main();
      void  visit_binaryexpr_assignment(Value left, Value right);
      void  visit_binaryexpr_op_assignment(char, Value left, Value right);
- FuncDecl *visit_callexpr_getfunc(CallExpr *x);
+     void  visit_callexpr_getfunc(CallExpr *x);
 
    template<class Op>
      bool  visit_op_assignment(Value left, Value right);

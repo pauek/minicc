@@ -52,10 +52,6 @@ void Interpreter::invoke_func_prepare(FuncDecl *fn, const vector<Value>& args) {
       _error("Error en el número de argumentos al llamar a '" + fn->id->str() + "'");
    }
    for (int i = 0; i < args.size(); i++) {
-      /*if (args[i] == 0) {
-         string type = fn->params[i]->type->str();
-         setenv(fn->params[i]->name, Value(Type::find(type)));
-      } else */
       if (args[i].is<Reference>()) {
          Value v = args[i];
          if (!fn->params[i]->type->reference) {
@@ -73,11 +69,19 @@ void Interpreter::invoke_func_prepare(FuncDecl *fn, const vector<Value>& args) {
    }
 }
 
-void Interpreter::invoke_func(FuncDecl *fn, const vector<Value>& args) {
-   pushenv(fn->id->str());
-   invoke_func_prepare(fn, args);
-   fn->block->accept(this);
-   popenv();
+void Interpreter::invoke_func(const vector<Value>& args) {
+   assert(_curr.is<Function>());
+   const FuncInfo& info = _curr.as<Function>();
+   if (info.d) {
+      pushenv(info.d->id->str());
+      invoke_func_prepare(info.d, args);
+      info.d->block->accept(this);
+      popenv();
+   } else if (info.f) {
+      _ret = (*info.f)(args);
+   } else if (info.m) {
+      assert(false);
+   }
 }
 
 
@@ -95,19 +99,19 @@ void Interpreter::visit_program_prepare(Program *x) {
    }
 }
 
-FuncDecl *Interpreter::visit_program_find_main() {
-   auto it = _funcs.find("main");
-   return (it == _funcs.end() ? 0 : it->second);
+void Interpreter::visit_program_find_main() {
+   if (!getenv("main", _curr)) {
+      _error(_T("The '%s' function does not exist.", "main"));
+   }
+   if (!_curr.is<Function>()) {
+      _error("'main' is not a function.");
+   }
 }
 
 void Interpreter::visit_program(Program* x) {
    visit_program_prepare(x);
-   FuncDecl *main = visit_program_find_main();
-   if (main == 0) {
-      _error(_T("The '%s' function does not exist.", "main"));
-   } else {
-      invoke_func(main, vector<Value>());
-   }
+   visit_program_find_main();
+   invoke_func(vector<Value>());
 }
 
 void Interpreter::visit_comment(CommentSeq* cn) {}
@@ -122,10 +126,16 @@ void Interpreter::visit_include(Include* x) {
 }
 
 void Interpreter::visit_funcdecl(FuncDecl *x) {
-   auto it = _funcs.insert(make_pair(x->id->str(), x));
-   if (!it.second) {
-      _error("La función de nombre '" + x->id->str() + "' ya existía");
+   string funcname = x->id->str();
+   Type *return_type = Type::find(x->return_type->str());
+   // if return_type is 0 means 'void'
+   Function *functype = new Function(return_type);
+   for (auto p : x->params) {
+      Type *param_type = Type::find(p->type);
+      assert(param_type != 0);
+      functype->add_param(param_type);
    }
+   setenv(x->id->str(), functype->mkvalue(funcname, x));
 }
 
 void Interpreter::visit_structdecl(StructDecl *x) {
@@ -133,7 +143,7 @@ void Interpreter::visit_structdecl(StructDecl *x) {
    Struct *type = new Struct(x->struct_name());
    for (int i = 0; i < x->decls.size(); i++) {
       DeclStmt& decl = *x->decls[i];
-      Type *field_type = Type::find(decl.type->str());
+      Type *field_type = Type::find(decl.type);
       assert(type != 0);
       for (DeclStmt::Item& item : decl.items) {
          if (item.decl->is<ArrayDecl>()) {
@@ -462,7 +472,7 @@ void Interpreter::visit_block(Block *x) {
 
 void Interpreter::visit_vardecl(VarDecl *x) {
    string type_name = x->type->str();
-   Type *type = Type::find(type_name);
+   Type *type = Type::find(x->type);
    if (type == 0) {
       _error("El tipo '" + type_name + "' no existe.");
    }
@@ -484,7 +494,7 @@ void Interpreter::visit_arraydecl(ArrayDecl *x) {
       _error("El tamaño de una tabla debe ser un entero positivo");
    }
    const int sz = _curr.as<Int>();
-   Type *celltype = Type::find(x->type->str());
+   Type *celltype = Type::find(x->type);
    if (celltype == 0) {
       _error("El tipo '" + x->type->str() + "' no existe");
    }
@@ -548,30 +558,29 @@ void Interpreter::visit_iterstmt(IterStmt *x) {
    popenv();
 }
 
-FuncDecl *Interpreter::visit_callexpr_getfunc(CallExpr *x) {
-   Ident *fn = dynamic_cast<Ident*>(x->func);
-   if (fn == 0) {
-      _error(_T("Indirect call to functions is not implemented"));
+void Interpreter::visit_callexpr_getfunc(CallExpr *x) {
+   x->func->accept(this);
+   _curr = Reference::deref(_curr);
+   if (!_curr.is<Function>()) {
+      _error(_T("Calling something other than a function."));
    }
-   auto it = _funcs.find(fn->id);
-   if (it == _funcs.end()) {
-      _error(_T("The '%s' function does not exist.", fn->id.c_str()));
-      return 0;
-   }
-   return it->second;
 }
 
 void Interpreter::visit_callexpr(CallExpr *x) {
-   FuncDecl *func = visit_callexpr_getfunc(x);
+   visit_callexpr_getfunc(x);
+   Value func = _curr;
+   const FuncInfo& info = _curr.as<Function>();
    vector<Value> args;
    for (int i = 0; i < x->args.size(); i++) {
       x->args[i]->accept(this);
       args.push_back(_curr);
    }
-   invoke_func(func, args);
-   if (_ret == Value::null && func->return_type->str() != "void") {
-      _error("La función '" + func->id->str() 
-             + "' debería devolver un '" + func->return_type->str() + "'");
+   _curr = func;
+   invoke_func(args);
+   if (_ret == Value::null && !func.type()->as<Function>()->is_void()) {
+      Type *return_type = func.type()->as<Function>()->return_type();
+      _error("La función '" + func.as<Function>().name
+             + "' debería devolver un '" + return_type->name() + "'");
    }
 }
 
@@ -715,13 +724,13 @@ void Interpreter::visit_objdecl_vector(ObjDecl *x) {
       } else if (cell_typename == "char") {
          init = Value('\0');
       } else {
-         init = Type::find(cell_typename)->create();
+         init = Type::find(celltype)->create();
       }
    }
    args.push_back(init);
-   Type *vtype = Type::find(x->type->str());
+   Type *vtype = Type::find(x->type);
    if (vtype == 0) {
-      vtype = new Vector(Type::find(cell_typename)); // will auto-register
+      vtype = new Vector(Type::find(celltype)); // will auto-register
    }
    setenv(x->name, vtype->construct(args));
 }
