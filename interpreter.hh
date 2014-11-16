@@ -15,24 +15,26 @@ struct EvalError {
    EvalError(std::string _msg) : msg(_msg) {}
 };
 
-class Interpreter : public AstVisitor, public ReadWriter {
+class Interpreter : public AstVisitor, public ReadWriter 
+{
                       Value _curr, _ret;
    std::vector<Environment> _env;
 
-   bool  is_struct(std::string name) {
-      Type *t = Type::find(name);
-      return t != 0 and t->is<Struct>();
-   }
+     bool  is_struct(std::string name) {
+        Type *t = Type::find(name);
+        return t != 0 and t->is<Struct>();
+     }
 
-   void  pushenv(std::string name) { _env.push_back(Environment(name));  }
-   void  popenv();
-   void  actenv();
-   void  setenv(std::string id, Value v, bool hidden = false);
-   bool  getenv(std::string id, Value& v);
+     void  pushenv(std::string name) { _env.push_back(Environment(name));  }
+     void  popenv();
+     void  actenv();
+     void  setenv(std::string id, Value v, bool hidden = false);
+     bool  getenv(std::string id, Value& v);
 
-std::string env2json() const;
+    std::string 
+           env2json() const;
 
-    void _error(std::string msg) {
+    void   _error(std::string msg) {
        throw new EvalError(msg);
     }
 
