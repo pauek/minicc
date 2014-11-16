@@ -6,3 +6,4 @@ minicc.js.mem
 *.o
 *.bc
 doc
+.depend
