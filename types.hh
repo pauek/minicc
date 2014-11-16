@@ -238,18 +238,13 @@ class Function : public BaseType<FuncInfo> {
    Type *_return_type;
    std::vector<Type*> _param_types;
 public:
-   Function(Type *ret_type) : _return_type(ret_type) {}
-   void add_param(Type *t) { _param_types.push_back(t); }
+   Function(Type *t) : _return_type(t) {}
+   void add_param(Type *t)       { _param_types.push_back(t); }
+   Type *return_type()     const { return _return_type; }
+   bool is_void()          const { return _return_type == 0; }
 
    int properties() const { return Internal; }
    std::string name() const;
-
-   Type *return_type() const { return _return_type; }
-   bool is_void() const { return _return_type == 0; }
-
-   Value mkvalue(std::string name, CppFunc f)    { return Value(this, new FuncInfo(name, f)); }
-   Value mkvalue(std::string name, CppMethod m)  { return Value(this, new FuncInfo(name, m)); }
-   Value mkvalue(std::string name, FuncDecl *fd) { return Value(this, new FuncInfo(name, fd)); }
 
    typedef FuncInfo cpp_type;
 };

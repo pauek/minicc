@@ -135,7 +135,7 @@ void Interpreter::visit_funcdecl(FuncDecl *x) {
       assert(param_type != 0);
       functype->add_param(param_type);
    }
-   setenv(x->id->str(), functype->mkvalue(funcname, x));
+   setenv(x->id->str(), Value(functype, new FuncInfo(funcname, x)));
 }
 
 void Interpreter::visit_structdecl(StructDecl *x) {
@@ -609,15 +609,16 @@ void Interpreter::visit_indexexpr(IndexExpr *x) {
 void Interpreter::visit_fieldexpr(FieldExpr *x) {
    x->base->accept(this);
    _curr = Reference::deref(_curr);
-   if (!_curr.is<Struct>()) {
-      _error("El acceso a campos debe hacerse sobre tuplas u objetos");
+   if (_curr.is<Struct>()) {
+      SimpleTable<Value>& fields = _curr.as<Struct>();
+      Value v;
+      if (!fields.get(x->field->id, v)) {
+         _error("No existe el campo '" + x->field->id + "'");
+      }
+      _curr = Reference::mkref(v);
+      return;
    }
-   SimpleTable<Value>& fields = _curr.as<Struct>();
-   Value v;
-   if (!fields.get(x->field->id, v)) {
-      _error("No existe el campo '" + x->field->id + "'");
-   }
-   _curr = Reference::mkref(v);
+   _error("El acceso a campos debe hacerse sobre tuplas u objetos");
 }
 
 void Interpreter::visit_condexpr(CondExpr *x) {
