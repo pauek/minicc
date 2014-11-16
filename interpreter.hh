@@ -16,10 +16,8 @@ struct EvalError {
 };
 
 class Interpreter : public AstVisitor, public ReadWriter {
-    Value _curr, _ret;
-
-            std::vector<Environment> _env;
-    std::map<std::string, FuncDecl*> _funcs;
+                      Value _curr, _ret;
+   std::vector<Environment> _env;
 
    bool  is_struct(std::string name) {
       Type *t = Type::find(name);
