@@ -241,25 +241,6 @@ public:
    Function(Type *ret_type) : _return_type(ret_type) {}
    void add_param(Type *t) { _param_types.push_back(t); }
 
-   Function(Type *ret_type, Type *arg1) 
-      : _return_type(ret_type), _param_types(1) 
-   {
-      _param_types[0] = arg1;
-   }
-   Function(Type *ret_type, Type *arg1, Type *arg2) 
-      : _return_type(ret_type), _param_types(2) 
-   {
-      _param_types[0] = arg1;
-      _param_types[1] = arg2;
-   }
-   Function(Type *ret_type, Type *arg1, Type *arg2, Type *arg3) 
-      : _return_type(ret_type), _param_types(3) 
-   {
-      _param_types[0] = arg1;
-      _param_types[1] = arg2;
-      _param_types[2] = arg3;
-   }
-
    int properties() const { return Internal; }
    std::string name() const;
 
