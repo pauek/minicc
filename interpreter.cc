@@ -579,7 +579,7 @@ void Interpreter::visit_callexpr(CallExpr *x) {
    invoke_func(args);
    if (_ret == Value::null && !func.type()->as<Function>()->is_void()) {
       Type *return_type = func.type()->as<Function>()->return_type();
-      _error("La función '" + func.as<Function>().name
+      _error("La función '" + func.as<Function>().funcname
              + "' debería devolver un '" + return_type->name() + "'");
    }
 }

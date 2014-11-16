@@ -221,13 +221,13 @@ typedef Value (*CppFunc)(const std::vector<Value>& args);
 typedef Value (*CppMethod)(void *, const std::vector<Value>& args);
 
 struct FuncInfo {
-   std::string name;
+   std::string funcname;
    CppFunc   f;
    CppMethod m;
    FuncDecl  *d;
-   FuncInfo(std::string n, CppFunc    x) : name(n), f(x), m(0), d(0) {}
-   FuncInfo(std::string n, CppMethod  x) : name(n), f(0), m(x), d(0) {}
-   FuncInfo(std::string n, FuncDecl  *x) : name(n), f(0), m(0), d(x) {}
+   FuncInfo(std::string n, CppFunc    x) : funcname(n), f(x), m(0), d(0) {}
+   FuncInfo(std::string n, CppMethod  x) : funcname(n), f(0), m(x), d(0) {}
+   FuncInfo(std::string n, FuncDecl  *x) : funcname(n), f(0), m(0), d(x) {}
 
    bool operator==(const FuncInfo& x) const {
       return f == x.f && m == x.m && d == x.d;
