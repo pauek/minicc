@@ -334,6 +334,26 @@ map<string, pair<std::function<Type *(Type *)>, Type::Method>> Vector::_methods 
             return Value::null;
          }
       }
+   }, {
+      "front", {
+         [](Type *celltype) -> Function * {
+            return (new Function(celltype));
+         },
+         [](void *data, const vector<Value>& args) -> Value {
+            vector<Value> *v = static_cast<vector<Value>*>(data);
+            return Reference::mkref(v->front());
+         }
+      }
+   }, {
+      "back", {
+         [](Type *celltype) -> Function * {
+            return (new Function(celltype));
+         },
+         [](void *data, const vector<Value>& args) -> Value {
+            vector<Value> *v = static_cast<vector<Value>*>(data);
+            return Reference::mkref(v->back());
+         }
+      }
    }
 };
 
