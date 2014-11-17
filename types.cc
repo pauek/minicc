@@ -314,14 +314,23 @@ map<string, pair<std::function<Type *(Type *)>, Type::Method>> Vector::_methods 
       "push_back", {
          // creates the type for 'size'
          [](Type *celltype) -> Function * { 
-            Function *f = new Function(0); 
-            f->add_param(celltype);
-            return f;
+            return (new Function(0))->add_param(celltype);
          },
          // executes the 'push_back' method
          [](void *data, const vector<Value>& args) -> Value {
             vector<Value> *v = static_cast<vector<Value>*>(data);
             v->push_back(args[0]);
+            return Value::null;
+         }
+      }
+   }, {
+      "resize", {
+         [](Type *celltype) -> Function * {
+            return (new Function(0))->add_param(Type::find("int"));
+         },
+         [](void *data, const vector<Value>& args) -> Value {
+            vector<Value> *v = static_cast<vector<Value>*>(data);
+            v->resize(args[0].as<Int>());
             return Value::null;
          }
       }

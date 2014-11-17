@@ -223,7 +223,19 @@ class Function : public BaseType<FuncValue> {
    std::vector<Type*> _param_types;
 public:
    Function(Type *t) : _return_type(t) {}
-   void add_param(Type *t)       { _param_types.push_back(t); }
+   Function *add_param(Type *t)  { _param_types.push_back(t); return this; }
+   Function *add_param(Type *t1, Type *t2)  { 
+      _param_types.push_back(t1);
+      _param_types.push_back(t2);
+      return this; 
+   }
+   Function *add_param(Type *t1, Type *t2, Type *t3)  { 
+      _param_types.push_back(t1);
+      _param_types.push_back(t2);
+      _param_types.push_back(t3);
+      return this; 
+   }
+
    Type *return_type()     const { return _return_type; }
    bool is_void()          const { return _return_type == 0; }
 
