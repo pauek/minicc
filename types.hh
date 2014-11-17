@@ -291,7 +291,7 @@ public:
 private:
    static std::map<
       std::string, 
-      std::pair<std::function<Type *()>, Method>
+      std::pair<std::function<Type *(Type *)>, Method>
    > _methods;
 };
 

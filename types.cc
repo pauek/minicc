@@ -296,11 +296,11 @@ string Function::name() const {
    return o.str();
 }
 
-map<string, pair<std::function<Type *()>, Type::Method>> Vector::_methods = {
+map<string, pair<std::function<Type *(Type *)>, Type::Method>> Vector::_methods = {
    {
       "size", {
          // creates the type for 'size'
-         []() -> Function * { 
+         [](Type *celltype) -> Function * { 
             return new Function(Type::find("int")); 
          },
          // executes the 'size' method
@@ -313,18 +313,15 @@ map<string, pair<std::function<Type *()>, Type::Method>> Vector::_methods = {
    }, {
       "push_back", {
          // creates the type for 'size'
-         []() -> Function * { 
+         [](Type *celltype) -> Function * { 
             Function *f = new Function(0); 
-            f->add_param(Type::find("int")); // FIXME: Cómo representamos el tipo 'T'?
-                                             //        Cómo representar templates?
+            f->add_param(celltype);
             return f;
          },
-         // executes the 'size' method
+         // executes the 'push_back' method
          [](void *data, const vector<Value>& args) -> Value {
-            assert(args.size() == 1);
-            assert(args[0].is<Int>());
             vector<Value> *v = static_cast<vector<Value>*>(data);
-            v->push_back(args[1]);
+            v->push_back(args[0]);
             return Value::null;
          }
       }
@@ -336,7 +333,7 @@ bool Vector::get_method(string name, pair<Type*, Method>& method) const {
    if (it == _methods.end()) {
       return false;
    }
-   method.first = (it->second.first)();
+   method.first = (it->second.first)(_celltype);
    method.second = it->second.second;
    return true;
 }
