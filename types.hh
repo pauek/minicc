@@ -220,21 +220,21 @@ class Vector : public BaseType<std::vector<Value>> {
 typedef Value (*CppFunc)(const std::vector<Value>& args);
 typedef Value (*CppMethod)(void *, const std::vector<Value>& args);
 
-struct FuncInfo {
-   std::string funcname;
-   CppFunc   f;
-   CppMethod m;
-   FuncDecl  *d;
-   FuncInfo(std::string n, CppFunc    x) : funcname(n), f(x), m(0), d(0) {}
-   FuncInfo(std::string n, CppMethod  x) : funcname(n), f(0), m(x), d(0) {}
-   FuncInfo(std::string n, FuncDecl  *x) : funcname(n), f(0), m(0), d(x) {}
-
-   bool operator==(const FuncInfo& x) const {
-      return f == x.f && m == x.m && d == x.d;
-   }
+struct FuncPtr {
+   virtual void invoke(const std::vector<Value>& args) = 0;
+   virtual ~FuncPtr() {}
 };
 
-class Function : public BaseType<FuncInfo> {
+struct FuncValue {
+   std::string name;
+   FuncPtr *ptr;
+   FuncValue(std::string n, FuncPtr *p) : name(n), ptr(p) {}
+   void invoke(const std::vector<Value>& args) { ptr->invoke(args); }
+
+   bool operator==(const FuncValue& f) const { return ptr == f.ptr; }
+};
+
+class Function : public BaseType<FuncValue> {
    Type *_return_type;
    std::vector<Type*> _param_types;
 public:
@@ -246,7 +246,11 @@ public:
    int properties() const { return Internal; }
    std::string name() const;
 
-   typedef FuncInfo cpp_type;
+   Value mkvalue(std::string name, FuncPtr *pf) const {
+      return Value(this, new FuncValue(name, pf));
+   }
+
+   typedef FuncValue cpp_type;
 };
 
 class Struct : public BaseType<SimpleTable<Value>> {

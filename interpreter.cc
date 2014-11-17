@@ -69,19 +69,18 @@ void Interpreter::invoke_func_prepare(FuncDecl *fn, const vector<Value>& args) {
    }
 }
 
+
 void Interpreter::invoke_func(const vector<Value>& args) {
    assert(_curr.is<Function>());
-   const FuncInfo& info = _curr.as<Function>();
+   _curr.as<Function>().invoke(args);
+   /*
    if (info.d) {
-      pushenv(info.d->id->str());
-      invoke_func_prepare(info.d, args);
-      info.d->block->accept(this);
-      popenv();
    } else if (info.f) {
       _ret = (*info.f)(args);
    } else if (info.m) {
       assert(false);
    }
+   */
 }
 
 
@@ -118,24 +117,27 @@ void Interpreter::visit_comment(CommentSeq* cn) {}
 void Interpreter::visit_macro(Macro* x) {}
 
 void Interpreter::visit_using(Using* x) {
-   // ?
+   // TODO: Augment current environment with  
+   // an environment for the specified namespace
 }
 
 void Interpreter::visit_include(Include* x) {
    // TODO: Depending on include, register 'fake' functions & types.
+   // (on the 'std' environment)
 }
 
 void Interpreter::visit_funcdecl(FuncDecl *x) {
    string funcname = x->id->str();
-   Type *return_type = Type::find(x->return_type->str());
-   // if return_type is 0 means 'void'
+   Type *return_type = Type::find(x->return_type->str());  // return_type == 0 means 'void'
    Function *functype = new Function(return_type);
    for (auto p : x->params) {
       Type *param_type = Type::find(p->type);
       assert(param_type != 0);
       functype->add_param(param_type);
    }
-   setenv(x->id->str(), Value(functype, new FuncInfo(funcname, x)));
+   setenv(x->id->str(), 
+          functype->mkvalue(funcname, 
+                            new UserFunc(this, x)));
 }
 
 void Interpreter::visit_structdecl(StructDecl *x) {
@@ -566,20 +568,26 @@ void Interpreter::visit_callexpr_getfunc(CallExpr *x) {
    }
 }
 
+
+void Interpreter::invoke_user_func(FuncDecl *decl, const vector<Value>& args) {
+   pushenv(decl->id->str());
+   invoke_func_prepare(decl, args);
+   decl->block->accept(this);
+   popenv();
+}
+
 void Interpreter::visit_callexpr(CallExpr *x) {
    visit_callexpr_getfunc(x);
    Value func = _curr;
-   const FuncInfo& info = _curr.as<Function>();
    vector<Value> args;
    for (int i = 0; i < x->args.size(); i++) {
       x->args[i]->accept(this);
       args.push_back(_curr);
    }
-   _curr = func;
-   invoke_func(args);
+   func.as<Function>().invoke(args);
    if (_ret == Value::null && !func.type()->as<Function>()->is_void()) {
       Type *return_type = func.type()->as<Function>()->return_type();
-      _error("La función '" + func.as<Function>().funcname
+      _error("La función '" + func.as<Function>().name
              + "' debería devolver un '" + return_type->name() + "'");
    }
 }

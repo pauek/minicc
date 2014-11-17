@@ -41,6 +41,7 @@ class Interpreter : public AstVisitor, public ReadWriter
      Value new_value_from_structdecl(StructDecl *x);
 
      void  invoke_func_prepare(FuncDecl *x, const std::vector<Value>& args);
+     void  invoke_user_func(FuncDecl *x, const std::vector<Value>&);
      void  invoke_func(const std::vector<Value>&);
 
      void  visit_program_prepare(Program *x);
@@ -103,6 +104,19 @@ public:
 
    void visit_objdecl(ObjDecl *x);
    void visit_objdecl_vector(ObjDecl *x);
+
+   friend class UserFunc;
+};
+
+struct UserFunc : public FuncPtr {
+   Interpreter *I;
+   FuncDecl *decl;
+
+   UserFunc(Interpreter *i, FuncDecl *d) : I(i), decl(d) {}
+   
+   void invoke(const std::vector<Value>& args) {
+      I->invoke_user_func(decl, args);
+   }
 };
 
 #endif
