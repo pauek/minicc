@@ -108,29 +108,32 @@ public:
 
    friend class UserFunc;
    friend class BuiltinFunc;
+   friend class BoundMethod;
 };
 
 struct UserFunc : public FuncPtr {
-   Interpreter *I;
    FuncDecl *decl;
-
-   UserFunc(Interpreter *i, FuncDecl *d) : I(i), decl(d) {}
-   
-   void invoke(const std::vector<Value>& args) {
+   UserFunc(FuncDecl *d) : decl(d) {}
+   void invoke(Interpreter *I, const std::vector<Value>& args) {
       I->invoke_user_func(decl, args);
    }
 };
 
-typedef Value (*BuiltinFuncPtr)(const std::vector<Value>& args);
-
 struct BuiltinFunc : public FuncPtr {
-   Interpreter *I;
-   BuiltinFuncPtr pf;
-
-   BuiltinFunc(Interpreter *i, BuiltinFuncPtr p) : I(i), pf(p) {}
-   
-   void invoke(const std::vector<Value>& args) { 
+   typedef Value (*Ptr)(const std::vector<Value>& args);
+   Ptr pf;
+   BuiltinFunc(Ptr p) : pf(p) {}
+   void invoke(Interpreter *I, const std::vector<Value>& args) { 
       I->_ret = (*pf)(args);
+   }
+};
+
+struct BoundMethod : public FuncPtr {
+   Type::Method method;
+   void *data;
+   BoundMethod(Type::Method m, void *d) : method(m), data(d) {}
+   void invoke(Interpreter* I, const std::vector<Value>& args) {
+      I->_ret = (*method)(data, args);
    }
 };
 

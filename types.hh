@@ -30,12 +30,15 @@ public:
       Internal    = 16
    };
 
-   virtual        int properties() const = 0;
-   virtual      Value create() const { assert(false); }
-   virtual      Value convert(Value init) const { assert(false); }
-   virtual      Value construct(const std::vector<Value>& args) const { assert(false); }
-   virtual std::string name() const = 0;
+   typedef Value (*Method)(void *, const std::vector<Value>& args);
 
+   virtual std::string  name() const = 0;
+   virtual         int  properties() const = 0;
+   virtual        bool  get_method(std::string, std::pair<Type*, Method>&) const { return false; }
+   virtual       Value  create()                                           const { assert(false); }
+   virtual       Value  convert(Value init)                                const { assert(false); }
+   virtual       Value  construct(const std::vector<Value>& args)          const { assert(false); }
+ 
    template<typename T>
    bool is() const { return dynamic_cast<const T*>(this) != 0; }
 
@@ -197,31 +200,12 @@ public:
    }
 };
 
-class Vector : public BaseType<std::vector<Value>> {
- protected:
-   Type *_celltype;
- public:
-   Vector(Type *celltype) : _celltype(celltype) {}
-   
-   typedef std::vector<Value> cpp_type;
-
-   Type *celltype() const { return _celltype; }
-
-   int   properties() const { return Template | Emulated; }
-   Value create()     const { return Value(this, (void*)(new std::vector<Value>())); }
-   Value convert(Value init) const;
-   Value construct(const std::vector<Value>& args) const;
-
-   std::string name() const { return std::string("vector<") + _celltype->name() + ">"; }
-
-   std::string to_json(void *data) const;
-};
-
 typedef Value (*CppFunc)(const std::vector<Value>& args);
 typedef Value (*CppMethod)(void *, const std::vector<Value>& args);
 
+class Interpreter;
 struct FuncPtr {
-   virtual void invoke(const std::vector<Value>& args) = 0;
+   virtual void invoke(Interpreter* I, const std::vector<Value>& args) = 0;
    virtual ~FuncPtr() {}
 };
 
@@ -229,7 +213,7 @@ struct FuncValue {
    std::string name;
    FuncPtr *ptr;
    FuncValue(std::string n, FuncPtr *p) : name(n), ptr(p) {}
-   void invoke(const std::vector<Value>& args) { ptr->invoke(args); }
+   void invoke(Interpreter *I, const std::vector<Value>& args);
 
    bool operator==(const FuncValue& f) const { return ptr == f.ptr; }
 };
@@ -273,15 +257,42 @@ public:
    typedef SimpleTable<Value> cpp_type;
 };
 
-class Array : public Vector {
+class Array : public BaseType<std::vector<Value>> {
+   Type *_celltype;
    int _sz;
 public:
-   Array(Type *celltype, int sz) : _sz(sz), Vector(celltype) {}
+   Array(Type *celltype, int sz) : _celltype(celltype), _sz(sz) {}
    int properties() const { return Basic; }
-   std::string name() const { return celltype()->name() + "[]"; }
+   std::string name() const { return _celltype->name() + "[]"; }
    Value create() const;
    Value convert(Value init) const;
    static Type *mktype(Type *celltype, int sz);
+};
+
+class Vector : public BaseType<std::vector<Value>> {
+   Type *_celltype;
+public:
+   Vector(Type *celltype) : _celltype(celltype) {}
+   
+   typedef std::vector<Value> cpp_type;
+
+   Type *celltype() const { return _celltype; }
+
+   int   properties() const { return Template | Emulated; }
+   Value create()     const { return Value(this, (void*)(new std::vector<Value>())); }
+   Value convert(Value init) const;
+   Value construct(const std::vector<Value>& args) const;
+
+   std::string name() const { return std::string("vector<") + _celltype->name() + ">"; }
+   bool get_method(std::string name, std::pair<Type*, Method>& method) const;
+
+   std::string to_json(void *data) const;
+
+private:
+   static std::map<
+      std::string, 
+      std::pair<std::function<Type *()>, Method>
+   > _methods;
 };
 
 class VectorValue : public BaseType<std::vector<Value>> {

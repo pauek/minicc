@@ -40,6 +40,7 @@ public:
    ~Value();
 
    const Type *type() const { return (_box == 0 ? 0 : _box->type); }
+         void *data()       { return (_box == 0 ? 0 : _box->data); }
 
    template<typename T> bool is() const;
    template<typename T> typename T::cpp_type& as() const;

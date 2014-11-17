@@ -72,7 +72,7 @@ void Interpreter::invoke_func_prepare(FuncDecl *fn, const vector<Value>& args) {
 
 void Interpreter::invoke_func(const vector<Value>& args) {
    assert(_curr.is<Function>());
-   _curr.as<Function>().invoke(args);
+   _curr.as<Function>().invoke(this, args);
 }
 
 Value _max(const vector<Value>& args) {
@@ -95,7 +95,7 @@ void Interpreter::prepare_global_environment() {
    max_func_type->add_param(Type::find("int"));
    max_func_type->add_param(Type::find("int"));
    
-   setenv("max",  max_func_type->mkvalue("max", new BuiltinFunc(this, _max)));
+   setenv("max",  max_func_type->mkvalue("max", new BuiltinFunc(_max)));
 }
 
 void Interpreter::visit_program_prepare(Program *x) {
@@ -143,8 +143,8 @@ void Interpreter::visit_funcdecl(FuncDecl *x) {
       functype->add_param(param_type);
    }
    setenv(x->id->str(), 
-          functype->mkvalue(funcname, 
-                            new UserFunc(this, x)));
+          functype->mkvalue(funcname,
+                            new UserFunc(x)));
 }
 
 void Interpreter::visit_structdecl(StructDecl *x) {
@@ -567,15 +567,6 @@ void Interpreter::visit_iterstmt(IterStmt *x) {
    popenv();
 }
 
-void Interpreter::visit_callexpr_getfunc(CallExpr *x) {
-   x->func->accept(this);
-   _curr = Reference::deref(_curr);
-   if (!_curr.is<Function>()) {
-      _error(_T("Calling something other than a function."));
-   }
-}
-
-
 void Interpreter::invoke_user_func(FuncDecl *decl, const vector<Value>& args) {
    pushenv(decl->id->str());
    invoke_func_prepare(decl, args);
@@ -583,6 +574,13 @@ void Interpreter::invoke_user_func(FuncDecl *decl, const vector<Value>& args) {
    popenv();
 }
 
+void Interpreter::visit_callexpr_getfunc(CallExpr *x) {
+   x->func->accept(this);
+   _curr = Reference::deref(_curr);
+   if (!_curr.is<Function>()) {
+      _error(_T("Calling something other than a function."));
+   }
+}
 void Interpreter::visit_callexpr(CallExpr *x) {
    visit_callexpr_getfunc(x);
    Value func = _curr;
@@ -591,12 +589,13 @@ void Interpreter::visit_callexpr(CallExpr *x) {
       x->args[i]->accept(this);
       args.push_back(_curr);
    }
-   func.as<Function>().invoke(args);
+   func.as<Function>().invoke(this, args);
    if (_ret == Value::null && !func.type()->as<Function>()->is_void()) {
       Type *return_type = func.type()->as<Function>()->return_type();
       _error("La función '" + func.as<Function>().name
              + "' debería devolver un '" + return_type->name() + "'");
    }
+   _curr = _ret;
 }
 
 void Interpreter::visit_indexexpr(IndexExpr *x) {
@@ -633,7 +632,13 @@ void Interpreter::visit_fieldexpr(FieldExpr *x) {
       _curr = Reference::mkref(v);
       return;
    }
-   _error("El acceso a campos debe hacerse sobre tuplas u objetos");
+   pair<Type *, Type::Method> method;
+   if (_curr.type()->get_method(x->field->id, method)) {
+      Function *ft = dynamic_cast<Function*>(method.first);
+      _curr = ft->mkvalue(x->field->id, new BoundMethod(method.second, _curr.data()));
+      return;
+   }
+   _error(_T("Este objeto no tiene un campo '%s'", x->field->id.c_str()));
 }
 
 void Interpreter::visit_condexpr(CondExpr *x) {
