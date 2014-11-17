@@ -73,18 +73,16 @@ void Interpreter::invoke_func_prepare(FuncDecl *fn, const vector<Value>& args) {
 void Interpreter::invoke_func(const vector<Value>& args) {
    assert(_curr.is<Function>());
    _curr.as<Function>().invoke(args);
-   /*
-   if (info.d) {
-   } else if (info.f) {
-      _ret = (*info.f)(args);
-   } else if (info.m) {
-      assert(false);
-   }
-   */
 }
 
+Value _max(const vector<Value>& args) {
+   assert(args.size() == 2);
+   assert(args[0].is<Int>());
+   assert(args[1].is<Int>());
+   return Value(std::max(args[0].as<Int>(), args[1].as<Int>()));
+}
 
-void Interpreter::visit_program_prepare(Program *x) {
+void Interpreter::prepare_global_environment() {
    _env.clear();
    _env.push_back(Environment("<global>"));
 
@@ -93,6 +91,15 @@ void Interpreter::visit_program_prepare(Program *x) {
    setenv("cout", Cout, hidden);
    setenv("cin",  Cin,  hidden);
 
+   Function *max_func_type = new Function(Type::find("int"));
+   max_func_type->add_param(Type::find("int"));
+   max_func_type->add_param(Type::find("int"));
+   
+   setenv("max",  max_func_type->mkvalue("max", new BuiltinFunc(this, _max)));
+}
+
+void Interpreter::visit_program_prepare(Program *x) {
+   prepare_global_environment();
    for (AstNode *n : x->nodes) {
       n->accept(this);
    }

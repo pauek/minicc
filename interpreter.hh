@@ -40,6 +40,7 @@ class Interpreter : public AstVisitor, public ReadWriter
 
      Value new_value_from_structdecl(StructDecl *x);
 
+     void  prepare_global_environment();
      void  invoke_func_prepare(FuncDecl *x, const std::vector<Value>& args);
      void  invoke_user_func(FuncDecl *x, const std::vector<Value>&);
      void  invoke_func(const std::vector<Value>&);
@@ -106,6 +107,7 @@ public:
    void visit_objdecl_vector(ObjDecl *x);
 
    friend class UserFunc;
+   friend class BuiltinFunc;
 };
 
 struct UserFunc : public FuncPtr {
@@ -116,6 +118,19 @@ struct UserFunc : public FuncPtr {
    
    void invoke(const std::vector<Value>& args) {
       I->invoke_user_func(decl, args);
+   }
+};
+
+typedef Value (*BuiltinFuncPtr)(const std::vector<Value>& args);
+
+struct BuiltinFunc : public FuncPtr {
+   Interpreter *I;
+   BuiltinFuncPtr pf;
+
+   BuiltinFunc(Interpreter *i, BuiltinFuncPtr p) : I(i), pf(p) {}
+   
+   void invoke(const std::vector<Value>& args) { 
+      I->_ret = (*pf)(args);
    }
 };
 
