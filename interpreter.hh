@@ -38,7 +38,6 @@ class Interpreter : public AstVisitor, public ReadWriter
      void  prepare_global_environment();
      void  invoke_func_prepare(FuncDecl *x, const std::vector<Value>& args);
      void  invoke_user_func(FuncDecl *x, const std::vector<Value>&);
-     void  invoke_func(const std::vector<Value>&);
 
      void  visit_program_prepare(Program *x);
      void  visit_program_find_main();

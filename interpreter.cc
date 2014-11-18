@@ -68,12 +68,6 @@ void Interpreter::invoke_func_prepare(FuncDecl *fn, const vector<Value>& args) {
    }
 }
 
-
-void Interpreter::invoke_func(const vector<Value>& args) {
-   assert(_curr.is<Function>());
-   _curr.as<Function>().invoke(this, args);
-}
-
 Value _max(const vector<Value>& args) {
    assert(args.size() == 2);
    assert(args[0].is<Int>());
@@ -114,7 +108,7 @@ void Interpreter::visit_program_find_main() {
 void Interpreter::visit_program(Program* x) {
    visit_program_prepare(x);
    visit_program_find_main();
-   invoke_func(vector<Value>());
+   _curr.as<Function>().invoke(this, vector<Value>());
 }
 
 void Interpreter::visit_comment(CommentSeq* cn) {}
@@ -366,7 +360,7 @@ void Interpreter::visit_binaryexpr(BinaryExpr *x) {
       if (ret) {
          return;
       }
-      _error(_T("Los operandos de '%s' son incompatibles", "*"));
+      _error(_T("Los operandos de '%s' son incompatibles", x->op.c_str()));
    }
    else if (x->op == "%") {
       if (left.is<Int>() and right.is<Int>()) {
@@ -602,11 +596,32 @@ void Interpreter::visit_callexpr_getfunc(CallExpr *x) {
 void Interpreter::visit_callexpr(CallExpr *x) {
    visit_callexpr_getfunc(x);
    Value func = _curr;
+
+   // Eval arguments
    vector<Value> args;
    for (int i = 0; i < x->args.size(); i++) {
       x->args[i]->accept(this);
       args.push_back(_curr);
    }
+
+   // Check types
+   const Function *func_type = func.type()->as<Function>();
+   for (int i = 0; i < args.size(); i++) {
+      string t1 = func_type->param(i)->typestr();
+      Value arg_i = args[i];
+      if (!func_type->param(i)->is<Reference>()) {
+         arg_i = Reference::deref(arg_i);
+      } else if (!arg_i.type()->is<Reference>()) {
+         _error(_T("En el parámetro %d se requiere una variable.", i+1));
+      }
+      string t2 = arg_i.type()->typestr();
+      if (t1 != t2) {
+         _error(_T("El argumento %d no es compatible con el tipo del parámetro "
+                   "(%s vs %s)", i+1, t1.c_str(), t2.c_str()));
+      }
+   }
+   
+   // Invoke
    func.as<Function>().invoke(this, args);
    if (_ret == Value::null && !func.type()->as<Function>()->is_void()) {
       Type *return_type = func.type()->as<Function>()->return_type();

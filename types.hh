@@ -255,6 +255,7 @@ public:
       return this; 
    }
 
+   Type *param(int i)      const { return _param_types[i]; }
    Type *return_type()     const { return _return_type; }
    bool is_void()          const { return _return_type == 0; }
 
