@@ -198,7 +198,15 @@ public:
    std::string to_json(void *data) {
       return string("\"") + *(string*)data + "\"";
    }
+
+   bool get_method(std::string name, std::pair<Type*, Method>& method) const;
+private:
+   static std::map<
+      std::string, 
+      std::pair<std::function<Type *()>, Method>
+   > _methods;
 };
+
 
 typedef Value (*CppFunc)(const std::vector<Value>& args);
 typedef Value (*CppMethod)(void *, const std::vector<Value>& args);

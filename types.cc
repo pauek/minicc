@@ -296,6 +296,39 @@ string Function::name() const {
    return o.str();
 }
 
+void FuncValue::invoke(Interpreter *I, const std::vector<Value>& args) {
+   ptr->invoke(I, args); 
+}
+
+template<class MethodMap>
+bool _get_method(MethodMap& methods, string name, pair<Type *, Type::Method>& result) {
+   auto it = methods.find(name);
+   if (it == methods.end()) {
+      return false;
+   }
+   result.first = (it->second.first)();
+   result.second = it->second.second;
+   return true;
+}
+
+
+bool Vector::get_method(string name, pair<Type*, Method>& result) const {
+   auto it = _methods.find(name);
+   if (it == _methods.end()) {
+      return false;
+   }
+   result.first = (it->second.first)(_celltype);
+   result.second = it->second.second;
+   return true;
+}
+
+bool String::get_method(string name, pair<Type*, Method>& result) const {
+   return _get_method(_methods, name, result);
+}
+
+// Methods ////////////////////////////////////////////////////////////
+
+// Vector
 map<string, pair<std::function<Type *(Type *)>, Type::Method>> Vector::_methods = {
    {
       "size", {
@@ -357,16 +390,18 @@ map<string, pair<std::function<Type *(Type *)>, Type::Method>> Vector::_methods 
    }
 };
 
-bool Vector::get_method(string name, pair<Type*, Method>& method) const {
-   auto it = _methods.find(name);
-   if (it == _methods.end()) {
-      return false;
+// String
+map<string, pair<std::function<Type *()>, Type::Method>> String::_methods = {
+   {
+      "size", {
+         []() -> Type * { 
+            return new Function(Type::find("int")); 
+         },
+         [](void *data, const vector<Value>& args) -> Value {
+            string *s = static_cast<string*>(data);
+            return Value(int(s->size()));
+         }
+      }
    }
-   method.first = (it->second.first)(_celltype);
-   method.second = it->second.second;
-   return true;
-}
+};
 
-void FuncValue::invoke(Interpreter *I, const std::vector<Value>& args) {
-   ptr->invoke(I, args); 
-}
