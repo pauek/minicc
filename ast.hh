@@ -166,9 +166,9 @@ struct IterStmt : public Stmt { // while + for
 
 struct Decl : public AstNode {
    enum Kind { Normal, Pointer };
-   TypeSpec *type;
+   TypeSpec *typespec;
    std::string name;
-   Decl() : type(0) {}
+   Decl() : typespec(0) {}
 };
 
 struct VarDecl : public Decl {
@@ -191,7 +191,7 @@ struct ObjDecl : public Decl {
 };
 
 struct DeclStmt : public Stmt {
-   TypeSpec *type;
+   TypeSpec *typespec;
    struct Item {
       Decl *decl;
       Expr *init;
@@ -408,9 +408,9 @@ struct TypeSpec : public AstNode {
 
 struct FuncDecl : public AstNode {
    struct Param {
-      TypeSpec *type;
+      TypeSpec *typespec;
       std::string name;
-      Param() : type(0) {}
+      Param() : typespec(0) {}
    };
 
    TypeSpec *return_type;

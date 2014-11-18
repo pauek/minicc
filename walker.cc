@@ -68,7 +68,7 @@ void Walker::visit_binaryexpr(BinaryExpr *x) {
 
 void Walker::visit_declstmt(DeclStmt* x) {
    walk(x);
-   x->type->accept(this);
+   x->typespec->accept(this);
    for (DeclStmt::Item item : x->items) {
       item.decl->accept(this);
       if (item.init) {

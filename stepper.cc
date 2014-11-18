@@ -362,7 +362,7 @@ Todo Stepper::CallExprVisitState::step(Stepper *S) {
       }
       S->I.visit(x->args[curr]);
       Value v = S->I._curr;
-      if (!fn->params[curr]->type->reference) {
+      if (!fn->params[curr]->typespec->reference) {
          v = Reference::deref(v);
       }
       S->I.setenv(fn->params[curr]->name, v);

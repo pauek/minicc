@@ -66,7 +66,7 @@ void AstPrinter::visit_enumdecl(EnumDecl *x) {
 
 void AstPrinter::visit_typedefdecl(TypedefDecl *x) {
    out() << "TypedefDecl(\"" << x->decl->name << "\" = ";
-   x->decl->type->accept(this);
+   x->decl->typespec->accept(this);
    out() << ")";
 }
 
@@ -95,7 +95,7 @@ void AstPrinter::visit_funcdecl(FuncDecl *x) {
          out() << ", ";
       }
       out() << "\"" << x->params[i]->name << "\": ";
-      x->params[i]->type->accept(this);
+      x->params[i]->typespec->accept(this);
    }
    if (x->block) {
       out() << "}, {" << endl;
@@ -258,7 +258,7 @@ void AstPrinter::visit_objdecl(ObjDecl *x) {
 
 void AstPrinter::visit_declstmt(DeclStmt* x) {
    out() << "DeclStmt(";
-   x->type->accept(this);
+   x->typespec->accept(this);
    out() << ", Vars = {";
    bool first = true;
    for (DeclStmt::Item item : x->items) {

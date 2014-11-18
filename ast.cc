@@ -173,7 +173,7 @@ bool IterStmt::has_errors() const {
 }
 
 bool DeclStmt::has_errors() const {
-   _ERRORS(type);
+   _ERRORS(typespec);
    for (Item i : items) {
       _ERRORS(i.decl);
       _ERRORS(i.init);
@@ -245,7 +245,7 @@ bool TypeSpec::has_errors() const {
 bool FuncDecl::has_errors() const {
    _ERRORS(return_type); _ERRORS(block);
    for (Param* p : params) {
-      _ERRORS(p->type);
+      _ERRORS(p->typespec);
    }
    return AstNode::has_errors();
 }
@@ -308,7 +308,7 @@ string TypeSpec::typestr() const {
 }
 
 string ArrayDecl::type_str() const { 
-   return type->typestr() + "[]"; 
+   return typespec->typestr() + "[]"; 
 }
 
 string StructDecl::type_str() const {
@@ -318,7 +318,7 @@ string StructDecl::type_str() const {
       if (i > 0) {
          S << ";";
       }
-      S << decls[i]->type->typestr();
+      S << decls[i]->typespec->typestr();
    }
    S << "}";
    return S.str();

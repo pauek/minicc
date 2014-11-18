@@ -163,7 +163,7 @@ void PrettyPrinter::visit_enumdecl(EnumDecl *x) {
 void PrettyPrinter::visit_typedefdecl(TypedefDecl *x) {
    CommentPrinter cp(x, this);
    out() << "typedef " << cp.cmt_();
-   x->decl->type->accept(this);
+   x->decl->typespec->accept(this);
    out() << " " << cp.cmt_();
    x->decl->accept(this);
    out() << ";" << cp._cmt();
@@ -211,7 +211,7 @@ void PrettyPrinter::visit_funcdecl(FuncDecl *x) {
             out() << ", ";
          }
          out() << cp.cmt_();
-         visit_typespec(x->params[i]->type);
+         visit_typespec(x->params[i]->typespec);
          out() << " " << cp.cmt_();
          out() << x->params[i]->name;
          out() << cp._cmt();
@@ -359,7 +359,7 @@ void PrettyPrinter::visit_objdecl(ObjDecl *x) {
 
 void PrettyPrinter::visit_declstmt(DeclStmt* x) {
    CommentPrinter cp(x, this);
-   x->type->accept(this);
+   x->typespec->accept(this);
    out() << " " << cp.cmt_();
    for (int i = 0; i < x->items.size(); i++) {
       if (i > 0) {

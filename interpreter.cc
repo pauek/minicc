@@ -54,12 +54,12 @@ void Interpreter::invoke_func_prepare(FuncDecl *fn, const vector<Value>& args) {
    for (int i = 0; i < args.size(); i++) {
       if (args[i].is<Reference>()) {
          Value v = args[i];
-         if (!fn->params[i]->type->reference) {
+         if (!fn->params[i]->typespec->reference) {
             v = Reference::deref(v);
          }
          setenv(fn->params[i]->name, v);
       } else {
-         if (fn->params[i]->type->reference) {
+         if (fn->params[i]->typespec->reference) {
             ostringstream S;
             S << "En el parámetro " << i+1 << " se requiere una variable.";
             _error(S.str());
@@ -138,7 +138,7 @@ void Interpreter::visit_funcdecl(FuncDecl *x) {
    Type *return_type = Type::find(x->return_type->typestr());  // return_type == 0 means 'void'
    Function *functype = new Function(return_type);
    for (auto p : x->params) {
-      Type *param_type = Type::find(p->type);
+      Type *param_type = Type::find(p->typespec);
       assert(param_type != 0);
       functype->add_param(param_type);
    }
@@ -152,7 +152,7 @@ void Interpreter::visit_structdecl(StructDecl *x) {
    Struct *type = new Struct(x->struct_name());
    for (int i = 0; i < x->decls.size(); i++) {
       DeclStmt& decl = *x->decls[i];
-      Type *field_type = Type::find(decl.type);
+      Type *field_type = Type::find(decl.typespec);
       assert(type != 0);
       for (DeclStmt::Item& item : decl.items) {
          if (item.decl->is<ArrayDecl>()) {
@@ -480,8 +480,8 @@ void Interpreter::visit_block(Block *x) {
 }
 
 void Interpreter::visit_vardecl(VarDecl *x) {
-   string type_name = x->type->typestr();
-   Type *type = Type::find(x->type);
+   string type_name = x->typespec->typestr();
+   Type *type = Type::find(x->typespec);
    if (type == 0) {
       _error("El tipo '" + type_name + "' no existe.");
    }
@@ -503,9 +503,9 @@ void Interpreter::visit_arraydecl(ArrayDecl *x) {
       _error("El tamaño de una tabla debe ser un entero positivo");
    }
    const int sz = _curr.as<Int>();
-   Type *celltype = Type::find(x->type);
+   Type *celltype = Type::find(x->typespec);
    if (celltype == 0) {
-      _error("El tipo '" + x->type->typestr() + "' no existe");
+      _error("El tipo '" + x->typespec->typestr() + "' no existe");
    }
    Type *arraytype = Array::mktype(celltype, sz);
    setenv(x->name, (init.is_null() 
@@ -726,7 +726,7 @@ void Interpreter::visit_objdecl_vector(ObjDecl *x) {
       _error(_T("The size of a vector must be a positive integer."));
    }
    args.push_back(_curr);
-   TypeSpec *cell_typespec = x->type->id->subtypes[0];
+   TypeSpec *cell_typespec = x->typespec->id->subtypes[0];
    string cell_typestr = cell_typespec->typestr();
    Value init;
    if (x->args.size() == 2) { // initialization
@@ -751,7 +751,7 @@ void Interpreter::visit_objdecl_vector(ObjDecl *x) {
       }
    }
    args.push_back(init);
-   Type *vector_type = Type::find(x->type);
+   Type *vector_type = Type::find(x->typespec);
    if (vector_type == 0) {
       vector_type = new Vector(Type::find(cell_typespec)); // will auto-register
    }
@@ -761,10 +761,10 @@ void Interpreter::visit_objdecl_vector(ObjDecl *x) {
 void Interpreter::visit_objdecl(ObjDecl *x) {
    // TODO: Convertir la construcción en una llamada al método constructor
    //
-   if (x->type->is_vector()) {
+   if (x->typespec->is_vector()) {
       visit_objdecl_vector(x);
       return;
    }
    _error(_T("The type '%s' is not implemented in MiniCC", 
-             x->type->typestr().c_str()));
+             x->typespec->typestr().c_str()));
 }
