@@ -726,8 +726,8 @@ void Interpreter::visit_objdecl_vector(ObjDecl *x) {
       _error(_T("The size of a vector must be a positive integer."));
    }
    args.push_back(_curr);
-   TypeSpec *celltype = x->type->id->subtypes[0];
-   string cell_typestr = celltype->typestr();
+   TypeSpec *cell_typespec = x->type->id->subtypes[0];
+   string cell_typestr = cell_typespec->typestr();
    Value init;
    if (x->args.size() == 2) { // initialization
       x->args[1]->accept(this);
@@ -745,13 +745,15 @@ void Interpreter::visit_objdecl_vector(ObjDecl *x) {
       } else if (cell_typestr == "char") {
          init = Value('\0');
       } else {
-         init = Type::find(celltype)->create();
+         Type *celltype = Type::find(cell_typespec);
+         assert(celltype != 0);
+         init = celltype->create();
       }
    }
    args.push_back(init);
    Type *vector_type = Type::find(x->type);
    if (vector_type == 0) {
-      vector_type = new Vector(Type::find(celltype)); // will auto-register
+      vector_type = new Vector(Type::find(cell_typespec)); // will auto-register
    }
    setenv(x->name, vector_type->construct(args));
 }
