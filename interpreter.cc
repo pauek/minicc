@@ -49,7 +49,8 @@ string Interpreter::env2json() const {
 
 void Interpreter::invoke_func_prepare(FuncDecl *fn, const vector<Value>& args) {
    if (fn->params.size() != args.size()) {
-      _error("Error en el número de argumentos al llamar a '" + fn->funcname() + "'");
+      _error(_T("Error en el número de argumentos al llamar a '%s'", 
+                fn->funcname().c_str()));
    }
    for (int i = 0; i < args.size(); i++) {
       if (args[i].is<Reference>()) {
@@ -60,9 +61,7 @@ void Interpreter::invoke_func_prepare(FuncDecl *fn, const vector<Value>& args) {
          setenv(fn->params[i]->name, v);
       } else {
          if (fn->params[i]->typespec->reference) {
-            ostringstream S;
-            S << "En el parámetro " << i+1 << " se requiere una variable.";
-            _error(S.str());
+            _error(_T("En el parámetro %d se requiere una variable.", i+1));
          }
          setenv(fn->params[i]->name, args[i]);
       }
@@ -108,7 +107,7 @@ void Interpreter::visit_program_find_main() {
       _error(_T("The '%s' function does not exist.", "main"));
    }
    if (!_curr.is<Function>()) {
-      _error("'main' is not a function.");
+      _error(_T("'main' is not a function."));
    }
 }
 
@@ -172,7 +171,7 @@ void Interpreter::visit_structdecl(StructDecl *x) {
 void Interpreter::visit_ident(Ident *x) {
    Value v;
    if (!getenv(x->name, v)) {
-      _error("La variable '" + x->name + "' no existe.");
+      _error(_T("La variable '%s' no existe.", x->name.c_str()));
    }
    _curr = (v.is<Reference>() ? v : Reference::mkref(v));
 }
@@ -186,7 +185,7 @@ void Interpreter::visit_literal(Literal *x) {
    case Literal::Char:   _curr = Value((*x->val.as_string.s)[0] /* FIXME */);
       break;
    default:
-      _error("Interpreter::visit_literal: UNIMPLEMENTED");
+      _error(_T("Interpreter::visit_literal: UNIMPLEMENTED"));
    }
 }
 
@@ -311,11 +310,11 @@ void Interpreter::visit_binaryexpr(BinaryExpr *x) {
       Value old = _curr;
       Ident *id = dynamic_cast<Ident*>(x->right);
       if (id == 0) {
-         _error("La lectura con 'cin' requiere que pongas variables");
+         _error(_T("La lectura con 'cin' requiere que pongas variables"));
       }
       Value right;
       if (!getenv(id->name, right)) {
-         _error("La variable '" + id->name + "' no está declarada");
+         _error(_T("La variable '%s' no está declarada", id->name.c_str()));
       }
       assert(leftderef.as<Istream>() == cin);
       right = Reference::deref(right);
@@ -346,7 +345,7 @@ void Interpreter::visit_binaryexpr(BinaryExpr *x) {
       if (ret) {
          return;
       }
-      _error("Los operandos de '" + x->op + "' son incompatibles");
+      _error(_T("Los operandos de '%s' son incompatibles", x->op.c_str()));
    }
    else if (x->op == "+" || x->op == "*" || x->op == "-" || x->op == "/") {
       bool ret = false;
@@ -367,25 +366,25 @@ void Interpreter::visit_binaryexpr(BinaryExpr *x) {
       if (ret) {
          return;
       }
-      _error("Los operandos de '*' no son compatibles");
+      _error(_T("Los operandos de '%s' son incompatibles", "*"));
    }
    else if (x->op == "%") {
       if (left.is<Int>() and right.is<Int>()) {
          _curr = Value(left.as<Int>() % right.as<Int>());
          return;
       }
-      _error("Los operandos de '%' no son compatibles");
+      _error(_T("Los operandos de '%s' son incompatibles", "%"));
    }
    else if (x->op == "%=") {
       if (!left.is<Reference>()) {
-         _error("Para usar '" + x->op + "' se debe poner una variable a la izquierda");
+         _error(_T("Para usar '%s' se debe poner una variable a la izquierda", x->op.c_str()));
       }
       left = Reference::deref(left);
       if (left.is<Int>() and right.is<Int>()) {
          left.as<Int>() %= right.as<Int>();
          return;
       }
-      _error("Los operandos de '%=' no son compatibles");
+      _error(_T("Los operandos de '%s' son incompatibles", "%="));
    }
    else if (x->op == "&&" or x->op == "and" || x->op == "||" || x->op == "or")  {
       if (left.is<Bool>() and right.is<Bool>()) {
@@ -394,14 +393,14 @@ void Interpreter::visit_binaryexpr(BinaryExpr *x) {
                        : left.as<Bool>() or  right.as<Bool>());
          return;
       }
-      _error("Los operandos de '" + x->op + "' no son de tipo 'bool'");
+      _error(_T("Los operandos de '%s' no son de tipo 'bool'", x->op.c_str()));
    }
    else if (x->op == "==" || x->op == "!=") {
       if (left.same_type_as(right)) {
          _curr = Value(x->op == "==" ? left.equals(right) : !left.equals(right));
          return;
       }
-      _error("Los operandos de '" + x->op + "' no son del mismo tipo");
+      _error(_T("Los operandos de '%s' no son del mismo tipo", x->op.c_str()));
    }
    else if (x->op == "<" || x->op == ">" || x->op == "<=" || x->op == ">=") {
       bool ret = false;
@@ -417,9 +416,9 @@ void Interpreter::visit_binaryexpr(BinaryExpr *x) {
       if (ret) {
          return;
       }
-      _error("Los operandos de '" + x->op + "' no son compatibles");
+      _error(_T("Los operandos de '%s' no son compatibles", x->op.c_str()));
    }
-   _error("Interpreter::visit_binaryexpr: UNIMPLEMENTED (" + x->op + ")");
+   _error(_T("Interpreter::visit_binaryexpr: UNIMPLEMENTED (%s)", x->op.c_str()));
 }
 
 inline bool assignment_types_ok(const Value& a, const Value& b) {
@@ -431,14 +430,15 @@ inline bool assignment_types_ok(const Value& a, const Value& b) {
 
 void Interpreter::visit_binaryexpr_assignment(Value left, Value right) {
    if (!left.is<Reference>()) {
-      _error("Intentas asignar sobre algo que no es una variable");
+      _error(_T("Intentas asignar sobre algo que no es una variable"));
    }
    left = Reference::deref(left);
    right = left.type()->convert(right);
    if (right == Value::null) {
-      _error(string() + 
-             "La asignación no se puede hacer porque los tipos no son compatibles (" +
-             left.type_name() + " vs " + right.type_name() + ")");
+      _error(_T("La asignación no se puede hacer porque los "
+                "tipos no son compatibles (%s) vs (%s)", 
+                left.type_name().c_str(), 
+                right.type_name().c_str()));
    }
    left.assign(right);
    _curr = left;
@@ -446,7 +446,7 @@ void Interpreter::visit_binaryexpr_assignment(Value left, Value right) {
 
 void Interpreter::visit_binaryexpr_op_assignment(char op, Value left, Value right) {
    if (!left.is<Reference>()) {
-      _error(string("Para usar '") + op + "=' se debe poner una variable a la izquierda");
+      _error(_T("Para usar '%s=' se debe poner una variable a la izquierda", op));
    }
    left = Reference::deref(left);
    bool ok = false;
@@ -468,7 +468,9 @@ void Interpreter::visit_binaryexpr_op_assignment(char op, Value left, Value righ
    case '^': ok = visit_bitop_assignment<_AXor>(left, right); break;
    }
    if (!ok) {
-      _error(string("Los operandos de '") + op + "=' no son compatibles: " + left.type_name() + " " + right.type_name());
+      string _op = "?=";
+      _op[0] = op;
+      _error(_T("Los operandos de '%s' no son compatibles", _op.c_str()));
    }
 }
 
@@ -482,7 +484,7 @@ void Interpreter::visit_vardecl(VarDecl *x) {
    string type_name = x->typespec->typestr();
    Type *type = Type::get(x->typespec);
    if (type == 0) {
-      _error("El tipo '" + type_name + "' no existe.");
+      _error(_T("El tipo '%s' no existe.", type_name.c_str()));
    }
    _curr = Reference::deref(_curr);
    try {
@@ -496,15 +498,15 @@ void Interpreter::visit_arraydecl(ArrayDecl *x) {
    Value init = _curr;
    x->size->accept(this);
    if (!_curr.is<Int>()) {
-      _error("El tamaño de una tabla debe ser un entero");
+      _error(_T("El tamaño de una tabla debe ser un entero"));
    }
    if (_curr.as<Int>() <= 0) {
-      _error("El tamaño de una tabla debe ser un entero positivo");
+      _error(_T("El tamaño de una tabla debe ser un entero positivo"));
    }
    const int sz = _curr.as<Int>();
    Type *celltype = Type::get(x->typespec);
    if (celltype == 0) {
-      _error("El tipo '" + x->typespec->typestr() + "' no existe");
+      _error(_T("El tipo '%s' no existe", x->typespec->typestr().c_str()));
    }
    // TODO: don't create new Array type every time?
    Type *arraytype = new Array(celltype, sz);
@@ -550,7 +552,7 @@ void Interpreter::visit_exprstmt(ExprStmt* x) {
 void Interpreter::visit_ifstmt(IfStmt *x) {
    x->cond->accept(this);
    if (!_curr.is<Bool>()) {
-      _error("An if's condition needs to be a bool value");
+      _error(_T("An if's condition needs to be a bool value"));
    }
    if (_curr.as<Bool>()) {
       x->then->accept(this);
@@ -569,8 +571,8 @@ void Interpreter::visit_iterstmt(IterStmt *x) {
    while (true) {
       x->cond->accept(this);
       if (!_curr.is<Bool>()) {
-         _error(string("La condición de un '") + (x->is_for() ? "for" : "while") + 
-                "' debe ser un valor de tipo 'bool'");
+         _error(_T("La condición de un '%s' debe ser un valor de tipo bool.",
+                   (x->is_for() ? "for" : "while")));
       }
       if (!_curr.as<Bool>()) {
          break;
@@ -608,8 +610,9 @@ void Interpreter::visit_callexpr(CallExpr *x) {
    func.as<Function>().invoke(this, args);
    if (_ret == Value::null && !func.type()->as<Function>()->is_void()) {
       Type *return_type = func.type()->as<Function>()->return_type();
-      _error("La función '" + func.as<Function>().name
-             + "' debería devolver un '" + return_type->typestr() + "'");
+      _error(_T("La función '%s' debería devolver un '%s'", 
+                func.as<Function>().name.c_str(),
+                return_type->typestr().c_str()));
    }
    _curr = _ret;
 }
@@ -618,20 +621,18 @@ void Interpreter::visit_indexexpr(IndexExpr *x) {
    x->base->accept(this);
    _curr = Reference::deref(_curr);
    if (!_curr.is<Array>() and !_curr.is<Vector>()) {
-      _error("Las expresiones de índice deben usarse sobre tablas o vectores");
+      _error(_T("Las expresiones de índice deben usarse sobre tablas o vectores"));
    }
    vector<Value>& vals = (_curr.is<Array>() ? _curr.as<Array>() : _curr.as<Vector>());
    x->index->accept(this);
    _curr = Reference::deref(_curr);
    if (!_curr.is<Int>()) {
       // FIXME: maps!
-      _error("El índice en un acceso a tabla debe ser un entero");
+      _error(_T("El índice en un acceso a tabla debe ser un entero"));
    }
    const int i = _curr.as<Int>();
    if (i < 0 || i >= vals.size()) {
-      ostringstream S;
-      S << "La casilla " << i << " no existe";
-      _error(S.str());
+      _error(_T("La casilla %d no existe", i));
    }
    _curr = Reference::mkref(vals[i]);
 }
@@ -643,7 +644,7 @@ void Interpreter::visit_fieldexpr(FieldExpr *x) {
       SimpleTable<Value>& fields = _curr.as<Struct>();
       Value v;
       if (!fields.get(x->field->name, v)) {
-         _error("No existe el campo '" + x->field->name + "'");
+         _error(_T("No existe el campo '%s'", x->field->name.c_str()));
       }
       _curr = Reference::mkref(v);
       return;
@@ -660,8 +661,8 @@ void Interpreter::visit_fieldexpr(FieldExpr *x) {
 void Interpreter::visit_condexpr(CondExpr *x) {
    x->cond->accept(this);
    if (!_curr.is<Bool>()) {
-      _error("Una expresión condicional debe tener valor "
-             "de tipo 'bool' antes del interrogante");
+      _error(_T("Una expresión condicional debe tener valor "
+                "de tipo 'bool' antes del interrogante"));
    }
    if (_curr.as<Bool>()) {
       x->then->accept(this);
@@ -695,14 +696,15 @@ void Interpreter::visit_signexpr(SignExpr *x) {
    } else if (_curr.is<Double>()) {
       _curr.as<Double>() = -_curr.as<Double>();
    } else {
-      _error("El cambio de signo para '" + _curr.type_name() + "' no tiene sentido");
+      _error(_T("El cambio de signo para '%s' no tiene sentido",
+                _curr.type_name().c_str()));
    }
 }
 
 void Interpreter::visit_increxpr(IncrExpr *x) {
    x->expr->accept(this);
    if (!_curr.is<Reference>()) {
-      _error("Hay que incrementar una variable, no un valor");
+      _error(_T("Hay que incrementar una variable, no un valor"));
    }
    Value after  = Reference::deref(_curr);
    Value before = after.clone();
@@ -713,7 +715,8 @@ void Interpreter::visit_increxpr(IncrExpr *x) {
          after.as<Int>()--;
       }
    } else {
-      _error("Estás incrementando un valor de tipo '" + after.type_name() + "'");
+      _error(_T("Estás incrementando un valor de tipo '%s'", 
+                after.type_name().c_str()));
    }
    _curr = (x->preincr ? before : after);
 }
@@ -721,7 +724,7 @@ void Interpreter::visit_increxpr(IncrExpr *x) {
 void Interpreter::visit_negexpr(NegExpr *x) {
    x->expr->accept(this);
    if (!_curr.is<Bool>()) {
-      _error("Para negar una expresión ésta debe ser de tipo 'bool'");
+      _error(_T("Para negar una expresión ésta debe ser de tipo 'bool'"));
    }
    _curr.as<Bool>() = !_curr.as<Bool>();
 }
