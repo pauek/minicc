@@ -232,12 +232,12 @@ class Function : public BaseType<FuncValue> {
 public:
    Function(Type *t) : _return_type(t) {}
    Function *add_param(Type *t)  { _param_types.push_back(t); return this; }
-   Function *add_param(Type *t1, Type *t2)  { 
+   Function *add_params(Type *t1, Type *t2)  { 
       _param_types.push_back(t1);
       _param_types.push_back(t2);
       return this; 
    }
-   Function *add_param(Type *t1, Type *t2, Type *t3)  { 
+   Function *add_params(Type *t1, Type *t2, Type *t3)  { 
       _param_types.push_back(t1);
       _param_types.push_back(t2);
       _param_types.push_back(t3);

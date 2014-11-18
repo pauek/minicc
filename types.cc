@@ -393,13 +393,25 @@ map<string, pair<std::function<Type *(Type *)>, Type::Method>> Vector::_methods 
 // String
 map<string, pair<std::function<Type *()>, Type::Method>> String::_methods = {
    {
-      "size", {
-         []() -> Type * { 
-            return new Function(Type::find("int")); 
+      "size", 
+      {
+         []() -> Type * {
+            return new Function(Type::find("int"));
          },
          [](void *data, const vector<Value>& args) -> Value {
             string *s = static_cast<string*>(data);
             return Value(int(s->size()));
+         }
+      }
+   }, {
+      "substr",
+      {
+         []() -> Type * {
+            return (new Function(Type::find("int")))->add_params(Type::find("int"), Type::find("int"));
+         },
+         [](void *data, const vector<Value>& args) -> Value {
+            string *s = static_cast<string*>(data);
+            return Value(string(s->substr(args[0].as<Int>(), args[1].as<Int>())));
          }
       }
    }
