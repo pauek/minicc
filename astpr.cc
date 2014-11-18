@@ -88,7 +88,7 @@ void AstPrinter::visit_funcdecl(FuncDecl *x) {
    out() << "FuncDecl(";
    x->id->accept(this);
    out() << ", ";
-   x->return_type->accept(this);
+   x->return_typespec->accept(this);
    out() << ", Params = {";
    for (int i = 0; i < x->params.size(); i++) {
       if (i > 0) {

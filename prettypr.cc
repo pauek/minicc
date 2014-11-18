@@ -198,7 +198,7 @@ void PrettyPrinter::visit_structdecl(StructDecl *x) {
 
 void PrettyPrinter::visit_funcdecl(FuncDecl *x) {
    CommentPrinter cp(x, this);
-   visit_typespec(x->return_type);
+   visit_typespec(x->return_typespec);
    out() << " " << cp.cmt_();
    x->id->accept(this);
    out() << cp._cmt_();

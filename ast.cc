@@ -243,7 +243,7 @@ bool TypeSpec::has_errors() const {
 }
 
 bool FuncDecl::has_errors() const {
-   _ERRORS(return_type); _ERRORS(block);
+   _ERRORS(return_typespec); _ERRORS(block);
    for (Param* p : params) {
       _ERRORS(p->typespec);
    }

@@ -43,7 +43,7 @@ void Walker::visit_structdecl(StructDecl *x) {
 
 void Walker::visit_funcdecl(FuncDecl *x) {
    walk(x);
-   x->return_type->accept(this);
+   x->return_typespec->accept(this);
    if (x->block) {
       x->block->accept(this);
    }

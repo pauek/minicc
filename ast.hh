@@ -413,7 +413,7 @@ struct FuncDecl : public AstNode {
       Param() : typespec(0) {}
    };
 
-   TypeSpec *return_type;
+   TypeSpec *return_typespec;
    Ident *id;
    std::vector<Param*> params;
    Block* block;

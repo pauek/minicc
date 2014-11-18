@@ -260,7 +260,7 @@ AstNode *Parser::parse_func_or_var() {
    CommentSeq *c[2] = { 0, 0 };
    Pos ini = _in.pos();
    _in.save();
-   TypeSpec *type = parse_typespec();
+   TypeSpec *typespec = parse_typespec();
    c[0] = _in.skip("\n\t ");
    Pos id_ini = _in.pos();
    Token tok = _in.read_id();
@@ -270,12 +270,12 @@ AstNode *Parser::parse_func_or_var() {
       _in.discard();
       FuncDecl *fn = new FuncDecl(id);
       fn->comments.assign(c, c+2);
-      fn->return_type = type;
+      fn->return_typespec = typespec;
       fn->ini = ini;
       parse_function(fn);
       return fn;
    } else {
-      delete type;
+      delete typespec;
       _in.restore();
       return parse_declstmt();
    }

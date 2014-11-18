@@ -135,7 +135,7 @@ void Interpreter::visit_include(Include* x) {
 
 void Interpreter::visit_funcdecl(FuncDecl *x) {
    string funcname = x->funcname();
-   Type *return_type = Type::find(x->return_type->typestr());  // return_type == 0 means 'void'
+   Type *return_type = Type::get(x->return_typespec);  // return_type == 0 means 'void'
    Function *functype = new Function(return_type);
    for (auto p : x->params) {
       Type *param_type = Type::find(p->typespec);
