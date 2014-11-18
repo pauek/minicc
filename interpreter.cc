@@ -749,14 +749,16 @@ void Interpreter::visit_objdecl_vector(ObjDecl *x) {
       }
    }
    args.push_back(init);
-   Type *vtype = Type::find(x->type);
-   if (vtype == 0) {
-      vtype = new Vector(Type::find(celltype)); // will auto-register
+   Type *vector_type = Type::find(x->type);
+   if (vector_type == 0) {
+      vector_type = new Vector(Type::find(celltype)); // will auto-register
    }
-   setenv(x->name, vtype->construct(args));
+   setenv(x->name, vector_type->construct(args));
 }
 
 void Interpreter::visit_objdecl(ObjDecl *x) {
+   // TODO: Convertir la construcción en una llamada al método constructor
+   //
    if (x->type->is_vector()) {
       visit_objdecl_vector(x);
       return;
