@@ -320,7 +320,7 @@ void Stepper::visit_callexpr(CallExpr *x) {
    assert(fn != 0);
    CallExprVisitState *s = new CallExprVisitState(x, fn);
    vector<Value> args(fn->params.size(), Value::null);
-   I.pushenv(fn->id->str());
+   I.pushenv(fn->funcname());
    I.invoke_func_prepare(fn, args);
    s->step(this);
    push(s);
@@ -369,7 +369,7 @@ Todo Stepper::CallExprVisitState::step(Stepper *S) {
       ++curr;
       return Stop;
    } else {
-      S->status(_T("We jump to function '%s'.", fn->id->str().c_str()));
+      S->status(_T("We jump to function '%s'.", fn->funcname().c_str()));
       S->I.actenv();
       curr = Block;
       return Stop;

@@ -288,7 +288,7 @@ struct Ident : public Expr {
    Ident(std::string _id = "") : id(_id) {}
    void accept(AstVisitor *v);
    bool has_errors() const;
-   std::string str() const;
+   std::string typestr() const;
 
    void shift(std::string new_id);
 };
@@ -419,6 +419,8 @@ struct FuncDecl : public AstNode {
    Block* block;
    
    FuncDecl(Ident *_id) : id(_id) {}
+
+   std::string funcname() const;
    void accept(AstVisitor *v);
    bool has_errors() const;
 };

@@ -263,10 +263,10 @@ bool TypedefDecl::has_errors() const {
    return AstNode::has_errors();
 }
 
-string Ident::str() const {
+string Ident::typestr() const {
    string _id;
    for (int i = 0; i < prefix.size(); i++) {
-      _id += prefix[i]->str();
+      _id += prefix[i]->typestr();
       _id += "::";
    }
    _id += id;
@@ -300,7 +300,7 @@ string TypeSpec::typestr() const {
       }
       i++;
    }
-   _id += id->str();
+   _id += id->typestr();
    if (reference) {
       _id += "&";
    }
@@ -410,4 +410,8 @@ void Ident::shift(string new_id) {
 
    prefix.push_back(pre);
    id = new_id;
+}
+
+string FuncDecl::funcname() const {
+   return id->id;
 }

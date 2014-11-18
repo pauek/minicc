@@ -30,7 +30,7 @@ Value Endl("\n");
 // Methods
 
 Type *Type::find(TypeSpec *spec) {
-   auto it = _typemap.find(spec->id->str());
+   auto it = _typemap.find(spec->id->typestr());
    if (it == _typemap.end()) {
       return 0;
    }

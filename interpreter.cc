@@ -49,7 +49,7 @@ string Interpreter::env2json() const {
 
 void Interpreter::invoke_func_prepare(FuncDecl *fn, const vector<Value>& args) {
    if (fn->params.size() != args.size()) {
-      _error("Error en el número de argumentos al llamar a '" + fn->id->str() + "'");
+      _error("Error en el número de argumentos al llamar a '" + fn->funcname() + "'");
    }
    for (int i = 0; i < args.size(); i++) {
       if (args[i].is<Reference>()) {
@@ -134,7 +134,7 @@ void Interpreter::visit_include(Include* x) {
 }
 
 void Interpreter::visit_funcdecl(FuncDecl *x) {
-   string funcname = x->id->str();
+   string funcname = x->funcname();
    Type *return_type = Type::find(x->return_type->typestr());  // return_type == 0 means 'void'
    Function *functype = new Function(return_type);
    for (auto p : x->params) {
@@ -142,7 +142,7 @@ void Interpreter::visit_funcdecl(FuncDecl *x) {
       assert(param_type != 0);
       functype->add_param(param_type);
    }
-   setenv(x->id->str(), 
+   setenv(x->funcname(), 
           functype->mkvalue(funcname,
                             new UserFunc(x)));
 }
@@ -568,7 +568,7 @@ void Interpreter::visit_iterstmt(IterStmt *x) {
 }
 
 void Interpreter::invoke_user_func(FuncDecl *decl, const vector<Value>& args) {
-   pushenv(decl->id->str());
+   pushenv(decl->funcname());
    invoke_func_prepare(decl, args);
    decl->block->accept(this);
    popenv();
@@ -734,6 +734,7 @@ void Interpreter::visit_objdecl_vector(ObjDecl *x) {
       init = _curr;
    } else {
       // Valor por defecto para cada tipo controlado por vector!
+      // TODO: Esto debería ir al constructor de vector...
       if (cell_typestr == "int") {
          init = Value(0);
       } else if (cell_typestr == "bool") {
