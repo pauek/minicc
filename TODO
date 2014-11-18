@@ -1,8 +1,13 @@
-- Esborrar AST correctament (almenys).
+- Introducir namespaces.
+- Escoger el método a llamar usando su signatura.
+- Invocar los constructores de cada clase en ObjDecl.
 - Implementar tablas de más de una dimensión.
+- Completar métodos de vector<X>.
+- Completar métodos de string.
+
+- Borrar el AST correctamente (quizás no haga falta, el AST está presente todo el rato).
 - Testear a fondo el stepper.
-- Implementar vector<X> en el intérprete.
 - Empezar el Semantic Analyzer (-> mensajes de error)
 - Pintar flechas con jsPlumb.
-- Pensar más Entrada/Salida.
 - Pintar matrices en 2D.
+- Pensar más Entrada/Salida.
