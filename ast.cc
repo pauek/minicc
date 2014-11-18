@@ -276,14 +276,14 @@ string Ident::str() const {
          if (i > 0) {
             _id += ",";
          }
-         _id += subtypes[i]->str();
+         _id += subtypes[i]->typestr();
       }
       _id += ">";
    }
    return _id;
 }
 
-string TypeSpec::str() const {
+string TypeSpec::typestr() const {
    string _id;
    int i = 0, numquals = 0;
    static const string names[] = { 
@@ -308,7 +308,7 @@ string TypeSpec::str() const {
 }
 
 string ArrayDecl::type_str() const { 
-   return type->str() + "[]"; 
+   return type->typestr() + "[]"; 
 }
 
 string StructDecl::type_str() const {
@@ -318,7 +318,7 @@ string StructDecl::type_str() const {
       if (i > 0) {
          S << ";";
       }
-      S << decls[i]->type->str();
+      S << decls[i]->type->typestr();
    }
    S << "}";
    return S.str();

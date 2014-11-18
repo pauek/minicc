@@ -135,7 +135,7 @@ void Interpreter::visit_include(Include* x) {
 
 void Interpreter::visit_funcdecl(FuncDecl *x) {
    string funcname = x->id->str();
-   Type *return_type = Type::find(x->return_type->str());  // return_type == 0 means 'void'
+   Type *return_type = Type::find(x->return_type->typestr());  // return_type == 0 means 'void'
    Function *functype = new Function(return_type);
    for (auto p : x->params) {
       Type *param_type = Type::find(p->type);
@@ -480,7 +480,7 @@ void Interpreter::visit_block(Block *x) {
 }
 
 void Interpreter::visit_vardecl(VarDecl *x) {
-   string type_name = x->type->str();
+   string type_name = x->type->typestr();
    Type *type = Type::find(x->type);
    if (type == 0) {
       _error("El tipo '" + type_name + "' no existe.");
@@ -505,7 +505,7 @@ void Interpreter::visit_arraydecl(ArrayDecl *x) {
    const int sz = _curr.as<Int>();
    Type *celltype = Type::find(x->type);
    if (celltype == 0) {
-      _error("El tipo '" + x->type->str() + "' no existe");
+      _error("El tipo '" + x->type->typestr() + "' no existe");
    }
    Type *arraytype = Array::mktype(celltype, sz);
    setenv(x->name, (init.is_null() 
@@ -727,22 +727,22 @@ void Interpreter::visit_objdecl_vector(ObjDecl *x) {
    }
    args.push_back(_curr);
    TypeSpec *celltype = x->type->id->subtypes[0];
-   string cell_typename = celltype->str();
+   string cell_typestr = celltype->typestr();
    Value init;
    if (x->args.size() == 2) { // initialization
       x->args[1]->accept(this);
       init = _curr;
    } else {
       // Valor por defecto para cada tipo controlado por vector!
-      if (cell_typename == "int") {
+      if (cell_typestr == "int") {
          init = Value(0);
-      } else if (cell_typename == "bool") {
+      } else if (cell_typestr == "bool") {
          init = Value(false);
-      } else if (cell_typename == "float") {
+      } else if (cell_typestr == "float") {
          init = Value(0.0f);
-      } else if (cell_typename == "double") {
+      } else if (cell_typestr == "double") {
          init = Value(0.0);
-      } else if (cell_typename == "char") {
+      } else if (cell_typestr == "char") {
          init = Value('\0');
       } else {
          init = Type::find(celltype)->create();
@@ -762,5 +762,5 @@ void Interpreter::visit_objdecl(ObjDecl *x) {
       return;
    }
    _error(_T("The type '%s' is not implemented in MiniCC", 
-             x->type->str().c_str()));
+             x->type->typestr().c_str()));
 }

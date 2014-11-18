@@ -399,7 +399,7 @@ struct TypeSpec : public AstNode {
    TypeSpec() : id(0), reference(false) {}
    void accept(AstVisitor *v);
    bool has_errors() const;
-   std::string str() const;
+   std::string typestr() const;
 
    bool is_vector() const { return id->id == "vector"; }
 };
