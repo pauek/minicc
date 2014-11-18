@@ -12,6 +12,8 @@ void _error(std::string msg) {
 // static + Globals
 
 map<string, Type*> Type::_typemap;
+map<string, Type*> Type::_typecache;
+map<string, Type*> Type::_global_namespace;
 
 Int         *Int::self         = new Int();
 Float       *Float::self       = new Float();
@@ -22,12 +24,42 @@ String      *String::self      = new String();
 Ostream     *Ostream::self     = new Ostream();
 Istream     *Istream::self     = new Istream();
 VectorValue *VectorValue::self = new VectorValue();
+Vector      *Vector::self      = new Vector();
 
 Value Cout(cout), Cerr(cerr);
 Value Cin(cin);
 Value Endl("\n");
 
 // Methods
+
+Type *Type::get(TypeSpec *spec) {
+   // 1. If typestr already registered, return the type
+   {
+      auto it = _typecache.find(spec->typestr());
+      if (it != _typecache.end()) {
+         return it->second;
+      }
+   }
+   // 2. Construct the Type from the TypeSpec
+   {
+      auto it = _global_namespace.find(spec->id->name);
+      if (it == _global_namespace.end()) {
+         return 0;
+      }
+      Type *T = it->second;
+      if (spec->is_template()) {
+         assert(T->is(Template));
+         vector<Type*> subtypes;
+         for (int i = 0; i < spec->id->subtypes.size(); i++) {
+            subtypes.push_back(Type::get(spec->id->subtypes[i]));
+         }
+         T = T->instantiate(subtypes);
+      }
+      _typecache[spec->typestr()] = T;
+      _typemap[spec->typestr()] = T; // TODO: remove this
+      return T;
+   }
+}
 
 Type *Type::find(TypeSpec *spec) {
    auto it = _typemap.find(spec->id->typestr());
@@ -42,9 +74,10 @@ Type *Type::find(TypeSpec *spec) {
 }
 
 void Type::register_type(Type *t) {
-   const string name = t->name();
-   assert(_typemap.find(name) == _typemap.end());
-   _typemap[name] = t;
+   const string typestr = t->typestr();
+   assert(_typemap.find(typestr) == _typemap.end());
+   _typemap[typestr] = t; // TODO: remove this
+   _global_namespace[typestr] = t;
 }
 
 Type *Type::find(string str) {
@@ -74,7 +107,7 @@ Value Reference::convert(Value init) const {
 Value Reference::mkref(Value& v) {
    Value::Box *b = v._box;
    v._box->count++;
-   Type *type = Type::find(v._box->type->name() + "&");
+   Type *type = Type::find(v._box->type->typestr() + "&");
    if (type == 0) {
       type = new Reference(v._box->type);
       Type::register_type(type);
@@ -164,13 +197,31 @@ Value Vector::construct(const vector<Value>& args) const {
       return create();
    }
    assert(args[0].is<Int>());
-   const int sz = args[0].as<Int>();
+   Value arg0 = Reference::deref(args[0]);
+   const int sz = arg0.as<Int>();
    vector<Value> *vec = new vector<Value>(sz);
-   Value arg1 = Reference::deref(args[1]);
+
+   Value init;
+   if (args.size() == 2) { // initialization
+      init = Reference::deref(args[1]);
+   } else {
+      // Valor por defecto para cada tipo controlado por vector!
+      if (_celltype->is<Int>()) {
+         init = Value(0);
+      } else if (_celltype->is<Bool>()) {
+         init = Value(false);
+      } else if (_celltype->is<Float>()) {
+         init = Value(0.0f);
+      } else if (_celltype->is<Double>()) {
+         init = Value(0.0);
+      } else if (_celltype->is<Char>()) {
+         init = Value('\0');
+      } else {
+         init = _celltype->create();
+      }
+   }
    for (int i = 0; i < sz; i++) {
-      (*vec)[i] = (args.size() == 2 
-                   ? _celltype->convert(arg1) 
-                   : _celltype->create());
+      (*vec)[i] = init.clone();
    }
    return Value(this, vec);
 }
@@ -190,7 +241,7 @@ string Vector::to_json(void *data) const {
 }
 
 Type *Array::mktype(Type *celltype, int sz) {
-   Type *typ = Type::find(celltype->name() + "[]");
+   Type *typ = Type::find(celltype->typestr() + "[]");
    if (typ == 0) {
       typ = new Array(celltype, sz);
       Type::register_type(typ);
@@ -280,18 +331,18 @@ void *Struct::clone(void *data) const {
    return to;
 }
 
-string Function::name() const {
+string Function::typestr() const {
    ostringstream o;
    o << "func(";
    for (int i = 0; i < _param_types.size(); i++) {
       if (i > 0) {
          o << ",";
       }
-      o << _param_types[i]->name();
+      o << _param_types[i]->typestr();
    }
    o << ")";
    if (_return_type) {
-      o << ":" << _return_type->name();
+      o << ":" << _return_type->typestr();
    }
    return o.str();
 }
@@ -417,3 +468,15 @@ map<string, pair<std::function<Type *()>, Type::Method>> String::_methods = {
    }
 };
 
+Type *Vector::instantiate(vector<Type *>& subtypes) const {
+   assert(subtypes.size() == 1);
+   return new Vector(subtypes[0]);
+}
+
+string Vector::typestr() const {
+   if (_celltype == 0) {
+      return "vector";
+   } else {
+      return std::string("vector<") + _celltype->typestr() + ">"; 
+   }
+}

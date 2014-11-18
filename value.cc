@@ -98,7 +98,7 @@ bool Value::equals(const Value& v) const {
 
 string Value::type_name() const {
    assert(_box != 0);
-   return _box->type->name();
+   return _box->type->typestr();
 }
 
 string Value::to_json() const {

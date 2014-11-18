@@ -401,7 +401,7 @@ struct TypeSpec : public AstNode {
    bool has_errors() const;
    std::string typestr() const;
 
-   bool is_vector() const { return id->name == "vector"; }
+   bool is_template() const { return !id->subtypes.empty(); }
 };
 
 // Declarations ////////////////////////////////////////////

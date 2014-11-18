@@ -481,7 +481,7 @@ void Interpreter::visit_block(Block *x) {
 
 void Interpreter::visit_vardecl(VarDecl *x) {
    string type_name = x->typespec->typestr();
-   Type *type = Type::find(x->typespec);
+   Type *type = Type::get(x->typespec);
    if (type == 0) {
       _error("El tipo '" + type_name + "' no existe.");
    }
@@ -511,6 +511,22 @@ void Interpreter::visit_arraydecl(ArrayDecl *x) {
    setenv(x->name, (init.is_null() 
                     ? arraytype->create()
                     : arraytype->convert(init)));
+}
+
+void Interpreter::visit_objdecl(ObjDecl *x) {
+   Type *type = Type::get(x->typespec);
+   if (type != 0) {
+      // TODO: Convertir la construcción en una llamada al método constructor
+      vector<Value> args;
+      for (int i = 0; i < x->args.size(); i++) {
+         x->args[i]->accept(this);
+         args.push_back(_curr);
+      }
+      setenv(x->name, type->construct(args));
+      return;
+   }
+   _error(_T("The type '%s' is not implemented in MiniCC", 
+             x->typespec->typestr().c_str()));
 }
 
 void Interpreter::visit_declstmt(DeclStmt* x) {
@@ -593,7 +609,7 @@ void Interpreter::visit_callexpr(CallExpr *x) {
    if (_ret == Value::null && !func.type()->as<Function>()->is_void()) {
       Type *return_type = func.type()->as<Function>()->return_type();
       _error("La función '" + func.as<Function>().name
-             + "' debería devolver un '" + return_type->name() + "'");
+             + "' debería devolver un '" + return_type->typestr() + "'");
    }
    _curr = _ret;
 }
@@ -708,64 +724,4 @@ void Interpreter::visit_negexpr(NegExpr *x) {
       _error("Para negar una expresión ésta debe ser de tipo 'bool'");
    }
    _curr.as<Bool>() = !_curr.as<Bool>();
-}
-
-void Interpreter::visit_objdecl_vector(ObjDecl *x) {
-   if (x->args.empty()) {
-      _error(_T("The vector constructor needs at least 1 parameter."));
-   } else if (x->args.size() > 2) {
-      _error(_T("The vector constructor receives at most 2 parameters."));
-   }
-   vector<Value> args;
-   x->args[0]->accept(this);
-   if (!_curr.is<Int>()) {
-      _error(_T("The size of a vector must be an integer."));
-   }
-   const int sz = _curr.as<Int>();
-   if (sz <= 0) {
-      _error(_T("The size of a vector must be a positive integer."));
-   }
-   args.push_back(_curr);
-   TypeSpec *cell_typespec = x->typespec->id->subtypes[0];
-   string cell_typestr = cell_typespec->typestr();
-   Value init;
-   if (x->args.size() == 2) { // initialization
-      x->args[1]->accept(this);
-      init = _curr;
-   } else {
-      // Valor por defecto para cada tipo controlado por vector!
-      // TODO: Esto debería ir al constructor de vector...
-      if (cell_typestr == "int") {
-         init = Value(0);
-      } else if (cell_typestr == "bool") {
-         init = Value(false);
-      } else if (cell_typestr == "float") {
-         init = Value(0.0f);
-      } else if (cell_typestr == "double") {
-         init = Value(0.0);
-      } else if (cell_typestr == "char") {
-         init = Value('\0');
-      } else {
-         Type *celltype = Type::find(cell_typespec);
-         assert(celltype != 0);
-         init = celltype->create();
-      }
-   }
-   args.push_back(init);
-   Type *vector_type = Type::find(x->typespec);
-   if (vector_type == 0) {
-      vector_type = new Vector(Type::find(cell_typespec)); // will auto-register
-   }
-   setenv(x->name, vector_type->construct(args));
-}
-
-void Interpreter::visit_objdecl(ObjDecl *x) {
-   // TODO: Convertir la construcción en una llamada al método constructor
-   //
-   if (x->typespec->is_vector()) {
-      visit_objdecl_vector(x);
-      return;
-   }
-   _error(_T("The type '%s' is not implemented in MiniCC", 
-             x->typespec->typestr().c_str()));
 }

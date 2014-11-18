@@ -24,7 +24,7 @@ class Type {
    virtual string to_json(void *data)                 const { assert(false); }
 
 public:
-   enum Properties {
+   enum Property {
       Basic       = 1,  Emulated = 2, 
       UserDefined = 4,  Template = 8,
       Internal    = 16
@@ -32,15 +32,18 @@ public:
 
    typedef Value (*Method)(void *, const std::vector<Value>& args);
 
-   virtual std::string  name() const = 0;
+   virtual std::string  typestr() const = 0;
    virtual         int  properties() const = 0;
    virtual        bool  get_method(std::string, std::pair<Type*, Method>&) const { return false; }
    virtual       Value  create()                                           const { assert(false); }
    virtual       Value  convert(Value init)                                const { assert(false); }
    virtual       Value  construct(const std::vector<Value>& args)          const { assert(false); }
- 
+   virtual        Type *instantiate(std::vector<Type*>& subtypes)          const { assert(false); } // for templates
+
    template<typename T>
    bool is() const { return dynamic_cast<const T*>(this) != 0; }
+
+   bool is(Property prop) const { return properties() | prop; }
 
    template<typename T>
    const T *as() const { return dynamic_cast<const T*>(this); }
@@ -50,9 +53,14 @@ public:
 
    // Type registry   
    static void register_type(Type *);
+   static Type *get(TypeSpec *);
    static Type *find(TypeSpec *);
    static Type *find(std::string);
+
 private:
+   static std::map<std::string, Type*> _global_namespace;
+   static std::map<std::string, Type*> _typecache; // all types indexed by typestr
+
    static std::map<std::string, Type*> _typemap;
 };
 
@@ -108,7 +116,7 @@ class BasicType : public BaseType<T> {
 public:
    BasicType(std::string name) : _name(name) { Type::register_type(this); }
    int properties()  const { return Type::Basic; }
-   std::string name() const { return _name; }
+   std::string typestr() const { return _name; }
 
    Value construct(const std::vector<Value>& args) const {
       assert(false); // Basic types are not "constructed"
@@ -135,16 +143,16 @@ class Reference : public Type {
 public:
    Reference(const Type *subtype) : _subtype(subtype) {}
 
-   std::string name() const { return _subtype->name() + "&"; }
-   int    properties() const { return Basic; }
+   std::string  typestr()           const { return _subtype->typestr() + "&"; }
+           int  properties()        const { return Basic; }
 
-   void *alloc(Value& x) const;
-   void  destroy(void *data) const;
+          void *alloc(Value& x)     const;
+          void  destroy(void *data) const;
    
-   Value convert(Value init) const;
+         Value  convert(Value init) const;
 
-   static Value mkref(Value& v);  // create a reference to a value
-   static Value deref(const Value& v);  // obtain the referenced value
+  static Value  mkref(Value& v);  // create a reference to a value
+  static Value  deref(const Value& v);  // obtain the referenced value
 
    std::string to_json(void *data) {
       Value::Box *b = (Value::Box*)data;
@@ -248,7 +256,7 @@ public:
    bool is_void()          const { return _return_type == 0; }
 
    int properties() const { return Internal; }
-   std::string name() const;
+   std::string typestr() const;
 
    Value mkvalue(std::string name, FuncPtr *pf) const {
       return Value(this, new FuncValue(name, pf));
@@ -269,7 +277,7 @@ public:
    void *clone(void *data) const;
    Value convert(Value init) const;
 
-   std::string name() const { return _name; }
+   std::string typestr() const { return _name; }
    std::string to_json(void *data) const {
       assert(false);
    }
@@ -283,16 +291,20 @@ class Array : public BaseType<std::vector<Value>> {
 public:
    Array(Type *celltype, int sz) : _celltype(celltype), _sz(sz) {}
    int properties() const { return Basic; }
-   std::string name() const { return _celltype->name() + "[]"; }
+   std::string typestr() const { return _celltype->typestr() + "[]"; }
    Value create() const;
    Value convert(Value init) const;
    static Type *mktype(Type *celltype, int sz);
 };
 
 class Vector : public BaseType<std::vector<Value>> {
-   Type *_celltype;
+   Type *_celltype; // celltype == 0 means it's the template
 public:
-   Vector(Type *celltype) : _celltype(celltype) {}
+   Vector(Type *celltype = 0) : _celltype(celltype) {
+      Type::register_type(this);
+   }
+
+   Type *instantiate(std::vector<Type*>& args) const;
    
    typedef std::vector<Value> cpp_type;
 
@@ -303,12 +315,14 @@ public:
    Value convert(Value init) const;
    Value construct(const std::vector<Value>& args) const;
 
-   std::string name() const { return std::string("vector<") + _celltype->name() + ">"; }
+   std::string typestr() const;
    bool get_method(std::string name, std::pair<Type*, Method>& method) const;
 
    std::string to_json(void *data) const;
 
 private:
+   static Vector *self;
+
    static std::map<
       std::string, 
       std::pair<std::function<Type *(Type *)>, Method>
@@ -322,7 +336,7 @@ public:
    Value create() const { return Value(this, new std::vector<Value>()); }
    static Value make() { return self->create(); }
    static VectorValue *self;
-   std::string name() const { return "vector<?>"; }
+   std::string typestr() const { return "vector<?>"; }
 };
 
 class Ostream : public Type {
@@ -332,7 +346,7 @@ public:
    Value create()            const { assert(false); }
    Value convert(Value init) const { assert(false); }
    Value construct(const std::vector<Value>& args) const { assert(false); }
-   std::string name()         const { return "ostream"; }
+   std::string typestr()         const { return "ostream"; }
 
    static Ostream *self;
 };
@@ -344,7 +358,7 @@ public:
    Value create()            const { assert(false); }
    Value convert(Value init) const { assert(false); }
    Value construct(const std::vector<Value>& args) const { assert(false); }
-   std::string name()        const { return "istream"; }
+   std::string typestr()     const { return "istream"; }
 
    static Istream *self;
 
