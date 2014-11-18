@@ -172,8 +172,8 @@ void Interpreter::visit_structdecl(StructDecl *x) {
 
 void Interpreter::visit_ident(Ident *x) {
    Value v;
-   if (!getenv(x->id, v)) {
-      _error("La variable '" + x->id + "' no existe.");
+   if (!getenv(x->name, v)) {
+      _error("La variable '" + x->name + "' no existe.");
    }
    _curr = (v.is<Reference>() ? v : Reference::mkref(v));
 }
@@ -315,8 +315,8 @@ void Interpreter::visit_binaryexpr(BinaryExpr *x) {
          _error("La lectura con 'cin' requiere que pongas variables");
       }
       Value right;
-      if (!getenv(id->id, right)) {
-         _error("La variable '" + id->id + "' no está declarada");
+      if (!getenv(id->name, right)) {
+         _error("La variable '" + id->name + "' no está declarada");
       }
       assert(leftderef.as<Istream>() == cin);
       right = Reference::deref(right);
@@ -626,19 +626,19 @@ void Interpreter::visit_fieldexpr(FieldExpr *x) {
    if (_curr.is<Struct>()) {
       SimpleTable<Value>& fields = _curr.as<Struct>();
       Value v;
-      if (!fields.get(x->field->id, v)) {
-         _error("No existe el campo '" + x->field->id + "'");
+      if (!fields.get(x->field->name, v)) {
+         _error("No existe el campo '" + x->field->name + "'");
       }
       _curr = Reference::mkref(v);
       return;
    }
    pair<Type *, Type::Method> method;
-   if (_curr.type()->get_method(x->field->id, method)) {
+   if (_curr.type()->get_method(x->field->name, method)) {
       Function *ft = dynamic_cast<Function*>(method.first);
-      _curr = ft->mkvalue(x->field->id, new BoundMethod(method.second, _curr.data()));
+      _curr = ft->mkvalue(x->field->name, new BoundMethod(method.second, _curr.data()));
       return;
    }
-   _error(_T("Este objeto no tiene un campo '%s'", x->field->id.c_str()));
+   _error(_T("Este objeto no tiene un campo '%s'", x->field->name.c_str()));
 }
 
 void Interpreter::visit_condexpr(CondExpr *x) {

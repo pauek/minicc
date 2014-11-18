@@ -56,7 +56,7 @@ AstNode* Parser::parse() {
       }
       case Token::Struct: {
          StructDecl *decl = parse_struct();
-         _types.insert(decl->id->id);
+         _types.insert(decl->id->name);
          prog->add(decl);
          break;
       }
@@ -176,7 +176,7 @@ Ident *Parser::parse_ident(Token tok, Pos ini) {
    Pos fin = _in.pos();
    while (true) {
       tok = _in.peek_token();
-      if (_is_type(id->id) and tok.kind == Token::LT) { // template_id
+      if (_is_type(id->name) and tok.kind == Token::LT) { // template_id
          _skip(id);
          _in.consume("<");
          _skip(id);

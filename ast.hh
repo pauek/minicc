@@ -281,11 +281,11 @@ struct Literal : public Expr {
 };
 
 struct Ident : public Expr {
-   std::string id;
+   std::string name;
    std::vector<TypeSpec*> subtypes; // for templates
    std::vector<Ident*> prefix;  // for classes & namespaces;
 
-   Ident(std::string _id = "") : id(_id) {}
+   Ident(std::string _name = "") : name(_name) {}
    void accept(AstVisitor *v);
    bool has_errors() const;
    std::string typestr() const;
@@ -401,7 +401,7 @@ struct TypeSpec : public AstNode {
    bool has_errors() const;
    std::string typestr() const;
 
-   bool is_vector() const { return id->id == "vector"; }
+   bool is_vector() const { return id->name == "vector"; }
 };
 
 // Declarations ////////////////////////////////////////////
@@ -432,7 +432,7 @@ struct StructDecl : public AstNode {
    StructDecl() : id(0) {}
    void accept(AstVisitor *v);
    bool has_errors() const;
-   std::string struct_name() const { return id->id; }
+   std::string struct_name() const { return id->name; }
    std::string type_str() const;
    int num_fields() const;
 };

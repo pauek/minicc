@@ -138,7 +138,7 @@ void AstPrinter::visit_ident(Ident *x) {
       }
       out() << ']';
    }
-   out() << "'" << x->id << "'";
+   out() << "'" << x->name << "'";
    if (!x->subtypes.empty()) {
       out() << "<";
       for (int i = 0; i < x->subtypes.size(); i++) {

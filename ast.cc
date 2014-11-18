@@ -269,7 +269,7 @@ string Ident::typestr() const {
       _id += prefix[i]->typestr();
       _id += "::";
    }
-   _id += id;
+   _id += name;
    if (!subtypes.empty()) {
       _id += "<";
       for (int i = 0; i < subtypes.size(); i++) {
@@ -336,14 +336,14 @@ bool BinaryExpr::is_read_expr() const {
    Ident *id = dynamic_cast<Ident*>(left);
    return 
       (left->is_read_expr() and op == ">>") or
-      (id != 0 and id->id == "cin");   
+      (id != 0 and id->name == "cin");   
 }
 
 bool BinaryExpr::is_write_expr() const {
    Ident *id = dynamic_cast<Ident*>(left);
    return 
       (left->is_write_expr() and op == "<<") or
-      (id != 0 and id->id == "cout");   
+      (id != 0 and id->name == "cout");   
 }
 
 bool BinaryExpr::is_assignment() const {
@@ -362,7 +362,7 @@ string ExprStmt::describe() const {
 string IncrExpr::describe() const {
    Ident *id = dynamic_cast<Ident*>(expr);
    if (id != 0) {
-      return _T("Se incrementa la variable '%s'.", id->id.c_str());
+      return _T("Se incrementa la variable '%s'.", id->name.c_str());
    }
    return _T("UNIMPLEMENTED");
 }
@@ -397,7 +397,7 @@ string DeclStmt::describe() const {
 
 
 void Ident::shift(string new_id) {
-   Ident *pre = new Ident(id);
+   Ident *pre = new Ident(name);
    pre->subtypes.swap(subtypes);
    pre->comments.swap(comments);
    pre->errors.swap(errors);
@@ -409,9 +409,9 @@ void Ident::shift(string new_id) {
    pre->comments.resize(commsz-2);
 
    prefix.push_back(pre);
-   id = new_id;
+   name = new_id;
 }
 
 string FuncDecl::funcname() const {
-   return id->id;
+   return id->name;
 }
