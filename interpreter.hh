@@ -20,11 +20,6 @@ class Interpreter : public AstVisitor, public ReadWriter
                       Value _curr, _ret;
    std::vector<Environment> _env;
 
-     bool  is_struct(std::string name) {
-        Type *t = Type::find(name);
-        return t != 0 and t->is<Struct>();
-     }
-
      void  pushenv(std::string name) { _env.push_back(Environment(name));  }
      void  popenv();
      void  actenv();

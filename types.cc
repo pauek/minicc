@@ -11,7 +11,6 @@ void _error(std::string msg) {
 
 // static + Globals
 
-map<string, Type*> Type::_typemap;
 map<string, Type*> Type::_typecache;
 map<string, Type*> Type::_global_namespace;
 
@@ -55,34 +54,31 @@ Type *Type::get(TypeSpec *spec) {
          }
          T = T->instantiate(subtypes);
       }
+      if (spec->reference) {
+         T = new Reference(T);
+      }
       _typecache[spec->typestr()] = T;
-      _typemap[spec->typestr()] = T; // TODO: remove this
       return T;
    }
 }
 
-Type *Type::find(TypeSpec *spec) {
-   auto it = _typemap.find(spec->id->typestr());
-   if (it == _typemap.end()) {
-      return 0;
-   }
-   Type *type = it->second;
-   if (spec->reference) {
-      type = new Reference(type);
-   }
-   return type;
+void Type::register_type(string name, Type *typespec) {
+   assert(_global_namespace.find(name) == _global_namespace.end());
+   _global_namespace[name] = typespec;
+   _typecache[typespec->typestr()] = typespec;
 }
 
-void Type::register_type(Type *t) {
-   const string typestr = t->typestr();
-   assert(_typemap.find(typestr) == _typemap.end());
-   _typemap[typestr] = t; // TODO: remove this
-   _global_namespace[typestr] = t;
+void Type::cache_type(Type *typespec) {
+   string typestr = typespec->typestr();
+   assert(_typecache.find(typestr) == _typecache.end());
+   _typecache[typestr] = typespec;
 }
 
-Type *Type::find(string str) {
-   auto it = _typemap.find(str);
-   return (it != _typemap.end() ? it->second : 0);
+Type *Type::mkref(Type *t) {
+   if (t->reference_type == 0) {
+      t->reference_type = new Reference(t);
+   }
+   return t->reference_type;
 }
 
 void *Reference::alloc(Value& x) const {
@@ -99,7 +95,7 @@ void Reference::destroy(void *data) const {
    }
 }
 
-Value Reference::convert(Value init) const {
+Value Reference::convert(Value init) {
    assert(init.type() == _subtype);
    return Value();
 }
@@ -107,12 +103,7 @@ Value Reference::convert(Value init) const {
 Value Reference::mkref(Value& v) {
    Value::Box *b = v._box;
    v._box->count++;
-   Type *type = Type::find(v._box->type->typestr() + "&");
-   if (type == 0) {
-      type = new Reference(v._box->type);
-      Type::register_type(type);
-   }
-   return Value(type, (void*)b);
+   return Value(Type::mkref(v._box->type), (void*)b);
 }
 
 Value Reference::deref(const Value& v) {
@@ -125,7 +116,7 @@ Value Reference::deref(const Value& v) {
 }
 
 // Initializations
-Value Int::convert(Value x) const {
+Value Int::convert(Value x) {
    if (x.is<Int>()) {
       return x.clone();
    } else if (x.is<Float>()) {
@@ -140,7 +131,7 @@ Value Int::convert(Value x) const {
    return Value::null;
 }
 
-Value Float::convert(Value x) const {
+Value Float::convert(Value x) {
    if (x.is<Float>()) {
       return x.clone();
    } else if (x.is<Int>()) {
@@ -151,7 +142,7 @@ Value Float::convert(Value x) const {
    return Value::null;
 }
 
-Value Double::convert(Value x) const {
+Value Double::convert(Value x) {
    if (x.is<Double>()) {
       return x.clone();
    } else if (x.is<Int>()) {
@@ -162,7 +153,7 @@ Value Double::convert(Value x) const {
    return Value::null;
 }
 
-Value Char::convert(Value x) const {
+Value Char::convert(Value x) {
    if (x.is<Char>()) {
       return x.clone();
    } else if (x.is<Int>()) {
@@ -171,7 +162,7 @@ Value Char::convert(Value x) const {
    return Value::null;
 }
 
-Value Bool::convert(Value x) const {
+Value Bool::convert(Value x) {
    if (x.is<Bool>()) {
       return x.clone();
    } else if (x.is<Int>()) {
@@ -180,7 +171,7 @@ Value Bool::convert(Value x) const {
    return Value::null;
 }
 
-Value Vector::convert(Value init) const {
+Value Vector::convert(Value init) {
    //
    // To support C++11-style initialization of vectors, this method should
    // be like Array::convert...
@@ -191,7 +182,7 @@ Value Vector::convert(Value init) const {
    return Value::null;
 }
 
-Value Vector::construct(const vector<Value>& args) const {
+Value Vector::construct(const vector<Value>& args) {
    assert(args.size() >= 0 and args.size() <= 2);
    if (args.size() == 0) {
       return create();
@@ -240,16 +231,7 @@ string Vector::to_json(void *data) const {
    return o.str();
 }
 
-Type *Array::mktype(Type *celltype, int sz) {
-   Type *typ = Type::find(celltype->typestr() + "[]");
-   if (typ == 0) {
-      typ = new Array(celltype, sz);
-      Type::register_type(typ);
-   }
-   return typ;
-}
-
-Value Array::create() const {
+Value Array::create() {
    vector<Value> *array = new vector<Value>(_sz);
    for (int i = 0; i < _sz; i++) {
       (*array)[i] = _celltype->create();
@@ -257,7 +239,7 @@ Value Array::create() const {
    return Value(this, array);
 }
 
-Value Array::convert(Value init) const {
+Value Array::convert(Value init) {
    assert(!init.is_null());
    if (!init.is<VectorValue>()) {
       _error("Inicializas una tabla con algo que no es una lista de valores");
@@ -285,7 +267,7 @@ Value Array::convert(Value init) const {
    return Value(this, array);
 }
 
-Value Struct::create() const {
+Value Struct::create() {
    SimpleTable<Value> *tab = new SimpleTable<Value>();
    for (int i = 0; i < _fields.size(); i++) {
       pair<std::string, Type *> f = _fields[i];
@@ -294,7 +276,7 @@ Value Struct::create() const {
    return Value(this, tab);
 }
 
-Value Struct::convert(Value init) const {
+Value Struct::convert(Value init) {
    if (init.has_type(this)) {
       return init.clone();
    }
@@ -385,7 +367,7 @@ map<string, pair<std::function<Type *(Type *)>, Type::Method>> Vector::_methods 
       "size", {
          // creates the type for 'size'
          [](Type *celltype) -> Function * { 
-            return new Function(Type::find("int")); 
+            return new Function(Int::self); 
          },
          // executes the 'size' method
          [](void *data, const vector<Value>& args) -> Value {
@@ -410,7 +392,7 @@ map<string, pair<std::function<Type *(Type *)>, Type::Method>> Vector::_methods 
    }, {
       "resize", {
          [](Type *celltype) -> Function * {
-            return (new Function(0))->add_param(Type::find("int"));
+            return (new Function(0))->add_param(Int::self);
          },
          [](void *data, const vector<Value>& args) -> Value {
             vector<Value> *v = static_cast<vector<Value>*>(data);
@@ -447,7 +429,7 @@ map<string, pair<std::function<Type *()>, Type::Method>> String::_methods = {
       "size", 
       {
          []() -> Type * {
-            return new Function(Type::find("int"));
+            return new Function(Int::self);
          },
          [](void *data, const vector<Value>& args) -> Value {
             string *s = static_cast<string*>(data);
@@ -458,7 +440,7 @@ map<string, pair<std::function<Type *()>, Type::Method>> String::_methods = {
       "substr",
       {
          []() -> Type * {
-            return (new Function(Type::find("int")))->add_params(Type::find("int"), Type::find("int"));
+            return (new Function(Int::self))->add_params(Int::self, Int::self);
          },
          [](void *data, const vector<Value>& args) -> Value {
             string *s = static_cast<string*>(data);

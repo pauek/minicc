@@ -91,10 +91,8 @@ void Interpreter::prepare_global_environment() {
    setenv("cout", Cout, hidden);
    setenv("cin",  Cin,  hidden);
 
-   Function *max_func_type = new Function(Type::find("int"));
-   max_func_type->add_param(Type::find("int"));
-   max_func_type->add_param(Type::find("int"));
-   
+   Function *max_func_type = new Function(Int::self);
+   max_func_type->add_params(Int::self, Int::self);
    setenv("max",  max_func_type->mkvalue("max", new BuiltinFunc(_max)));
 }
 
@@ -138,7 +136,7 @@ void Interpreter::visit_funcdecl(FuncDecl *x) {
    Type *return_type = Type::get(x->return_typespec);  // return_type == 0 means 'void'
    Function *functype = new Function(return_type);
    for (auto p : x->params) {
-      Type *param_type = Type::find(p->typespec);
+      Type *param_type = Type::get(p->typespec);
       assert(param_type != 0);
       functype->add_param(param_type);
    }
@@ -152,7 +150,7 @@ void Interpreter::visit_structdecl(StructDecl *x) {
    Struct *type = new Struct(x->struct_name());
    for (int i = 0; i < x->decls.size(); i++) {
       DeclStmt& decl = *x->decls[i];
-      Type *field_type = Type::find(decl.typespec);
+      Type *field_type = Type::get(decl.typespec);
       assert(type != 0);
       for (DeclStmt::Item& item : decl.items) {
          if (item.decl->is<ArrayDecl>()) {
@@ -161,13 +159,14 @@ void Interpreter::visit_structdecl(StructDecl *x) {
             assert(size_lit != 0);
             assert(size_lit->type == Literal::Int);
             const int sz = size_lit->val.as_int;
-            type->add(item.decl->name, Array::mktype(field_type, sz));
+            // TODO: don't create new Array type every time?
+            type->add_field(item.decl->name, new Array(field_type, sz)); 
          } else {
-            type->add(item.decl->name, field_type);
+            type->add_field(item.decl->name, field_type);
          }
       }
    }
-   Type::register_type(type);
+   Type::register_type(x->struct_name(), type);
 }
 
 void Interpreter::visit_ident(Ident *x) {
@@ -503,11 +502,12 @@ void Interpreter::visit_arraydecl(ArrayDecl *x) {
       _error("El tamaño de una tabla debe ser un entero positivo");
    }
    const int sz = _curr.as<Int>();
-   Type *celltype = Type::find(x->typespec);
+   Type *celltype = Type::get(x->typespec);
    if (celltype == 0) {
       _error("El tipo '" + x->typespec->typestr() + "' no existe");
    }
-   Type *arraytype = Array::mktype(celltype, sz);
+   // TODO: don't create new Array type every time?
+   Type *arraytype = new Array(celltype, sz);
    setenv(x->name, (init.is_null() 
                     ? arraytype->create()
                     : arraytype->convert(init)));

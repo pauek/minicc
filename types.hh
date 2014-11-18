@@ -15,15 +15,21 @@ struct TypeError {
 };
 
 class Type {
+   Type *reference_type;
+
    //      void *alloc(T x) = a different method for every Type
    virtual void   destroy(void *data) const                 { assert(false); }
    virtual bool   equals(void *data_a, void *data_b)  const { assert(false); }
-   virtual void  *clone(void *data) const                   { assert(false); }
+   virtual void  *clone(void *data)                   const { assert(false); }
    virtual void   write(std::ostream& o, void *data)  const { assert(false); }
    virtual void  *read(std::istream& i, void *data)   const { assert(false); }
    virtual string to_json(void *data)                 const { assert(false); }
 
 public:
+   Type() : reference_type(0) {}
+
+   static Type *mkref(Type *t);
+   
    enum Property {
       Basic       = 1,  Emulated = 2, 
       UserDefined = 4,  Template = 8,
@@ -35,10 +41,10 @@ public:
    virtual std::string  typestr() const = 0;
    virtual         int  properties() const = 0;
    virtual        bool  get_method(std::string, std::pair<Type*, Method>&) const { return false; }
-   virtual       Value  create()                                           const { assert(false); }
-   virtual       Value  convert(Value init)                                const { assert(false); }
-   virtual       Value  construct(const std::vector<Value>& args)          const { assert(false); }
-   virtual        Type *instantiate(std::vector<Type*>& subtypes)          const { assert(false); } // for templates
+   virtual       Value  create()                                           { assert(false); }
+   virtual       Value  convert(Value init)                                { assert(false); }
+   virtual       Value  construct(const std::vector<Value>& args)          { assert(false); }
+   virtual        Type *instantiate(std::vector<Type*>& subtypes)    const { assert(false); } // for templates
 
    template<typename T>
    bool is() const { return dynamic_cast<const T*>(this) != 0; }
@@ -52,16 +58,13 @@ public:
    friend class Reference;
 
    // Type registry   
-   static void register_type(Type *);
+   static void  register_type(std::string name, Type *);
+   static void  cache_type(Type *);
    static Type *get(TypeSpec *);
-   static Type *find(TypeSpec *);
-   static Type *find(std::string);
 
 private:
    static std::map<std::string, Type*> _global_namespace;
    static std::map<std::string, Type*> _typecache; // all types indexed by typestr
-
-   static std::map<std::string, Type*> _typemap;
 };
 
 template<typename T>
@@ -81,7 +84,7 @@ public:
    void *alloc(T x) const { 
       return new T(x); 
    }
-   void destroy(void *data) const { 
+   void destroy(void *data) const {
       if (data == 0) {
          return;
       }
@@ -99,10 +102,10 @@ public:
       }
       return new T(*static_cast<T*>(data));
    }
-   Value create() const { 
+   Value create() { 
       return Value(this, 0); 
    }
-   Value convert(Value init) const {
+   Value convert(Value init) {
       if (init.has_type(this)) {
          return init.clone();
       }
@@ -114,11 +117,11 @@ template<typename T>
 class BasicType : public BaseType<T> {
    std::string _name;
 public:
-   BasicType(std::string name) : _name(name) { Type::register_type(this); }
-   int properties()  const { return Type::Basic; }
+   BasicType(std::string name) : _name(name) { Type::register_type(name, this); }
+   int properties()      const { return Type::Basic; }
    std::string typestr() const { return _name; }
 
-   Value construct(const std::vector<Value>& args) const {
+   Value construct(const std::vector<Value>& args) {
       assert(false); // Basic types are not "constructed"
       return Value::null;
    }
@@ -149,7 +152,7 @@ public:
           void *alloc(Value& x)     const;
           void  destroy(void *data) const;
    
-         Value  convert(Value init) const;
+         Value  convert(Value init);
 
   static Value  mkref(Value& v);  // create a reference to a value
   static Value  deref(const Value& v);  // obtain the referenced value
@@ -167,35 +170,35 @@ public:
 class Int : public BasicType<int> {
 public:
    Int() : BasicType("int") {}
-   Value convert(Value init) const;
+   Value convert(Value init);
    static Int *self;
 };
 
 class Float : public BasicType<float> {
 public:
    Float() : BasicType("float") {}
-   Value convert(Value init) const;
+   Value convert(Value init);
    static Float *self;
 };
 
 class Double : public BasicType<double> {
 public:
    Double() : BasicType("double") {}
-   Value convert(Value init) const;
+   Value convert(Value init);
    static Double *self;
 };
 
 class Char : public BasicType<char> {
 public:
    Char() : BasicType("char") {}
-   Value convert(Value init) const;
+   Value convert(Value init);
    static Char *self;
 };
 
 class Bool : public BasicType<bool> {
 public:
    Bool() : BasicType("bool") {}
-   Value convert(Value init) const;
+   Value convert(Value init);
    static Bool *self;
 };
 
@@ -258,7 +261,7 @@ public:
    int properties() const { return Internal; }
    std::string typestr() const;
 
-   Value mkvalue(std::string name, FuncPtr *pf) const {
+   Value mkvalue(std::string name, FuncPtr *pf) {
       return Value(this, new FuncValue(name, pf));
    }
 
@@ -270,12 +273,12 @@ class Struct : public BaseType<SimpleTable<Value>> {
    SimpleTable<Type*> _fields;
 public:
    Struct(std::string name) : _name(name) {}
-   void add(std::string field_name, Type *t) { _fields.set(field_name, t); }
+   void add_field(std::string field_name, Type *t) { _fields.set(field_name, t); }
 
    int   properties() const { return Internal; }
-   Value create()     const;
+   Value create();
+   Value convert(Value init);
    void *clone(void *data) const;
-   Value convert(Value init) const;
 
    std::string typestr() const { return _name; }
    std::string to_json(void *data) const {
@@ -289,20 +292,18 @@ class Array : public BaseType<std::vector<Value>> {
    Type *_celltype;
    int _sz;
 public:
-   Array(Type *celltype, int sz) : _celltype(celltype), _sz(sz) {}
-   int properties() const { return Basic; }
-   std::string typestr() const { return _celltype->typestr() + "[]"; }
-   Value create() const;
-   Value convert(Value init) const;
-   static Type *mktype(Type *celltype, int sz);
+                Array(Type *celltype, int sz) : _celltype(celltype), _sz(sz) {}
+           int  properties() const { return Basic; }
+   std::string  typestr()    const { return _celltype->typestr() + "[]"; }
+         Value  create();
+         Value  convert(Value init);
 };
 
 class Vector : public BaseType<std::vector<Value>> {
    Type *_celltype; // celltype == 0 means it's the template
 public:
-   Vector(Type *celltype = 0) : _celltype(celltype) {
-      Type::register_type(this);
-   }
+   Vector()        : _celltype(0) { Type::register_type("vector", this); }
+   Vector(Type *t) : _celltype(t) {}
 
    Type *instantiate(std::vector<Type*>& args) const;
    
@@ -311,9 +312,9 @@ public:
    Type *celltype() const { return _celltype; }
 
    int   properties() const { return Template | Emulated; }
-   Value create()     const { return Value(this, (void*)(new std::vector<Value>())); }
-   Value convert(Value init) const;
-   Value construct(const std::vector<Value>& args) const;
+   Value create()           { return Value(this, (void*)(new std::vector<Value>())); }
+   Value convert(Value init);
+   Value construct(const std::vector<Value>& args);
 
    std::string typestr() const;
    bool get_method(std::string name, std::pair<Type*, Method>& method) const;
@@ -333,7 +334,7 @@ class VectorValue : public BaseType<std::vector<Value>> {
 public:
    typedef std::vector<Value> cpp_type;
    int   properties() const { return Internal; }
-   Value create() const { return Value(this, new std::vector<Value>()); }
+   Value create()           { return Value(this, new std::vector<Value>()); }
    static Value make() { return self->create(); }
    static VectorValue *self;
    std::string typestr() const { return "vector<?>"; }
@@ -342,11 +343,11 @@ public:
 class Ostream : public Type {
    void destroy(void *data)  const {}
 public:
-   int properties()          const { return Emulated; }
-   Value create()            const { assert(false); }
-   Value convert(Value init) const { assert(false); }
-   Value construct(const std::vector<Value>& args) const { assert(false); }
-   std::string typestr()         const { return "ostream"; }
+   int properties()       const { return Emulated; }
+   std::string typestr()  const { return "ostream"; }
+   Value create()               { assert(false); }
+   Value convert(Value init)    { assert(false); }
+   Value construct(const std::vector<Value>& args) { assert(false); }
 
    static Ostream *self;
 };
@@ -354,9 +355,9 @@ public:
 class Istream : public Type {
    void destroy(void *data)  const {}
 public:
-   int properties()          const{ return Emulated; }
+   int properties()          const { return Emulated; }
    Value create()            const { assert(false); }
-   Value convert(Value init) const { assert(false); }
+   Value convert(Value init)       { assert(false); }
    Value construct(const std::vector<Value>& args) const { assert(false); }
    std::string typestr()     const { return "istream"; }
 
