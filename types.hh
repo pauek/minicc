@@ -382,4 +382,22 @@ typename T::cpp_type& Value::as() const {
    return T::cast(_box->data);
 }
 
+struct Environment : public SimpleTable<Value> {
+             std::string  _name;
+                    bool  _active;
+                 TypeMap *_curr_namespace;
+   std::vector<TypeMap*>  _other_namespaces;
+public:
+   Environment(std::string n, TypeMap *_namespace = 0) 
+      : _name(n), _active(false), _curr_namespace(_namespace) {}
+
+   std::string to_json() const;
+
+   void  using_namespace(TypeMap *nmspc);
+   void  register_type(std::string name, Type *);
+   Type *get_type(TypeSpec *);
+};
+
+std::string json_encode(std::string s);
+
 #endif

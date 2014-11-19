@@ -76,16 +76,6 @@ std::ostream& operator<<(std::ostream& o, const Value& v);
 std::istream& operator>>(std::istream& o, Value& v);
 
 
-struct Environment : public SimpleTable<Value> {
-   std::string name;
-   bool        active;
-public:
-   Environment(std::string n) : name(n), active(false) {}
-   std::string to_json() const;
-};
-
-std::string json_encode(std::string s);
-
 extern Value Cout, Cin, Cerr, Endl;
 
 #endif

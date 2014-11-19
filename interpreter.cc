@@ -4,17 +4,6 @@
 using namespace std;
 
 void Interpreter::_init() {
-   _global_namespace.register_type("int",     Int::self);
-   _global_namespace.register_type("char",    Char::self);
-   _global_namespace.register_type("float",   Float::self);
-   _global_namespace.register_type("double",  Double::self);
-   _global_namespace.register_type("bool",    Bool::self);
-
-   // should be 'std'
-   _global_namespace.register_type("ostream", Ostream::self);
-   _global_namespace.register_type("istream", Istream::self);
-   _global_namespace.register_type("vector",  Vector::self);
-   _global_namespace.register_type("string",  String::self);
 }
 
 void Interpreter::setenv(string id, Value v, bool hidden) {
@@ -30,16 +19,31 @@ bool Interpreter::getenv(string id, Value& v) {
    return false;
 }
 
+Type *Interpreter::get_type(TypeSpec *spec) {
+   for (int i = _env.size()-1; i >= 0; i--) {
+      Type *type = _env[i].get_type(spec);
+      if (type != 0) {
+         return type;
+      }
+   }
+   return 0;
+}
+
+void Interpreter::register_type(string name, Type *type) {
+   _env.back().register_type(name, type);
+}
+
+
 void Interpreter::actenv() {
    for (int i = 0; i < _env.size(); i++) {
-      _env[i].active = false;
+      _env[i]._active = false;
    }
-   _env.back().active = true;
+   _env.back()._active = true;
 }
 
 void Interpreter::popenv() { 
    _env.pop_back(); 
-   _env.back().active = true;
+   _env.back()._active = true;
 }
 
 
@@ -50,7 +54,7 @@ string Interpreter::env2json() const {
       if (i > 1) {
          json << ",";
       }
-      json << "{\"name\":\"" << _env[i].name << "\",\"tab\":";
+      json << "{\"name\":\"" << _env[i]._name << "\",\"tab\":";
       json << _env[i].to_json();
       json << "}";
    }
@@ -89,7 +93,7 @@ Value _max(const vector<Value>& args) {
 
 void Interpreter::prepare_global_environment() {
    _env.clear();
-   _env.push_back(Environment("<global>"));
+   _env.push_back(Environment("<global>", new TypeMap()));
 
    bool hidden = true;
    setenv("endl", Endl, hidden);
@@ -99,6 +103,19 @@ void Interpreter::prepare_global_environment() {
    Function *max_func_type = new Function(Int::self);
    max_func_type->add_params(Int::self, Int::self);
    setenv("max",  max_func_type->mkvalue("max", new BuiltinFunc(_max)));
+
+   Environment& E = _env.back();
+   E.register_type("int",    Int::self);
+   E.register_type("char",   Char::self);
+   E.register_type("float",  Float::self);
+   E.register_type("double", Double::self);
+   E.register_type("bool",   Bool::self);
+
+   // should be 'std'
+   E.register_type("ostream", Ostream::self);
+   E.register_type("istream", Istream::self);
+   E.register_type("vector",  Vector::self);
+   E.register_type("string",  String::self);
 }
 
 void Interpreter::visit_program_prepare(Program *x) {
@@ -134,14 +151,6 @@ void Interpreter::visit_using(Using* x) {
 void Interpreter::visit_include(Include* x) {
    // TODO: Depending on include, register 'fake' functions & types.
    // (on the 'std' environment)
-}
-
-Type *Interpreter::get_type(TypeSpec *spec) {
-   return _global_namespace.get_type(spec);
-}
-
-void Interpreter::register_type(string name, Type *type) {
-   _global_namespace.register_type(name, type);
 }
 
 void Interpreter::visit_funcdecl(FuncDecl *x) {

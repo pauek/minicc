@@ -453,3 +453,38 @@ string Vector::typestr() const {
       return std::string("vector<") + _celltype->typestr() + ">"; 
    }
 }
+
+string Environment::to_json() const {
+   ostringstream json;
+   json << "{\"<active>\":" << (_active ? "true" : "false");
+   for (int i = 0; i < tab.size(); i++) {
+      if (tab[i]._hidden) {
+         continue;
+      }
+      json << ",\"" << tab[i].name() << "\":";
+      json << tab[i].data().to_json();
+   }
+   json << "}";
+   return json.str();
+}
+
+void Environment::register_type(string name, Type *type) {
+   assert(_curr_namespace != 0);
+   _curr_namespace->register_type(name, type);
+}
+
+Type *Environment::get_type(TypeSpec *spec) {
+   if (_curr_namespace) {
+      Type *type = _curr_namespace->get_type(spec);
+      if (type != 0) {
+         return type;
+      }
+      for (TypeMap *nmspc : _other_namespaces) {
+         type = nmspc->get_type(spec);
+         if (type != 0) {
+            return type;
+         }
+      }
+   }
+   return 0;
+}
