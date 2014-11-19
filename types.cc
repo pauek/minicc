@@ -28,7 +28,7 @@ Value Endl("\n");
 
 // Methods
 
-Type *Namespace::get_type(TypeSpec *spec) {
+Type *TypeMap::get_type(TypeSpec *spec) {
    // 1. If typestr already registered, return the type
    {
       auto it = _typecache.find(spec->typestr());
@@ -59,7 +59,7 @@ Type *Namespace::get_type(TypeSpec *spec) {
    }
 }
 
-void Namespace::register_type(string name, Type *typespec) {
+void TypeMap::register_type(string name, Type *typespec) {
    assert(_global_namespace.find(name) == _global_namespace.end());
    _global_namespace[name] = typespec;
    _typecache[typespec->typestr()] = typespec;

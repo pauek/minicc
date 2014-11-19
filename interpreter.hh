@@ -19,8 +19,8 @@ class Interpreter : public AstVisitor, public ReadWriter
 {
                            Value _curr, _ret;
         std::vector<Environment> _env;
-                       Namespace _global_namespace;
-std::map<std::string, Namespace> _other_namespaces;
+                         TypeMap _global_namespace;
+  std::map<std::string, TypeMap> _other_namespaces;
 
      void  pushenv(std::string name) { _env.push_back(Environment(name));  }
      void  popenv();

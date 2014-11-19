@@ -58,7 +58,7 @@ public:
    friend class Reference;
 };
 
-class Namespace {
+class TypeMap {
    std::map<std::string, Type*> _global_namespace;
    std::map<std::string, Type*> _typecache; // all types indexed by typestr
 public:
