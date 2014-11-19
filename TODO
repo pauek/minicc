@@ -1,4 +1,3 @@
-- Introducir namespaces.
 - Escoger el método a llamar usando su signatura.
 - Invocar los constructores de cada clase en ObjDecl.
 - Implementar tablas de más de una dimensión.
