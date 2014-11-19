@@ -20,7 +20,7 @@ void Interpreter::prepare_global_environment() {
 
    const bool hidden = true;
    std.set("endl", Endl, hidden);
-   std.set("endl", Endl, hidden);
+   std.set("cerr", Cerr, hidden);
    std.set("cout", Cout, hidden);
    std.set("cin",  Cin,  hidden);
 
