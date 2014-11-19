@@ -14,43 +14,49 @@ void Interpreter::_init() {
 }
 
 void Interpreter::prepare_global_environment() {
-   _global_namespace.clear();
+   _namespaces.clear();
+   Environment& global = _namespaces["<global>"];
+   Environment& std    = _namespaces["std"];
 
-   _env.clear();
-   _env.push_back(Environment("<global>", &_global_namespace));
-
-   bool hidden = true;
-   setenv("endl", Endl, hidden);
-   setenv("cout", Cout, hidden);
-   setenv("cin",  Cin,  hidden);
+   const bool hidden = true;
+   std.set("endl", Endl, hidden);
+   std.set("endl", Endl, hidden);
+   std.set("cout", Cout, hidden);
+   std.set("cin",  Cin,  hidden);
 
    Function *max_func_type = new Function(Int::self);
    max_func_type->add_params(Int::self, Int::self);
-   setenv("max",  max_func_type->mkvalue("max", new BuiltinFunc(_max)));
+   std.set("max", max_func_type->mkvalue("max", new BuiltinFunc(_max)));
 
-   Environment& E = _env.back();
-   E.register_type("int",    Int::self);
-   E.register_type("char",   Char::self);
-   E.register_type("float",  Float::self);
-   E.register_type("double", Double::self);
-   E.register_type("bool",   Bool::self);
-
-   // should be 'std'
-   TypeMap& std = _other_namespaces["std"];
-   std = _global_namespace; // FIXME: aquí se copian los tipos básicos (cómo evitarlo?)
+   // FIXME-BEGIN: quitar esto...
+   std.register_type("int",    Int::self);
+   std.register_type("char",   Char::self);
+   std.register_type("float",  Float::self);
+   std.register_type("double", Double::self);
+   std.register_type("bool",   Bool::self);
+   // FIXME-END
+   
    std.register_type("ostream", Ostream::self);
    std.register_type("istream", Istream::self);
    std.register_type("vector",  Vector::self);
    std.register_type("string",  String::self);
+
+   global.register_type("int",    Int::self);
+   global.register_type("char",   Char::self);
+   global.register_type("float",  Float::self);
+   global.register_type("double", Double::self);
+   global.register_type("bool",   Bool::self);
+
+   _env.push_back(&global);
 }
 
 void Interpreter::setenv(string id, Value v, bool hidden) {
-   _env.back().set(id, v, hidden);
+   _env.back()->set(id, v, hidden);
 }
 
 bool Interpreter::getenv(string id, Value& v) {
    for (int i = _env.size()-1; i >= 0; i--) {
-      if (_env[i].get(id, v)) {
+      if (_env[i]->get(id, v)) {
          return true;
       }
    }
@@ -60,15 +66,15 @@ bool Interpreter::getenv(string id, Value& v) {
 Type *Interpreter::get_type(TypeSpec *spec) {
    string namespc = spec->get_namespace();
    if (namespc != "") {
-      auto it = _other_namespaces.find(namespc);
-      if (it == _other_namespaces.end()) {
+      auto it = _namespaces.find(namespc);
+      if (it == _namespaces.end()) {
          _error(_T("No se ha encontrado el \"namespace\" '%s'.", namespc.c_str()));
       }
-      TypeMap& t = it->second;
-      return t.get_type(spec);
+      Environment& e = it->second;
+      return e.get_type(spec);
    }
    for (int i = _env.size()-1; i >= 0; i--) {
-      Type *type = _env[i].get_type(spec);
+      Type *type = _env[i]->get_type(spec);
       if (type != 0) {
          return type;
       }
@@ -77,22 +83,29 @@ Type *Interpreter::get_type(TypeSpec *spec) {
 }
 
 void Interpreter::register_type(string name, Type *type) {
-   _env.back().register_type(name, type);
+   _env.back()->register_type(name, type);
 }
 
 
 void Interpreter::actenv() {
    for (int i = 0; i < _env.size(); i++) {
-      _env[i]._active = false;
+      _env[i]->set_active(false);
    }
-   _env.back()._active = true;
+   _env.back()->set_active(true);
 }
 
 void Interpreter::popenv() { 
+   Environment *top = _env.back();
+   delete top;
    _env.pop_back(); 
-   _env.back()._active = true;
+   _env_names.pop_back();
+   _env.back()->set_active(true);
 }
 
+void Interpreter::pushenv(string name) {
+   _env.push_back(new Environment());  
+   _env_names.push_back(name);
+}
 
 string Interpreter::env2json() const {
    ostringstream json;
@@ -101,8 +114,8 @@ string Interpreter::env2json() const {
       if (i > 1) {
          json << ",";
       }
-      json << "{\"name\":\"" << _env[i]._name << "\",\"tab\":";
-      json << _env[i].to_json();
+      json << "{\"name\":\"" << _env_names[i] << "\",\"tab\":";
+      json << _env[i]->to_json();
       json << "}";
    }
    json << "]";
@@ -157,9 +170,11 @@ void Interpreter::visit_comment(CommentSeq* cn) {}
 void Interpreter::visit_macro(Macro* x) {}
 
 void Interpreter::visit_using(Using* x) {
-   auto it = _other_namespaces.find(x->namespc);
-   assert(it != _other_namespaces.end());
-   _env.back().using_namespace(&it->second);
+   auto it = _namespaces.find(x->namespc);
+   if (it == _namespaces.end()) {
+      _error(_T("No se ha encontrado el \"namespace\" '%s'.", x->namespc.c_str()));
+   }
+   _env.back()->using_namespace(&it->second);
 }
 
 void Interpreter::visit_include(Include* x) {
@@ -207,8 +222,22 @@ void Interpreter::visit_structdecl(StructDecl *x) {
 
 void Interpreter::visit_ident(Ident *x) {
    Value v;
-   if (!getenv(x->name, v)) {
-      _error(_T("La variable '%s' no existe.", x->name.c_str()));
+   string namespc = x->get_namespace();
+   if (namespc != "") {
+      auto it = _namespaces.find(namespc);
+      if (it == _namespaces.end()) {
+         _error(_T("No se ha encontrado el \"namespace\" '%s'.", 
+                   namespc.c_str()));
+      }
+      Environment& e = it->second;
+      if (!e.get(x->name, v)) {
+         _error(_T("La variable '%s' no existe en el \"namespace\" '%s'.", 
+                   x->name.c_str(), namespc.c_str()));
+      }
+   } else {
+      if (!getenv(x->name, v)) {
+         _error(_T("La variable '%s' no existe.", x->name.c_str()));
+      }
    }
    _curr = (v.is<Reference>() ? v : Reference::mkref(v));
 }

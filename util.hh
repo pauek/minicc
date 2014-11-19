@@ -2,8 +2,7 @@
 #define UTIL_HH
 
 template<typename T>
-class SimpleTable {
-protected:
+struct SimpleTable {
    struct Item {
       std::pair<std::string, T> _data; // name + data
       bool                      _hidden;
@@ -21,7 +20,6 @@ protected:
    std::vector<Item> tab;
    Item *_get(std::string name);
    
-public:
    int size() const { return tab.size(); }
    const std::pair<std::string, T>& operator[](int i) const { 
       return tab[i]._data; 

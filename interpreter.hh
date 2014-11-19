@@ -17,19 +17,19 @@ struct EvalError {
 
 class Interpreter : public AstVisitor, public ReadWriter 
 {
-                           Value _curr, _ret;
-        std::vector<Environment> _env;
-                         TypeMap _global_namespace;
-  std::map<std::string, TypeMap> _other_namespaces;
+                              Value _curr, _ret;
+          std::vector<Environment*> _env;
+           std::vector<std::string> _env_names;
+ std::map<std::string, Environment> _namespaces;
 
-     void  pushenv(std::string name) { _env.push_back(Environment(name));  }
-     void  popenv();
-     void  actenv();
-     void  setenv(std::string id, Value v, bool hidden = false);
-     bool  getenv(std::string id, Value& v);
+   void  pushenv(std::string name);
+   void  popenv();
+   void  actenv();
+   void  setenv(std::string id, Value v, bool hidden = false);
+   bool  getenv(std::string id, Value& v);
 
-    std::string 
-           env2json() const;
+   std::string 
+         env2json() const;
 
     void   _error(std::string msg) {
        throw new EvalError(msg);

@@ -1,3 +1,5 @@
+using namespace std;
+
 struct X {
    int a, b;
 };
@@ -16,237 +18,237 @@ int main() {
    cout << T[1].b << endl;
 }
 [[out]]--------------------------------------------------
-5:4-5:8: main
+7:4-7:8: main
 Empieza el programa.
 
-6:3-6:15: int a, b, c;
+8:3-8:15: int a, b, c;
 Se declaran las variables 'a', 'b' y 'c'.
 
-7:3-7:11: X T[10];
+9:3-9:11: X T[10];
 Se declara la variable 'T'.
 
-8:7-8:8: 1
+10:7-10:8: 1
 La expresión ha dado 1.
 
-8:3-8:7: a = 
+10:3-10:7: a = 
 Asignamos el valor.
 
-9:7-9:8: 2
+11:7-11:8: 2
 La expresión ha dado 2.
 
-9:3-9:7: b = 
+11:3-11:7: b = 
 Asignamos el valor.
 
-10:7-10:8: 3
+12:7-12:8: 3
 La expresión ha dado 3.
 
-10:3-10:7: c = 
+12:3-12:7: c = 
 Asignamos el valor.
 
-11:8-11:18: int i = 0;
+13:8-13:18: int i = 0;
 Se declara la variable 'i'.
 
-11:19-11:25: i < 10
+13:19-13:25: i < 10
 La condición vale 'true', entramos en el for.
 
-12:13-12:18: i % 2
+14:13-14:18: i % 2
 La expresión ha dado 0.
 
-12:4-12:13: T[i].a = 
+14:4-14:13: T[i].a = 
 Asignamos el valor.
 
-13:15-13:16: i
+15:15-15:16: i
 La expresión ha dado 0.
 
-13:6-13:15: T[i].b = 
+15:6-15:15: T[i].b = 
 Asignamos el valor.
 
-11:27-11:30: i++
+13:27-13:30: i++
 Se incrementa la variable 'i'.
 
-11:19-11:25: i < 10
+13:19-13:25: i < 10
 La condición vale 'true', entramos en el for.
 
-12:13-12:18: i % 2
+14:13-14:18: i % 2
 La expresión ha dado 1.
 
-12:4-12:13: T[i].a = 
+14:4-14:13: T[i].a = 
 Asignamos el valor.
 
-13:15-13:16: i
+15:15-15:16: i
 La expresión ha dado 1.
 
-13:6-13:15: T[i].b = 
+15:6-15:15: T[i].b = 
 Asignamos el valor.
 
-11:27-11:30: i++
+13:27-13:30: i++
 Se incrementa la variable 'i'.
 
-11:19-11:25: i < 10
+13:19-13:25: i < 10
 La condición vale 'true', entramos en el for.
 
-12:13-12:18: i % 2
+14:13-14:18: i % 2
 La expresión ha dado 0.
 
-12:4-12:13: T[i].a = 
+14:4-14:13: T[i].a = 
 Asignamos el valor.
 
-13:15-13:16: i
+15:15-15:16: i
 La expresión ha dado 2.
 
-13:6-13:15: T[i].b = 
+15:6-15:15: T[i].b = 
 Asignamos el valor.
 
-11:27-11:30: i++
+13:27-13:30: i++
 Se incrementa la variable 'i'.
 
-11:19-11:25: i < 10
+13:19-13:25: i < 10
 La condición vale 'true', entramos en el for.
 
-12:13-12:18: i % 2
+14:13-14:18: i % 2
 La expresión ha dado 1.
 
-12:4-12:13: T[i].a = 
+14:4-14:13: T[i].a = 
 Asignamos el valor.
 
-13:15-13:16: i
+15:15-15:16: i
 La expresión ha dado 3.
 
-13:6-13:15: T[i].b = 
+15:6-15:15: T[i].b = 
 Asignamos el valor.
 
-11:27-11:30: i++
+13:27-13:30: i++
 Se incrementa la variable 'i'.
 
-11:19-11:25: i < 10
+13:19-13:25: i < 10
 La condición vale 'true', entramos en el for.
 
-12:13-12:18: i % 2
+14:13-14:18: i % 2
 La expresión ha dado 0.
 
-12:4-12:13: T[i].a = 
+14:4-14:13: T[i].a = 
 Asignamos el valor.
 
-13:15-13:16: i
+15:15-15:16: i
 La expresión ha dado 4.
 
-13:6-13:15: T[i].b = 
+15:6-15:15: T[i].b = 
 Asignamos el valor.
 
-11:27-11:30: i++
+13:27-13:30: i++
 Se incrementa la variable 'i'.
 
-11:19-11:25: i < 10
+13:19-13:25: i < 10
 La condición vale 'true', entramos en el for.
 
-12:13-12:18: i % 2
+14:13-14:18: i % 2
 La expresión ha dado 1.
 
-12:4-12:13: T[i].a = 
+14:4-14:13: T[i].a = 
 Asignamos el valor.
 
-13:15-13:16: i
+15:15-15:16: i
 La expresión ha dado 5.
 
-13:6-13:15: T[i].b = 
+15:6-15:15: T[i].b = 
 Asignamos el valor.
 
-11:27-11:30: i++
+13:27-13:30: i++
 Se incrementa la variable 'i'.
 
-11:19-11:25: i < 10
+13:19-13:25: i < 10
 La condición vale 'true', entramos en el for.
 
-12:13-12:18: i % 2
+14:13-14:18: i % 2
 La expresión ha dado 0.
 
-12:4-12:13: T[i].a = 
+14:4-14:13: T[i].a = 
 Asignamos el valor.
 
-13:15-13:16: i
+15:15-15:16: i
 La expresión ha dado 6.
 
-13:6-13:15: T[i].b = 
+15:6-15:15: T[i].b = 
 Asignamos el valor.
 
-11:27-11:30: i++
+13:27-13:30: i++
 Se incrementa la variable 'i'.
 
-11:19-11:25: i < 10
+13:19-13:25: i < 10
 La condición vale 'true', entramos en el for.
 
-12:13-12:18: i % 2
+14:13-14:18: i % 2
 La expresión ha dado 1.
 
-12:4-12:13: T[i].a = 
+14:4-14:13: T[i].a = 
 Asignamos el valor.
 
-13:15-13:16: i
+15:15-15:16: i
 La expresión ha dado 7.
 
-13:6-13:15: T[i].b = 
+15:6-15:15: T[i].b = 
 Asignamos el valor.
 
-11:27-11:30: i++
+13:27-13:30: i++
 Se incrementa la variable 'i'.
 
-11:19-11:25: i < 10
+13:19-13:25: i < 10
 La condición vale 'true', entramos en el for.
 
-12:13-12:18: i % 2
+14:13-14:18: i % 2
 La expresión ha dado 0.
 
-12:4-12:13: T[i].a = 
+14:4-14:13: T[i].a = 
 Asignamos el valor.
 
-13:15-13:16: i
+15:15-15:16: i
 La expresión ha dado 8.
 
-13:6-13:15: T[i].b = 
+15:6-15:15: T[i].b = 
 Asignamos el valor.
 
-11:27-11:30: i++
+13:27-13:30: i++
 Se incrementa la variable 'i'.
 
-11:19-11:25: i < 10
+13:19-13:25: i < 10
 La condición vale 'true', entramos en el for.
 
-12:13-12:18: i % 2
+14:13-14:18: i % 2
 La expresión ha dado 1.
 
-12:4-12:13: T[i].a = 
+14:4-14:13: T[i].a = 
 Asignamos el valor.
 
-13:15-13:16: i
+15:15-15:16: i
 La expresión ha dado 9.
 
-13:6-13:15: T[i].b = 
+15:6-15:15: T[i].b = 
 Asignamos el valor.
 
-11:27-11:30: i++
+13:27-13:30: i++
 Se incrementa la variable 'i'.
 
-11:19-11:25: i < 10
+13:19-13:25: i < 10
 La condición vale 'false', salimos del for.
 
-15:11-15:17: T[0].a
+17:11-17:17: T[0].a
 Se escribe a la salida.
 OUTPUT: "0"
 
-15:21-15:25: endl
+17:21-17:25: endl
 Se escribe a la salida.
 OUTPUT: "
 "
 
-16:11-16:17: T[1].b
+18:11-18:17: T[1].b
 Se escribe a la salida.
 OUTPUT: "1"
 
-16:21-16:25: endl
+18:21-18:25: endl
 Se escribe a la salida.
 OUTPUT: "
 "
 
-17:0-17:1: }
+19:0-19:1: }
 Termina el programa.
 

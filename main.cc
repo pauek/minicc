@@ -47,7 +47,7 @@ int main(int argc, char *argv[]) {
       exit(1);
    }
 
-   Translator::translator.set_language("en");
+   Translator::translator.set_language("es");
 
    ifstream codefile(filename.c_str());
    Parser P(&codefile);

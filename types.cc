@@ -462,38 +462,51 @@ string Vector::typestr() const {
 string Environment::to_json() const {
    ostringstream json;
    json << "{\"<active>\":" << (_active ? "true" : "false");
-   for (int i = 0; i < tab.size(); i++) {
-      if (tab[i]._hidden) {
+   for (int i = 0; i < _tab.tab.size(); i++) {
+      if (_tab.tab[i]._hidden) {
          continue;
       }
-      json << ",\"" << tab[i].name() << "\":";
-      json << tab[i].data().to_json();
+      json << ",\"" << _tab.tab[i].name() << "\":";
+      json << _tab.tab[i].data().to_json();
    }
    json << "}";
    return json.str();
 }
 
 void Environment::register_type(string name, Type *type) {
-   assert(_curr_namespace != 0);
-   _curr_namespace->register_type(name, type);
+   _curr_namespace.register_type(name, type);
 }
 
 Type *Environment::get_type(TypeSpec *spec) {
-   if (_curr_namespace) {
-      Type *type = _curr_namespace->get_type(spec);
+   Type *type = _curr_namespace.get_type(spec);
+   if (type != 0) {
+      return type;
+   }
+   for (Environment *e : _other_namespaces) {
+      type = e->get_type(spec);
       if (type != 0) {
          return type;
-      }
-      for (TypeMap *nmspc : _other_namespaces) {
-         type = nmspc->get_type(spec);
-         if (type != 0) {
-            return type;
-         }
       }
    }
    return 0;
 }
 
-void Environment::using_namespace(TypeMap *nmspc) {
-   _other_namespaces.insert(nmspc);
+void Environment::using_namespace(Environment *e) {
+   _other_namespaces.insert(e);
+}
+
+bool Environment::get(string name, Value& res) {
+   if (_tab.get(name, res)) {
+      return true;
+   }
+   for (Environment *e : _other_namespaces) {
+      if (e->get(name, res)) {
+         return true;
+      }
+   }
+   return false;
+}
+
+void Environment::set(string name, Value data, bool hidden) {
+   _tab.set(name, data, hidden);
 }

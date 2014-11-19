@@ -289,6 +289,7 @@ struct Ident : public Expr {
    void accept(AstVisitor *v);
    bool has_errors() const;
    std::string typestr() const;
+   std::string get_namespace() const;
 
    void shift(std::string new_id);
 };

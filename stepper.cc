@@ -54,7 +54,7 @@ void Stepper::visit_program(Program *x) {
    I.pushenv("main");
    FuncDecl *main = dynamic_cast<UserFunc*>(I._curr.as<Function>().ptr)->decl;
    I.invoke_func_prepare(main, vector<Value>());
-   I._env.back()._active = true;
+   I._env.back()->set_active(true);
    push(new ProgramVisitState(main));
 }
 
