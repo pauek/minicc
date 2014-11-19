@@ -11,9 +11,6 @@ void _error(std::string msg) {
 
 // static + Globals
 
-map<string, Type*> Type::_typecache;
-map<string, Type*> Type::_global_namespace;
-
 Int         *Int::self         = new Int();
 Float       *Float::self       = new Float();
 Double      *Double::self      = new Double();
@@ -31,7 +28,7 @@ Value Endl("\n");
 
 // Methods
 
-Type *Type::get(TypeSpec *spec) {
+Type *Namespace::get_type(TypeSpec *spec) {
    // 1. If typestr already registered, return the type
    {
       auto it = _typecache.find(spec->typestr());
@@ -47,10 +44,10 @@ Type *Type::get(TypeSpec *spec) {
       }
       Type *T = it->second;
       if (spec->is_template()) {
-         assert(T->is(Template));
+         assert(T->is(Type::Template));
          vector<Type*> subtypes;
          for (int i = 0; i < spec->id->subtypes.size(); i++) {
-            subtypes.push_back(Type::get(spec->id->subtypes[i]));
+            subtypes.push_back(get_type(spec->id->subtypes[i]));
          }
          T = T->instantiate(subtypes);
       }
@@ -62,16 +59,10 @@ Type *Type::get(TypeSpec *spec) {
    }
 }
 
-void Type::register_type(string name, Type *typespec) {
+void Namespace::register_type(string name, Type *typespec) {
    assert(_global_namespace.find(name) == _global_namespace.end());
    _global_namespace[name] = typespec;
    _typecache[typespec->typestr()] = typespec;
-}
-
-void Type::cache_type(Type *typespec) {
-   string typestr = typespec->typestr();
-   assert(_typecache.find(typestr) == _typecache.end());
-   _typecache[typestr] = typespec;
 }
 
 Type *Type::mkref(Type *t) {

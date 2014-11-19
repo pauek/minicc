@@ -56,15 +56,14 @@ public:
 
    friend class Value;
    friend class Reference;
+};
 
-   // Type registry   
-   static void  register_type(std::string name, Type *);
-   static void  cache_type(Type *);
-   static Type *get(TypeSpec *);
-
-private:
-   static std::map<std::string, Type*> _global_namespace;
-   static std::map<std::string, Type*> _typecache; // all types indexed by typestr
+class Namespace {
+   std::map<std::string, Type*> _global_namespace;
+   std::map<std::string, Type*> _typecache; // all types indexed by typestr
+public:
+   void  register_type(std::string name, Type *);
+   Type *get_type(TypeSpec *);
 };
 
 template<typename T>
@@ -117,7 +116,7 @@ template<typename T>
 class BasicType : public BaseType<T> {
    std::string _name;
 public:
-   BasicType(std::string name) : _name(name) { Type::register_type(name, this); }
+   BasicType(std::string name) : _name(name) {}
    int properties()      const { return Type::Basic; }
    std::string typestr() const { return _name; }
 
@@ -303,7 +302,7 @@ public:
 class Vector : public BaseType<std::vector<Value>> {
    Type *_celltype; // celltype == 0 means it's the template
 public:
-   Vector()        : _celltype(0) { Type::register_type("vector", this); }
+   Vector()        : _celltype(0) {}
    Vector(Type *t) : _celltype(t) {}
 
    Type *instantiate(std::vector<Type*>& args) const;
@@ -322,9 +321,9 @@ public:
 
    std::string to_json(void *data) const;
 
-private:
    static Vector *self;
 
+private:
    static std::map<
       std::string, 
       std::pair<std::function<Type *(Type *)>, Method>

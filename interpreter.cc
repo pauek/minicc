@@ -3,7 +3,19 @@
 #include "interpreter.hh"
 using namespace std;
 
-void Interpreter::_init() {}
+void Interpreter::_init() {
+   _global_namespace.register_type("int",     Int::self);
+   _global_namespace.register_type("char",    Char::self);
+   _global_namespace.register_type("float",   Float::self);
+   _global_namespace.register_type("double",  Double::self);
+   _global_namespace.register_type("bool",    Bool::self);
+
+   // should be 'std'
+   _global_namespace.register_type("ostream", Ostream::self);
+   _global_namespace.register_type("istream", Istream::self);
+   _global_namespace.register_type("vector",  Vector::self);
+   _global_namespace.register_type("string",  String::self);
+}
 
 void Interpreter::setenv(string id, Value v, bool hidden) {
    _env.back().set(id, v, hidden);
@@ -124,12 +136,20 @@ void Interpreter::visit_include(Include* x) {
    // (on the 'std' environment)
 }
 
+Type *Interpreter::get_type(TypeSpec *spec) {
+   return _global_namespace.get_type(spec);
+}
+
+void Interpreter::register_type(string name, Type *type) {
+   _global_namespace.register_type(name, type);
+}
+
 void Interpreter::visit_funcdecl(FuncDecl *x) {
    string funcname = x->funcname();
-   Type *return_type = Type::get(x->return_typespec);  // return_type == 0 means 'void'
+   Type *return_type = get_type(x->return_typespec);  // return_type == 0 means 'void'
    Function *functype = new Function(return_type);
    for (auto p : x->params) {
-      Type *param_type = Type::get(p->typespec);
+      Type *param_type = get_type(p->typespec);
       assert(param_type != 0);
       functype->add_param(param_type);
    }
@@ -143,7 +163,7 @@ void Interpreter::visit_structdecl(StructDecl *x) {
    Struct *type = new Struct(x->struct_name());
    for (int i = 0; i < x->decls.size(); i++) {
       DeclStmt& decl = *x->decls[i];
-      Type *field_type = Type::get(decl.typespec);
+      Type *field_type = get_type(decl.typespec);
       assert(type != 0);
       for (DeclStmt::Item& item : decl.items) {
          if (item.decl->is<ArrayDecl>()) {
@@ -159,7 +179,7 @@ void Interpreter::visit_structdecl(StructDecl *x) {
          }
       }
    }
-   Type::register_type(x->struct_name(), type);
+   register_type(x->struct_name(), type);
 }
 
 void Interpreter::visit_ident(Ident *x) {
@@ -476,7 +496,7 @@ void Interpreter::visit_block(Block *x) {
 
 void Interpreter::visit_vardecl(VarDecl *x) {
    string type_name = x->typespec->typestr();
-   Type *type = Type::get(x->typespec);
+   Type *type = get_type(x->typespec);
    if (type == 0) {
       _error(_T("El tipo '%s' no existe.", type_name.c_str()));
    }
@@ -498,7 +518,7 @@ void Interpreter::visit_arraydecl(ArrayDecl *x) {
       _error(_T("El tamaño de una tabla debe ser un entero positivo"));
    }
    const int sz = _curr.as<Int>();
-   Type *celltype = Type::get(x->typespec);
+   Type *celltype = get_type(x->typespec);
    if (celltype == 0) {
       _error(_T("El tipo '%s' no existe", x->typespec->typestr().c_str()));
    }
@@ -510,7 +530,7 @@ void Interpreter::visit_arraydecl(ArrayDecl *x) {
 }
 
 void Interpreter::visit_objdecl(ObjDecl *x) {
-   Type *type = Type::get(x->typespec);
+   Type *type = get_type(x->typespec);
    if (type != 0) {
       // TODO: Convertir la construcción en una llamada al método constructor
       vector<Value> args;
