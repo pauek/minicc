@@ -3,7 +3,45 @@
 #include "interpreter.hh"
 using namespace std;
 
+Value _max(const vector<Value>& args) {
+   assert(args.size() == 2);
+   assert(args[0].is<Int>());
+   assert(args[1].is<Int>());
+   return Value(std::max(args[0].as<Int>(), args[1].as<Int>()));
+}
+
 void Interpreter::_init() {
+}
+
+void Interpreter::prepare_global_environment() {
+   _global_namespace.clear();
+
+   _env.clear();
+   _env.push_back(Environment("<global>", &_global_namespace));
+
+   bool hidden = true;
+   setenv("endl", Endl, hidden);
+   setenv("cout", Cout, hidden);
+   setenv("cin",  Cin,  hidden);
+
+   Function *max_func_type = new Function(Int::self);
+   max_func_type->add_params(Int::self, Int::self);
+   setenv("max",  max_func_type->mkvalue("max", new BuiltinFunc(_max)));
+
+   Environment& E = _env.back();
+   E.register_type("int",    Int::self);
+   E.register_type("char",   Char::self);
+   E.register_type("float",  Float::self);
+   E.register_type("double", Double::self);
+   E.register_type("bool",   Bool::self);
+
+   // should be 'std'
+   TypeMap& std = _other_namespaces["std"];
+   std = _global_namespace; // FIXME: aquí se copian los tipos básicos (cómo evitarlo?)
+   std.register_type("ostream", Ostream::self);
+   std.register_type("istream", Istream::self);
+   std.register_type("vector",  Vector::self);
+   std.register_type("string",  String::self);
 }
 
 void Interpreter::setenv(string id, Value v, bool hidden) {
@@ -20,6 +58,15 @@ bool Interpreter::getenv(string id, Value& v) {
 }
 
 Type *Interpreter::get_type(TypeSpec *spec) {
+   string namespc = spec->get_namespace();
+   if (namespc != "") {
+      auto it = _other_namespaces.find(namespc);
+      if (it == _other_namespaces.end()) {
+         _error(_T("No se ha encontrado el \"namespace\" '%s'.", namespc.c_str()));
+      }
+      TypeMap& t = it->second;
+      return t.get_type(spec);
+   }
    for (int i = _env.size()-1; i >= 0; i--) {
       Type *type = _env[i].get_type(spec);
       if (type != 0) {
@@ -84,40 +131,6 @@ void Interpreter::invoke_func_prepare(FuncDecl *fn, const vector<Value>& args) {
    }
 }
 
-Value _max(const vector<Value>& args) {
-   assert(args.size() == 2);
-   assert(args[0].is<Int>());
-   assert(args[1].is<Int>());
-   return Value(std::max(args[0].as<Int>(), args[1].as<Int>()));
-}
-
-void Interpreter::prepare_global_environment() {
-   _env.clear();
-   _env.push_back(Environment("<global>", new TypeMap()));
-
-   bool hidden = true;
-   setenv("endl", Endl, hidden);
-   setenv("cout", Cout, hidden);
-   setenv("cin",  Cin,  hidden);
-
-   Function *max_func_type = new Function(Int::self);
-   max_func_type->add_params(Int::self, Int::self);
-   setenv("max",  max_func_type->mkvalue("max", new BuiltinFunc(_max)));
-
-   Environment& E = _env.back();
-   E.register_type("int",    Int::self);
-   E.register_type("char",   Char::self);
-   E.register_type("float",  Float::self);
-   E.register_type("double", Double::self);
-   E.register_type("bool",   Bool::self);
-
-   // should be 'std'
-   E.register_type("ostream", Ostream::self);
-   E.register_type("istream", Istream::self);
-   E.register_type("vector",  Vector::self);
-   E.register_type("string",  String::self);
-}
-
 void Interpreter::visit_program_prepare(Program *x) {
    prepare_global_environment();
    for (AstNode *n : x->nodes) {
@@ -144,8 +157,9 @@ void Interpreter::visit_comment(CommentSeq* cn) {}
 void Interpreter::visit_macro(Macro* x) {}
 
 void Interpreter::visit_using(Using* x) {
-   // TODO: Augment current environment with  
-   // an environment for the specified namespace
+   auto it = _other_namespaces.find(x->namespc);
+   assert(it != _other_namespaces.end());
+   _env.back().using_namespace(&it->second);
 }
 
 void Interpreter::visit_include(Include* x) {

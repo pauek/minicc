@@ -3,6 +3,7 @@
 
 #include <vector>
 #include <map>
+#include <set>
 #include <sstream>
 #include "ast.hh"
 #include "value.hh"
@@ -59,11 +60,12 @@ public:
 };
 
 class TypeMap {
-   std::map<std::string, Type*> _global_namespace;
+   std::map<std::string, Type*> _typemap;
    std::map<std::string, Type*> _typecache; // all types indexed by typestr
 public:
    void  register_type(std::string name, Type *);
    Type *get_type(TypeSpec *);
+   void  clear();
 };
 
 template<typename T>
@@ -386,7 +388,7 @@ struct Environment : public SimpleTable<Value> {
              std::string  _name;
                     bool  _active;
                  TypeMap *_curr_namespace;
-   std::vector<TypeMap*>  _other_namespaces;
+      std::set<TypeMap*>  _other_namespaces;
 public:
    Environment(std::string n, TypeMap *_namespace = 0) 
       : _name(n), _active(false), _curr_namespace(_namespace) {}

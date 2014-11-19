@@ -402,6 +402,7 @@ struct TypeSpec : public AstNode {
    std::string typestr() const;
 
    bool is_template() const { return !id->subtypes.empty(); }
+   std::string get_namespace() const;
 };
 
 // Declarations ////////////////////////////////////////////

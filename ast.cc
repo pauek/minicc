@@ -283,6 +283,13 @@ string Ident::typestr() const {
    return _id;
 }
 
+string TypeSpec::get_namespace() const {
+   if (id->prefix.size() == 1) {
+      return id->prefix[0]->name;
+   }
+   return "";
+}
+
 string TypeSpec::typestr() const {
    string _id;
    int i = 0, numquals = 0;

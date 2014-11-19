@@ -38,8 +38,8 @@ Type *TypeMap::get_type(TypeSpec *spec) {
    }
    // 2. Construct the Type from the TypeSpec
    {
-      auto it = _global_namespace.find(spec->id->name);
-      if (it == _global_namespace.end()) {
+      auto it = _typemap.find(spec->id->name);
+      if (it == _typemap.end()) {
          return 0;
       }
       Type *T = it->second;
@@ -60,9 +60,14 @@ Type *TypeMap::get_type(TypeSpec *spec) {
 }
 
 void TypeMap::register_type(string name, Type *typespec) {
-   assert(_global_namespace.find(name) == _global_namespace.end());
-   _global_namespace[name] = typespec;
+   assert(_typemap.find(name) == _typemap.end());
+   _typemap[name] = typespec;
    _typecache[typespec->typestr()] = typespec;
+}
+
+void TypeMap::clear() {
+   _typemap.clear();
+   _typecache.clear();
 }
 
 Type *Type::mkref(Type *t) {
@@ -487,4 +492,8 @@ Type *Environment::get_type(TypeSpec *spec) {
       }
    }
    return 0;
+}
+
+void Environment::using_namespace(TypeMap *nmspc) {
+   _other_namespaces.insert(nmspc);
 }
