@@ -37,11 +37,11 @@ public:
       Internal    = 16
    };
 
-   typedef Value (*Method)(void *, const std::vector<Value>& args);
+   typedef Value (*MethodFn)(void *, const std::vector<Value>& args);
 
    virtual std::string  typestr() const = 0;
    virtual         int  properties() const = 0;
-   virtual        bool  get_method(std::string, std::pair<Type*, Method>&) const { return false; }
+   virtual        bool  get_method(std::string, std::pair<Type*, MethodFn>&) const { return false; }
    virtual       Value  create()                                           { assert(false); }
    virtual       Value  convert(Value init)                                { assert(false); }
    virtual       Value  construct(const std::vector<Value>& args)          { assert(false); }
@@ -212,17 +212,16 @@ public:
       return string("\"") + *(string*)data + "\"";
    }
 
-   bool get_method(std::string name, std::pair<Type*, Method>& method) const;
+   bool get_method(std::string name, std::pair<Type*, MethodFn>& method) const;
 private:
    static std::map<
       std::string, 
-      std::pair<std::function<Type *()>, Method>
+      std::pair<std::function<Type *()>, MethodFn>
    > _methods;
 };
 
-
-typedef Value (*CppFunc)(const std::vector<Value>& args);
-typedef Value (*CppMethod)(void *, const std::vector<Value>& args);
+// typedef Value (*CppFunc)(const std::vector<Value>& args);
+// typedef Value (*CppMethod)(void *, const std::vector<Value>& args);
 
 class Interpreter;
 struct FuncPtr {
@@ -320,7 +319,7 @@ public:
    Value construct(const std::vector<Value>& args);
 
    std::string typestr() const;
-   bool get_method(std::string name, std::pair<Type*, Method>& method) const;
+   bool get_method(std::string name, std::pair<Type*, MethodFn>& method) const;
 
    std::string to_json(void *data) const;
 
@@ -329,7 +328,7 @@ public:
 private:
    static std::map<
       std::string, 
-      std::pair<std::function<Type *(Type *)>, Method>
+      std::pair<std::function<Type *(Type *)>, MethodFn>
    > _methods;
 };
 

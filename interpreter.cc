@@ -724,7 +724,7 @@ void Interpreter::visit_fieldexpr(FieldExpr *x) {
       _curr = Reference::mkref(v);
       return;
    }
-   pair<Type *, Type::Method> method;
+   pair<Type *, Type::MethodFn> method;
    if (_curr.type()->get_method(x->field->name, method)) {
       Function *ft = dynamic_cast<Function*>(method.first);
       _curr = ft->mkvalue(x->field->name, new BoundMethod(method.second, _curr.data()));

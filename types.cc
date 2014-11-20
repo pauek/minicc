@@ -330,7 +330,7 @@ void FuncValue::invoke(Interpreter *I, const std::vector<Value>& args) {
 }
 
 template<class MethodMap>
-bool _get_method(MethodMap& methods, string name, pair<Type *, Type::Method>& result) {
+bool _get_method(MethodMap& methods, string name, pair<Type *, Type::MethodFn>& result) {
    auto it = methods.find(name);
    if (it == methods.end()) {
       return false;
@@ -341,7 +341,7 @@ bool _get_method(MethodMap& methods, string name, pair<Type *, Type::Method>& re
 }
 
 
-bool Vector::get_method(string name, pair<Type*, Method>& result) const {
+bool Vector::get_method(string name, pair<Type*, MethodFn>& result) const {
    auto it = _methods.find(name);
    if (it == _methods.end()) {
       return false;
@@ -351,14 +351,14 @@ bool Vector::get_method(string name, pair<Type*, Method>& result) const {
    return true;
 }
 
-bool String::get_method(string name, pair<Type*, Method>& result) const {
+bool String::get_method(string name, pair<Type*, MethodFn>& result) const {
    return _get_method(_methods, name, result);
 }
 
 // Methods ////////////////////////////////////////////////////////////
 
 // Vector
-map<string, pair<std::function<Type *(Type *)>, Type::Method>> Vector::_methods = {
+map<string, pair<std::function<Type *(Type *)>, Type::MethodFn>> Vector::_methods = {
    {
       "size", {
          // creates the type for 'size'
@@ -420,7 +420,7 @@ map<string, pair<std::function<Type *(Type *)>, Type::Method>> Vector::_methods 
 };
 
 // String
-map<string, pair<std::function<Type *()>, Type::Method>> String::_methods = {
+map<string, pair<std::function<Type *()>, Type::MethodFn>> String::_methods = {
    {
       "size", 
       {

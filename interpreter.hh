@@ -124,9 +124,9 @@ struct BuiltinFunc : public FuncPtr {
 };
 
 struct BoundMethod : public FuncPtr {
-   Type::Method method;
+   Type::MethodFn method;
    void *data;
-   BoundMethod(Type::Method m, void *d) : method(m), data(d) {}
+   BoundMethod(Type::MethodFn m, void *d) : method(m), data(d) {}
    void invoke(Interpreter* I, const std::vector<Value>& args) {
       I->_ret = (*method)(data, args);
    }
