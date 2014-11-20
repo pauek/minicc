@@ -163,12 +163,7 @@ public:
   static Value  mkref(Value& v);  // create a reference to a value
   static Value  deref(const Value& v);  // obtain the referenced value
 
-   std::string to_json(void *data) const {
-      Value::Box *b = (Value::Box*)data;
-      std::ostringstream O;
-      O << b->data;
-      return O.str();
-   }
+   std::string to_json(void *data) const;
 
    static Reference *self;
 };

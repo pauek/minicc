@@ -152,7 +152,7 @@ var stepper = {
    },
    step: function () {
       var json = this._stepper.state();
-      // console.log(json);
+      console.log(json);
       this._history.push(JSON.parse(json));
       if (!this._stepper.step()) {
          alert(this._stepper.error());
@@ -201,15 +201,24 @@ function value_str(value, addClass, insert) {
       } 
       s += '</tr>';
    } else if (value instanceof Object) {
-      classes.push('struct');
-      elem = 'div';
-      s += '<table>';
-      for (var prop in value) {
-         s += '<tr><td><div class="name">' + prop + '</div></td><td>';
-         s += value_str(value[prop]);
-         s += '</td></tr>';
+      var type = value["<type>"];
+      if (type == 'ref') {
+         elem = 'div';
+         s += '<div class="ref">' + value['ref'] + '</div>';
+      } else if (type == 'struct') {
+         classes.push('struct');
+         elem = 'div';
+         s += '<table>';
+         for (var prop in value) {
+            if (prop == '<type>') {
+               continue;
+            }
+            s += '<tr><td><div class="name">' + prop + '</div></td><td>';
+            s += value_str(value[prop]);
+            s += '</td></tr>';
+         }
+         s += '</table>';
       }
-      s += '</table>';
    } else {
       classes.push('value');
       s = value;

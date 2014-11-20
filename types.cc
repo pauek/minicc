@@ -131,6 +131,13 @@ Value Reference::deref(const Value& v) {
    }
 }
 
+string Reference::to_json(void *data) const {
+   Value::Box *b = (Value::Box*)data;
+   std::ostringstream O;
+   O << "{\"<type>\":\"ref\",\"ref\":\"" << b->data << "\"}";
+   return O.str();
+}
+
 // Initializations
 Value Int::convert(Value x) {
    x = Reference::deref(x);
