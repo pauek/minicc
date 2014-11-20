@@ -22,6 +22,24 @@ Istream     *Istream::self     = new Istream();
 VectorValue *VectorValue::self = new VectorValue();
 Vector      *Vector::self      = new Vector();
 
+string String::to_json(void *data) const {
+   return string("\"") + *(string*)data + "\"";
+}
+
+string Array::to_json(void *data) const {
+   ostringstream json;
+   json << "[";
+   vector<Value> *v = static_cast<vector<Value>*>(data);
+   for (int i = 0; i < v->size(); i++) {
+      if (i > 0) {
+         json << ",";
+      }
+      json << (*v)[i].to_json();
+   }
+   json << "]";
+   return json.str();
+}
+
 Value Cout(cout), Cerr(cerr);
 Value Cin(cin);
 Value Endl("\n");

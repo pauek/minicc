@@ -3,6 +3,8 @@
 #include "interpreter.hh"
 using namespace std;
 
+const bool hidden = true;
+
 Value _max(const vector<Value>& args) {
    assert(args.size() == 2);
    assert(args[0].is<Int>());
@@ -15,18 +17,18 @@ void Interpreter::_init() {
 
 void Interpreter::prepare_global_environment() {
    _namespaces.clear();
-   Environment *cpp    = new Environment("<c++>", 0);  // for C++ integrated stuff
+   Environment *cpp    = new Environment("[c++]", 0, hidden);  // for C++ integrated stuff
    cpp->register_type("int",    Int::self);
    cpp->register_type("char",   Char::self);
    cpp->register_type("float",  Float::self);
    cpp->register_type("double", Double::self);
    cpp->register_type("bool",   Bool::self);
 
-   Environment *global = new Environment("<global>", cpp);
-   Environment *std    = new Environment("std", cpp);
+   Environment *global = new Environment("[global]", cpp, hidden);
+   Environment *std    = new Environment("std", cpp, hidden);
 
-   _namespaces["<c++>"]    = cpp;
-   _namespaces["<global>"] = global;
+   _namespaces["[c++]"]    = cpp;
+   _namespaces["[global]"] = global;
    _namespaces["std"]      = std;
 
    _env = global;
@@ -77,12 +79,14 @@ string Interpreter::env2json() const {
    json << "[";
    int i = 0;
    while (e != 0) {
-      if (i > 0) {
-         json << ",";
+      if (!e->hidden()) {
+         if (i > 0) {
+            json << ",";
+         }
+         json << e->to_json();
+         i++;
       }
-      json << e->to_json();
       e = e->parent();
-      i++;
    }
    json << "]";
    return json.str();
@@ -150,7 +154,6 @@ void Interpreter::visit_include(Include* x) {
       std->register_type("istream", Istream::self);
       std->register_type("string",  String::self); // 'iostream' includes 'string'
       
-      const bool hidden = true;
       std->set("endl", Endl, hidden);
       std->set("cerr", Cerr, hidden);
       std->set("cout", Cout, hidden);
@@ -180,7 +183,8 @@ void Interpreter::visit_funcdecl(FuncDecl *x) {
    }
    setenv(x->funcname(), 
           functype->mkvalue(funcname,
-                            new UserFunc(x)));
+                            new UserFunc(x)),
+          hidden);
 }
 
 void Interpreter::visit_structdecl(StructDecl *x) {
@@ -370,7 +374,7 @@ void Interpreter::visit_binaryexpr(BinaryExpr *x) {
       if (!getenv(id->name, right)) {
          _error(_T("La variable '%s' no está declarada", id->name.c_str()));
       }
-      assert(leftderef.as<Istream>() == cin);
+      // assert(leftderef.as<Istream>() == std::cin); // no compila con Emscripten
       right = Reference::deref(right);
       in() >> right;
       _curr = old;

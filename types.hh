@@ -18,15 +18,15 @@ struct TypeError {
 class Type {
    Type *reference_type;
 
-   //      void *alloc(T x) = a different method for every Type
-   virtual void   destroy(void *data) const                 { assert(false); }
-   virtual bool   equals(void *data_a, void *data_b)  const { assert(false); }
-   virtual void  *clone(void *data)                   const { assert(false); }
-   virtual void   write(std::ostream& o, void *data)  const { assert(false); }
-   virtual void  *read(std::istream& i, void *data)   const { assert(false); }
-   virtual string to_json(void *data)                 const { assert(false); }
-
 public:
+   //      void  *alloc(T x) = a different method for every Type
+   virtual   void  destroy(void *data) const                 { assert(false); }
+   virtual   bool  equals(void *data_a, void *data_b)  const { assert(false); }
+   virtual   void *clone(void *data)                   const { assert(false); }
+   virtual   void  write(std::ostream& o, void *data)  const { assert(false); }
+   virtual   void *read(std::istream& i, void *data)   const { assert(false); }
+   virtual string  to_json(void *data)                 const { assert(false); }
+
    Type() : reference_type(0) {}
 
    static Type *mkref(Type *t);
@@ -71,12 +71,6 @@ public:
 
 template<typename T>
 class BaseType : public Type {
-   std::string to_json(void *data) {
-      std::ostringstream o;
-      o << *static_cast<T*>(data);
-      return o.str();
-   }
-
 public:
    typedef T cpp_type;
    static T& cast(void *data) { 
@@ -118,6 +112,16 @@ public:
 template<typename T>
 class BasicType : public BaseType<T> {
    std::string _name;
+
+   std::string to_json(void *data) const {
+      if (data == 0) {
+         return "\"?\"";
+      }
+      std::ostringstream o;
+      o << *static_cast<const T*>(data);
+      return o.str();
+   }
+
 public:
    BasicType(std::string name) : _name(name) {}
    int properties()      const { return Type::Basic; }
@@ -159,7 +163,7 @@ public:
   static Value  mkref(Value& v);  // create a reference to a value
   static Value  deref(const Value& v);  // obtain the referenced value
 
-   std::string to_json(void *data) {
+   std::string to_json(void *data) const {
       Value::Box *b = (Value::Box*)data;
       std::ostringstream O;
       O << b->data;
@@ -202,15 +206,16 @@ public:
    Bool() : BasicType("bool") {}
    Value convert(Value init);
    static Bool *self;
+   std::string to_json(void *data) const {
+      return (*(bool*)data ? "true" : "false");
+   }
 };
 
 class String : public BasicType<std::string> {
 public:
    String() : BasicType("string") {}
    static String *self;
-   std::string to_json(void *data) {
-      return string("\"") + *(string*)data + "\"";
-   }
+   std::string to_json(void *data) const;
 
    bool get_method(std::string name, std::pair<Type*, MethodFn>& method) const;
 private:
@@ -283,9 +288,6 @@ public:
    void *clone(void *data) const;
 
    std::string typestr() const { return _name; }
-   std::string to_json(void *data) const {
-      assert(false);
-   }
 
    typedef SimpleTable<Value> cpp_type;
 };
@@ -293,12 +295,14 @@ public:
 class Array : public BaseType<std::vector<Value>> {
    Type *_celltype;
    int _sz;
+
 public:
                 Array(Type *celltype, int sz) : _celltype(celltype), _sz(sz) {}
            int  properties() const { return Basic; }
    std::string  typestr()    const { return _celltype->typestr() + "[]"; }
          Value  create();
          Value  convert(Value init);
+   std::string  to_json(void *) const;
 };
 
 class Vector : public BaseType<std::vector<Value>> {
@@ -385,16 +389,19 @@ typename T::cpp_type& Value::as() const {
 }
 
 class Environment {
-              std::string _name;
+             std::string  _name;
+                    bool  _hidden;
              Environment *_parent;
        SimpleTable<Value> _tab;
                     bool  _active;
                  TypeMap  _curr_namespace;
   std::set<Environment*>  _other_namespaces;
-public:
-   Environment(std::string name, Environment *parent) 
-      : _name(name), _parent(parent), _active(false) {}
 
+public:
+   Environment(std::string name, Environment *parent, bool hidden = false) 
+      : _name(name), _parent(parent), _hidden(hidden), _active(false) {}
+
+       bool  hidden() const { return _hidden; }
 std::string  to_json() const;
 
 Environment *parent() { return _parent; }

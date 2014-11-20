@@ -2,37 +2,36 @@ CXX=emcc
 
 BCFILES=web.bc input.bc parser.bc ast.bc token.bc value.bc \
    prettypr.bc astpr.bc interpreter.bc stepper.bc walker.bc \
-   translator.bc
+   translator.bc types.bc
+
+SRCS=$(BCFILES:.bc=.cc)
 
 CXXFLAGS=-std=c++11
 
 all: debug
 
-debug: CXXFLAGS += -g3 -O0 -s DISABLE_EXCEPTION_CATCHING=0
+depend: .dependweb
+
+.dependweb: $(SRCS)
+	@rm -f ./.dependweb
+	@echo "Computing dependencies..."
+	@$(CC) $(CFLAGS) -MM $^>>./.dependweb;
+
+-include .dependweb
+
+debug: CXXFLAGS += -g3 -O0 -s DISABLE_EXCEPTION_CATCHING=0 -s DEMANGLE_SUPPORT=1
 debug: web/js/minicc.js
 
 release: CXXFLAGS += -O2 -s DISABLE_EXCEPTION_CATCHING=0
 release: web/js/minicc.js
 
-web/js/minicc.js: $(BCFILES)
+web/js/minicc.js: .dependweb $(BCFILES)
 	emcc --bind $(CXXFLAGS) -o web/js/minicc.js $(BCFILES) 
 
 .cc.bc:
 	emcc -c $(CXXFLAGS) -o $@ $<
 
-token.bc:       token.hh
-input.bc:       ast.hh input.hh token.hh
-ast.bc:         ast.hh input.hh token.hh translator.hh
-parser.bc:      ast.hh input.hh token.hh parser.hh translator.hh
-astpr.bc:       ast.hh astpr.hh
-prettypr.bc:    ast.hh prettypr.hh
-interpreter.bc: ast.hh value.hh interpreter.hh translator.hh
-value.bc:       value.hh
-walker.bc:      ast.hh walker.hh
-translator.bc:  translator.hh
-web.bc:         ast.hh input.hh token.hh value.hh parser.hh translator.hh
-
 clean:
-	rm -f web/js/minicc.js $(BCFILES)
+	rm -f web/js/minicc.js $(BCFILES) .dependweb
 
 .SUFFIXES: .cc .bc

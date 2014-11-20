@@ -35,7 +35,7 @@ string execute(string input) {
    ostringstream out;
    try {
       Interpreter I(&in, &out);
-      program->visit(&I);
+      program->accept(&I);
    } 
    catch (EvalError* e) {
       ofstream errors("/minicc/errors");
@@ -51,7 +51,7 @@ string reformat(string code) {
    
    ostringstream out;
    PrettyPrinter pr(&out);
-   prog->visit(&pr);
+   prog->accept(&pr);
    return out.str();
 }
 
@@ -61,7 +61,7 @@ public:
    EmbindStepper() {
       Translator::translator.set_language("ca");
       S = new Stepper(&cin, &cout);
-      program->visit(S);
+      program->accept(S);
    }
      bool finished() const { return S->finished(); }
      bool step()           { return S->step(); }

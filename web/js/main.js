@@ -151,7 +151,9 @@ var stepper = {
       return this._stepper.finished();
    },
    step: function () {
-      this._history.push(JSON.parse(this._stepper.state()));
+      var json = this._stepper.state();
+      // console.log(json);
+      this._history.push(JSON.parse(json));
       if (!this._stepper.step()) {
          alert(this._stepper.error());
          return false;
