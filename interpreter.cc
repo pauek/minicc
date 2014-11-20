@@ -544,7 +544,6 @@ void Interpreter::visit_vardecl(VarDecl *x) {
    if (type == 0) {
       _error(_T("El tipo '%s' no existe.", type_name.c_str()));
    }
-   _curr = Reference::deref(_curr);
    try {
       setenv(x->name, (_curr.is_null() ? type->create() : type->convert(_curr)));
    } catch (TypeError& e) {

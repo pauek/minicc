@@ -109,9 +109,11 @@ void Reference::destroy(void *data) const {
    }
 }
 
-Value Reference::convert(Value init) {
-   assert(init.type() == _subtype);
-   return Value();
+Value Reference::convert(Value x) {
+   assert(x.is<Reference>());
+   Value::Box *b = (Value::Box*)x._box->data;
+   b->count++;
+   return Value(x._box->type, b);
 }
 
 Value Reference::mkref(Value& v) {
@@ -131,6 +133,7 @@ Value Reference::deref(const Value& v) {
 
 // Initializations
 Value Int::convert(Value x) {
+   x = Reference::deref(x);
    if (x.is<Int>()) {
       return x.clone();
    } else if (x.is<Float>()) {
@@ -146,6 +149,7 @@ Value Int::convert(Value x) {
 }
 
 Value Float::convert(Value x) {
+   x = Reference::deref(x);
    if (x.is<Float>()) {
       return x.clone();
    } else if (x.is<Int>()) {
@@ -157,6 +161,7 @@ Value Float::convert(Value x) {
 }
 
 Value Double::convert(Value x) {
+   x = Reference::deref(x);
    if (x.is<Double>()) {
       return x.clone();
    } else if (x.is<Int>()) {
@@ -168,6 +173,7 @@ Value Double::convert(Value x) {
 }
 
 Value Char::convert(Value x) {
+   x = Reference::deref(x);
    if (x.is<Char>()) {
       return x.clone();
    } else if (x.is<Int>()) {
@@ -177,6 +183,7 @@ Value Char::convert(Value x) {
 }
 
 Value Bool::convert(Value x) {
+   x = Reference::deref(x);
    if (x.is<Bool>()) {
       return x.clone();
    } else if (x.is<Int>()) {
@@ -185,13 +192,14 @@ Value Bool::convert(Value x) {
    return Value::null;
 }
 
-Value Vector::convert(Value init) {
+Value Vector::convert(Value x) {
    //
    // To support C++11-style initialization of vectors, this method should
    // be like Array::convert...
    //
-   if (init.is<Vector>()) {
-      return init.clone();
+   x = Reference::deref(x);
+   if (x.is<Vector>()) {
+      return x.clone();
    }
    return Value::null;
 }
