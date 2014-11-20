@@ -289,6 +289,8 @@ public:
 
    std::string typestr() const { return _name; }
 
+   std::string to_json(void *data) const;
+
    typedef SimpleTable<Value> cpp_type;
 };
 

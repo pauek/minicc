@@ -335,6 +335,19 @@ void *Struct::clone(void *data) const {
    return to;
 }
 
+string Struct::to_json(void *data) const {
+   SimpleTable<Value>& tab = *static_cast<SimpleTable<Value>*>(data);
+   ostringstream json;
+   json << "{\"<type>\":\"struct\"";
+   for (int i = 0; i < tab.size(); i++) {
+      json << ",";
+      const pair<string, Value>& f = tab[i];
+      json << '"' << f.first << "\":" << f.second.to_json();
+   }
+   json << "}";
+   return json.str();
+}
+
 string Function::typestr() const {
    ostringstream o;
    o << "func(";
