@@ -81,7 +81,10 @@ int main(int argc, char *argv[]) {
          while (!S.finished()) {
             cout << S.span() << ": " << P.input().substr(S.span()) << endl;
             cout << S.status() << endl;
-            // cout << "OUTPUT: \"" << S.output() << "\"" << endl;
+            string out = S.output();
+            if (out != "") {
+               cout << "OUTPUT: \"" << out << "\"" << endl;
+            }
             cout << endl;
             if (!S.step()) {
                throw S.error();

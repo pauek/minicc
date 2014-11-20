@@ -18,12 +18,6 @@ void Interpreter::prepare_global_environment() {
    Environment& global = _namespaces["<global>"];
    Environment& std    = _namespaces["std"];
 
-   const bool hidden = true;
-   std.set("endl", Endl, hidden);
-   std.set("cerr", Cerr, hidden);
-   std.set("cout", Cout, hidden);
-   std.set("cin",  Cin,  hidden);
-
    Function *max_func_type = new Function(Int::self);
    max_func_type->add_params(Int::self, Int::self);
    std.set("max", max_func_type->mkvalue("max", new BuiltinFunc(_max)));
@@ -36,11 +30,6 @@ void Interpreter::prepare_global_environment() {
    std.register_type("bool",   Bool::self);
    // FIXME-END
    
-   std.register_type("ostream", Ostream::self);
-   std.register_type("istream", Istream::self);
-   std.register_type("vector",  Vector::self);
-   std.register_type("string",  String::self);
-
    global.register_type("int",    Int::self);
    global.register_type("char",   Char::self);
    global.register_type("float",  Float::self);
@@ -178,8 +167,24 @@ void Interpreter::visit_using(Using* x) {
 }
 
 void Interpreter::visit_include(Include* x) {
-   // TODO: Depending on include, register 'fake' functions & types.
-   // (on the 'std' environment)
+   Environment& std = _namespaces["std"];
+   if (x->filename == "iostream") {
+      std.register_type("ostream", Ostream::self);
+      std.register_type("istream", Istream::self);
+      std.register_type("string",  String::self); // 'iostream' includes 'string'
+      
+      const bool hidden = true;
+      std.set("endl", Endl, hidden);
+      std.set("cerr", Cerr, hidden);
+      std.set("cout", Cout, hidden);
+      std.set("cin",  Cin,  hidden);
+   } 
+   else if (x->filename == "vector") {
+      std.register_type("vector",  Vector::self);
+   }
+   else if (x->filename == "string") {
+      std.register_type("string",  String::self); // 'vector' includes 'string'
+   }
 }
 
 void Interpreter::visit_funcdecl(FuncDecl *x) {
@@ -231,12 +236,13 @@ void Interpreter::visit_ident(Ident *x) {
       }
       Environment& e = it->second;
       if (!e.get(x->name, v)) {
-         _error(_T("La variable '%s' no existe en el \"namespace\" '%s'.", 
-                   x->name.c_str(), namespc.c_str()));
+         _error(_T("No se ha encontrado '%s::%s'.", 
+                   namespc.c_str(), x->name.c_str()));
       }
    } else {
       if (!getenv(x->name, v)) {
-         _error(_T("La variable '%s' no existe.", x->name.c_str()));
+         _error(_T("No se ha encontrado '%s'.", 
+                   x->name.c_str()));
       }
    }
    _curr = (v.is<Reference>() ? v : Reference::mkref(v));

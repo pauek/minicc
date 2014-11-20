@@ -8,4 +8,4 @@ int main() {
 }
 [[out]]--------------------------------------------------
 [[err]]--------------------------------------------------
-Error de ejecución: La variable 'i' no existe.
+Error de ejecución: No se ha encontrado 'i'.

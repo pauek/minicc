@@ -1,4 +1,4 @@
-using namespace std;
+#include <iostream>
 
 struct X {
    int a, b;
@@ -14,10 +14,10 @@ int main() {
    	T[i].a = i % 2;
       T[i].b = i;
    }
-   cout << T[0].a << endl;
-   cout << T[1].b << endl;
+   std::cout << T[0].a << std::endl;
+   std::cout << T[1].b << std::endl;
 }
-[[out]]--------------------------------------------------
+[[out]]-------------------------------------------------
 7:4-7:8: main
 Empieza el programa.
 
@@ -231,20 +231,20 @@ Se incrementa la variable 'i'.
 13:19-13:25: i < 10
 La condición vale 'false', salimos del for.
 
-17:11-17:17: T[0].a
+17:16-17:22: T[0].a
 Se escribe a la salida.
 OUTPUT: "0"
 
-17:21-17:25: endl
+17:26-17:35: std::endl
 Se escribe a la salida.
 OUTPUT: "
 "
 
-18:11-18:17: T[1].b
+18:16-18:22: T[1].b
 Se escribe a la salida.
 OUTPUT: "1"
 
-18:21-18:25: endl
+18:26-18:35: std::endl
 Se escribe a la salida.
 OUTPUT: "
 "
