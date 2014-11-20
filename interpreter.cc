@@ -15,41 +15,29 @@ void Interpreter::_init() {
 
 void Interpreter::prepare_global_environment() {
    _namespaces.clear();
-   Environment& global = _namespaces["<global>"];
-   Environment& std    = _namespaces["std"];
+   Environment *cpp    = new Environment("<c++>", 0);  // for C++ integrated stuff
+   cpp->register_type("int",    Int::self);
+   cpp->register_type("char",   Char::self);
+   cpp->register_type("float",  Float::self);
+   cpp->register_type("double", Double::self);
+   cpp->register_type("bool",   Bool::self);
 
-   Function *max_func_type = new Function(Int::self);
-   max_func_type->add_params(Int::self, Int::self);
-   std.set("max", max_func_type->mkvalue("max", new BuiltinFunc(_max)));
+   Environment *global = new Environment("<global>", cpp);
+   Environment *std    = new Environment("std", cpp);
 
-   // FIXME-BEGIN: quitar esto...
-   std.register_type("int",    Int::self);
-   std.register_type("char",   Char::self);
-   std.register_type("float",  Float::self);
-   std.register_type("double", Double::self);
-   std.register_type("bool",   Bool::self);
-   // FIXME-END
-   
-   global.register_type("int",    Int::self);
-   global.register_type("char",   Char::self);
-   global.register_type("float",  Float::self);
-   global.register_type("double", Double::self);
-   global.register_type("bool",   Bool::self);
+   _namespaces["<c++>"]    = cpp;
+   _namespaces["<global>"] = global;
+   _namespaces["std"]      = std;
 
-   _env.push_back(&global);
+   _env = global;
 }
 
 void Interpreter::setenv(string id, Value v, bool hidden) {
-   _env.back()->set(id, v, hidden);
+   _env->set(id, v, hidden);
 }
 
 bool Interpreter::getenv(string id, Value& v) {
-   for (int i = _env.size()-1; i >= 0; i--) {
-      if (_env[i]->get(id, v)) {
-         return true;
-      }
-   }
-   return false;
+   return _env->get(id, v);
 }
 
 Type *Interpreter::get_type(TypeSpec *spec) {
@@ -59,53 +47,42 @@ Type *Interpreter::get_type(TypeSpec *spec) {
       if (it == _namespaces.end()) {
          _error(_T("No se ha encontrado el \"namespace\" '%s'.", namespc.c_str()));
       }
-      Environment& e = it->second;
-      return e.get_type(spec);
+      Environment *e = it->second;
+      return e->get_type(spec);
    }
-   for (int i = _env.size()-1; i >= 0; i--) {
-      Type *type = _env[i]->get_type(spec);
-      if (type != 0) {
-         return type;
-      }
-   }
-   return 0;
+   return _env->get_type(spec);
 }
 
 void Interpreter::register_type(string name, Type *type) {
-   _env.back()->register_type(name, type);
+   _env->register_type(name, type);
 }
 
-
 void Interpreter::actenv() {
-   for (int i = 0; i < _env.size(); i++) {
-      _env[i]->set_active(false);
-   }
-   _env.back()->set_active(true);
+   _env->set_active(true);
 }
 
 void Interpreter::popenv() { 
-   Environment *top = _env.back();
-   delete top;
-   _env.pop_back(); 
-   _env_names.pop_back();
-   _env.back()->set_active(true);
+   _env = _env->pop();
+   assert(_env != 0);
+   _env->set_active(true);
 }
 
 void Interpreter::pushenv(string name) {
-   _env.push_back(new Environment());  
-   _env_names.push_back(name);
+   _env = new Environment(name, _env);
 }
 
 string Interpreter::env2json() const {
+   Environment *e = _env;
    ostringstream json;
    json << "[";
-   for (int i = 1; i < _env.size(); i++) {
-      if (i > 1) {
+   int i = 0;
+   while (e != 0) {
+      if (i > 0) {
          json << ",";
       }
-      json << "{\"name\":\"" << _env_names[i] << "\",\"tab\":";
-      json << _env[i]->to_json();
-      json << "}";
+      json << e->to_json();
+      e = e->parent();
+      i++;
    }
    json << "]";
    return json.str();
@@ -163,27 +140,32 @@ void Interpreter::visit_using(Using* x) {
    if (it == _namespaces.end()) {
       _error(_T("No se ha encontrado el \"namespace\" '%s'.", x->namespc.c_str()));
    }
-   _env.back()->using_namespace(&it->second);
+   _env->using_namespace(it->second);
 }
 
 void Interpreter::visit_include(Include* x) {
-   Environment& std = _namespaces["std"];
+   Environment *std = _namespaces["std"];
    if (x->filename == "iostream") {
-      std.register_type("ostream", Ostream::self);
-      std.register_type("istream", Istream::self);
-      std.register_type("string",  String::self); // 'iostream' includes 'string'
+      std->register_type("ostream", Ostream::self);
+      std->register_type("istream", Istream::self);
+      std->register_type("string",  String::self); // 'iostream' includes 'string'
       
       const bool hidden = true;
-      std.set("endl", Endl, hidden);
-      std.set("cerr", Cerr, hidden);
-      std.set("cout", Cout, hidden);
-      std.set("cin",  Cin,  hidden);
+      std->set("endl", Endl, hidden);
+      std->set("cerr", Cerr, hidden);
+      std->set("cout", Cout, hidden);
+      std->set("cin",  Cin,  hidden);
    } 
    else if (x->filename == "vector") {
-      std.register_type("vector",  Vector::self);
+      std->register_type("vector",  Vector::self);
    }
    else if (x->filename == "string") {
-      std.register_type("string",  String::self); // 'vector' includes 'string'
+      std->register_type("string",  String::self); // 'vector' includes 'string'
+   }
+   else if (x->filename == "algorithm") {
+      Function *max_func_type = new Function(Int::self);
+      max_func_type->add_params(Int::self, Int::self);
+      std->set("max", max_func_type->mkvalue("max", new BuiltinFunc(_max)));
    }
 }
 
@@ -234,8 +216,8 @@ void Interpreter::visit_ident(Ident *x) {
          _error(_T("No se ha encontrado el \"namespace\" '%s'.", 
                    namespc.c_str()));
       }
-      Environment& e = it->second;
-      if (!e.get(x->name, v)) {
+      Environment *e = it->second;
+      if (!e->get(x->name, v)) {
          _error(_T("No se ha encontrado '%s::%s'.", 
                    namespc.c_str(), x->name.c_str()));
       }

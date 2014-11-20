@@ -18,9 +18,9 @@ struct EvalError {
 class Interpreter : public AstVisitor, public ReadWriter 
 {
                               Value _curr, _ret;
-          std::vector<Environment*> _env;
+                       Environment *_env;
            std::vector<std::string> _env_names;
- std::map<std::string, Environment> _namespaces;
+std::map<std::string, Environment*> _namespaces;
 
    void  pushenv(std::string name);
    void  popenv();
@@ -70,12 +70,9 @@ class Interpreter : public AstVisitor, public ReadWriter
    void  register_type(std::string name, Type *);
 
 public:
-   Interpreter() { _init(); }
+   Interpreter() : _env(0) { _init(); }
    Interpreter(std::istream *i, std::ostream *o)
-      : ReadWriter(i, o) { _init(); }
-
-   ~Interpreter() {}
-
+      : _env(0), ReadWriter(i, o) { _init(); }
 
    void visit_comment(CommentSeq *x);
    void visit_include(Include *x);

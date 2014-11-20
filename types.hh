@@ -59,12 +59,13 @@ public:
    friend class Reference;
 };
 
+class Environment;
 class TypeMap {
    std::map<std::string, Type*> _typemap;
    std::map<std::string, Type*> _typecache; // all types indexed by typestr
 public:
    void  register_type(std::string name, Type *);
-   Type *get_type(TypeSpec *);
+   Type *get_type(TypeSpec *, Environment *);
    void  clear();
 };
 
@@ -385,23 +386,28 @@ typename T::cpp_type& Value::as() const {
 }
 
 class Environment {
+              std::string _name;
+             Environment *_parent;
        SimpleTable<Value> _tab;
                     bool  _active;
                  TypeMap  _curr_namespace;
   std::set<Environment*>  _other_namespaces;
 public:
-   Environment() : _active(false) {}
+   Environment(std::string name, Environment *parent) 
+      : _name(name), _parent(parent), _active(false) {}
 
-   std::string to_json() const;
+std::string  to_json() const;
 
-   void set_active(bool x) { _active = x; }
+Environment *parent() { return _parent; }
+Environment *pop();
+       void  set_active(bool x);
 
-   void  using_namespace(Environment *nmspc);
-   void  register_type(std::string name, Type *);
-   Type *get_type(TypeSpec *);
+       void  using_namespace(Environment *nmspc);
+       void  register_type(std::string name, Type *);
+       Type *get_type(TypeSpec *);
    
-   bool get(std::string name, Value& res);
-   void set(std::string name, Value data, bool hidden = false);
+       bool  get(std::string name, Value& res);
+       void  set(std::string name, Value data, bool hidden = false);
 };
 
 std::string json_encode(std::string s);

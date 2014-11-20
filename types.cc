@@ -28,7 +28,7 @@ Value Endl("\n");
 
 // Methods
 
-Type *TypeMap::get_type(TypeSpec *spec) {
+Type *TypeMap::get_type(TypeSpec *spec, Environment *outer) {
    // 1. If typestr already registered, return the type
    {
       auto it = _typecache.find(spec->typestr());
@@ -47,7 +47,7 @@ Type *TypeMap::get_type(TypeSpec *spec) {
          assert(T->is(Type::Template));
          vector<Type*> subtypes;
          for (int i = 0; i < spec->id->subtypes.size(); i++) {
-            subtypes.push_back(get_type(spec->id->subtypes[i]));
+            subtypes.push_back(outer->get_type(spec->id->subtypes[i]));
          }
          T = T->instantiate(subtypes);
       }
@@ -461,6 +461,7 @@ string Vector::typestr() const {
 
 string Environment::to_json() const {
    ostringstream json;
+   json << "{\"name\":\"" << _name << "\",\"tab\":";
    json << "{\"<active>\":" << (_active ? "true" : "false");
    for (int i = 0; i < _tab.tab.size(); i++) {
       if (_tab.tab[i]._hidden) {
@@ -469,7 +470,7 @@ string Environment::to_json() const {
       json << ",\"" << _tab.tab[i].name() << "\":";
       json << _tab.tab[i].data().to_json();
    }
-   json << "}";
+   json << "}}";
    return json.str();
 }
 
@@ -478,7 +479,7 @@ void Environment::register_type(string name, Type *type) {
 }
 
 Type *Environment::get_type(TypeSpec *spec) {
-   Type *type = _curr_namespace.get_type(spec);
+   Type *type = _curr_namespace.get_type(spec, this);
    if (type != 0) {
       return type;
    }
@@ -488,11 +489,25 @@ Type *Environment::get_type(TypeSpec *spec) {
          return type;
       }
    }
+   if (_parent != 0) {
+      return _parent->get_type(spec);
+   }
    return 0;
 }
 
 void Environment::using_namespace(Environment *e) {
    _other_namespaces.insert(e);
+}
+
+void Environment::set_active(bool active) {
+   if (active) {
+      _active = true;
+      if (_parent != 0 and _parent->_active) {
+         _parent->_active = false;
+      }
+   } else {
+      _active = false;
+   }
 }
 
 bool Environment::get(string name, Value& res) {
@@ -504,9 +519,18 @@ bool Environment::get(string name, Value& res) {
          return true;
       }
    }
+   if (_parent != 0) {
+      return _parent->get(name, res);
+   }
    return false;
 }
 
 void Environment::set(string name, Value data, bool hidden) {
    _tab.set(name, data, hidden);
+}
+
+Environment *Environment::pop() {
+   Environment *parent = _parent;
+   delete this;
+   return parent;
 }
