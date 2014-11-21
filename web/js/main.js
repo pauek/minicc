@@ -206,8 +206,10 @@ function value_str(value, addClass, insert) {
          var addr = value.data['ref']
          elem = 'div';
          classes.push('ref');
-         s += '<div id="ref-' + addr + '" class="endpoint"></div>';
-         links.push(addr);
+         var from = 'ref-' + value.box + '-' + addr;
+         var to   = 'box-' + addr;
+         s += '<div id="' + from + '" class="endpoint"></div>';
+         links.push({from: from, to: to});
       } else if (type == 'struct') {
          classes.push('struct');
          elem = 'div';
@@ -286,8 +288,8 @@ function showstate(S) {
    $('#status').text(S.status);
    for (var i = 0; i < links.length; i++) {
       jsPlumb.connect({
-         source: 'ref-' + links[i],
-         target: 'box-' + links[i]
+         source: links[i].from,
+         target: links[i].to
       });
    }
 }
