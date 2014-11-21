@@ -38,6 +38,7 @@ std::map<std::string, Environment*> _namespaces;
      Value new_value_from_structdecl(StructDecl *x);
 
      void  prepare_global_environment();
+     void  invoke_func_prepare_arg(FuncDecl *x, Value args, int i);
      void  invoke_func_prepare(FuncDecl *x, const std::vector<Value>& args);
      void  invoke_user_func(FuncDecl *x, const std::vector<Value>&);
 

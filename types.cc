@@ -134,7 +134,7 @@ Value Reference::deref(const Value& v) {
 string Reference::to_json(void *data) const {
    Value::Box *b = (Value::Box*)data;
    std::ostringstream O;
-   O << "{\"<type>\":\"ref\",\"ref\":\"" << b->data << "\"}";
+   O << "{\"<type>\":\"ref\",\"ref\":\"" << b << "\"}";
    return O.str();
 }
 

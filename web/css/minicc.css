@@ -66,6 +66,7 @@ header {
 
 #env {
   padding: 13px;
+  position: relative;
 }
 
 #env .fenv {
@@ -112,9 +113,23 @@ header {
   border: 1px solid #ccc;
 }
 #env .var {
-  padding: .3em .4em .3em 0;
+  padding: .3em .3em;
   display: inline-block;
   margin: .1em 0;
+}
+#env .ref {
+  background-color: white;
+  border: 1px solid #ccc;
+  margin-top: 0.35em;
+}
+#env svg {
+  opacity: .35; /* All of jsPlumb arrows */ 
+}
+.ref .endpoint {
+  background: rgba(255, 0, 0, 0.35);
+  width: 6px;
+  height: 6px;
+  border-radius: 3px;
 }
 #env .value, #env .var.unknown {
   padding: 1px 4px;

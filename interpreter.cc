@@ -93,24 +93,27 @@ string Interpreter::env2json() const {
 }
 
 
+void Interpreter::invoke_func_prepare_arg(FuncDecl *fn, Value arg, int i) {
+   if (arg.is<Reference>()) {
+      if (!fn->params[i]->typespec->reference) {
+         arg = Reference::deref(arg);
+      }
+      setenv(fn->params[i]->name, arg);
+   } else {
+      if (fn->params[i]->typespec->reference) {
+         _error(_T("En el parámetro %d se requiere una variable.", i+1));
+      }
+      setenv(fn->params[i]->name, arg);
+   }
+}
+
 void Interpreter::invoke_func_prepare(FuncDecl *fn, const vector<Value>& args) {
    if (fn->params.size() != args.size()) {
       _error(_T("Error en el número de argumentos al llamar a '%s'", 
                 fn->funcname().c_str()));
    }
    for (int i = 0; i < args.size(); i++) {
-      if (args[i].is<Reference>()) {
-         Value v = args[i];
-         if (!fn->params[i]->typespec->reference) {
-            v = Reference::deref(v);
-         }
-         setenv(fn->params[i]->name, v);
-      } else {
-         if (fn->params[i]->typespec->reference) {
-            _error(_T("En el parámetro %d se requiere una variable.", i+1));
-         }
-         setenv(fn->params[i]->name, args[i]);
-      }
+      invoke_func_prepare_arg(fn, args[i], i);
    }
 }
 

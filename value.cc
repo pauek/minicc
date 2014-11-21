@@ -102,7 +102,11 @@ string Value::type_name() const {
 }
 
 string Value::to_json() const {
-   return (is_null() ? "\"?\"" : _box->type->to_json(_box->data));
+   ostringstream json;
+   json << "{\"box\":\"" << (void*)_box << "\",\"data\":";
+   json << (is_null() ? "\"?\"" : _box->type->to_json(_box->data));
+   json << "}";
+   return json.str();
 }
 
 Value::Value(int x)         { _attach(new Box(Int::self,    Int::self->alloc(x))); }

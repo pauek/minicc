@@ -321,7 +321,6 @@ void Stepper::visit_callexpr(CallExpr *x) {
    CallExprVisitState *s = new CallExprVisitState(x, fn);
    vector<Value> args(fn->params.size(), Value::null);
    I.pushenv(fn->funcname());
-   I.invoke_func_prepare(fn, args);
    s->step(this);
    push(s);
 }
@@ -362,10 +361,7 @@ Todo Stepper::CallExprVisitState::step(Stepper *S) {
       }
       S->I.visit(x->args[curr]);
       Value v = S->I._curr;
-      if (!fn->params[curr]->typespec->reference) {
-         v = Reference::deref(v);
-      }
-      S->I.setenv(fn->params[curr]->name, v);
+      S->I.invoke_func_prepare_arg(fn, v, curr);
       ++curr;
       return Stop;
    } else {

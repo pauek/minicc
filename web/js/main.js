@@ -92,7 +92,6 @@ function execute() {
       var re2 = new RegExp(' ', 'g');
       out = out.replace(re2, '\u2423');
       out += '\u00a7';
-      console.log(out);
       $('#output').show();
       output.setValue(out);
    }, 80);
@@ -152,7 +151,6 @@ var stepper = {
    },
    step: function () {
       var json = this._stepper.state();
-      console.log(json);
       this._history.push(JSON.parse(json));
       if (!this._stepper.step()) {
          alert(this._stepper.error());
@@ -183,50 +181,57 @@ function resize() {
 }
 
 function value_str(value, addClass, insert) {
-   var s = '', elem = 'div';
+   var s = '', elem = 'div', links = [];
    var classes = ['var'];
-   if (value === null) {
+   if (value.data === null) {
       classes.push('unknown');
       s = '?';
-   } else if (value instanceof Array) {
+   } else if (value.data instanceof Array) {
       classes.push('array');
       elem = 'table';
       s += '<tr>'
-      for (var j = 0; j < value.length; j++) {
+      for (var j = 0; j < value.data.length; j++) {
          s += '<td>';
-         s += value_str(value[j], 
-                        (j == 0 ? "first" : null), 
-                        '<div class="index">' + j + '</div>');
+         var res = value_str(value.data[j], 
+                             (j == 0 ? "first" : null), 
+                             '<div class="index">' + j + '</div>');
+         links.push.apply(links, res.links);
+         s += res.html;
          s += '</td>';
       } 
       s += '</tr>';
-   } else if (value instanceof Object) {
-      var type = value["<type>"];
+   } else if (value.data instanceof Object) {
+      var type = value.data["<type>"];
       if (type == 'ref') {
+         var addr = value.data['ref']
          elem = 'div';
-         s += '<div class="ref">' + value['ref'] + '</div>';
+         classes.push('ref');
+         s += '<div id="ref-' + addr + '" class="endpoint"></div>';
+         links.push(addr);
       } else if (type == 'struct') {
          classes.push('struct');
          elem = 'div';
          s += '<table>';
-         for (var prop in value) {
+         for (var prop in value.data) {
             if (prop == '<type>') {
                continue;
             }
             s += '<tr><td><div class="name">' + prop + '</div></td><td>';
-            s += value_str(value[prop]);
+            var res = value_str(value.data[prop]);
+            links.push.apply(links, res.links);
+            s += res.html;
             s += '</td></tr>';
          }
          s += '</table>';
       }
    } else {
       classes.push('value');
-      s = value;
+      s = value.data;
    }
    if (addClass) {
       classes.push(addClass);
    }
-   var html = '<' + elem + ' class="';
+   var html = '<' + elem + ' id="box-' + value.box + '" class="';
    for (var i = 0; i < classes.length; i++) {
       if (i > 0) {
          html += ' ';
@@ -234,10 +239,15 @@ function value_str(value, addClass, insert) {
       html += classes[i];
    }
    html += '">' + s + (insert ? insert : '') + '</' + elem + '>';
-   return html;
+   return {
+      html:  html,
+      links: links
+   };
 }
 
 function showstate(S) {
+   jsPlumb.detachEveryConnection();
+   var links = [];
    $('#env').empty();
    $('#status').text('');
    if (S === null) {
@@ -263,7 +273,9 @@ function showstate(S) {
             continue;
          }
          html += '<tr><td><div class="name">' + prop + '</div></td><td>';
-         html += value_str(T[prop]);
+         var res = value_str(T[prop]);
+         links.push.apply(links, res.links);
+         html += res.html;
          html += '</td></tr>';
       }
       html += '</table></div>';
@@ -272,6 +284,12 @@ function showstate(S) {
    html += '</tr></table>';
    $('#env').append(html);
    $('#status').text(S.status);
+   for (var i = 0; i < links.length; i++) {
+      jsPlumb.connect({
+         source: 'ref-' + links[i],
+         target: 'box-' + links[i]
+      });
+   }
 }
 
 function sliderChange() {
@@ -448,5 +466,14 @@ $(document).ready(function () {
       }
    });
    slider.init();
-   showstate(null);   
+   jsPlumb.setContainer('env');
+   jsPlumb.importDefaults({
+      Anchors: ['Center', 'Right'],
+      Endpoints: ['Blank', 'Blank'],
+      EndpointStyle: { fillStyle: '#f00' },
+      Connector: ['Straight', {}],
+      PaintStyle: { lineWidth: 2, strokeStyle: '#f00' },
+      Overlays: [['Arrow', {location: 1, foldback: 0.8, width: 10, length: 7}]],
+   });
+   showstate(null);
 });
