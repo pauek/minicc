@@ -193,6 +193,7 @@ class Char : public BasicType<char> {
 public:
    Char() : BasicType("char") {}
    Value convert(Value init);
+   std::string to_json(void *data) const;
    static Char *self;
 };
 

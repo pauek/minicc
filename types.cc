@@ -189,6 +189,13 @@ Value Char::convert(Value x) {
    return Value::null;
 }
 
+string Char::to_json(void *data) const {
+   ostringstream json;
+   json << "{\"<type>\":\"char\",\"char\":\"" 
+        << *(char*)data << "\"}" << endl;
+   return json.str();
+}
+
 Value Bool::convert(Value x) {
    x = Reference::deref(x);
    if (x.is<Bool>()) {
