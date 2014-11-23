@@ -468,7 +468,7 @@ function draw_obj(_x, _y, obj) {
 }
 
 function draw_text(x, y, text, fill, fontSize) {
-   var text = paper.text(x, y, text).attr({
+   var text = paper.text(x, y, '' + text).attr({
       'font-family': 'Source Code Pro',
       'font-size': (fontSize ? fontSize : 14),
       'text-anchor': 'start',
