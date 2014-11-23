@@ -122,9 +122,6 @@ header {
   border: 1px solid #ccc;
   margin-top: 0.35em;
 }
-#env svg {
-  opacity: .35; /* All of jsPlumb arrows */ 
-}
 .ref .endpoint {
   background: rgba(255, 0, 0, 0.35);
   width: 6px;

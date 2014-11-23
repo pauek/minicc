@@ -262,184 +262,165 @@ function value_str(value, addClass, insert) {
 */
 
 var draw_params = {
-   lineHeight: 24,
-   var_name_sep: 6,
-   value_sep: 7,
-   value_padding: 4,
-   value_padding_left: 7,
-   obj_padding: 1,
-   env_padding: 8,
-   env_padding_left: 12,
-   min_env_width: 100,
-   min_env_height: 10,
+   separation: {var_name: 6, value: 6},
+   padding: {
+      env_title: {top: 7, right: 0, bottom: 7, left: 9},
+      env:       {top: 7, right: 7, bottom: 7, left: 15},
+      value:     {top: 5, right: 5, bottom: 5, left: 5},
+      obj:       {top: 0, right: 0, bottom: 0, left: 0},
+   },
+   env_min:  {width: 100, height: 10},
 };
 
-var stage = null;
-
-function draw_text(x, y, text, fill, fontSize) {
-   var text = new Kinetic.Text({
-      x: x, y: y,
-      text: text,
-      fontSize: (fontSize ? fontSize : 14),
-      fontFamily: 'Source Code Pro',
-      fill: (fill ? fill : '#333'),
+// offset x and y coordinates
+Raphael.el.offset = function (dx, dy) {
+   var _x = this.attr('x');
+   var _y = this.attr('y');
+   this.attr({x: _x + dx, y: _y + dy});
+}
+Raphael.st.offset = function (dx, dy) {
+   this.forEach(function (el) {
+      el.offset(dx, dy);
    });
-   return {
-      obj:    text,
-      width:  text.width(),
-      height: text.height()
-   };
 }
 
+var paper = null;
+
 function draw_state(S) {
-   stage.destroyChildren();
+   paper.clear();
    $('#status').text('');
    if (S === null) {
       $('#slider .knob').addClass('disabled');
       return;
    }
    $('#slider .knob').removeClass('disabled');
-   var layer = new Kinetic.Layer();
    var x = 10, y = 10;
    for (var i = S.env.length-1; i >= 0; i--) {
       var env = draw_env(x, y, S.env[i]);
-      layer.add(env.obj);
       x += env.width + 20;
    }
-   stage.add(layer);
 }
 
 function draw_env(_x, _y, _env) {
-   var frame = new Kinetic.Group({x: _x, y: _y, id: _env.name});
-   var x = 0, y = 0;
+   var x = _x, y = _y;
+   var set = paper.set();
 
    // title
-   var title = draw_text(x+10, y+9, _env.name);
-   frame.add(title.obj);
-   y += draw_params.lineHeight + 10;
-   var title_height = y;
+   var P1 = draw_params.padding.env_title;
+   var title = draw_text(x + P1.left, y + P1.top, _env.name);
+   title.obj.attr({'font-weight': 600, 'fill': '#333'});
+   y += P1.top + title.height + P1.bottom;
+   set.push(title.obj);
 
    // vars + values
-   var P  = draw_params.env_padding;
-   var PL = draw_params.env_padding_left;
-   var env = draw_obj(x + PL, y + P, _env.tab);
-   frame.add(env.obj);
-   y += env.height;
+   var P2 = draw_params.padding.env;
+   var env = draw_obj(x + P2.left, y + P2.top, _env.tab);
+   y += P2.top + env.height + P2.bottom;
+   set.push(env.obj);
 
-   var W = draw_params.min_env_width;
-   var H = draw_params.min_env_height;
-   var width  = (env.width  < W ? W : env.width) + 2*P;
-   var height = (env.height < H ? H : env.height) + title_height;
+   var W = draw_params.env_min.width;
+   var H = draw_params.env_min.height;
+   var width  = (env.width  < W ? W : env.width) + P2.left + P2.right;
+   var height = (env.height < H ? H : env.height) + title.height + P1.top + P1.bottom;
    if (env.count > 0) {
-      height += 2*P;
+      height += P2.top + P2.bottom;
    }
 
    // draw background + title
    var active = _env.tab['<active>'];
-   var r1 = new Kinetic.Rect({
-      x: 0, y: 0,
-      width: width, height: height,
+   var r1 = paper.rect(_x, _y, width, height).attr({
       fill: (active ? 'rgb(255, 255, 160)' : '#f7f7f7'),
+      'stroke': 'rgba(0, 0, 0, .2)',
+      'stroke-width': 1
    });
-   var r2 = new Kinetic.Rect({
-      x: 0, y: 0,
-      width: width, height: title_height,
-      fill: (active ? 'rgba(150, 150, 0, 0.3)' : 'rgba(0,0,0,0.2)'),
+   var r2 = paper.rect(_x, _y, width, P1.top + title.height + P1.bottom).attr({
+      fill: (active ? 'rgba(150, 150, 0, 0.3)' : 'rgba(0, 0, 0, 0.2)'),
+      'stroke': 'rgba(0, 0, 0, 0)',
+      'stroke-width': 1
    });
-   var r3 = new Kinetic.Rect({
-      x: 0, y: 0,
-      width: width, height: height,
-      stroke: (active ? 'rgba(150, 150, 0, 0.8)' : 'rgba(0,0,0,0.3)'),
-      strokeWidth: 1
-   })
-   frame.add(r1); frame.add(r2); frame.add(r3);
-   r3.moveToBottom(); r2.moveToBottom();  r1.moveToBottom();
+   r2.toBack(); r1.toBack();
 
    return {
-      obj:    frame,
+      obj:    set,
       width:  width,
       height: height,
       count:  env.count,
    };
 }
 
-function draw_value(x, y, data, index) {
-   var x0 = x, y0 = y;
-   var group = new Kinetic.Group({x: x, y: y});
-   var P  = draw_params.value_padding;
-   var PL = draw_params.value_padding;
-   var fill = 'rgba(255, 255, 255, 0.6)';
-   if (data instanceof Object) {
-      PL = draw_params.value_padding_left;
-   }
-   var y0 = y, value = {};
+function draw_value(x0, y0, data, index) {
+   var P  = draw_params.padding.value;
+   var value = {}, height, width;
+   var set = paper.set();
    if (data instanceof Array) {
-      value = draw_array(0, 0, data);
+      value = draw_array(x0, y0, data);
       y += value.height;
-   } else if (data instanceof Object && data['<type>'] === 'char') {
-      value = draw_text(PL, P, "'" + data['char'] + "'");
-      y += draw_params.lineHeight;
-   } else if (data instanceof Object && data['<type>'] === 'ref') {
-      value = draw_text(PL, P, data['ref']);
-      y += draw_params.lineHeight;
-   } else if (data instanceof Object) {
-      value = draw_obj(PL, P, data);
-      y += value.height;
+      height = value.height;
+      width = value.width;
+      set.push(value.obj);
+      if (index !== undefined) {
+         idx = draw_text(x0 + 2.0, y0 + 1.5, "" + index, '#bbb', 9);
+         set.push(idx.obj);
+      }
    } else {
-      value = draw_text(PL, P, data, '#55f');
-      y += draw_params.lineHeight;
-      fill = 'white';
-   }
-   var height = value.height;
-   var width = value.width;
-   if (!(data instanceof Array)) {
-      var rect = new Kinetic.Rect({
-         x: 0, 
-         y: 0,
-         width:  value.width + P + PL,
-         height: value.height + 2*P,
-         fill:   fill,
-         stroke: '#777',
+      var x = x0 + P.left, y = y0 + P.top;
+      var fill = 'rgba(255, 255, 255, 0.6)';
+      if (data instanceof Object && data['<type>'] === 'char') {
+         value = draw_text(x, y, "'" + data['char'] + "'");
+         y += value.height;
+         fill = 'white';
+      } else if (data instanceof Object && data['<type>'] === 'ref') {
+         value = draw_text(x, y, data['ref']);
+         y += value.height;
+         fill = 'white';
+      } else if (data instanceof Object) {
+         value = draw_obj(x, y, data);
+         y += value.height;
+      } else {
+         value = draw_text(x, y, data, '#55f');
+         y += value.height;
+         fill = 'white';
+      }
+      height = value.height + P.top + P.bottom;
+      width = value.width + P.left + P.right;
+      var rect = paper.rect(x0, y0, width, height).attr({
+         fill: fill,
+         stroke: '#bbb',
          strokeWidth: 0.5
       });
-      group.add(rect);
-      height = rect.height();
-      width = rect.width();
+      set.push(rect);
+      rect.toBack();
+      set.push(value.obj);
    }
-   if (index !== undefined) {
-      var idx = draw_text(2.0, 1.5, "" + index, '#bbb', 9);
-      group.add(idx.obj);
-   }
-   group.add(value.obj);
    return {
-      obj:    group,
+      obj:    set,
       width:  width,
       height: height
    };
 }
 
-function draw_array(x, y, array) {
-   var group = new Kinetic.Group({x: x, y: y});
-   var height = 0;
+function draw_array(x0, y0, array) {
+   var height = 0, x = x0;
+   var set = paper.set();
    for (var i = 0; i < array.length; i++) {
-      var value = draw_value(x, y, array[i].data, i);
+      var value = draw_value(x, y0, array[i].data, i);
       x += value.width;
-      group.add(value.obj);
       if (value.height > height) {
          height = value.height;
       }
+      set.push(value.obj);
    }
    return {
-      obj:    group,
-      width:  x,
+      obj:    set,
+      width:  x - x0,
       height: height
    }
 }
 
 function draw_obj(_x, _y, obj) {
-   var group = new Kinetic.Group({x: _x, y: _y});
-   var P = draw_params.obj_padding;
-   var x = P, y = P;
+   var P = draw_params.padding.obj;
+   var x = _x + P.left, y = _y + P.top;
+   var set = paper.set();
 
    // draw variable names
    var objs = {names: [], values: [], count: 0};
@@ -450,43 +431,67 @@ function draw_obj(_x, _y, obj) {
       }
       objs.count++;
       if (objs.count > 1) {
-         y += draw_params.value_sep;
+         y += draw_params.separation.value;
       }
-
+      
       // value
       var value = draw_value(x, y, obj[prop].data);
       if (value.width > values_width) {
          values_width = value.width;
       }
-      group.add(value.obj);
-      objs.values.push(value.obj);
+      objs.values.push(value);
+      set.push(value.obj);
 
       // name
-      var name = draw_text(x, y + value.height/2 - 7 /* tamaño fuente? */, prop);
+      var name = draw_text(x, y, prop);
       if (name.width > names_width) {
          names_width = name.width;
       }
-      group.add(name.obj);
-      objs.names.push(name.obj);
+      name.obj.offset(0, (value.height - name.height)/2);
+      objs.names.push(name);
+      set.push(name.obj);
 
       y += value.height;
    }
    
    // adjust names so that they are aligned to the right
+   var dx;
+   var sep = draw_params.separation.var_name;
    for (var i = 0; i < objs.count; i++) {
-      objs.names[i].width(names_width);
-      objs.names[i].align('right');
-      var vx = objs.values[i].x();
-      objs.values[i].x(vx + names_width + draw_params.var_name_sep);
-   }
+      var o = objs.names[i];
+      dx = names_width - o.width;
+      o.obj.offset(dx, 0);
 
+      var v  = objs.values[i];
+      dx = names_width + sep;
+      v.obj.offset(dx, 0);
+   }
+   
    return {
-      obj:    group,
-      width:  names_width + draw_params.var_name_sep + values_width + 2*P,
-      height: y + 2*P,
+      obj:    set,
+      width:  names_width + sep + values_width + P.left + P.right,
+      height: y - _y + P.top + P.bottom,
       count:  objs.count,
    };
 }
+
+function draw_text(x, y, text, fill, fontSize) {
+   var text = paper.text(x, y, text).attr({
+      'font-family': 'Source Code Pro',
+      'font-size': (fontSize ? fontSize : 14),
+      'text-anchor': 'start',
+      fill: (fill ? fill : '#333'),
+   });
+   var box = text.getBBox();
+   text.offset(0, y - (box.y + 2));
+   return {
+      obj:    text,
+      width:  box.width,
+      height: box.height - 3,
+   }
+}
+
+//////////////////////////////////////////////////////////////////
 
 function showstate(S) {
    var links = [];
@@ -703,11 +708,6 @@ $(document).ready(function () {
    });
    slider.init();
    
-   stage = new Kinetic.Stage({
-      container: 'env',
-      width: 1000,
-      height: 1000
-   });
-   // showstate(null);
+   paper = new Raphael('env', 800, 600);
    draw_state(null);
 });
