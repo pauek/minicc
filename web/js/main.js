@@ -272,18 +272,6 @@ var draw_params = {
    env_min:  {width: 100, height: 10},
 };
 
-// offset x and y coordinates
-Raphael.el.offset = function (dx, dy) {
-   var _x = this.attr('x');
-   var _y = this.attr('y');
-   this.attr({x: _x + dx, y: _y + dy});
-}
-Raphael.st.offset = function (dx, dy) {
-   this.forEach(function (el) {
-      el.offset(dx, dy);
-   });
-}
-
 var paper = null;
 
 function draw_state(S) {
@@ -303,20 +291,20 @@ function draw_state(S) {
 
 function draw_env(_x, _y, _env) {
    var x = _x, y = _y;
-   var set = paper.set();
+   var set = paper.g();
 
    // title
    var P1 = draw_params.padding.env_title;
    var title = draw_text(x + P1.left, y + P1.top, _env.name);
    title.obj.attr({'font-weight': 600, 'fill': '#333'});
    y += P1.top + title.height + P1.bottom;
-   set.push(title.obj);
+   set.add(title.obj);
 
    // vars + values
    var P2 = draw_params.padding.env;
    var env = draw_obj(x + P2.left, y + P2.top, _env.tab);
    y += P2.top + env.height + P2.bottom;
-   set.push(env.obj);
+   set.add(env.obj);
 
    var W = draw_params.env_min.width;
    var H = draw_params.env_min.height;
@@ -338,7 +326,11 @@ function draw_env(_x, _y, _env) {
       'stroke': 'rgba(0, 0, 0, 0)',
       'stroke-width': 1
    });
-   r2.toBack(); r1.toBack();
+   env.obj.before(r2);
+   env.obj.before(r1);
+   r2.before(r1);
+   r1.after(title.obj);
+   // r2.toBack(); r1.toBack();
 
    return {
       obj:    set,
@@ -351,16 +343,16 @@ function draw_env(_x, _y, _env) {
 function draw_value(x0, y0, data, index) {
    var P  = draw_params.padding.value;
    var value = {}, height, width;
-   var set = paper.set();
+   var set = paper.g();
    if (data instanceof Array) {
       value = draw_array(x0, y0, data);
       y += value.height;
       height = value.height;
       width = value.width;
-      set.push(value.obj);
+      set.add(value.obj);
       if (index !== undefined) {
          idx = draw_text(x0 + 2.0, y0 + 1.5, "" + index, '#bbb', 9);
-         set.push(idx.obj);
+         set.add(idx.obj);
       }
    } else {
       var x = x0 + P.left, y = y0 + P.top;
@@ -384,13 +376,13 @@ function draw_value(x0, y0, data, index) {
       height = value.height + P.top + P.bottom;
       width = value.width + P.left + P.right;
       var rect = paper.rect(x0, y0, width, height).attr({
-         fill: fill,
-         stroke: '#bbb',
-         strokeWidth: 0.5
+         'fill': fill,
+         'stroke': '#bbb',
+         'stroke-width': 1
       });
-      set.push(rect);
-      rect.toBack();
-      set.push(value.obj);
+      set.add(rect);
+      set.add(value.obj);
+      value.obj.before(rect);
    }
    return {
       obj:    set,
@@ -401,14 +393,14 @@ function draw_value(x0, y0, data, index) {
 
 function draw_array(x0, y0, array) {
    var height = 0, x = x0;
-   var set = paper.set();
+   var set = paper.g();
    for (var i = 0; i < array.length; i++) {
       var value = draw_value(x, y0, array[i].data, i);
       x += value.width;
       if (value.height > height) {
          height = value.height;
       }
-      set.push(value.obj);
+      set.add(value.obj);
    }
    return {
       obj:    set,
@@ -420,7 +412,7 @@ function draw_array(x0, y0, array) {
 function draw_obj(_x, _y, obj) {
    var P = draw_params.padding.obj;
    var x = _x + P.left, y = _y + P.top;
-   var set = paper.set();
+   var set = paper.g();
 
    // draw variable names
    var objs = {names: [], values: [], count: 0};
@@ -440,16 +432,16 @@ function draw_obj(_x, _y, obj) {
          values_width = value.width;
       }
       objs.values.push(value);
-      set.push(value.obj);
+      set.add(value.obj);
 
       // name
       var name = draw_text(x, y, prop);
       if (name.width > names_width) {
          names_width = name.width;
       }
-      name.obj.offset(0, (value.height - name.height)/2);
+      name.dy = (value.height)/2;
       objs.names.push(name);
-      set.push(name.obj);
+      set.add(name.obj);
 
       y += value.height;
    }
@@ -458,13 +450,13 @@ function draw_obj(_x, _y, obj) {
    var dx;
    var sep = draw_params.separation.var_name;
    for (var i = 0; i < objs.count; i++) {
-      var o = objs.names[i];
-      dx = names_width - o.width;
-      o.obj.offset(dx, 0);
+      var n = objs.names[i];
+      dx = names_width - n.width;
+      n.obj.transform('t' + dx + ' ' + (n.dy + 4 /* why????!!! */));
 
       var v  = objs.values[i];
       dx = names_width + sep;
-      v.obj.offset(dx, 0);
+      v.obj.transform('t' + dx + ' 0');
    }
    
    return {
@@ -483,7 +475,8 @@ function draw_text(x, y, text, fill, fontSize) {
       fill: (fill ? fill : '#333'),
    });
    var box = text.getBBox();
-   text.offset(0, y - (box.y + 2));
+   var dy = y - (box.y + 2);
+   text.transform('t0,' + dy);
    return {
       obj:    text,
       width:  box.width,
@@ -708,6 +701,6 @@ $(document).ready(function () {
    });
    slider.init();
    
-   paper = new Raphael('env', 800, 600);
+   paper = new Snap('#env');
    draw_state(null);
 });

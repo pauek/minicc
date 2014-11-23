@@ -232,3 +232,7 @@ header {
   right: 1px;
   bottom: -1px;
 }
+#env {
+  width: 100%;
+  height: 100%;
+}
