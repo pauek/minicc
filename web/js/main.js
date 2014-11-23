@@ -488,39 +488,6 @@ function draw_obj(_x, _y, obj) {
    };
 }
 
-// function draw_obj(_x, _y, obj) {
-//    var objgroup = new Kinetic.Group({
-//       x: x, y: y,
-//    });
-//    var x = _x + 3, y = _y + 3;
-//    var max_x = x;
-//    for (var prop in obj) {
-//       if (prop == '<type>') {
-//          continue;
-//       }
-//       var res = drawvar(x, y, prop, obj[prop].data, objgroup);
-//       if (res.xmax > max_x) {
-//          max_x = res.xmax;
-//       }
-//       y += draw_params.lineHeight;
-//    }
-//    var rect = new Kinetic.Rect({
-//       x: _x, y: _y,
-//       width: max_x + 3,
-//       height: y + 6,
-//       fill: 'white',
-//       stroke: '#777',
-//       strokeWidth: 0.5
-//    });
-//    objgroup.add(rect);
-//    rect.moveToBottom();
-//    return {
-//       objgroup: objgroup,
-//       xmax: max_x,
-//       y:    y
-//    };
-// }
-
 function showstate(S) {
    var links = [];
    $('#env').empty();
