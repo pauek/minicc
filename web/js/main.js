@@ -31,7 +31,6 @@ function setCompilado(new_value) {
       stepper.clearMark();
    }
    slider.reset();
-   // showstate(null);
    draw_state(null);
 }
 
@@ -165,7 +164,6 @@ var stepper = {
       }
       var item = stepper._history[k];
       this.setMark(item.span);
-      // showstate(item);
       draw_state(item);
    }
 };
@@ -182,72 +180,6 @@ function resize() {
    slider._refreshKnob();
 }
 
-function value_str(value, addClass, insert) {
-   var s = '', elem = 'div', links = [];
-   var classes = ['var'];
-   if (value.data === null) {
-      classes.push('unknown');
-      s = '?';
-   } else if (value.data instanceof Array) {
-      classes.push('array');
-      elem = 'table';
-      s += '<tr>'
-      for (var j = 0; j < value.data.length; j++) {
-         s += '<td>';
-         var res = value_str(value.data[j], 
-                             (j == 0 ? "first" : null), 
-                             '<div class="index">' + j + '</div>');
-         links.push.apply(links, res.links);
-         s += res.html;
-         s += '</td>';
-      } 
-      s += '</tr>';
-   } else if (value.data instanceof Object) {
-      var type = value.data["<type>"];
-      if (type == 'ref') {
-         var addr = value.data['ref']
-         elem = 'div';
-         classes.push('ref');
-         var from = 'ref-' + value.box + '-' + addr;
-         var to   = 'box-' + addr;
-         s += '<div id="' + from + '" class="endpoint"></div>';
-         links.push({from: from, to: to});
-      } else if (type == 'struct') {
-         classes.push('struct');
-         elem = 'div';
-         s += '<table>';
-         for (var prop in value.data) {
-            if (prop == '<type>') {
-               continue;
-            }
-            s += '<tr><td><div class="name">' + prop + '</div></td><td>';
-            var res = value_str(value.data[prop]);
-            links.push.apply(links, res.links);
-            s += res.html;
-            s += '</td></tr>';
-         }
-         s += '</table>';
-      }
-   } else {
-      classes.push('value');
-      s = value.data;
-   }
-   if (addClass) {
-      classes.push(addClass);
-   }
-   var html = '<' + elem + ' id="box-' + value.box + '" class="';
-   for (var i = 0; i < classes.length; i++) {
-      if (i > 0) {
-         html += ' ';
-      }
-      html += classes[i];
-   }
-   html += '">' + s + (insert ? insert : '') + '</' + elem + '>';
-   return {
-      html:  html,
-      links: links
-   };
-}
 
 /* Draw functions
  
@@ -484,7 +416,74 @@ function draw_text(x, y, text, fill, fontSize) {
    }
 }
 
-//////////////////////////////////////////////////////////////////
+/* Show state (as html elements). */
+
+function value_str(value, addClass, insert) {
+   var s = '', elem = 'div', links = [];
+   var classes = ['var'];
+   if (value.data === null) {
+      classes.push('unknown');
+      s = '?';
+   } else if (value.data instanceof Array) {
+      classes.push('array');
+      elem = 'table';
+      s += '<tr>'
+      for (var j = 0; j < value.data.length; j++) {
+         s += '<td>';
+         var res = value_str(value.data[j], 
+                             (j == 0 ? "first" : null), 
+                             '<div class="index">' + j + '</div>');
+         links.push.apply(links, res.links);
+         s += res.html;
+         s += '</td>';
+      } 
+      s += '</tr>';
+   } else if (value.data instanceof Object) {
+      var type = value.data["<type>"];
+      if (type == 'ref') {
+         var addr = value.data['ref']
+         elem = 'div';
+         classes.push('ref');
+         var from = 'ref-' + value.box + '-' + addr;
+         var to   = 'box-' + addr;
+         s += '<div id="' + from + '" class="endpoint"></div>';
+         links.push({from: from, to: to});
+      } else if (type == 'struct') {
+         classes.push('struct');
+         elem = 'div';
+         s += '<table>';
+         for (var prop in value.data) {
+            if (prop == '<type>') {
+               continue;
+            }
+            s += '<tr><td><div class="name">' + prop + '</div></td><td>';
+            var res = value_str(value.data[prop]);
+            links.push.apply(links, res.links);
+            s += res.html;
+            s += '</td></tr>';
+         }
+         s += '</table>';
+      }
+   } else {
+      classes.push('value');
+      s = value.data;
+   }
+   if (addClass) {
+      classes.push(addClass);
+   }
+   var html = '<' + elem + ' id="box-' + value.box + '" class="';
+   for (var i = 0; i < classes.length; i++) {
+      if (i > 0) {
+         html += ' ';
+      }
+      html += classes[i];
+   }
+   html += '">' + s + (insert ? insert : '') + '</' + elem + '>';
+   return {
+      html:  html,
+      links: links
+   };
+}
 
 function showstate(S) {
    var links = [];
