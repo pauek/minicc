@@ -180,6 +180,12 @@ function resize() {
    slider._refreshKnob();
 }
 
+function bottomPartition() {
+   var total = $('#bottom').height();
+   var controls = $('#controls').height();
+   console.log('bottomPartition', total, controls);
+   $('#bottom .scroll').height((total - controls) + 'px');
+}
 
 /* Draw functions
  
@@ -214,11 +220,17 @@ function draw_state(S) {
       return;
    }
    $('#slider .knob').removeClass('disabled');
-   var x = 10, y = 10;
+   var x = 10, y = 10, height = 0;
    for (var i = S.env.length-1; i >= 0; i--) {
       var env = draw_env(x, y, S.env[i]);
       x += env.width + 20;
+      if (env.height > height) {
+         height = env.height;
+      }
    }
+   x += 10;
+   $('#env').width(x);
+   $('#env').height(height + 10);
 }
 
 function draw_env(_x, _y, _env) {
@@ -689,8 +701,11 @@ $(document).ready(function () {
    });
    $(window).bind('splitter.resize', function () {
       editor.refresh();
+      bottomPartition();
    });
+
    editor.refresh();
+   bottomPartition();
 
    $(window).bind('beforeunload', function () {
       saveProgram();
