@@ -121,6 +121,8 @@ header {
   background-color: white;
   border: 1px solid #ccc;
   margin-top: 0.35em;
+  width: .6em;
+  height: .7em;
 }
 #env svg {
   opacity: .35; /* All of jsPlumb arrows */ 

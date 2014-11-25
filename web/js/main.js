@@ -183,13 +183,13 @@ function resize() {
 function bottomPartition() {
    var total = $('#bottom').height();
    var controls = $('#controls').height();
-   console.log('bottomPartition', total, controls);
    $('#bottom .scroll').height((total - controls) + 'px');
 }
 
 function value_str(value, addClass, insert) {
    var s = '', elem = 'div', links = [];
    var classes = ['var'];
+   var id;
    if (value.data === null) {
       classes.push('unknown');
       s = '?';
@@ -210,13 +210,10 @@ function value_str(value, addClass, insert) {
    } else if (value.data instanceof Object) {
       var type = value.data["<type>"];
       if (type == 'ref') {
-         var addr = value.data['ref']
          elem = 'div';
          classes.push('ref');
-         var from = 'ref-' + value.box + '-' + addr;
-         var to   = 'box-' + addr;
-         s += '<div id="' + from + '" class="endpoint"></div>';
-         links.push({from: from, to: to});
+         var addr = value.data['ref'];
+         links.push({from: value.box, to: addr});
       } else if (type == 'struct') {
          classes.push('struct');
          elem = 'div';
@@ -293,9 +290,21 @@ function showstate(S) {
    $('#env').append(html);
    $('#status').text(S.status);
 
+   // pintar flechas de referencias, punteros y iteradores.
    var refs = Snap('#refs');
    refs.clear();
-   // pintar referencias
+   var zero = $('#env').offset();
+   for (var i = 0; i < links.length; i++) {
+      var from = links[i].from;
+      var elem = $('#box-'+from);
+      var pos = elem.offset();
+      var x = pos.left - zero.left + elem.outerWidth()/2;
+      var y = pos.top  - zero.top  + elem.outerHeight()/2;
+      refs.circle(x, y, 3.5).attr({fill: '#f00'});
+      console.log(x, y);
+   }
+   $('#refs').width($('#env').width());
+   $('#refs').height($('#env').height());
 }
 
 function sliderChange() {
