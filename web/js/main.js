@@ -292,6 +292,10 @@ function showstate(S) {
    html += '</tr></table>';
    $('#env').append(html);
    $('#status').text(S.status);
+
+   var refs = Snap('#refs');
+   refs.clear();
+   // pintar referencias
 }
 
 function sliderChange() {
@@ -470,11 +474,5 @@ $(document).ready(function () {
       }
    });
    slider.init();
-   
-   stage = new Kinetic.Stage({
-      container: 'env',
-      width: 1000,
-      height: 1000
-   });
    showstate(null);
 });
