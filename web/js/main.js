@@ -180,6 +180,13 @@ function resize() {
    slider._refreshKnob();
 }
 
+function bottomPartition() {
+   var total = $('#bottom').height();
+   var controls = $('#controls').height();
+   console.log('bottomPartition', total, controls);
+   $('#bottom .scroll').height((total - controls) + 'px');
+}
+
 function value_str(value, addClass, insert) {
    var s = '', elem = 'div', links = [];
    var classes = ['var'];
@@ -451,8 +458,10 @@ $(document).ready(function () {
    });
    $(window).bind('splitter.resize', function () {
       editor.refresh();
+      bottomPartition();
    });
    editor.refresh();
+   bottomPartition();
 
    $(window).bind('beforeunload', function () {
       saveProgram();
