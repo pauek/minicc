@@ -182,6 +182,13 @@ function resize() {
    slider._refreshKnob();
 }
 
+function bottomPartition() {
+   var total = $('#bottom').height();
+   var controls = $('#controls').height();
+   console.log('bottomPartition', total, controls);
+   $('#bottom .scroll').height((total - controls) + 'px');
+}
+
 function value_str(value, addClass, insert) {
    var s = '', elem = 'div', links = [];
    var classes = ['var'];
@@ -300,13 +307,21 @@ function draw_state(S) {
    }
    $('#slider .knob').removeClass('disabled');
    var layer = new Kinetic.Layer();
-   var x = 10, y = 10;
+   var x = 10, y = 10, height = 0;
    for (var i = S.env.length-1; i >= 0; i--) {
       var env = draw_env(x, y, S.env[i]);
       layer.add(env.obj);
       x += env.width + 20;
+      if (env.height > height) {
+         height = env.height;
+      }
    }
    stage.add(layer);
+   x += 10;
+   $('#env').width(x);
+   $('#env').height(height);
+   stage.width(x);
+   stage.height(height + 20);
 }
 
 function draw_env(_x, _y, _env) {
@@ -725,8 +740,10 @@ $(document).ready(function () {
    });
    $(window).bind('splitter.resize', function () {
       editor.refresh();
+      bottomPartition();
    });
    editor.refresh();
+   bottomPartition();
 
    $(window).bind('beforeunload', function () {
       saveProgram();
@@ -738,9 +755,8 @@ $(document).ready(function () {
    
    stage = new Kinetic.Stage({
       container: 'env',
-      width: 1000,
-      height: 1000
+      width: 10,
+      height: 10
    });
-   // showstate(null);
    draw_state(null);
 });
