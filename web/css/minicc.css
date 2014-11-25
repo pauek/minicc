@@ -64,11 +64,6 @@ header {
   display: none;
 }
 
-.scroll {
-  width: 100%;
-  height: 100%;
-  overflow: scroll;
-}
 #env {
   padding: 13px;
   position: relative;
@@ -126,6 +121,11 @@ header {
   background-color: white;
   border: 1px solid #ccc;
   margin-top: 0.35em;
+  width: .6em;
+  height: .7em;
+}
+#env svg {
+  opacity: .35; /* All of jsPlumb arrows */ 
 }
 .ref .endpoint {
   background: rgba(255, 0, 0, 0.35);
@@ -236,4 +236,15 @@ header {
   font-size: 75%;
   right: 1px;
   bottom: -1px;
+}
+.scroll {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  overflow: scroll;
+}
+#refs {
+  position: absolute;
+  top: 0;
+  left: 0;
 }

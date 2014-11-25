@@ -31,7 +31,7 @@ function setCompilado(new_value) {
       stepper.clearMark();
    }
    slider.reset();
-   draw_state(null);
+   showstate(null);
 }
 
 var editor;
@@ -164,7 +164,7 @@ var stepper = {
       }
       var item = stepper._history[k];
       this.setMark(item.span);
-      draw_state(item);
+      showstate(item);
    }
 };
 
@@ -183,256 +183,13 @@ function resize() {
 function bottomPartition() {
    var total = $('#bottom').height();
    var controls = $('#controls').height();
-   console.log('bottomPartition', total, controls);
    $('#bottom .scroll').height((total - controls) + 'px');
 }
-
-/* Draw functions
- 
-   These functions draw the state of the environment to a canvas
-   using KineticJS. 
-
-   All draw functions return a single object (a group if necessary), and
-   the size and position of this object.
-
-       drawX(x, y, data) -> {obj, width, height}
-
-*/
-
-var draw_params = {
-   separation: {var_name: 6, value: 6},
-   padding: {
-      env_title: {top: 7, right: 0, bottom: 7, left: 9},
-      env:       {top: 7, right: 7, bottom: 7, left: 15},
-      value:     {top: 5, right: 5, bottom: 5, left: 5},
-      obj:       {top: 0, right: 0, bottom: 0, left: 0},
-   },
-   env_min:  {width: 100, height: 10},
-};
-
-var paper = null;
-
-function draw_state(S) {
-   paper.clear();
-   $('#status').text('');
-   if (S === null) {
-      $('#slider .knob').addClass('disabled');
-      return;
-   }
-   $('#slider .knob').removeClass('disabled');
-   var x = 10, y = 10, height = 0;
-   for (var i = S.env.length-1; i >= 0; i--) {
-      var env = draw_env(x, y, S.env[i]);
-      x += env.width + 20;
-      if (env.height > height) {
-         height = env.height;
-      }
-   }
-   x += 10;
-   $('#env').width(x);
-   $('#env').height(height + 10);
-}
-
-function draw_env(_x, _y, _env) {
-   var x = _x, y = _y;
-   var set = paper.g();
-
-   // title
-   var P1 = draw_params.padding.env_title;
-   var title = draw_text(x + P1.left, y + P1.top, _env.name);
-   title.obj.attr({'font-weight': 600, 'fill': '#333'});
-   y += P1.top + title.height + P1.bottom;
-   set.add(title.obj);
-
-   // vars + values
-   var P2 = draw_params.padding.env;
-   var env = draw_obj(x + P2.left, y + P2.top, _env.tab);
-   y += P2.top + env.height + P2.bottom;
-   set.add(env.obj);
-
-   var W = draw_params.env_min.width;
-   var H = draw_params.env_min.height;
-   var width  = (env.width  < W ? W : env.width) + P2.left + P2.right;
-   var height = (env.height < H ? H : env.height) + title.height + P1.top + P1.bottom;
-   if (env.count > 0) {
-      height += P2.top + P2.bottom;
-   }
-
-   // draw background + title
-   var active = _env.tab['<active>'];
-   var r1 = paper.rect(_x, _y, width, height).attr({
-      fill: (active ? 'rgb(255, 255, 160)' : '#f7f7f7'),
-      'stroke': 'rgba(0, 0, 0, .2)',
-      'stroke-width': 1
-   });
-   var r2 = paper.rect(_x, _y, width, P1.top + title.height + P1.bottom).attr({
-      fill: (active ? 'rgba(150, 150, 0, 0.3)' : 'rgba(0, 0, 0, 0.2)'),
-      'stroke': 'rgba(0, 0, 0, 0)',
-      'stroke-width': 1
-   });
-   env.obj.before(r2);
-   env.obj.before(r1);
-   r2.before(r1);
-   r1.after(title.obj);
-   // r2.toBack(); r1.toBack();
-
-   return {
-      obj:    set,
-      width:  width,
-      height: height,
-      count:  env.count,
-   };
-}
-
-function draw_value(x0, y0, data, index) {
-   var P  = draw_params.padding.value;
-   var value = {}, height, width;
-   var set = paper.g();
-   if (data instanceof Array) {
-      value = draw_array(x0, y0, data);
-      y += value.height;
-      height = value.height;
-      width = value.width;
-      set.add(value.obj);
-      if (index !== undefined) {
-         idx = draw_text(x0 + 2.0, y0 + 1.5, "" + index, '#bbb', 9);
-         set.add(idx.obj);
-      }
-   } else {
-      var x = x0 + P.left, y = y0 + P.top;
-      var fill = 'rgba(255, 255, 255, 0.6)';
-      if (data instanceof Object && data['<type>'] === 'char') {
-         value = draw_text(x, y, "'" + data['char'] + "'");
-         y += value.height;
-         fill = 'white';
-      } else if (data instanceof Object && data['<type>'] === 'ref') {
-         value = draw_text(x, y, data['ref']);
-         y += value.height;
-         fill = 'white';
-      } else if (data instanceof Object) {
-         value = draw_obj(x, y, data);
-         y += value.height;
-      } else {
-         value = draw_text(x, y, data, '#55f');
-         y += value.height;
-         fill = 'white';
-      }
-      height = value.height + P.top + P.bottom;
-      width = value.width + P.left + P.right;
-      var rect = paper.rect(x0, y0, width, height).attr({
-         'fill': fill,
-         'stroke': '#bbb',
-         'stroke-width': 1
-      });
-      set.add(rect);
-      set.add(value.obj);
-      value.obj.before(rect);
-   }
-   return {
-      obj:    set,
-      width:  width,
-      height: height
-   };
-}
-
-function draw_array(x0, y0, array) {
-   var height = 0, x = x0;
-   var set = paper.g();
-   for (var i = 0; i < array.length; i++) {
-      var value = draw_value(x, y0, array[i].data, i);
-      x += value.width;
-      if (value.height > height) {
-         height = value.height;
-      }
-      set.add(value.obj);
-   }
-   return {
-      obj:    set,
-      width:  x - x0,
-      height: height
-   }
-}
-
-function draw_obj(_x, _y, obj) {
-   var P = draw_params.padding.obj;
-   var x = _x + P.left, y = _y + P.top;
-   var set = paper.g();
-
-   // draw variable names
-   var objs = {names: [], values: [], count: 0};
-   var names_width = 0, values_width = 0;
-   for (var prop in obj) {
-      if (prop == '<type>' || prop == '<active>') {
-         continue;
-      }
-      objs.count++;
-      if (objs.count > 1) {
-         y += draw_params.separation.value;
-      }
-      
-      // value
-      var value = draw_value(x, y, obj[prop].data);
-      if (value.width > values_width) {
-         values_width = value.width;
-      }
-      objs.values.push(value);
-      set.add(value.obj);
-
-      // name
-      var name = draw_text(x, y, prop);
-      if (name.width > names_width) {
-         names_width = name.width;
-      }
-      name.dy = (value.height)/2;
-      objs.names.push(name);
-      set.add(name.obj);
-
-      y += value.height;
-   }
-   
-   // adjust names so that they are aligned to the right
-   var dx;
-   var sep = draw_params.separation.var_name;
-   for (var i = 0; i < objs.count; i++) {
-      var n = objs.names[i];
-      dx = names_width - n.width;
-      n.obj.transform('t' + dx + ' ' + (n.dy + 4 /* why????!!! */));
-
-      var v  = objs.values[i];
-      dx = names_width + sep;
-      v.obj.transform('t' + dx + ' 0');
-   }
-   
-   return {
-      obj:    set,
-      width:  names_width + sep + values_width + P.left + P.right,
-      height: y - _y + P.top + P.bottom,
-      count:  objs.count,
-   };
-}
-
-function draw_text(x, y, text, fill, fontSize) {
-   var text = paper.text(x, y, '' + text).attr({
-      'font-family': 'Source Code Pro',
-      'font-size': (fontSize ? fontSize : 14),
-      'text-anchor': 'start',
-      fill: (fill ? fill : '#333'),
-   });
-   var box = text.getBBox();
-   var dy = y - (box.y + 2);
-   text.transform('t0,' + dy);
-   return {
-      obj:    text,
-      width:  box.width,
-      height: box.height - 3,
-   }
-}
-
-/* Show state (as html elements). */
 
 function value_str(value, addClass, insert) {
    var s = '', elem = 'div', links = [];
    var classes = ['var'];
+   var id;
    if (value.data === null) {
       classes.push('unknown');
       s = '?';
@@ -453,13 +210,10 @@ function value_str(value, addClass, insert) {
    } else if (value.data instanceof Object) {
       var type = value.data["<type>"];
       if (type == 'ref') {
-         var addr = value.data['ref']
          elem = 'div';
          classes.push('ref');
-         var from = 'ref-' + value.box + '-' + addr;
-         var to   = 'box-' + addr;
-         s += '<div id="' + from + '" class="endpoint"></div>';
-         links.push({from: from, to: to});
+         var addr = value.data['ref'];
+         links.push({from: value.box, to: addr});
       } else if (type == 'struct') {
          classes.push('struct');
          elem = 'div';
@@ -513,11 +267,11 @@ function showstate(S) {
    var html = '<table><tr>';
    for (var i = env.length-1; i >= 0; i--) {
       html += '<td><div class="fenv';
-      if (env.tab["<active>"]) {
+      if (env[i].tab["<active>"]) {
          html += " active";
       }
-      html += '"><h5>' + env.name + '</h5>';
-      var T = env.tab;
+      html += '"><h5>' + env[i].name + '</h5>';
+      var T = env[i].tab;
       html += '<div class="wrapper"><table>'
       for (var prop in T) {
          if (prop == "<active>") {
@@ -535,6 +289,22 @@ function showstate(S) {
    html += '</tr></table>';
    $('#env').append(html);
    $('#status').text(S.status);
+
+   // pintar flechas de referencias, punteros y iteradores.
+   var refs = Snap('#refs');
+   refs.clear();
+   var zero = $('#env').offset();
+   for (var i = 0; i < links.length; i++) {
+      var from = links[i].from;
+      var elem = $('#box-'+from);
+      var pos = elem.offset();
+      var x = pos.left - zero.left + elem.outerWidth()/2;
+      var y = pos.top  - zero.top  + elem.outerHeight()/2;
+      refs.circle(x, y, 3.5).attr({fill: '#f00'});
+      console.log(x, y);
+   }
+   $('#refs').width($('#env').width());
+   $('#refs').height($('#env').height());
 }
 
 function sliderChange() {
@@ -703,7 +473,6 @@ $(document).ready(function () {
       editor.refresh();
       bottomPartition();
    });
-
    editor.refresh();
    bottomPartition();
 
@@ -714,7 +483,5 @@ $(document).ready(function () {
       }
    });
    slider.init();
-   
-   paper = new Snap('#env');
-   draw_state(null);
+   showstate(null);
 });
