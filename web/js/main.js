@@ -334,6 +334,8 @@ function showstate(S) {
    var links = [];
    $('#env').empty();
    $('#status').text('');
+   svg = Snap('#refs');
+   svg.clear();
    if (S === null) {
       $('#slider .knob').addClass('disabled');
       return;
@@ -371,9 +373,6 @@ function showstate(S) {
    $('#status').text(S.status);
 
    // pintar flechas de referencias, punteros y iteradores.
-   svg = Snap('#refs');
-   svg.clear();
-
    var origin = $('#env').offset();
    var poscalc = position_calculator(origin);
 
