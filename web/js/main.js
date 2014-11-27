@@ -307,10 +307,16 @@ function draw_arrow_cap_bottom(x0, y0) {
    });
 }
 
-// Arrow coming from the far right
 function draw_arrow_far_right(coords, through) {
-   coords.through = through + 10;
-   svg.path(Snap.format("M{from.x},{from.y}L{through},{to.y}H{to.x}", coords)).attr({
+   coords.t1 = through + 10;
+   coords.t2 = through;
+   var dx = coords.from.x - through;
+   var dy = coords.from.y - coords.to.y;
+   coords.c = {
+      x: coords.t1 + 10,
+      y: coords.to.y + 10*(dy/dx)
+   };
+   svg.path(Snap.format("M{from.x} {from.y}L{c.x} {c.y}Q{t1} {to.y} {t2} {to.y}H{to.x}", coords)).attr({
       fill: 'none',
       stroke:'rgba(255, 0, 0, .2)',
       strokeWidth: 1.8,
@@ -318,7 +324,6 @@ function draw_arrow_far_right(coords, through) {
    draw_arrow_cap_right(coords.to.x, coords.to.y);
 }
 
-// Arrow doing a couple of turns
 function draw_arrow_two_turns(coords, through) {
    path  = "M{from.x} {from.y}";
    path += "H{a}";
