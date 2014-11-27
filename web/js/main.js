@@ -344,8 +344,10 @@ function draw_arrow_two_turns(coords, through) {
 }
 
 function draw_arrow_one_turn(coords, through) {
-   path = "M{from.x} {from.y}H{through}a12,12 0 0,0 12,-12V{bto.y}";
-   coords.through = coords.bto.x - 12;
+   var r = params.arrow_radius;
+   path = "M{from.x} {from.y}H{through}a{r},{r} 0 0,0 {r},-{r}V{bto.y}";
+   coords.through = coords.bto.x - r;
+   coords.r = r;
    svg.path(Snap.format(path, coords)).attr({
       fill: 'none',
       stroke:'rgba(255, 0, 0, .2)',
