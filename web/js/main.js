@@ -430,6 +430,8 @@ function showstate(S) {
          through += params.through_inc;
       }
    }
+   $('#refs').width($('#env').width());
+   $('#refs').height($('#env').height());
 }
 
 function sliderChange() {
