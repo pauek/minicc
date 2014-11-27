@@ -110,7 +110,7 @@ header {
 }
 #env .struct {
   background-color: white;
-  border: 1px solid #ccc;
+  border: 1px solid #ddd;
 }
 #env .var {
   padding: .3em .3em;
@@ -119,7 +119,7 @@ header {
 }
 #env .ref {
   background-color: white;
-  border: 1px solid #ccc;
+  border: 1px solid #ddd;
   margin-top: 0.35em;
   width: .6em;
   height: .7em;
@@ -135,7 +135,7 @@ header {
 }
 #env .value, #env .var.unknown {
   padding: 1px 4px;
-  border: 1px solid #ccc;
+  border: 1px solid #ddd;
   background-color: white;
   color: #4449ff;
 }
@@ -156,10 +156,11 @@ header {
   border-left: none;
 }
 #env .array > .first {
-  border-left: 1px solid #ccc;
+  border-left: 1px solid #ddd;
 }
 #env .name {
-  padding: 0 .3em 0 .4em;
+  padding: 0 .4em 0 .4em;
+  text-align: right;
 }
 
 #controls {
@@ -217,7 +218,7 @@ header {
 }
 
 #env table.struct {
-  border: 1px solid #ccc;
+  border: 1px solid #ddd;
   background: white;
 }
 #env table.array > tbody > tr > td > div.var {
@@ -225,7 +226,7 @@ header {
   padding-bottom: 1em;
 }
 #env table.array > tbody > tr > td > div.var.first {
-  border-left: 1px solid #ccc;
+  border-left: 1px solid #ddd;
 }
 #env table.array > tbody > tr > td > .var {
   position: relative;
@@ -247,4 +248,9 @@ header {
   position: absolute;
   top: 0;
   left: 0;
+  width: 100%;
+  height: 100%;
+}
+#env .var.hasref {
+  border: 1px solid red;
 }
