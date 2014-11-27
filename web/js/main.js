@@ -297,7 +297,7 @@ function draw_arrow_cap_right(x0, y0) {
 }
 
 // Arrow coming from the far right
-function draw_type1_arrow(coords, through) {
+function draw_arrow_far_right(coords, through) {
    coords.through = through + 10;
    svg.path(Snap.format("M{from.x},{from.y}L{through},{to.y}H{to.x}", coords)).attr({
       fill: 'none',
@@ -308,7 +308,7 @@ function draw_type1_arrow(coords, through) {
 }
 
 // Arrow doing a couple of turns
-function draw_type2_arrow(coords, through) {
+function draw_arrow_two_turns(coords, through) {
    path = "M{from.x} {from.y}H{through}C{c1.x} {c1.y}, {c2.x} {c2.y}, {through} {to.y}L{to.x},{to.y}";
    coords.through = through;
    var curv = params.arrow_curvature;
@@ -324,9 +324,9 @@ function draw_type2_arrow(coords, through) {
 
 function draw_arrow(coords, through) {
    if (coords.from.x - coords.to.x > 20) {
-      draw_type1_arrow(coords, through);
+      draw_arrow_far_right(coords, through);
    } else {
-      draw_type2_arrow(coords, through);
+      draw_arrow_two_turns(coords, through);
    }
 }
 
