@@ -202,7 +202,7 @@ function value_str(value, addClass, insert) {
          var res = value_str(value.data[j], 
                              (j == 0 ? "first" : null), 
                              '<div class="index">' + j + '</div>');
-         links.push.apply(links, res.links);
+         push.apply(links, res.links);
          s += res.html;
          s += '</td>';
       } 
@@ -224,7 +224,7 @@ function value_str(value, addClass, insert) {
             }
             s += '<tr><td><div class="name">' + prop + '</div></td><td>';
             var res = value_str(value.data[prop]);
-            links.push.apply(links, res.links);
+            push.apply(links, res.links);
             s += res.html;
             s += '</td></tr>';
          }
@@ -251,6 +251,85 @@ function value_str(value, addClass, insert) {
    };
 }
 
+var push = Array.prototype.push;
+var svg; // 
+
+var params = {
+   arrow_offset: 5,
+   arrow_curvature: 30,
+};
+
+function position_calculator(origin) {
+   return {
+      topleft: function(elem) {
+         var offset = elem.offset();
+         return {
+            x: offset.left - origin.left,
+            y: offset.top  - origin.top
+         };
+      },
+      center: function(elem) {
+         var offset = elem.offset();
+         return {
+            x: offset.left - origin.left + elem.outerWidth()/2,
+            y: offset.top  - origin.top  + elem.outerHeight()/2
+         };
+      },
+      right: function(elem) {
+         var offset = elem.offset();
+         return {
+            x: offset.left - origin.left + elem.outerWidth(),
+            y: offset.top  - origin.top  + elem.outerHeight()/2
+         };
+      }
+   }
+}
+
+function draw_arrow_cap_right(x0, y0) {
+   svg.path(Snap.format("M{x0} {y0}L{x1} {y1}L{x2} {y2}L{x3} {y3}Z", {
+      x0: x0,     y0: y0,
+      x1: x0 + 8, y1: y0 + 3,
+      x2: x0 + 6.3, y2: y0,
+      x3: x0 + 8, y3: y0 - 3,
+   })).attr({
+      fill: '#f00'
+   });
+}
+
+// Arrow coming from the far right
+function draw_type1_arrow(coords, through) {
+   coords.through = through + 10;
+   svg.path(Snap.format("M{from.x},{from.y}L{through},{to.y}H{to.x}", coords)).attr({
+      fill: 'none',
+      stroke:'rgba(255, 0, 0, .2)',
+      strokeWidth: 1.8,
+   });
+   draw_arrow_cap_right(coords.to.x, coords.to.y);
+}
+
+// Arrow doing a couple of turns
+function draw_type2_arrow(coords, through) {
+   path = "M{from.x} {from.y}H{through}C{c1.x} {c1.y}, {c2.x} {c2.y}, {through} {to.y}L{to.x},{to.y}";
+   coords.through = through;
+   var curv = params.arrow_curvature;
+   coords.c1 = {x: through + curv, y: coords.from.y};
+   coords.c2 = {x: through + curv, y: coords.to.y};
+   svg.path(Snap.format(path, coords)).attr({
+      fill: 'none',
+      stroke:'rgba(255, 0, 0, .2)',
+      strokeWidth: 1.8,
+   });
+   draw_arrow_cap_right(coords.to.x, coords.to.y);
+}
+
+function draw_arrow(coords, through) {
+   if (coords.from.x - coords.to.x > 20) {
+      draw_type1_arrow(coords, through);
+   } else {
+      draw_type2_arrow(coords, through);
+   }
+}
+
 function showstate(S) {
    var links = [];
    $('#env').empty();
@@ -266,7 +345,8 @@ function showstate(S) {
    }
    var html = '<table><tr>';
    for (var i = env.length-1; i >= 0; i--) {
-      html += '<td><div class="fenv';
+      env[i].links = [];
+      html += '<td><div id="env-' + env[i].name + '" class="fenv';
       if (env[i].tab["<active>"]) {
          html += " active";
       }
@@ -279,7 +359,7 @@ function showstate(S) {
          }
          html += '<tr><td><div class="name">' + prop + '</div></td><td>';
          var res = value_str(T[prop]);
-         links.push.apply(links, res.links);
+         push.apply(env[i].links, res.links);
          html += res.html;
          html += '</td></tr>';
       }
@@ -291,20 +371,31 @@ function showstate(S) {
    $('#status').text(S.status);
 
    // pintar flechas de referencias, punteros y iteradores.
-   var refs = Snap('#refs');
-   refs.clear();
-   var zero = $('#env').offset();
-   for (var i = 0; i < links.length; i++) {
-      var from = links[i].from;
-      var elem = $('#box-'+from);
-      var pos = elem.offset();
-      var x = pos.left - zero.left + elem.outerWidth()/2;
-      var y = pos.top  - zero.top  + elem.outerHeight()/2;
-      refs.circle(x, y, 3.5).attr({fill: '#f00'});
-      console.log(x, y);
+   svg = Snap('#refs');
+   svg.clear();
+
+   var origin = $('#env').offset();
+   var poscalc = position_calculator(origin);
+
+   for (var i = env.length-1; i >= 0; i--) {
+      var links = env[i].links;
+      var through = 0.0;
+      for (var j = 0; j < links.length; j++) {
+         var coords = {
+            from: poscalc.center($('#box-' + links[j].from)),
+            to:   poscalc.right($('#box-' + links[j].to)),
+         };
+         if (through < coords.to.x + params.arrow_offset) {
+            through = coords.to.x + params.arrow_offset;
+         }
+         svg.circle(coords.from.x, coords.from.y, 3.2).attr({fill: '#f00'});
+         draw_arrow(coords, through);
+         $('#box-' + links[j].to).addClass('hasref');
+         
+         // avoid same vertical
+         through += 8;
+      }
    }
-   $('#refs').width($('#env').width());
-   $('#refs').height($('#env').height());
 }
 
 function sliderChange() {
