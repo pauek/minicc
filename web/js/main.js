@@ -255,42 +255,53 @@ var push = Array.prototype.push;
 var svg; // 
 
 var params = {
-   arrow_offset: 5,
+   arrow_offset:    22,
    arrow_curvature: 30,
+   arrow_cap_height: 8,
+   arrow_cap_width:  3,
+   arrow_radius:    10,
+   through_inc:      5,
 };
 
 function position_calculator(origin) {
-   return {
-      topleft: function(elem) {
+   function _calc(fx, fy) {
+      return function(elem) {
          var offset = elem.offset();
          return {
-            x: offset.left - origin.left,
-            y: offset.top  - origin.top
-         };
-      },
-      center: function(elem) {
-         var offset = elem.offset();
-         return {
-            x: offset.left - origin.left + elem.outerWidth()/2,
-            y: offset.top  - origin.top  + elem.outerHeight()/2
-         };
-      },
-      right: function(elem) {
-         var offset = elem.offset();
-         return {
-            x: offset.left - origin.left + elem.outerWidth(),
-            y: offset.top  - origin.top  + elem.outerHeight()/2
+            x: offset.left - origin.left + elem.outerWidth() * fx,
+            y: offset.top  - origin.top  + elem.outerWidth() * fy
          };
       }
+   }
+   return {
+      topleft: _calc(0.0, 0.0),
+      center:  _calc(0.5, 0.5),
+      right:   _calc(1.0, 0.5),
+      bottom:  _calc(0.5, 1.0),
    }
 }
 
 function draw_arrow_cap_right(x0, y0) {
+   var h = params.arrow_cap_height;
+   var w = params.arrow_cap_width;
+   svg.path(Snap.format("M{x0} {y0}L{x1} {y1}L{x2} {y2}L{x3} {y3}Z", {
+      x0: x0,          y0: y0,
+      x1: x0 + h,      y1: y0 + w,
+      x2: x0 + h * .8, y2: y0,
+      x3: x0 + h,      y3: y0 - w,
+   })).attr({
+      fill: '#f00'
+   });
+}
+
+function draw_arrow_cap_bottom(x0, y0) {
+   var h = params.arrow_cap_height;
+   var w = params.arrow_cap_width;
    svg.path(Snap.format("M{x0} {y0}L{x1} {y1}L{x2} {y2}L{x3} {y3}Z", {
       x0: x0,     y0: y0,
-      x1: x0 + 8, y1: y0 + 3,
-      x2: x0 + 6.3, y2: y0,
-      x3: x0 + 8, y3: y0 - 3,
+      x1: x0 + w, y1: y0 + h,
+      x2: x0,     y2: y0 + h * .8,
+      x3: x0 - w, y3: y0 + h,
    })).attr({
       fill: '#f00'
    });
@@ -309,11 +320,16 @@ function draw_arrow_far_right(coords, through) {
 
 // Arrow doing a couple of turns
 function draw_arrow_two_turns(coords, through) {
-   path = "M{from.x} {from.y}H{through}C{c1.x} {c1.y}, {c2.x} {c2.y}, {through} {to.y}L{to.x},{to.y}";
-   coords.through = through;
-   var curv = params.arrow_curvature;
-   coords.c1 = {x: through + curv, y: coords.from.y};
-   coords.c2 = {x: through + curv, y: coords.to.y};
+   path  = "M{from.x} {from.y}";
+   path += "H{a}";
+   path += "a{r},{r} 0 0,0 {r},-{r}"
+   path += "V{b}";
+   path += "a{r},{r} 0 0,0 -{r},-{r}";
+   path += "H{to.x}";
+   var r = params.arrow_radius;
+   coords.r = r;
+   coords.a = through - r;
+   coords.b = coords.to.y + r;
    svg.path(Snap.format(path, coords)).attr({
       fill: 'none',
       stroke:'rgba(255, 0, 0, .2)',
@@ -322,9 +338,22 @@ function draw_arrow_two_turns(coords, through) {
    draw_arrow_cap_right(coords.to.x, coords.to.y);
 }
 
+function draw_arrow_one_turn(coords, through) {
+   path = "M{from.x} {from.y}H{through}a12,12 0 0,0 12,-12V{bto.y}";
+   coords.through = coords.bto.x - 12;
+   svg.path(Snap.format(path, coords)).attr({
+      fill: 'none',
+      stroke:'rgba(255, 0, 0, .2)',
+      strokeWidth: 1.8,
+   });
+   draw_arrow_cap_bottom(coords.bto.x, coords.bto.y);
+}
+
 function draw_arrow(coords, through) {
    if (coords.from.x - coords.to.x > 20) {
       draw_arrow_far_right(coords, through);
+   } else if (coords.to.x - coords.from.x > 20) {
+      draw_arrow_one_turn(coords, through);
    } else {
       draw_arrow_two_turns(coords, through);
    }
@@ -383,6 +412,7 @@ function showstate(S) {
          var coords = {
             from: poscalc.center($('#box-' + links[j].from)),
             to:   poscalc.right($('#box-' + links[j].to)),
+            bto:  poscalc.bottom($('#box-' + links[j].to)),
          };
          if (through < coords.to.x + params.arrow_offset) {
             through = coords.to.x + params.arrow_offset;
@@ -392,7 +422,7 @@ function showstate(S) {
          $('#box-' + links[j].to).addClass('hasref');
          
          // avoid same vertical
-         through += 8;
+         through += params.through_inc;
       }
    }
 }
