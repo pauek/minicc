@@ -383,7 +383,7 @@ void FuncValue::invoke(Interpreter *I, const std::vector<Value>& args) {
 }
 
 template<class MethodMap>
-bool _get_method(MethodMap& methods, string name, pair<Type *, Type::MethodFn>& result) {
+bool _get_method(MethodMap& methods, string name, pair<Type *, MethodFn>& result) {
    auto it = methods.find(name);
    if (it == methods.end()) {
       return false;
@@ -411,7 +411,7 @@ bool String::get_method(string name, pair<Type*, MethodFn>& result) const {
 // Methods ////////////////////////////////////////////////////////////
 
 // Vector
-map<string, pair<std::function<Type *(Type *)>, Type::MethodFn>> Vector::_methods = {
+map<string, pair<std::function<Type *(Type *)>, MethodFn>> Vector::_methods = {
    {
       "size", {
          // creates the type for 'size'
@@ -473,7 +473,7 @@ map<string, pair<std::function<Type *(Type *)>, Type::MethodFn>> Vector::_method
 };
 
 // String
-map<string, pair<std::function<Type *()>, Type::MethodFn>> String::_methods = {
+map<string, pair<std::function<Type *()>, MethodFn>> String::_methods = {
    {
       "size", 
       {
@@ -501,6 +501,7 @@ map<string, pair<std::function<Type *()>, Type::MethodFn>> String::_methods = {
 
 Type *Vector::instantiate(vector<Type *>& subtypes) const {
    assert(subtypes.size() == 1);
+   // TODO: create the methods and types for them!
    return new Vector(subtypes[0]);
 }
 

@@ -15,6 +15,8 @@ struct TypeError {
    TypeError(std::string _msg) : msg(_msg) {}
 };
 
+typedef Value (*MethodFn)(void *, const std::vector<Value>& args);
+
 class Type {
    Type *reference_type;
 
@@ -37,7 +39,6 @@ public:
       Internal    = 16
    };
 
-   typedef Value (*MethodFn)(void *, const std::vector<Value>& args);
 
    virtual std::string  typestr() const = 0;
    virtual         int  properties() const = 0;
@@ -390,7 +391,7 @@ class Environment {
              std::string  _name;
                     bool  _hidden;
              Environment *_parent;
-       SimpleTable<Value> _tab;
+      SimpleTable<Value>  _tab;
                     bool  _active;
                  TypeMap  _curr_namespace;
   std::set<Environment*>  _other_namespaces;
