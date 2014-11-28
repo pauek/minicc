@@ -382,122 +382,105 @@ void FuncValue::invoke(Interpreter *I, const std::vector<Value>& args) {
    ptr->invoke(I, args); 
 }
 
-template<class MethodMap>
-bool _get_method(MethodMap& methods, string name, pair<Type *, MethodFn>& result) {
-   auto it = methods.find(name);
-   if (it == methods.end()) {
-      return false;
-   }
-   result.first = (it->second.first)();
-   result.second = it->second.second;
-   return true;
-}
-
-
-bool Vector::get_method(string name, pair<Type*, MethodFn>& result) const {
+const Method *Vector::get_method(string name) const {
    auto it = _methods.find(name);
-   if (it == _methods.end()) {
-      return false;
-   }
-   result.first = (it->second.first)(_celltype);
-   result.second = it->second.second;
-   return true;
+   return (it != _methods.end() ? &it->second : 0);
 }
 
-bool String::get_method(string name, pair<Type*, MethodFn>& result) const {
-   return _get_method(_methods, name, result);
+const Method *String::get_method(string name) const {
+   auto it = _methods.find(name);
+   return (it != _methods.end() ? &it->second : 0);
 }
 
 // Methods ////////////////////////////////////////////////////////////
 
-// Vector
-map<string, pair<std::function<Type *(Type *)>, MethodFn>> Vector::_methods = {
-   {
-      "size", {
-         // creates the type for 'size'
-         [](Type *celltype) -> Function * { 
-            return new Function(Int::self); 
-         },
-         // executes the 'size' method
-         [](void *data, const vector<Value>& args) -> Value {
-            assert(args.empty());
-            vector<Value> *v = static_cast<vector<Value>*>(data);
-            return Value(int(v->size()));
-         }
+Vector::Vector(Type *celltype) : _celltype(celltype) {
+   // size
+   Method _size = {
+      new Function(Int::self),
+      [](void *data, const vector<Value>& args) -> Value {
+         assert(args.empty());
+         vector<Value> *v = static_cast<vector<Value>*>(data);
+         return Value(int(v->size()));
       }
-   }, {
-      "push_back", {
-         // creates the type for 'size'
-         [](Type *celltype) -> Function * { 
-            return (new Function(0))->add_param(celltype);
-         },
-         // executes the 'push_back' method
-         [](void *data, const vector<Value>& args) -> Value {
-            vector<Value> *v = static_cast<vector<Value>*>(data);
-            v->push_back(args[0]);
-            return Value::null;
-         }
-      }
-   }, {
-      "resize", {
-         [](Type *celltype) -> Function * {
-            return (new Function(0))->add_param(Int::self);
-         },
-         [](void *data, const vector<Value>& args) -> Value {
-            vector<Value> *v = static_cast<vector<Value>*>(data);
-            v->resize(args[0].as<Int>());
-            return Value::null;
-         }
-      }
-   }, {
-      "front", {
-         [](Type *celltype) -> Function * {
-            return (new Function(celltype));
-         },
-         [](void *data, const vector<Value>& args) -> Value {
-            vector<Value> *v = static_cast<vector<Value>*>(data);
-            return Reference::mkref(v->front());
-         }
-      }
-   }, {
-      "back", {
-         [](Type *celltype) -> Function * {
-            return (new Function(celltype));
-         },
-         [](void *data, const vector<Value>& args) -> Value {
-            vector<Value> *v = static_cast<vector<Value>*>(data);
-            return Reference::mkref(v->back());
-         }
-      }
-   }
-};
+   };
+   _methods.insert(make_pair("size", _size));
 
-// String
-map<string, pair<std::function<Type *()>, MethodFn>> String::_methods = {
-   {
-      "size", 
-      {
-         []() -> Type * {
-            return new Function(Int::self);
-         },
-         [](void *data, const vector<Value>& args) -> Value {
-            string *s = static_cast<string*>(data);
-            return Value(int(s->size()));
-         }
+   // push_back
+   Method _push_back = {
+      (new Function(0))->add_param(celltype),
+      [](void *data, const vector<Value>& args) -> Value {
+         vector<Value> *v = static_cast<vector<Value>*>(data);
+         v->push_back(args[0]);
+         return Value::null;
       }
-   }, {
-      "substr",
-      {
-         []() -> Type * {
-            return (new Function(Int::self))->add_params(Int::self, Int::self);
-         },
-         [](void *data, const vector<Value>& args) -> Value {
-            string *s = static_cast<string*>(data);
-            return Value(string(s->substr(args[0].as<Int>(), args[1].as<Int>())));
-         }
+   };
+   _methods.insert(make_pair("push_back", _push_back));
+
+   // resize(int)
+   Method _resize1 = {
+      (new Function(0))->add_param(Int::self),
+      [](void *data, const vector<Value>& args) -> Value {
+         vector<Value> *v = static_cast<vector<Value>*>(data);
+         v->resize(args[0].as<Int>());
+         return Value::null;
       }
-   }
-};
+   };
+   _methods.insert(make_pair("resize", _resize1));
+
+   // resize(int, T)
+   Method _resize2 = {
+      (new Function(0))->add_params(Int::self, celltype),
+      [](void *data, const vector<Value>& args) -> Value {
+         vector<Value> *v = static_cast<vector<Value>*>(data);
+         v->resize(args[0].as<Int>(), args[1]);
+         return Value::null;
+      }
+   };
+   _methods.insert(make_pair("resize", _resize2));
+   
+   // front
+   Method _front = {
+      (new Function(celltype)),
+      [](void *data, const vector<Value>& args) -> Value {
+         vector<Value> *v = static_cast<vector<Value>*>(data);
+         return Reference::mkref(v->front());
+      }
+   };
+   _methods.insert(make_pair("front", _front));
+
+   // back
+   Method _back = {
+      (new Function(celltype)),
+      [](void *data, const vector<Value>& args) -> Value {
+         vector<Value> *v = static_cast<vector<Value>*>(data);
+         return Reference::mkref(v->back());
+      }
+   };
+   _methods.insert(make_pair("back", _back));
+}
+
+String::String() : BasicType("string") {
+   // size
+   Method _size = {
+      new Function(Int::self),
+      [](void *data, const vector<Value>& args) -> Value {
+         string *s = static_cast<string*>(data);
+         return Value(int(s->size()));
+      }
+   };
+   _methods.insert(make_pair("size", _size));
+   
+   // substr
+   Method _substr = {
+      (new Function(String::self))->add_params(Int::self, Int::self),
+      [](void *data, const vector<Value>& args) -> Value {
+         string *s = static_cast<string*>(data);
+         return Value(string(s->substr(args[0].as<Int>(), args[1].as<Int>())));
+      }
+   };
+   _methods.insert(make_pair("substr", _substr));
+}
 
 Type *Vector::instantiate(vector<Type *>& subtypes) const {
    assert(subtypes.size() == 1);

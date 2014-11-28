@@ -17,6 +17,11 @@ struct TypeError {
 
 typedef Value (*MethodFn)(void *, const std::vector<Value>& args);
 
+struct Method {
+   Type    *type;
+   MethodFn fn;
+};
+
 class Type {
    Type *reference_type;
 
@@ -42,11 +47,11 @@ public:
 
    virtual std::string  typestr() const = 0;
    virtual         int  properties() const = 0;
-   virtual        bool  get_method(std::string, std::pair<Type*, MethodFn>&) const { return false; }
-   virtual       Value  create()                                           { assert(false); }
-   virtual       Value  convert(Value init)                                { assert(false); }
-   virtual       Value  construct(const std::vector<Value>& args)          { assert(false); }
-   virtual        Type *instantiate(std::vector<Type*>& subtypes)    const { assert(false); } // for templates
+  virtual const Method *get_method(std::string)                   const { return 0; }
+   virtual       Value  create()                                        { assert(false); }
+   virtual       Value  convert(Value init)                             { assert(false); }
+   virtual       Value  construct(const std::vector<Value>& args)       { assert(false); }
+   virtual        Type *instantiate(std::vector<Type*>& subtypes) const { assert(false); } // for templates
 
    template<typename T>
    bool is() const { return dynamic_cast<const T*>(this) != 0; }
@@ -209,17 +214,14 @@ public:
 };
 
 class String : public BasicType<std::string> {
+   std::multimap<std::string, Method> _methods;
+
 public:
-   String() : BasicType("string") {}
+   String();
    static String *self;
    std::string to_json(void *data) const;
 
-   bool get_method(std::string name, std::pair<Type*, MethodFn>& method) const;
-private:
-   static std::map<
-      std::string, 
-      std::pair<std::function<Type *()>, MethodFn>
-   > _methods;
+   const Method *get_method(std::string name) const;
 };
 
 // typedef Value (*CppFunc)(const std::vector<Value>& args);
@@ -306,9 +308,11 @@ public:
 
 class Vector : public BaseType<std::vector<Value>> {
    Type *_celltype; // celltype == 0 means it's the template
+   std::multimap<std::string, Method> _methods;
+
 public:
    Vector()        : _celltype(0) {}
-   Vector(Type *t) : _celltype(t) {}
+   Vector(Type *t);
 
    Type *instantiate(std::vector<Type*>& args) const;
    
@@ -322,17 +326,11 @@ public:
    Value construct(const std::vector<Value>& args);
 
    std::string typestr() const;
-   bool get_method(std::string name, std::pair<Type*, MethodFn>& method) const;
+   const Method *get_method(std::string name) const;
 
    std::string to_json(void *data) const;
 
    static Vector *self;
-
-private:
-   static std::map<
-      std::string, 
-      std::pair<std::function<Type *(Type *)>, MethodFn>
-   > _methods;
 };
 
 class VectorValue : public BaseType<std::vector<Value>> {

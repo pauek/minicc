@@ -660,6 +660,13 @@ void Interpreter::visit_callexpr_getfunc(CallExpr *x) {
    }
 }
 void Interpreter::visit_callexpr(CallExpr *x) {
+   //
+   // TODO: 1) Evaluar los argumentos antes. Así tienes los tipos.
+   //       2) Guardar la información de los tipos de la llamada en '_curr_signature' o algo así.
+   //       3) Al ejecutar 'visit_fieldexpr' y detectar que se trata de un método, cuadrar 
+   //          la firma del método con '_curr_signature'. 
+   //          (Ojo con algo como """x.a(x.b(c), d)""" o """(x.a(b))(c, d)""").
+   //
    visit_callexpr_getfunc(x);
    Value func = _curr;
 
@@ -730,10 +737,10 @@ void Interpreter::visit_fieldexpr(FieldExpr *x) {
       _curr = Reference::mkref(v);
       return;
    }
-   pair<Type *, MethodFn> method;
-   if (_curr.type()->get_method(x->field->name, method)) {
-      Function *ft = dynamic_cast<Function*>(method.first);
-      _curr = ft->mkvalue(x->field->name, new BoundMethod(method.second, _curr.data()));
+   const Method *method = _curr.type()->get_method(x->field->name);
+   if (method != 0) {
+      Function *ft = dynamic_cast<Function*>(method->type);
+      _curr = ft->mkvalue(x->field->name, new BoundMethod(method->fn, _curr.data()));
       return;
    }
    _error(_T("Este objeto no tiene un campo '%s'", x->field->name.c_str()));
