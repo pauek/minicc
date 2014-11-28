@@ -559,9 +559,24 @@ var slider = {
    }
 };
 
+function forwards() {
+   if (slider.top() && stepper.finished()) {
+      return;
+   }
+   if (slider.incr()) {
+      stepper.step();
+   }
+   stepper.show(slider.knob());
+}
+
+function backwards() {
+   slider.decr();
+   stepper.show(slider.knob());
+}
+
 $(document).ready(function () {
-   if (localStorage['minicc:program']) {
-      initial_program = localStorage['minicc:program'];
+   if (localStorage["minicc:program"]) {
+      initial_program = localStorage["minicc:program"];
    }
    setup(initial_program);
 
@@ -569,23 +584,19 @@ $(document).ready(function () {
    $("#forwards").addClass("pure-button-disabled");
    $("#backwards").addClass("pure-button-disabled");
 
-   $("#compile").click(compile);
-   $("#execute").click(execute);
-   $('#forwards').click(function () {
-      if (slider.top() && stepper.finished()) {
-         return;
-      }
-      if (slider.incr()) {
-         stepper.step();
-      }
-      stepper.show(slider.knob());
+   $("#compile").click(compile);     Mousetrap.bind("f9", compile);
+   $("#execute").click(execute);     Mousetrap.bind("f5", execute);
+   $("#reformat").click(reformat);   Mousetrap.bind("f3", reformat);
+   $("#download").click(download);   Mousetrap.bind("f4", download);
+   $("#forwards").click(forwards);   Mousetrap.bind("right", forwards);
+   $("#backwards").click(backwards); Mousetrap.bind("left", backwards);
+
+   editor.setOption("extraKeys", {
+      "F9": compile,
+      "F5": execute,
+      "F3": reformat,
+      "F4": download
    });
-   $('#backwards').click(function () {
-      slider.decr();
-      stepper.show(slider.knob());
-   });
-   $("#reformat").click(reformat);
-   $("#download").click(download);
 
    $(window).resize(resize);
    $(window).resize();
