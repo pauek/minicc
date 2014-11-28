@@ -125,12 +125,10 @@ struct BuiltinFunc : public FuncPtr {
 };
 
 struct BoundMethod : public FuncPtr {
-   MethodFn method;
+   std::vector<const Method*> _candidates;
    void *data;
-   BoundMethod(MethodFn m, void *d) : method(m), data(d) {}
-   void invoke(Interpreter* I, const std::vector<Value>& args) {
-      I->_ret = (*method)(data, args);
-   }
+   BoundMethod(const Method *m, void *d) : _candidates(1, m), data(d) {}
+   void invoke(Interpreter* I, const std::vector<Value>& args);
 };
 
 #endif
