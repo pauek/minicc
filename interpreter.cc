@@ -651,10 +651,6 @@ void Interpreter::invoke_user_func(FuncDecl *decl, const vector<Value>& args) {
    popenv();
 }
 
-void BoundMethod::invoke(Interpreter *I, const vector<Value>& args) {
-   I->_ret = (*_method->fn)(data, args);
-}
-
 void Interpreter::visit_callexpr_getfunc(CallExpr *x) {
    x->func->accept(this);
    _curr = Reference::deref(_curr);
