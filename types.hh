@@ -50,6 +50,7 @@ public:
    virtual        bool  get_method(std::string, 
                                    std::vector<const Method*>& M) const { return 0; }
    virtual       Value  create()                                        { assert(false); }
+   virtual        bool  accepts(const Type *t)                    const { return this == t; }
    virtual       Value  convert(Value init)                             { assert(false); }
    virtual       Value  construct(const std::vector<Value>& args)       { assert(false); }
    virtual        Type *instantiate(std::vector<Type*>& subtypes) const { assert(false); } // for templates
@@ -162,6 +163,7 @@ class Reference : public Type {
 public:
    Reference(const Type *subtype) : _subtype(subtype) {}
 
+    const Type *subtype()           const { return _subtype; }
    std::string  typestr()           const { return _subtype->typestr() + "&"; }
            int  properties()        const { return Basic; }
 
@@ -181,14 +183,16 @@ public:
 class Int : public BasicType<int> {
 public:
    Int() : BasicType("int") {}
-   Value convert(Value init);
-   static Int *self;
+   Value convert(Value init); 
+    bool accepts(const Type *t) const;
+  static Int *self;
 };
 
 class Float : public BasicType<float> {
 public:
    Float() : BasicType("float") {}
    Value convert(Value init);
+    bool accepts(const Type *t) const;
    static Float *self;
 };
 
@@ -196,14 +200,16 @@ class Double : public BasicType<double> {
 public:
    Double() : BasicType("double") {}
    Value convert(Value init);
+    bool accepts(const Type *t) const;
    static Double *self;
 };
 
 class Char : public BasicType<char> {
 public:
    Char() : BasicType("char") {}
-   Value convert(Value init);
-   std::string to_json(void *data) const;
+   Value convert(Value init); 
+    bool accepts(const Type *t) const;
+  std::string to_json(void *data) const;
    static Char *self;
 };
 
@@ -211,7 +217,8 @@ class Bool : public BasicType<bool> {
 public:
    Bool() : BasicType("bool") {}
    Value convert(Value init);
-   static Bool *self;
+    bool accepts(const Type *t) const; 
+  static Bool *self;
    std::string to_json(void *data) const {
       return (*(bool*)data ? "true" : "false");
    }
@@ -264,6 +271,7 @@ public:
    Type *param(int i)      const { return _param_types[i]; }
    Type *return_type()     const { return _return_type; }
    bool is_void()          const { return _return_type == 0; }
+   bool check_args(const std::vector<Value>& args) const;
 
    int properties() const { return Internal; }
    std::string typestr() const;
@@ -369,24 +377,15 @@ class Ostream : public Type {
 public:
    int properties()       const { return Emulated; }
    std::string typestr()  const { return "ostream"; }
-   Value create()               { assert(false); }
-   Value convert(Value init)    { assert(false); }
-   Value construct(const std::vector<Value>& args) { assert(false); }
-
    static Ostream *self;
 };
 
 class Istream : public Type {
    void destroy(void *data)  const {}
 public:
-   int properties()          const { return Emulated; }
-   Value create()            const { assert(false); }
-   Value convert(Value init)       { assert(false); }
-   Value construct(const std::vector<Value>& args) const { assert(false); }
-   std::string typestr()     const { return "istream"; }
-
+   int properties()      const { return Emulated; }
+   std::string typestr() const { return "istream"; }
    static Istream *self;
-
    typedef std::istream& cpp_type;
    static std::istream& cast(void *data) { 
       return *static_cast<std::istream*>(data); 

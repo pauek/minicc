@@ -4,6 +4,7 @@
 using namespace std;
 
 #include "types.hh"
+#include "translator.hh"
 
 void _error(std::string msg) {
    throw TypeError(msg);
@@ -156,6 +157,14 @@ Value Int::convert(Value x) {
    return Value::null;
 }
 
+bool Int::accepts(const Type *t) const {
+   if (t->is<Reference>()) {
+      t = t->as<Reference>()->subtype();
+   }
+   return t->is<Int>() or 
+      t->is<Float>() or t->is<Double>() or t->is<Char>() or t->is<Bool>();
+}
+
 Value Float::convert(Value x) {
    x = Reference::deref(x);
    if (x.is<Float>()) {
@@ -166,6 +175,14 @@ Value Float::convert(Value x) {
       return Value(float(x.as<Double>()));
    }
    return Value::null;
+}
+
+bool Float::accepts(const Type *t) const {
+   if (t->is<Reference>()) {
+      t = t->as<Reference>()->subtype();
+   }
+   return t->is<Float>() or 
+      t->is<Int>() or t->is<Double>() or t->is<Char>() or t->is<Bool>();
 }
 
 Value Double::convert(Value x) {
@@ -180,6 +197,14 @@ Value Double::convert(Value x) {
    return Value::null;
 }
 
+bool Double::accepts(const Type *t) const {
+   if (t->is<Reference>()) {
+      t = t->as<Reference>()->subtype();
+   }
+   return t->is<Double>() or 
+      t->is<Int>() or t->is<Float>() or t->is<Char>() or t->is<Bool>();
+}
+
 Value Char::convert(Value x) {
    x = Reference::deref(x);
    if (x.is<Char>()) {
@@ -188,6 +213,13 @@ Value Char::convert(Value x) {
       return Value(char(x.as<Int>()));
    }
    return Value::null;
+}
+
+bool Char::accepts(const Type *t) const {
+   if (t->is<Reference>()) {
+      t = t->as<Reference>()->subtype();
+   }
+   return t->is<Char>() or t->is<Int>();
 }
 
 string Char::to_json(void *data) const {
@@ -206,6 +238,14 @@ Value Bool::convert(Value x) {
    }
    return Value::null;
 }
+
+bool Bool::accepts(const Type *t) const {
+   if (t->is<Reference>()) {
+      t = t->as<Reference>()->subtype();
+   }
+   return t->is<Bool>() or t->is<Int>();
+}
+
 
 Value Vector::convert(Value x) {
    //
@@ -593,7 +633,31 @@ Value Overloaded::create() {
    return Value(Overloaded::self, new OverloadedValue());
 }
 
+bool Function::check_args(const std::vector<Value>& args) const {
+   if (args.size() != _param_types.size()) {
+      return false;
+   }
+   for (int i = 0; i < args.size(); i++) {
+      if (!_param_types[i]->accepts(args[i].type())) {
+         return false;
+      }
+   }
+   return true;
+}
+
 Value OverloadedValue::resolve(const std::vector<Value>& args) {
-   // FIXME: do the real thing
-   return _candidates.front();
+   vector<Value> results;
+   for (int i = 0; i < _candidates.size(); i++) {
+      Function *ftype = _candidates[i].type()->as<Function>();
+      assert(ftype != 0);
+      if (ftype->check_args(args)) {
+         results.push_back(_candidates[i]);
+      }
+   }
+   if (results.size() > 1) {
+      _error(_T("More than one method is applicable"));
+   } else if (results.empty()) {
+      _error(_T("No method applicable"));
+   }
+   return results[0];
 }
