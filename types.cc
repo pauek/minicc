@@ -21,6 +21,7 @@ Ostream     *Ostream::self     = new Ostream();
 Istream     *Istream::self     = new Istream();
 VectorValue *VectorValue::self = new VectorValue();
 Vector      *Vector::self      = new Vector();
+Overloaded  *Overloaded::self  = new Overloaded();
 
 string String::to_json(void *data) const {
    return string("\"") + *(string*)data + "\"";
@@ -378,18 +379,34 @@ string Function::typestr() const {
    return o.str();
 }
 
+/*
 void FuncValue::invoke(Interpreter *I, const std::vector<Value>& args) {
    ptr->invoke(I, args); 
 }
+*/
 
-const Method *Vector::get_method(string name) const {
+bool Vector::get_method(string name, vector<const Method*>& result) const {
    auto it = _methods.find(name);
-   return (it != _methods.end() ? &it->second : 0);
+   if (it == _methods.end()) {
+      return false;
+   }
+   while (it != _methods.end() and it->first == name) {
+      result.push_back(&it->second);
+      it++;
+   }
+   return true;
 }
 
-const Method *String::get_method(string name) const {
+bool String::get_method(string name, vector<const Method*>& result) const {
    auto it = _methods.find(name);
-   return (it != _methods.end() ? &it->second : 0);
+   if (it == _methods.end()) {
+      return false;
+   }
+   while (it != _methods.end() and it->first == name) {
+      result.push_back(&it->second);
+      it++;
+   }
+   return true;
 }
 
 // Methods ////////////////////////////////////////////////////////////
@@ -570,4 +587,13 @@ Environment *Environment::pop() {
    Environment *parent = _parent;
    delete this;
    return parent;
+}
+
+Value Overloaded::create() {
+   return Value(Overloaded::self, new OverloadedValue());
+}
+
+Value OverloadedValue::resolve(const std::vector<Value>& args) {
+   // FIXME: do the real thing
+   return _candidates.front();
 }

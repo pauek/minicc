@@ -171,7 +171,7 @@ void Interpreter::visit_include(Include* x) {
    else if (x->filename == "algorithm") {
       Function *max_func_type = new Function(Int::self);
       max_func_type->add_params(Int::self, Int::self);
-      std->set("max", max_func_type->mkvalue("max", new BuiltinFunc(_max)));
+      std->set("max", max_func_type->mkvalue(new BuiltinFunc("max", _max)));
    }
 }
 
@@ -185,8 +185,7 @@ void Interpreter::visit_funcdecl(FuncDecl *x) {
       functype->add_param(param_type);
    }
    setenv(x->funcname(), 
-          functype->mkvalue(funcname,
-                            new UserFunc(x)),
+          functype->mkvalue(new UserFunc(funcname, x)), 
           hidden);
 }
 
@@ -653,13 +652,13 @@ void Interpreter::invoke_user_func(FuncDecl *decl, const vector<Value>& args) {
 }
 
 void BoundMethod::invoke(Interpreter *I, const vector<Value>& args) {
-   I->_ret = (*_candidates[0]->fn)(data, args);
+   I->_ret = (*_method->fn)(data, args);
 }
 
 void Interpreter::visit_callexpr_getfunc(CallExpr *x) {
    x->func->accept(this);
    _curr = Reference::deref(_curr);
-   if (!_curr.is<Function>()) {
+   if (!_curr.is<Function>() and !_curr.is<Overloaded>()) {
       _error(_T("Calling something other than a function."));
    }
 }
@@ -674,7 +673,11 @@ void Interpreter::visit_callexpr(CallExpr *x) {
       args.push_back(_curr);
    }
 
-   // Check types
+   if (func.is<Overloaded>()) {
+      func = func.as<Overloaded>().resolve(args);
+      assert(func.is<Function>());
+   }
+
    const Function *func_type = func.type()->as<Function>();
    for (int i = 0; i < args.size(); i++) {
       string t1 = func_type->param(i)->typestr();
@@ -692,11 +695,12 @@ void Interpreter::visit_callexpr(CallExpr *x) {
    }
    
    // Invoke
-   func.as<Function>().invoke(this, args);
-   if (_ret == Value::null && !func.type()->as<Function>()->is_void()) {
-      Type *return_type = func.type()->as<Function>()->return_type();
+   FuncValue& fn = func.as<Function>();
+   fn.invoke(this, args);
+   if (_ret == Value::null && !func_type->is_void()) {
+      Type *return_type = func_type->return_type();
       _error(_T("La función '%s' debería devolver un '%s'", 
-                func.as<Function>().name.c_str(),
+                fn.name.c_str(),
                 return_type->typestr().c_str()));
    }
    _curr = _ret;
@@ -734,10 +738,17 @@ void Interpreter::visit_fieldexpr(FieldExpr *x) {
       _curr = Reference::mkref(v);
       return;
    }
-   const Method *method = _curr.type()->get_method(x->field->name);
-   if (method != 0) {
-      Function *ft = dynamic_cast<Function*>(method->type);
-      _curr = ft->mkvalue(x->field->name, new BoundMethod(method, _curr.data()));
+   vector<const Method*> candidates;
+   if (_curr.type()->get_method(x->field->name, candidates)) {
+      void *self = _curr.data();
+      assert(candidates.size() > 0);
+      _curr = Overloaded::self->create();
+      OverloadedValue& ufv = _curr.as<Overloaded>();
+      for (int i = 0; i < candidates.size(); i++) {
+         Function  *ftype  = candidates[i]->type->as<Function>();
+         FuncValue *fvalue = new BoundMethod(x->field->name, candidates[i], self);
+         ufv._candidates.push_back(ftype->mkvalue(fvalue));
+      }
       return;
    }
    _error(_T("Este objeto no tiene un campo '%s'", x->field->name.c_str()));

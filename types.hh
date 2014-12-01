@@ -47,7 +47,8 @@ public:
 
    virtual std::string  typestr() const = 0;
    virtual         int  properties() const = 0;
-  virtual const Method *get_method(std::string)                   const { return 0; }
+   virtual        bool  get_method(std::string, 
+                                   std::vector<const Method*>& M) const { return 0; }
    virtual       Value  create()                                        { assert(false); }
    virtual       Value  convert(Value init)                             { assert(false); }
    virtual       Value  construct(const std::vector<Value>& args)       { assert(false); }
@@ -60,6 +61,9 @@ public:
 
    template<typename T>
    const T *as() const { return dynamic_cast<const T*>(this); }
+
+   template<typename T>
+   T *as() { return dynamic_cast<T*>(this); }
 
    friend class Value;
    friend class Reference;
@@ -221,25 +225,22 @@ public:
    static String *self;
    std::string to_json(void *data) const;
 
-   const Method *get_method(std::string name) const;
+   bool get_method(std::string name, std::vector<const Method*>& result) const;
 };
 
-// typedef Value (*CppFunc)(const std::vector<Value>& args);
-// typedef Value (*CppMethod)(void *, const std::vector<Value>& args);
-
+class Function;
 class Interpreter;
-struct FuncPtr {
-   virtual void invoke(Interpreter* I, const std::vector<Value>& args) = 0;
-   virtual ~FuncPtr() {}
-};
 
 struct FuncValue {
    std::string name;
-   FuncPtr *ptr;
-   FuncValue(std::string n, FuncPtr *p) : name(n), ptr(p) {}
-   void invoke(Interpreter *I, const std::vector<Value>& args);
 
-   bool operator==(const FuncValue& f) const { return ptr == f.ptr; }
+   FuncValue(std::string n) : name(n) {}
+   virtual ~FuncValue() {}
+
+   virtual void invoke(Interpreter *I, const std::vector<Value>& args) { 
+      assert(false);
+   }
+   bool operator==(const FuncValue& f) const { return false; /* make BaseType happy */ }
 };
 
 class Function : public BaseType<FuncValue> {
@@ -267,11 +268,31 @@ public:
    int properties() const { return Internal; }
    std::string typestr() const;
 
-   Value mkvalue(std::string name, FuncPtr *pf) {
-      return Value(this, new FuncValue(name, pf));
-   }
+   Value mkvalue(FuncValue *fv) { return Value(this, fv); }
 
    typedef FuncValue cpp_type;
+};
+
+struct OverloadedValue {
+   std::vector<Value> _candidates;
+   
+   bool operator==(const OverloadedValue& v) const {
+      return _candidates == v._candidates;
+   }
+
+   Value resolve(const std::vector<Value>& args);
+};
+
+class Overloaded : public BaseType<OverloadedValue> {
+public:
+              Overloaded() {}
+         int  properties()  const { return Internal; }
+ std::string  typestr()     const { return "<unresolved-function>"; }
+       Value  convert(Value init) { assert(false); }
+       Value  create();
+
+   static  Overloaded *self;
+   typedef OverloadedValue cpp_type;
 };
 
 class Struct : public BaseType<SimpleTable<Value>> {
@@ -326,7 +347,7 @@ public:
    Value construct(const std::vector<Value>& args);
 
    std::string typestr() const;
-   const Method *get_method(std::string name) const;
+   bool get_method(std::string name, std::vector<const Method*>& result) const;
 
    std::string to_json(void *data) const;
 
@@ -377,6 +398,12 @@ public:
 template<typename T>
 bool Value::is() const {
    return !is_null() and (typeid(*(_box->type)) == typeid(T)); 
+}
+
+template<typename T>
+typename T::cpp_type& Value::as() {
+   assert(is<T>() and _box);
+   return T::cast(_box->data);
 }
 
 template<typename T>
