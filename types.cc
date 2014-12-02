@@ -473,6 +473,18 @@ Vector::Vector(Type *celltype) : _celltype(celltype) {
    _add_method(new Function(Int::self), 
                new SizeMethod());
 
+   // empty
+   struct EmptyMethod : public Func {
+      EmptyMethod() : Func("empty") {}
+      Value call(Value self, const vector<Value>& args) {
+         assert(args.empty());
+         vector<Value>& the_vector = self.as<Vector>();
+         return Value(bool(the_vector.empty()));
+      }
+   };
+   _add_method(new Function(Bool::self), 
+               new EmptyMethod());
+
    // push_back
    struct PushBackMethod : public Func {
       PushBackMethod() : Func("push_back") {}
