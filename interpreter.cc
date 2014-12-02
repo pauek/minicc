@@ -588,10 +588,24 @@ void Interpreter::visit_arraydecl(ArrayDecl *x) {
 void Interpreter::visit_objdecl(ObjDecl *x) {
    Type *type = get_type(x->typespec);
    if (type != 0) {
-      // TODO: Convertir la construcción en una llamada al método constructor
       vector<Value> args;
       eval_arguments(x->args, args);
-      setenv(x->name, type->construct(args));
+      
+      string constructor_name = type->name();
+      Value new_obj = type->create();
+      if (!bind_method(new_obj, constructor_name)) {
+         _error(_T("El tipo '%s' no tiene constructor", type->typestr().c_str()));
+      }
+      if (_curr.is<Overloaded>()) {
+         _curr = _curr.as<Overloaded>().resolve(args);
+         assert(_curr.is<Callable>());
+      }
+      Binding& constructor = _curr.as<Callable>();
+      const Function *func_type = constructor.func.type()->as<Function>();
+      check_arguments(func_type, args);
+      constructor.call(args); // <-- Invoke!
+      
+      setenv(x->name, new_obj);
       return;
    }
    _error(_T("The type '%s' is not implemented in MiniCC", 
@@ -738,6 +752,16 @@ void Interpreter::visit_indexexpr(IndexExpr *x) {
    _curr = Reference::mkref(vals[i]);
 }
 
+bool Interpreter::bind_method(Value obj, string method_name) {
+   vector<Value> candidates;
+   if (obj.type()->get_method(method_name, candidates)) {
+      assert(candidates.size() > 0);
+      _curr = Overloaded::self->mkvalue(obj, candidates);
+      return true;
+   }
+   return false;
+}
+
 void Interpreter::visit_fieldexpr(FieldExpr *x) {
    x->base->accept(this);
    Value obj = Reference::deref(_curr);
@@ -750,13 +774,9 @@ void Interpreter::visit_fieldexpr(FieldExpr *x) {
       _curr = Reference::mkref(v);
       return;
    }
-   vector<Value> candidates;
-   if (obj.type()->get_method(x->field->name, candidates)) {
-      assert(candidates.size() > 0);
-      _curr = Overloaded::self->mkvalue(obj, candidates);
-      return;
+   if (!bind_method(obj, x->field->name)) {
+      _error(_T("Este objeto no tiene un campo '%s'", x->field->name.c_str()));
    }
-   _error(_T("Este objeto no tiene un campo '%s'", x->field->name.c_str()));
 }
 
 void Interpreter::visit_condexpr(CondExpr *x) {

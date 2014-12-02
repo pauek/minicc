@@ -35,7 +35,7 @@ Value Endl("\n");
 
 // Methods
 
-Type *TypeMap::get_type(TypeSpec *spec, Environment *outer) {
+Type *TypeMap::get_type(TypeSpec *spec, Environment *topmost) {
    // 1. If typestr already registered, return the type
    {
       auto it = _typecache.find(spec->typestr());
@@ -54,7 +54,7 @@ Type *TypeMap::get_type(TypeSpec *spec, Environment *outer) {
          assert(T->is(Type::Template));
          vector<Type*> subtypes;
          for (int i = 0; i < spec->id->subtypes.size(); i++) {
-            subtypes.push_back(outer->get_type(spec->id->subtypes[i]));
+            subtypes.push_back(topmost->get_type(spec->id->subtypes[i], topmost));
          }
          T = T->instantiate(subtypes);
       }
@@ -125,6 +125,14 @@ string Reference::to_json(void *data) const {
    std::ostringstream O;
    O << "{\"<type>\":\"ref\",\"ref\":\"" << b << "\"}";
    return O.str();
+}
+
+template<typename T>
+bool BaseType<T>::accepts(const Type *t) const {
+   if (t->is<Reference>()) {
+      t = t->as<Reference>()->subtype();
+   }
+   return t == this;
 }
 
 // Initializations
@@ -261,28 +269,6 @@ Value Vector::default_value_for(Type *t) {
    } else {
       return t->create();
    }
-}
-
-Value Vector::construct(const vector<Value>& args) {
-   assert(args.size() >= 0 and args.size() <= 2);
-   if (args.size() == 0) {
-      return create();
-   }
-   assert(args[0].is<Int>());
-   Value arg0 = Reference::deref(args[0]);
-   const int sz = arg0.as<Int>();
-   vector<Value> *vec = new vector<Value>(sz);
-
-   Value init;
-   if (args.size() == 2) { // initialization
-      init = Reference::deref(args[1]);
-   } else {
-      init = default_value_for(_celltype);
-   }
-   for (int i = 0; i < sz; i++) {
-      (*vec)[i] = init.clone();
-   }
-   return Value(this, vec);
 }
 
 string Vector::to_json(void *data) const {
@@ -476,6 +462,40 @@ void Vector::_add_method(Function *type, Func *f) {
 }
 
 Vector::Vector(Type *celltype) : _celltype(celltype) {
+   // vector(size)
+   struct VectorConstructor1 : public Func {
+      Type *celltype;
+      VectorConstructor1(Type *t) : Func("vector"), celltype(t) {}
+      Value call(Value self, const vector<Value>& args) {
+         vector<Value>& the_vector = self.as<Vector>();
+         const int sz = args[0].as<Int>();
+         the_vector.resize(sz);
+         for (int i = 0; i < sz; i++) {
+            the_vector[i] = default_value_for(celltype);
+         }
+         return Value::null;
+      }
+   };
+   _add_method((new Function(Void))->add_params(Int::self), 
+               new VectorConstructor1(celltype));
+
+   // vector(size, elem)
+   struct VectorConstructor2 : public Func {
+      VectorConstructor2() : Func("vector") {}
+      Value call(Value self, const vector<Value>& args) {
+         vector<Value>& the_vector = self.as<Vector>();
+         const int sz = args[0].as<Int>();
+         the_vector.resize(sz);
+         Value init = Reference::deref(args[1]);
+         for (int i = 0; i < sz; i++) {
+            the_vector[i] = init.clone();
+         }
+         return Value::null;
+      }
+   };
+   _add_method((new Function(Void))->add_params(Int::self, celltype), 
+               new VectorConstructor2());
+
    // size
    struct SizeMethod : public Func {
       SizeMethod() : Func("size") {}
@@ -668,7 +688,7 @@ String::String() : BasicType("string") {
 
 Type *Vector::instantiate(vector<Type *>& subtypes) const {
    assert(subtypes.size() == 1);
-   // TODO: create the methods and types for them!
+   assert(subtypes[0] != 0);
    return new Vector(subtypes[0]);
 }
 
@@ -699,19 +719,22 @@ void Environment::register_type(string name, Type *type) {
    _curr_namespace.register_type(name, type);
 }
 
-Type *Environment::get_type(TypeSpec *spec) {
-   Type *type = _curr_namespace.get_type(spec, this);
+Type *Environment::get_type(TypeSpec *spec, Environment *topmost) {
+   if (topmost == 0) {
+      topmost = this;
+   }
+   Type *type = _curr_namespace.get_type(spec, topmost);
    if (type != 0) {
       return type;
    }
    for (Environment *e : _other_namespaces) {
-      type = e->get_type(spec);
+      type = e->get_type(spec, topmost);
       if (type != 0) {
          return type;
       }
    }
    if (_parent != 0) {
-      return _parent->get_type(spec);
+      return _parent->get_type(spec, topmost);
    }
    return 0;
 }

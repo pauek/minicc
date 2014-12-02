@@ -45,6 +45,7 @@ public:
    };
 
 
+   virtual std::string  name() const = 0;
    virtual std::string  typestr() const = 0;
    virtual         int  properties() const = 0;
    virtual        bool  get_method(std::string, 
@@ -52,7 +53,6 @@ public:
    virtual       Value  create()                                        { assert(false); }
    virtual        bool  accepts(const Type *t)                    const { return this == t; }
    virtual       Value  convert(Value init)                             { assert(false); }
-   virtual       Value  construct(const std::vector<Value>& args)       { assert(false); }
    virtual        Type *instantiate(std::vector<Type*>& subtypes) const { assert(false); } // for templates
 
    template<typename T>
@@ -76,7 +76,7 @@ class TypeMap {
    std::map<std::string, Type*> _typecache; // all types indexed by typestr
 public:
    void  register_type(std::string name, Type *);
-   Type *get_type(TypeSpec *, Environment *);
+   Type *get_type(TypeSpec *spec, Environment *topmost);
    void  clear();
 };
 
@@ -118,6 +118,7 @@ public:
       }
       return Value::null;
    }
+   bool accepts(const Type *t) const;
 };
 
 template<typename T>
@@ -136,12 +137,9 @@ class BasicType : public BaseType<T> {
 public:
    BasicType(std::string name) : _name(name) {}
    int properties()      const { return Type::Basic; }
+   std::string name()    const { return _name; }
    std::string typestr() const { return _name; }
 
-   Value construct(const std::vector<Value>& args) {
-      assert(false); // Basic types are not "constructed"
-      return Value::null;
-   }
    void *read(std::istream& i, void *data) const {
       if (data == 0) {
          data = new T;
@@ -165,6 +163,7 @@ public:
 
     const Type *subtype()           const { return _subtype; }
    std::string  typestr()           const { return _subtype->typestr() + "&"; }
+   std::string  name()              const { return "<reference>"; }
            int  properties()        const { return Basic; }
 
           void *alloc(Value& x)     const;
@@ -269,6 +268,7 @@ public:
 
    int properties() const { return Internal; }
    std::string typestr() const;
+   std::string name() const { return "<function>"; }
 
    Value mkvalue(Func *f) { 
       // FIXME: Too many boxes, I should be able to call
@@ -298,8 +298,9 @@ struct Binding {
 class Callable : public BaseType<Binding> {
 public:
               Callable() {}
-         int  properties()  const { return Internal; }
- std::string  typestr()     const { return "<binding>"; }
+         int  properties() const { return Internal; }
+ std::string  typestr()    const { return "<Callable>"; }
+ std::string  name()       const { return "<Callable>"; }
 
    Value  mkvalue(Value self, Value func) {
       return Value(this, new Binding(self, func));
@@ -325,6 +326,7 @@ public:
               Overloaded() {}
          int  properties()  const { return Internal; }
  std::string  typestr()     const { return "<unresolved-function>"; }
+ std::string  name()        const { return "<unresolved-function>"; }
        Value  convert(Value init) { assert(false); }
        Value  mkvalue(Value self, const std::vector<Value>& candidates);
 
@@ -345,6 +347,7 @@ public:
    void *clone(void *data) const;
 
    std::string typestr() const { return _name; }
+   std::string name()    const { return _name; }
 
    std::string to_json(void *data) const;
 
@@ -363,6 +366,7 @@ public:
    static Type *mkarray(Type *celltype, const std::vector<int>& sizes); // use this as constructor for 2D and up...
            int  properties() const { return Basic; }
    std::string  typestr()    const { return _celltype->typestr() + "[]"; }
+   std::string  name()       const { return "<array>"; }
          Value  create();
          Value  convert(Value init);
    std::string  to_json(void *) const;
@@ -386,9 +390,9 @@ public:
    int   properties() const { return Template | Emulated; }
    Value create()           { return Value(this, (void*)(new std::vector<Value>())); }
    Value convert(Value init);
-   Value construct(const std::vector<Value>& args);
 
    std::string typestr() const;
+   std::string name()    const { return "vector"; }
    bool get_method(std::string name, std::vector<Value>& result) const;
 
    std::string to_json(void *data) const;
@@ -405,13 +409,15 @@ public:
    static Value make() { return self->create(); }
    static VectorValue *self;
    std::string typestr() const { return "vector<?>"; }
+   std::string name()    const { return "vector"; }
 };
 
 class Ostream : public Type {
    void destroy(void *data)  const {}
 public:
-   int properties()       const { return Emulated; }
-   std::string typestr()  const { return "ostream"; }
+   int properties()      const { return Emulated; }
+   std::string typestr() const { return "ostream"; }
+   std::string name()    const { return "ostream"; }
    static Ostream *self;
 };
 
@@ -420,6 +426,7 @@ class Istream : public Type {
 public:
    int properties()      const { return Emulated; }
    std::string typestr() const { return "istream"; }
+   std::string name()    const { return "istream"; }
    static Istream *self;
    typedef std::istream& cpp_type;
    static std::istream& cast(void *data) { 
@@ -468,7 +475,7 @@ Environment *pop();
 
        void  using_namespace(Environment *nmspc);
        void  register_type(std::string name, Type *);
-       Type *get_type(TypeSpec *);
+       Type *get_type(TypeSpec *spec, Environment *topmost = 0);
    
        bool  get(std::string name, Value& res);
        void  set(std::string name, Value data, bool hidden = false);
