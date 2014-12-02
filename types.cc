@@ -461,9 +461,6 @@ void Vector::_add_method(Function *type, Func *f) {
 }
 
 Vector::Vector(Type *celltype) : _celltype(celltype) {
-   // TRICK: this copy of 'celltype' is visible to classes defined in this function!
-   static Type *__celltype = _celltype; 
-
    // size
    struct SizeMethod : public Func {
       SizeMethod() : Func("size") {}
@@ -490,15 +487,16 @@ Vector::Vector(Type *celltype) : _celltype(celltype) {
 
    // resize(int)
    struct Resize1Method : public Func {
-      Resize1Method() : Func("resize") {}
+      Type *celltype;
+      Resize1Method(Type *t) : Func("resize"), celltype(t) {}
       Value call(Value self, const vector<Value>& args) {
          vector<Value>& the_vector = self.as<Vector>();
-         the_vector.resize(args[0].as<Int>(), default_value_for(__celltype));
+         the_vector.resize(args[0].as<Int>(), default_value_for(celltype));
          return Value::null;
       }
    };
    _add_method((new Function(Void))->add_param(Int::self),
-               new Resize1Method());
+               new Resize1Method(celltype));
 
    // resize(int, T)
    struct Resize2Method : public Func {
