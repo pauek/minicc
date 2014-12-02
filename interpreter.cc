@@ -5,12 +5,6 @@ using namespace std;
 
 const bool hidden = true;
 
-Value _max(const vector<Value>& args) {
-   assert(args.size() == 2);
-   assert(args[0].is<Int>());
-   assert(args[1].is<Int>());
-   return Value(std::max(args[0].as<Int>(), args[1].as<Int>()));
-}
 
 void Interpreter::_init() {
 }
@@ -136,7 +130,9 @@ void Interpreter::visit_program_find_main() {
 void Interpreter::visit_program(Program* x) {
    visit_program_prepare(x);
    visit_program_find_main();
-   _curr.as<Function>().invoke(this, vector<Value>());
+   Func *main = _curr.as<Function>().ptr;
+   assert(main != 0);
+   main->call(Value::null, vector<Value>());
 }
 
 void Interpreter::visit_comment(CommentSeq* cn) {}
@@ -149,6 +145,17 @@ void Interpreter::visit_using(Using* x) {
    }
    _env->using_namespace(it->second);
 }
+
+struct MaxFunc : public Func {
+   MaxFunc() : Func("max") {}
+   Value call(Value self, const vector<Value>& args) {
+      assert(args.size() == 2);
+      assert(args[0].is<Int>());
+      assert(args[1].is<Int>());
+      return Value(std::max(args[0].as<Int>(), args[1].as<Int>()));
+   }
+};
+MaxFunc _max;
 
 void Interpreter::visit_include(Include* x) {
    Environment *std = _namespaces["std"];
@@ -171,7 +178,7 @@ void Interpreter::visit_include(Include* x) {
    else if (x->filename == "algorithm") {
       Function *max_func_type = new Function(Int::self);
       max_func_type->add_params(Int::self, Int::self);
-      std->set("max", max_func_type->mkvalue(new BuiltinFunc("max", _max)));
+      std->set("max", max_func_type->mkvalue(&_max));
    }
 }
 
@@ -184,9 +191,8 @@ void Interpreter::visit_funcdecl(FuncDecl *x) {
       assert(param_type != 0);
       functype->add_param(param_type);
    }
-   setenv(x->funcname(), 
-          functype->mkvalue(new UserFunc(funcname, x)), 
-          hidden);
+   Func *uf = new UserFunc(this, funcname, x);
+   setenv(funcname, functype->mkvalue(uf), hidden);
 }
 
 void Interpreter::visit_structdecl(StructDecl *x) {
@@ -671,10 +677,15 @@ void Interpreter::visit_callexpr(CallExpr *x) {
 
    if (func.is<Overloaded>()) {
       func = func.as<Overloaded>().resolve(args);
-      assert(func.is<Function>());
+      assert(func.is<Callable>());
    }
 
-   const Function *func_type = func.type()->as<Function>();
+   const Function *func_type;
+   if (func.is<Function>()) {
+      func_type = func.type()->as<Function>();
+   } else if (func.is<Callable>()) {
+      func_type = func.as<Callable>().func.type()->as<Function>();
+   }
    for (int i = 0; i < args.size(); i++) {
       string t1 = func_type->param(i)->typestr();
       Value arg_i = args[i];
@@ -691,12 +702,20 @@ void Interpreter::visit_callexpr(CallExpr *x) {
    }
    
    // Invoke
-   FuncValue& fn = func.as<Function>();
-   fn.invoke(this, args);
+   string name;
+   if (func.is<Callable>()) {
+      Binding& fn = func.as<Callable>();
+      _ret = fn.call(args);
+      name = fn.func.as<Function>().ptr->name;
+   } else if (func.is<Function>()) {
+      FuncPtr& ptr = func.as<Function>();
+      _ret = ptr.ptr->call(Value::null, args);
+      name = ptr.ptr->name;
+   }
    if (_ret == Value::null && !func_type->is_void()) {
       Type *return_type = func_type->return_type();
       _error(_T("La función '%s' debería devolver un '%s'", 
-                fn.name.c_str(),
+                name.c_str(),
                 return_type->typestr().c_str()));
    }
    _curr = _ret;
@@ -724,9 +743,9 @@ void Interpreter::visit_indexexpr(IndexExpr *x) {
 
 void Interpreter::visit_fieldexpr(FieldExpr *x) {
    x->base->accept(this);
-   _curr = Reference::deref(_curr);
-   if (_curr.is<Struct>()) {
-      SimpleTable<Value>& fields = _curr.as<Struct>();
+   Value obj = Reference::deref(_curr);
+   if (obj.is<Struct>()) {
+      SimpleTable<Value>& fields = obj.as<Struct>();
       Value v;
       if (!fields.get(x->field->name, v)) {
          _error(_T("No existe el campo '%s'", x->field->name.c_str()));
@@ -734,17 +753,10 @@ void Interpreter::visit_fieldexpr(FieldExpr *x) {
       _curr = Reference::mkref(v);
       return;
    }
-   vector<const Method*> candidates;
-   if (_curr.type()->get_method(x->field->name, candidates)) {
-      void *self = _curr.data();
+   vector<Value> candidates;
+   if (obj.type()->get_method(x->field->name, candidates)) {
       assert(candidates.size() > 0);
-      _curr = Overloaded::self->create();
-      OverloadedValue& ufv = _curr.as<Overloaded>();
-      for (int i = 0; i < candidates.size(); i++) {
-         Function  *ftype  = candidates[i]->type->as<Function>();
-         FuncValue *fvalue = new BoundMethod(x->field->name, candidates[i], self);
-         ufv._candidates.push_back(ftype->mkvalue(fvalue));
-      }
+      _curr = Overloaded::self->mkvalue(obj, candidates);
       return;
    }
    _error(_T("Este objeto no tiene un campo '%s'", x->field->name.c_str()));

@@ -103,37 +103,18 @@ public:
    void visit_literal(Literal *x);
 
    friend class UserFunc;
-   friend class BuiltinFunc;
-   friend class BoundMethod;
 };
 
-struct UserFunc : public FuncValue {
+struct UserFunc : public Func {
+   Interpreter *I;
    FuncDecl *decl;
-   UserFunc(std::string name, FuncDecl *d) : FuncValue(name), decl(d) {}
 
-   void invoke(Interpreter *I, const std::vector<Value>& args) {
+   UserFunc(Interpreter *_I, std::string n, FuncDecl *d) 
+      : I(_I), Func(n), decl(d) {}
+
+   Value call(Value self, const std::vector<Value>& args) {
       I->invoke_user_func(decl, args);
-   }
-};
-
-struct BuiltinFunc : public FuncValue {
-   typedef Value (*Ptr)(const std::vector<Value>& args);
-   Ptr pf;
-   BuiltinFunc(std::string name, Ptr p) : FuncValue(name), pf(p) {}
-
-   void invoke(Interpreter *I, const std::vector<Value>& args) { 
-      I->_ret = (*pf)(args);
-   }
-};
-
-struct BoundMethod : public FuncValue {
-   const Method* _method;
-   void *data;
-   BoundMethod(std::string name, const Method* m, void *d) 
-      : FuncValue(name), _method(m), data(d) {}
-
-   void invoke(Interpreter *I, const std::vector<Value>& args) {
-      I->_ret = (*_method->fn)(data, args);
+      return I->_ret;
    }
 };
 

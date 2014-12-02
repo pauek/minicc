@@ -11,7 +11,7 @@ void _error(std::string msg) {
 }
 
 // static + Globals
-
+Type        *Void = 0;
 Int         *Int::self         = new Int();
 Float       *Float::self       = new Float();
 Double      *Double::self      = new Double();
@@ -23,6 +23,7 @@ Istream     *Istream::self     = new Istream();
 VectorValue *VectorValue::self = new VectorValue();
 Vector      *Vector::self      = new Vector();
 Overloaded  *Overloaded::self  = new Overloaded();
+Callable    *Callable::self    = new Callable();
 
 string String::to_json(void *data) const {
    return string("\"") + *(string*)data + "\"";
@@ -259,6 +260,23 @@ Value Vector::convert(Value x) {
    return Value::null;
 }
 
+Value Vector::default_value_for(Type *t) {
+   // Valor por defecto para cada tipo controlado por vector!
+   if (t->is<Int>()) {
+      return Value(0);
+   } else if (t->is<Bool>()) {
+      return Value(false);
+   } else if (t->is<Float>()) {
+      return Value(0.0f);
+   } else if (t->is<Double>()) {
+      return Value(0.0);
+   } else if (t->is<Char>()) {
+      return Value('\0');
+   } else {
+      return t->create();
+   }
+}
+
 Value Vector::construct(const vector<Value>& args) {
    assert(args.size() >= 0 and args.size() <= 2);
    if (args.size() == 0) {
@@ -273,20 +291,7 @@ Value Vector::construct(const vector<Value>& args) {
    if (args.size() == 2) { // initialization
       init = Reference::deref(args[1]);
    } else {
-      // Valor por defecto para cada tipo controlado por vector!
-      if (_celltype->is<Int>()) {
-         init = Value(0);
-      } else if (_celltype->is<Bool>()) {
-         init = Value(false);
-      } else if (_celltype->is<Float>()) {
-         init = Value(0.0f);
-      } else if (_celltype->is<Double>()) {
-         init = Value(0.0);
-      } else if (_celltype->is<Char>()) {
-         init = Value('\0');
-      } else {
-         init = _celltype->create();
-      }
+      init = default_value_for(_celltype);
    }
    for (int i = 0; i < sz; i++) {
       (*vec)[i] = init.clone();
@@ -425,25 +430,25 @@ void FuncValue::invoke(Interpreter *I, const std::vector<Value>& args) {
 }
 */
 
-bool Vector::get_method(string name, vector<const Method*>& result) const {
+bool Vector::get_method(string name, vector<Value>& result) const {
    auto it = _methods.find(name);
    if (it == _methods.end()) {
       return false;
    }
    while (it != _methods.end() and it->first == name) {
-      result.push_back(&it->second);
+      result.push_back(it->second);
       it++;
    }
    return true;
 }
 
-bool String::get_method(string name, vector<const Method*>& result) const {
+bool String::get_method(string name, vector<Value>& result) const {
    auto it = _methods.find(name);
    if (it == _methods.end()) {
       return false;
    }
    while (it != _methods.end() and it->first == name) {
-      result.push_back(&it->second);
+      result.push_back(it->second);
       it++;
    }
    return true;
@@ -451,92 +456,111 @@ bool String::get_method(string name, vector<const Method*>& result) const {
 
 // Methods ////////////////////////////////////////////////////////////
 
+void Vector::_add_method(Function *type, Func *f) {
+   _methods.insert(make_pair(f->name, type->mkvalue(f)));
+}
+
 Vector::Vector(Type *celltype) : _celltype(celltype) {
+   // TRICK: this copy of 'celltype' is visible to classes defined in this function!
+   static Type *__celltype = _celltype; 
+
    // size
-   Method _size = {
-      new Function(Int::self),
-      [](void *data, const vector<Value>& args) -> Value {
+   struct SizeMethod : public Func {
+      SizeMethod() : Func("size") {}
+      Value call(Value self, const vector<Value>& args) {
          assert(args.empty());
-         vector<Value> *v = static_cast<vector<Value>*>(data);
-         return Value(int(v->size()));
+         vector<Value>& the_vector = self.as<Vector>();
+         return Value(int(the_vector.size()));
       }
    };
-   _methods.insert(make_pair("size", _size));
+   _add_method(new Function(Int::self), 
+               new SizeMethod());
 
    // push_back
-   Method _push_back = {
-      (new Function(0))->add_param(celltype),
-      [](void *data, const vector<Value>& args) -> Value {
-         vector<Value> *v = static_cast<vector<Value>*>(data);
-         v->push_back(args[0]);
+   struct PushBackMethod : public Func {
+      PushBackMethod() : Func("push_back") {}
+      Value call(Value self, const vector<Value>& args) {
+         vector<Value>& v = self.as<Vector>();
+         v.push_back(args[0]);
          return Value::null;
       }
    };
-   _methods.insert(make_pair("push_back", _push_back));
+   _add_method((new Function(Void))->add_param(celltype),
+               new PushBackMethod());
 
    // resize(int)
-   Method _resize1 = {
-      (new Function(0))->add_param(Int::self),
-      [](void *data, const vector<Value>& args) -> Value {
-         vector<Value> *v = static_cast<vector<Value>*>(data);
-         v->resize(args[0].as<Int>());
+   struct Resize1Method : public Func {
+      Resize1Method() : Func("resize") {}
+      Value call(Value self, const vector<Value>& args) {
+         vector<Value>& the_vector = self.as<Vector>();
+         the_vector.resize(args[0].as<Int>(), default_value_for(__celltype));
          return Value::null;
       }
    };
-   _methods.insert(make_pair("resize", _resize1));
+   _add_method((new Function(Void))->add_param(Int::self),
+               new Resize1Method());
 
    // resize(int, T)
-   Method _resize2 = {
-      (new Function(0))->add_params(Int::self, celltype),
-      [](void *data, const vector<Value>& args) -> Value {
-         vector<Value> *v = static_cast<vector<Value>*>(data);
-         v->resize(args[0].as<Int>(), args[1]);
+   struct Resize2Method : public Func {
+      Resize2Method() : Func("resize") {}
+      Value call(Value self, const vector<Value>& args) {
+         vector<Value>& the_vector = self.as<Vector>();
+         the_vector.resize(args[0].as<Int>(), args[1]);
          return Value::null;
       }
    };
-   _methods.insert(make_pair("resize", _resize2));
+   _add_method((new Function(Void))->add_params(Int::self, celltype),
+               new Resize2Method());
    
    // front
-   Method _front = {
-      (new Function(celltype)),
-      [](void *data, const vector<Value>& args) -> Value {
-         vector<Value> *v = static_cast<vector<Value>*>(data);
-         return Reference::mkref(v->front());
+   struct FrontMethod : public Func {
+      FrontMethod() : Func("front") {}
+      Value call(Value self, const vector<Value>& args)  {
+         vector<Value>& the_vector = self.as<Vector>();
+         return Reference::mkref(the_vector.front());
       }
    };
-   _methods.insert(make_pair("front", _front));
+   _add_method(new Function(celltype),
+               new FrontMethod());
 
    // back
-   Method _back = {
-      (new Function(celltype)),
-      [](void *data, const vector<Value>& args) -> Value {
-         vector<Value> *v = static_cast<vector<Value>*>(data);
-         return Reference::mkref(v->back());
+   struct BackMethod : public Func {
+      BackMethod() : Func("back") {}
+      Value call(Value self, const vector<Value>& args) {
+         vector<Value>& the_vector = self.as<Vector>();
+         return Reference::mkref(the_vector.back());
       }
    };
-   _methods.insert(make_pair("back", _back));
+   _add_method(new Function(celltype),
+               new BackMethod());
+}
+
+void String::_add_method(Function *type, Func *f) {
+   _methods.insert(make_pair(f->name, type->mkvalue(f)));
 }
 
 String::String() : BasicType("string") {
    // size
-   Method _size = {
-      new Function(Int::self),
-      [](void *data, const vector<Value>& args) -> Value {
-         string *s = static_cast<string*>(data);
-         return Value(int(s->size()));
+   struct SizeMethod : public Func {
+      SizeMethod() : Func("size") {}
+      Value call(Value self, const vector<Value>& args) {
+         string& the_string = self.as<String>();
+         return Value(int(the_string.size()));
       }
    };
-   _methods.insert(make_pair("size", _size));
+   _add_method(new Function(Int::self),
+               new SizeMethod());
    
    // substr
-   Method _substr = {
-      (new Function(String::self))->add_params(Int::self, Int::self),
-      [](void *data, const vector<Value>& args) -> Value {
-         string *s = static_cast<string*>(data);
-         return Value(string(s->substr(args[0].as<Int>(), args[1].as<Int>())));
+   struct SubstrMethod : public Func {
+      SubstrMethod() : Func("substr") {}
+      Value call(Value self, const vector<Value>& args) {
+         string& the_string = self.as<String>();
+         return Value(the_string.substr(args[0].as<Int>(), args[1].as<Int>()));
       }
    };
-   _methods.insert(make_pair("substr", _substr));
+   _add_method((new Function(String::self))->add_params(Int::self, Int::self),
+               new SubstrMethod());
 }
 
 Type *Vector::instantiate(vector<Type *>& subtypes) const {
@@ -629,22 +653,6 @@ Environment *Environment::pop() {
    return parent;
 }
 
-Value Overloaded::create() {
-   return Value(Overloaded::self, new OverloadedValue());
-}
-
-bool Function::check_args(const std::vector<Value>& args) const {
-   if (args.size() != _param_types.size()) {
-      return false;
-   }
-   for (int i = 0; i < args.size(); i++) {
-      if (!_param_types[i]->accepts(args[i].type())) {
-         return false;
-      }
-   }
-   return true;
-}
-
 Value OverloadedValue::resolve(const std::vector<Value>& args) {
    vector<Value> results;
    for (int i = 0; i < _candidates.size(); i++) {
@@ -659,5 +667,25 @@ Value OverloadedValue::resolve(const std::vector<Value>& args) {
    } else if (results.empty()) {
       _error(_T("No method applicable"));
    }
-   return results[0];
+   return Callable::self->mkvalue(_self, results[0]);
 }
+
+Value Overloaded::mkvalue(Value self, const vector<Value>& candidates) {
+   OverloadedValue *ov = new OverloadedValue();
+   ov->_self = self;
+   ov->_candidates = candidates;
+   return Value(Overloaded::self, ov);
+}
+
+bool Function::check_args(const std::vector<Value>& args) const {
+   if (args.size() != _param_types.size()) {
+      return false;
+   }
+   for (int i = 0; i < args.size(); i++) {
+      if (!_param_types[i]->accepts(args[i].type())) {
+         return false;
+      }
+   }
+   return true;
+}
+

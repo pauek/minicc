@@ -52,7 +52,7 @@ void Stepper::visit_program(Program *x) {
    I.visit_program_find_main();
    status(_T("The program begins."));
    I.pushenv("main");
-   FuncDecl *main = dynamic_cast<UserFunc&>(I._curr.as<Function>()).decl;
+   FuncDecl *main = dynamic_cast<UserFunc*>(I._curr.as<Function>().ptr)->decl;
    I.invoke_func_prepare(main, vector<Value>());
    I._env->set_active(true);
    push(new ProgramVisitState(main));
@@ -315,8 +315,7 @@ Todo Stepper::AssignmentVisitState::step(Stepper *S) {
 
 void Stepper::visit_callexpr(CallExpr *x) {
    I.visit_callexpr_getfunc(x);
-   const FuncValue& fval = I._curr.as<Function>();
-   FuncDecl *fn = dynamic_cast<const UserFunc&>(fval).decl;
+   FuncDecl *fn = dynamic_cast<const UserFunc*>(I._curr.as<Function>().ptr)->decl;
    assert(fn != 0);
    CallExprVisitState *s = new CallExprVisitState(x, fn);
    vector<Value> args(fn->params.size(), Value::null);

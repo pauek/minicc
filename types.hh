@@ -15,11 +15,11 @@ struct TypeError {
    TypeError(std::string _msg) : msg(_msg) {}
 };
 
-typedef Value (*MethodFn)(void *, const std::vector<Value>& args);
-
-struct Method {
-   Type    *type;
-   MethodFn fn;
+struct Func {
+   std::string name;
+   Func(std::string n) : name(n) {}
+   virtual ~Func() {}
+   virtual Value call(Value self, const std::vector<Value>& args) = 0;
 };
 
 class Type {
@@ -48,7 +48,7 @@ public:
    virtual std::string  typestr() const = 0;
    virtual         int  properties() const = 0;
    virtual        bool  get_method(std::string, 
-                                   std::vector<const Method*>& M) const { return 0; }
+                                   std::vector<Value>& M)         const { return false; }
    virtual       Value  create()                                        { assert(false); }
    virtual        bool  accepts(const Type *t)                    const { return this == t; }
    virtual       Value  convert(Value init)                             { assert(false); }
@@ -224,33 +224,27 @@ public:
    }
 };
 
+class Function;
+
 class String : public BasicType<std::string> {
-   std::multimap<std::string, Method> _methods;
+   std::multimap<std::string, Value> _methods;
+   void _add_method(Function *type, Func *f);
 
 public:
    String();
    static String *self;
    std::string to_json(void *data) const;
 
-   bool get_method(std::string name, std::vector<const Method*>& result) const;
+   bool get_method(std::string name, std::vector<Value>& result) const;
 };
 
-class Function;
-class Interpreter;
-
-struct FuncValue {
-   std::string name;
-
-   FuncValue(std::string n) : name(n) {}
-   virtual ~FuncValue() {}
-
-   virtual void invoke(Interpreter *I, const std::vector<Value>& args) { 
-      assert(false);
-   }
-   bool operator==(const FuncValue& f) const { return false; /* make BaseType happy */ }
+struct FuncPtr {
+   Func *ptr;
+   FuncPtr(Func *_ptr) : ptr(_ptr) {}
+   bool operator==(const FuncPtr& p) const { return ptr == p.ptr; }
 };
 
-class Function : public BaseType<FuncValue> {
+class Function : public BaseType<FuncPtr> {
    Type *_return_type;
    std::vector<Type*> _param_types;
 public:
@@ -276,12 +270,47 @@ public:
    int properties() const { return Internal; }
    std::string typestr() const;
 
-   Value mkvalue(FuncValue *fv) { return Value(this, fv); }
+   Value mkvalue(Func *f) { 
+      // FIXME: Too many boxes, I should be able to call
+      // Value(this, f). But this changes Function and I guess
+      // cannot derive from BaseType<T> anymore...
+      return Value(this, new FuncPtr(f)); 
+   }
 
-   typedef FuncValue cpp_type;
+   typedef FuncPtr cpp_type;
+};
+
+struct Binding {
+   Value self;
+   Value func;
+
+   Binding(Value _self, Value _func) 
+      : self(_self), func(_func) {}
+
+   Value call(const std::vector<Value>& args) {
+      return func.as<Function>().ptr->call(self, args);
+   }
+   bool operator==(const Binding& x) const {
+      return self == x.self and func == x.func;
+   }
+};
+
+class Callable : public BaseType<Binding> {
+public:
+              Callable() {}
+         int  properties()  const { return Internal; }
+ std::string  typestr()     const { return "<binding>"; }
+
+   Value  mkvalue(Value self, Value func) {
+      return Value(this, new Binding(self, func));
+   }
+
+   static  Callable *self;
+   typedef Binding cpp_type;
 };
 
 struct OverloadedValue {
+   Value _self;
    std::vector<Value> _candidates;
    
    bool operator==(const OverloadedValue& v) const {
@@ -297,7 +326,7 @@ public:
          int  properties()  const { return Internal; }
  std::string  typestr()     const { return "<unresolved-function>"; }
        Value  convert(Value init) { assert(false); }
-       Value  create();
+       Value  mkvalue(Value self, const std::vector<Value>& candidates);
 
    static  Overloaded *self;
    typedef OverloadedValue cpp_type;
@@ -337,7 +366,8 @@ public:
 
 class Vector : public BaseType<std::vector<Value>> {
    Type *_celltype; // celltype == 0 means it's the template
-   std::multimap<std::string, Method> _methods;
+   std::multimap<std::string, Value> _methods;
+   void _add_method(Function *type, Func *f);
 
 public:
    Vector()        : _celltype(0) {}
@@ -355,11 +385,12 @@ public:
    Value construct(const std::vector<Value>& args);
 
    std::string typestr() const;
-   bool get_method(std::string name, std::vector<const Method*>& result) const;
+   bool get_method(std::string name, std::vector<Value>& result) const;
 
    std::string to_json(void *data) const;
 
    static Vector *self;
+   static Value default_value_for(Type *t);
 };
 
 class VectorValue : public BaseType<std::vector<Value>> {

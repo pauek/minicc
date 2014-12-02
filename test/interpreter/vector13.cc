@@ -4,7 +4,7 @@ using namespace std;
 
 int main() {
    vector<int> X;
-   X.resize(4, 13);
+   X.resize(4);
    X.resize(6, 17);
    cout << X.size() << endl;
    for (int i = 0; i < X.size(); i++) {
@@ -14,4 +14,4 @@ int main() {
 }
 [[out]]--------------------------------------------------
 6
-13 13 13 13 17 17 
+0 0 0 0 17 17 
