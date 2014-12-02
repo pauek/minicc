@@ -249,7 +249,7 @@ class Function : public BaseType<FuncPtr> {
    std::vector<Type*> _param_types;
 public:
    Function(Type *t) : _return_type(t) {}
-   Function *add_param(Type *t)  { _param_types.push_back(t); return this; }
+   Function *add_params(Type *t)  { _param_types.push_back(t); return this; }
    Function *add_params(Type *t1, Type *t2)  { 
       _param_types.push_back(t1);
       _param_types.push_back(t2);

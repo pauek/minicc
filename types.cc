@@ -494,7 +494,7 @@ Vector::Vector(Type *celltype) : _celltype(celltype) {
          return Value::null;
       }
    };
-   _add_method((new Function(Void))->add_param(celltype),
+   _add_method((new Function(Void))->add_params(celltype),
                new PushBackMethod());
 
    // resize(int)
@@ -507,7 +507,7 @@ Vector::Vector(Type *celltype) : _celltype(celltype) {
          return Value::null;
       }
    };
-   _add_method((new Function(Void))->add_param(Int::self),
+   _add_method((new Function(Void))->add_params(Int::self),
                new Resize1Method(celltype));
 
    // resize(int, T)
@@ -564,25 +564,91 @@ void String::_add_method(Function *type, Func *f) {
 String::String() : BasicType("string") {
    // size
    struct SizeMethod : public Func {
-      SizeMethod() : Func("size") {}
+      SizeMethod(string name) : Func(name) {}
       Value call(Value self, const vector<Value>& args) {
          string& the_string = self.as<String>();
          return Value(int(the_string.size()));
       }
    };
-   _add_method(new Function(Int::self),
-               new SizeMethod());
+   _add_method(new Function(Int::self), new SizeMethod("size"));
+   _add_method(new Function(Int::self), new SizeMethod("length"));
    
-   // substr
-   struct SubstrMethod : public Func {
-      SubstrMethod() : Func("substr") {}
+   // substr(from, size)
+   struct Substr1Method : public Func {
+      Substr1Method() : Func("substr") {}
       Value call(Value self, const vector<Value>& args) {
          string& the_string = self.as<String>();
          return Value(the_string.substr(args[0].as<Int>(), args[1].as<Int>()));
       }
    };
-   _add_method((new Function(String::self))->add_params(Int::self, Int::self),
-               new SubstrMethod());
+   _add_method((new Function(this))->add_params(Int::self, Int::self),
+               new Substr1Method());
+
+   // substr(from)
+   struct Substr2Method : public Func {
+      Substr2Method() : Func("substr") {}
+      Value call(Value self, const vector<Value>& args) {
+         string& the_string = self.as<String>();
+         return Value(the_string.substr(args[0].as<Int>()));
+      }
+   };
+   _add_method((new Function(this))->add_params(Int::self),
+               new Substr2Method());
+   
+   // find(str)
+   struct FindMethod1 : public Func {
+      FindMethod1() : Func("find") {}
+      Value call(Value self, const vector<Value>& args) {
+         string& the_string = self.as<String>();
+         return Value(int(the_string.find(args[0].as<String>())));
+      }
+   };
+   _add_method((new Function(Int::self))->add_params(this),
+               new FindMethod1());
+
+   // find(str, pos)
+   struct FindMethod2 : public Func {
+      FindMethod2() : Func("find") {}
+      Value call(Value self, const vector<Value>& args) {
+         string& the_string = self.as<String>();
+         return Value(int(the_string.find(args[0].as<String>(), args[1].as<Int>())));
+      }
+   };
+   _add_method((new Function(Int::self))->add_params(this, Int::self),
+               new FindMethod2());
+
+   // insert(pos, str)
+   struct InsertMethod : public Func {
+      InsertMethod() : Func("insert") {}
+      Value call(Value self, const vector<Value>& args) {
+         string& the_string = self.as<String>();
+         return Value(the_string.insert(args[0].as<Int>(), args[1].as<String>()));
+      }
+   };
+   _add_method((new Function(this))->add_params(Int::self, this),
+               new InsertMethod());
+
+   // erase(from)
+   struct Erase1Method : public Func {
+      Erase1Method() : Func("erase") {}
+      Value call(Value self, const vector<Value>& args) {
+         string& the_string = self.as<String>();
+         return Value(the_string.erase(args[0].as<Int>()));
+      }
+   };
+   _add_method((new Function(this))->add_params(Int::self),
+               new Erase1Method());
+
+   // erase(from, size)
+   struct Erase2Method : public Func {
+      Erase2Method() : Func("erase") {}
+      Value call(Value self, const vector<Value>& args) {
+         string& the_string = self.as<String>();
+         return Value(the_string.erase(args[0].as<Int>(), args[1].as<Int>()));
+      }
+   };
+   _add_method((new Function(this))->add_params(Int::self, Int::self),
+               new Erase2Method());
 }
 
 Type *Vector::instantiate(vector<Type *>& subtypes) const {

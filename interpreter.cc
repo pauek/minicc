@@ -189,7 +189,7 @@ void Interpreter::visit_funcdecl(FuncDecl *x) {
    for (auto p : x->params) {
       Type *param_type = get_type(p->typespec);
       assert(param_type != 0);
-      functype->add_param(param_type);
+      functype->add_params(param_type);
    }
    Func *uf = new UserFunc(this, funcname, x);
    setenv(funcname, functype->mkvalue(uf), hidden);
