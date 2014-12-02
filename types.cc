@@ -531,6 +531,18 @@ Vector::Vector(Type *celltype) : _celltype(celltype) {
    };
    _add_method(new Function(celltype),
                new BackMethod());
+
+   // clear
+   struct ClearMethod : public Func {
+      ClearMethod() : Func("clear") {}
+      Value call(Value self, const vector<Value>& args) {
+         vector<Value>& the_vector = self.as<Vector>();
+         the_vector.clear();
+         return Value::null;
+      }
+   };
+   _add_method(new Function(Void),
+               new ClearMethod());
 }
 
 void String::_add_method(Function *type, Func *f) {
