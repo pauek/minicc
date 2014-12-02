@@ -5,6 +5,5 @@
 - Borrar el AST correctamente (quizás no haga falta, el AST está presente todo el rato).
 - Testear a fondo el stepper.
 - Empezar el Semantic Analyzer (-> mensajes de error)
-- Pintar flechas con jsPlumb.
 - Pintar matrices en 2D.
 - Pensar más Entrada/Salida.
