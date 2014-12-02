@@ -1,6 +1,5 @@
 - Invocar los constructores de cada clase en ObjDecl.
 - Implementar tablas de más de una dimensión.
-- Completar métodos de vector<X>.
 - Completar métodos de string.
 - Implementar vector<X>::iterator.
 
