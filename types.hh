@@ -233,6 +233,7 @@ public:
    String();
    static String *self;
    std::string to_json(void *data) const;
+   Value create() { return Value(this, (void*)(new std::string())); }
 
    bool get_method(std::string name, std::vector<Value>& result) const;
 };

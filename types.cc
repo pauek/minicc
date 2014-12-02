@@ -597,6 +597,22 @@ void String::_add_method(Function *type, Func *f) {
 }
 
 String::String() : BasicType("string") {
+   // constructor(size, char)
+   struct StringConstructor1 : public Func {
+      StringConstructor1() : Func("string") {}
+      Value call(Value self, const vector<Value>& args) {
+         string& the_string = self.as<String>();
+         const int sz = args[0].as<Int>();
+         the_string = "";
+         for (int i = 0; i < sz; i++) {
+            the_string += args[1].as<Char>();
+         }
+         return Value::null;
+      }
+   };
+   _add_method((new Function(Void))->add_params(Int::self, Char::self), 
+               new StringConstructor1());
+   
    // size
    struct SizeMethod : public Func {
       SizeMethod(string name) : Func(name) {}
