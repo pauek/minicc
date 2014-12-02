@@ -590,10 +590,7 @@ void Interpreter::visit_objdecl(ObjDecl *x) {
    if (type != 0) {
       // TODO: Convertir la construcción en una llamada al método constructor
       vector<Value> args;
-      for (int i = 0; i < x->args.size(); i++) {
-         x->args[i]->accept(this);
-         args.push_back(_curr);
-      }
+      eval_arguments(x->args, args);
       setenv(x->name, type->construct(args));
       return;
    }

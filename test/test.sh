@@ -38,6 +38,8 @@ function test_dir() {
    echo
 }
 
+make -C ..
+
 DIRS=$*
 if [ -z "$DIRS" ]; then
     DIRS=$(find -mindepth 1 -maxdepth 1 -type d | sort)
