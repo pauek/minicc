@@ -669,25 +669,8 @@ void Interpreter::visit_callexpr_getfunc(CallExpr *x) {
       _error(_T("Calling something other than a function."));
    }
 }
-void Interpreter::visit_callexpr(CallExpr *x) {
-   visit_callexpr_getfunc(x);
-   Value func = _curr;
 
-   // Eval arguments
-   vector<Value> args;
-   for (int i = 0; i < x->args.size(); i++) {
-      x->args[i]->accept(this);
-      args.push_back(_curr);
-   }
-
-   // Resolve
-   if (func.is<Overloaded>()) {
-      func = func.as<Overloaded>().resolve(args);
-      assert(func.is<Callable>());
-   }
-
-   const Function *func_type;
-   func_type = func.as<Callable>().func.type()->as<Function>();
+void Interpreter::check_arguments(const Function *func_type, const vector<Value>& args) {
    for (int i = 0; i < args.size(); i++) {
       string t1 = func_type->param(i)->typestr();
       Value arg_i = args[i];
@@ -702,10 +685,16 @@ void Interpreter::visit_callexpr(CallExpr *x) {
                    "(%s vs %s)", i+1, t1.c_str(), t2.c_str()));
       }
    }
-   
-   // Invoke
-   Binding& fn = func.as<Callable>();
-   _ret = fn.call(args);
+}
+
+void Interpreter::eval_arguments(const std::vector<Expr*>& exprs, std::vector<Value>& args) {
+   for (int i = 0; i < exprs.size(); i++) {
+      exprs[i]->accept(this);
+      args.push_back(_curr);
+   }
+}
+
+void Interpreter::check_result(Binding& fn, const Function *func_type) {
    if (_ret == Value::null && !func_type->is_void()) {
       string name = fn.func.as<Function>().ptr->name;
       Type *return_type = func_type->return_type();
@@ -713,6 +702,22 @@ void Interpreter::visit_callexpr(CallExpr *x) {
                 name.c_str(),
                 return_type->typestr().c_str()));
    }
+}
+
+void Interpreter::visit_callexpr(CallExpr *x) {
+   visit_callexpr_getfunc(x);
+   Value func = _curr;
+   vector<Value> args;
+   eval_arguments(x->args, args);
+   if (func.is<Overloaded>()) {
+      func = func.as<Overloaded>().resolve(args);
+      assert(func.is<Callable>());
+   }
+   Binding& fn = func.as<Callable>();
+   const Function *func_type = fn.func.type()->as<Function>();
+   check_arguments(func_type, args);
+   _ret = fn.call(args); // <-- Invoke!
+   check_result(fn, func_type);
    _curr = _ret;
 }
 

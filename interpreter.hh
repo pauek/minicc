@@ -70,6 +70,10 @@ std::map<std::string, Environment*> _namespaces;
    Type *get_type(TypeSpec *spec);
    void  register_type(std::string name, Type *);
 
+   void eval_arguments(const std::vector<Expr*>& exprs, std::vector<Value>& args);
+   void check_arguments(const Function *func_type, const std::vector<Value>& args);
+   void check_result(Binding& fn, const Function *func_type);
+
 public:
    Interpreter() : _env(0) { _init(); }
    Interpreter(std::istream *i, std::ostream *o)
