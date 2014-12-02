@@ -832,3 +832,20 @@ void Interpreter::visit_negexpr(NegExpr *x) {
    }
    _curr.as<Bool>() = !_curr.as<Bool>();
 }
+
+void Interpreter::visit_typedefdecl(TypedefDecl *x) {
+   string name = x->decl->name;
+   Type *type = get_type(x->decl->typespec);
+   if (x->decl->is<VarDecl>()) {
+      const VarDecl *var = x->decl->as<VarDecl>();
+      register_type(var->name, type);
+   } else if (x->decl->is<ArrayDecl>()) {
+      const ArrayDecl *array = x->decl->as<ArrayDecl>();
+      array->size->accept(this);
+      if (!_curr.is<Int>()) {
+         _error(_T("El tamaño de un array debería ser un entero"));
+      }
+      const int size = _curr.as<Int>();
+      register_type(array->name, new Array(type, size));
+   }
+}

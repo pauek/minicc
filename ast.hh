@@ -33,6 +33,8 @@ struct AstNode {
 
    template<typename X>
                   bool is()           const { return dynamic_cast<const X*>(this) != 0; }
+   template<typename X>
+              const X *as()           const { return dynamic_cast<const X*>(this); }
 };
 
 struct Error {
@@ -182,7 +184,7 @@ struct ArrayDecl : public Decl {
    Kind kind;
    ArrayDecl() : size(0), kind(Normal) {}
    void accept(AstVisitor *v);
-   std::string type_str() const;
+   std::string typestr() const;
 };
 
 struct ObjDecl : public Decl {
@@ -435,7 +437,7 @@ struct StructDecl : public AstNode {
    void accept(AstVisitor *v);
    bool has_errors() const;
    std::string struct_name() const { return id->name; }
-   std::string type_str() const;
+   std::string typestr() const;
    int num_fields() const;
 };
 

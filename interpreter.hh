@@ -101,6 +101,7 @@ public:
    void visit_increxpr(IncrExpr *x);
    void visit_negexpr(NegExpr *x);
    void visit_literal(Literal *x);
+   void visit_typedefdecl(TypedefDecl *x);
 
    friend class UserFunc;
 };

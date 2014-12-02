@@ -318,11 +318,11 @@ string TypeSpec::typestr() const {
    return _id;
 }
 
-string ArrayDecl::type_str() const { 
+string ArrayDecl::typestr() const { 
    return typespec->typestr() + "[]"; 
 }
 
-string StructDecl::type_str() const {
+string StructDecl::typestr() const {
    ostringstream S;
    S << "struct{";
    for (int i = 0; i < decls.size(); i++) {
