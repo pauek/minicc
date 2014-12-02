@@ -130,8 +130,7 @@ void Interpreter::visit_program_find_main() {
 void Interpreter::visit_program(Program* x) {
    visit_program_prepare(x);
    visit_program_find_main();
-   Binding& main = _curr.as<Callable>();
-   main.call(vector<Value>());
+   _curr.as<Callable>().call(vector<Value>());
 }
 
 void Interpreter::visit_comment(CommentSeq* cn) {}
