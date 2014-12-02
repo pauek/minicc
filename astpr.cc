@@ -210,23 +210,23 @@ void AstPrinter::visit_vardecl(VarDecl *x) {
       out() << "*";
    }
    out() << '"' << x->name << '"';
-   /*
-   if (x->init) {
-      out() << " = ";
-      x->init->accept(this);
-   }
-   */
 }
 
 void AstPrinter::visit_arraydecl(ArrayDecl *x) {
-   out() << '"' << x->name << "\"(Size = ";
-   x->size->accept(this);
-   /*
-   if (x->init) {
-      out() << ", Init = ";
-      x->init->accept(this);
+   out() << '"' << x->name << "\"(";
+   if (x->sizes.size() == 1) {
+      out() << "Size = ";
+      x->sizes[0]->accept(this);
+   } else {
+      out() << "Sizes = {";
+      for (int i = 0; i < x->sizes.size(); i++) {
+         if (i > 0) {
+            out() << ", ";
+         }
+         x->sizes[i]->accept(this);
+      }
+      out() << "}";
    }
-   */
    out() << ")";
 }
 

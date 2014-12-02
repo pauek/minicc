@@ -319,7 +319,11 @@ string TypeSpec::typestr() const {
 }
 
 string ArrayDecl::typestr() const { 
-   return typespec->typestr() + "[]"; 
+   string brackets;
+   for (int i = 0; i < sizes.size(); i++) {
+      brackets += "[]";
+   }
+   return typespec->typestr() + brackets; 
 }
 
 string StructDecl::typestr() const {

@@ -204,7 +204,7 @@ void Interpreter::visit_structdecl(StructDecl *x) {
       assert(type != 0);
       for (DeclStmt::Item& item : decl.items) {
          if (item.decl->is<ArrayDecl>()) {
-            Expr *size_expr = dynamic_cast<ArrayDecl*>(item.decl)->size;
+            Expr *size_expr = dynamic_cast<ArrayDecl*>(item.decl)->sizes[0];
             Literal *size_lit = dynamic_cast<Literal*>(size_expr);
             assert(size_lit != 0);
             assert(size_lit->type == Literal::Int);
@@ -561,7 +561,7 @@ void Interpreter::visit_vardecl(VarDecl *x) {
 
 void Interpreter::visit_arraydecl(ArrayDecl *x) {
    Value init = _curr;
-   x->size->accept(this);
+   x->sizes[0]->accept(this);
    if (!_curr.is<Int>()) {
       _error(_T("El tamaño de una tabla debe ser un entero"));
    }
@@ -841,7 +841,7 @@ void Interpreter::visit_typedefdecl(TypedefDecl *x) {
       register_type(var->name, type);
    } else if (x->decl->is<ArrayDecl>()) {
       const ArrayDecl *array = x->decl->as<ArrayDecl>();
-      array->size->accept(this);
+      array->sizes[0]->accept(this);
       if (!_curr.is<Int>()) {
          _error(_T("El tamaño de un array debería ser un entero"));
       }

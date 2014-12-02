@@ -336,9 +336,11 @@ void PrettyPrinter::visit_exprlist(ExprList *x) {
 void PrettyPrinter::visit_arraydecl(ArrayDecl *x) {
    CommentPrinter cp(x, this);
    out() << x->name << cp._cmt_();
-   out() << "[" << cp.cmt_();
-   x->size->accept(this);
-   out() << "]" << cp._cmt();
+   for (int i = 0; i < x->sizes.size(); i++) {
+      out() << "[" << cp.cmt_();
+      x->sizes[i]->accept(this);
+      out() << "]" << cp._cmt();
+   }
 }
 
 void PrettyPrinter::visit_objdecl(ObjDecl *x) {

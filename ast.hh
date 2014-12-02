@@ -180,9 +180,9 @@ struct VarDecl : public Decl {
 };
 
 struct ArrayDecl : public Decl {
-   Expr *size;
+   std::vector<Expr*> sizes;
    Kind kind;
-   ArrayDecl() : size(0), kind(Normal) {}
+   ArrayDecl() : kind(Normal) {}
    void accept(AstVisitor *v);
    std::string typestr() const;
 };

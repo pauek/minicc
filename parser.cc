@@ -852,13 +852,15 @@ Decl *Parser::_parse_arraydecl(string name, Decl::Kind kind, CommentSeq *comm) {
    decl->comments.push_back(comm);
    decl->name = name;
    decl->kind = kind;
-   _in.consume("[");
-   _skip(decl);
-   decl->size = parse_expr(Expr::Conditional);
-   if (!_in.expect("]")) {
-      error(decl, _in.pos().str() + ": " + _T("Expected '%s' here.", "]"));
+   while (_in.curr() == '[') {
+      _in.consume("[");
+      _skip(decl);
+      decl->sizes.push_back(parse_expr(Expr::Conditional));
+      if (!_in.expect("]")) {
+         error(decl, _in.pos().str() + ": " + _T("Expected '%s' here.", "]"));
+      }
+      _skip(decl);
    }
-   _skip(decl);
    return decl;
 }
 
