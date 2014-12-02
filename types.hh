@@ -265,7 +265,7 @@ public:
    Type *param(int i)      const { return _param_types[i]; }
    Type *return_type()     const { return _return_type; }
    bool is_void()          const { return _return_type == 0; }
-   bool check_args(const std::vector<Value>& args) const;
+   bool check_signature(const std::vector<Value>& args) const;
 
    int properties() const { return Internal; }
    std::string typestr() const;

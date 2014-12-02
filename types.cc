@@ -656,7 +656,7 @@ Value OverloadedValue::resolve(const std::vector<Value>& args) {
    for (int i = 0; i < _candidates.size(); i++) {
       Function *ftype = _candidates[i].type()->as<Function>();
       assert(ftype != 0);
-      if (ftype->check_args(args)) {
+      if (ftype->check_signature(args)) {
          results.push_back(_candidates[i]);
       }
    }
@@ -675,7 +675,7 @@ Value Overloaded::mkvalue(Value self, const vector<Value>& candidates) {
    return Value(Overloaded::self, ov);
 }
 
-bool Function::check_args(const std::vector<Value>& args) const {
+bool Function::check_signature(const std::vector<Value>& args) const {
    if (args.size() != _param_types.size()) {
       return false;
    }
