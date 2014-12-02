@@ -29,20 +29,6 @@ string String::to_json(void *data) const {
    return string("\"") + *(string*)data + "\"";
 }
 
-string Array::to_json(void *data) const {
-   ostringstream json;
-   json << "[";
-   vector<Value> *v = static_cast<vector<Value>*>(data);
-   for (int i = 0; i < v->size(); i++) {
-      if (i > 0) {
-         json << ",";
-      }
-      json << (*v)[i].to_json();
-   }
-   json << "]";
-   return json.str();
-}
-
 Value Cout(cout), Cerr(cerr);
 Value Cin(cin);
 Value Endl("\n");
@@ -311,6 +297,35 @@ string Vector::to_json(void *data) const {
    }
    o << "]";
    return o.str();
+}
+
+Type *Array::_mkarray(Type *celltype,
+                     vector<int>::const_iterator curr,
+                     const vector<int>& sizes) {
+   if (curr == sizes.end()) {
+      return celltype;
+   } else {
+      int sz = *curr++;
+      return new Array(_mkarray(celltype, curr, sizes), sz);
+   }
+}
+
+Type *Array::mkarray(Type *celltype, const vector<int>& sizes) {
+   return _mkarray(celltype, sizes.begin(), sizes);
+}
+
+string Array::to_json(void *data) const {
+   ostringstream json;
+   json << "[";
+   vector<Value> *v = static_cast<vector<Value>*>(data);
+   for (int i = 0; i < v->size(); i++) {
+      if (i > 0) {
+         json << ",";
+      }
+      json << (*v)[i].to_json();
+   }
+   json << "]";
+   return json.str();
 }
 
 Value Array::create() {

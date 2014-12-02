@@ -561,20 +561,24 @@ void Interpreter::visit_vardecl(VarDecl *x) {
 
 void Interpreter::visit_arraydecl(ArrayDecl *x) {
    Value init = _curr;
-   x->sizes[0]->accept(this);
-   if (!_curr.is<Int>()) {
-      _error(_T("El tamaño de una tabla debe ser un entero"));
+   vector<int> sizes;
+   for (int i = 0; i < x->sizes.size(); i++) {
+      x->sizes[i]->accept(this);
+      if (!_curr.is<Int>()) {
+         _error(_T("El tamaño de una tabla debe ser un entero"));
+      }
+      if (_curr.as<Int>() <= 0) {
+         _error(_T("El tamaño de una tabla debe ser un entero positivo"));
+      }
+      const int sz = _curr.as<Int>();
+      sizes.push_back(sz);
    }
-   if (_curr.as<Int>() <= 0) {
-      _error(_T("El tamaño de una tabla debe ser un entero positivo"));
-   }
-   const int sz = _curr.as<Int>();
    Type *celltype = get_type(x->typespec);
    if (celltype == 0) {
       _error(_T("El tipo '%s' no existe", x->typespec->typestr().c_str()));
    }
    // TODO: don't create new Array type every time?
-   Type *arraytype = new Array(celltype, sz);
+   Type *arraytype = Array::mkarray(celltype, sizes);
    setenv(x->name, (init.is_null() 
                     ? arraytype->create()
                     : arraytype->convert(init)));

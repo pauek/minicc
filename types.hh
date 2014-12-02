@@ -352,11 +352,15 @@ public:
 };
 
 class Array : public BaseType<std::vector<Value>> {
-   Type *_celltype;
-   int _sz;
+          Type *_celltype;
+           int  _sz;
 
+   static Type *_mkarray(Type *celltype,
+                         std::vector<int>::const_iterator curr,
+                         const std::vector<int>& sizes);
 public:
                 Array(Type *celltype, int sz) : _celltype(celltype), _sz(sz) {}
+   static Type *mkarray(Type *celltype, const std::vector<int>& sizes); // use this as constructor for 2D and up...
            int  properties() const { return Basic; }
    std::string  typestr()    const { return _celltype->typestr() + "[]"; }
          Value  create();
