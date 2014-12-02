@@ -122,7 +122,7 @@ void Interpreter::visit_program_find_main() {
    if (!getenv("main", _curr)) {
       _error(_T("The '%s' function does not exist.", "main"));
    }
-   if (!_curr.is<Function>()) {
+   if (!_curr.is<Callable>()) {
       _error(_T("'main' is not a function."));
    }
 }
@@ -130,9 +130,8 @@ void Interpreter::visit_program_find_main() {
 void Interpreter::visit_program(Program* x) {
    visit_program_prepare(x);
    visit_program_find_main();
-   Func *main = _curr.as<Function>().ptr;
-   assert(main != 0);
-   main->call(Value::null, vector<Value>());
+   Binding& main = _curr.as<Callable>();
+   main.call(vector<Value>());
 }
 
 void Interpreter::visit_comment(CommentSeq* cn) {}
@@ -178,7 +177,9 @@ void Interpreter::visit_include(Include* x) {
    else if (x->filename == "algorithm") {
       Function *max_func_type = new Function(Int::self);
       max_func_type->add_params(Int::self, Int::self);
-      std->set("max", max_func_type->mkvalue(&_max));
+      Value func     = max_func_type->mkvalue(&_max);
+      Value callable = Callable::self->mkvalue(Value::null, func);
+      std->set("max", callable);
    }
 }
 
@@ -191,8 +192,9 @@ void Interpreter::visit_funcdecl(FuncDecl *x) {
       assert(param_type != 0);
       functype->add_params(param_type);
    }
-   Func *uf = new UserFunc(this, funcname, x);
-   setenv(funcname, functype->mkvalue(uf), hidden);
+   Value func = functype->mkvalue(new UserFunc(this, funcname, x));
+   Value callable = Callable::self->mkvalue(Value::null, func); // bind with 'null'
+   setenv(funcname, callable, hidden);
 }
 
 void Interpreter::visit_structdecl(StructDecl *x) {
@@ -664,7 +666,7 @@ void Interpreter::invoke_user_func(FuncDecl *decl, const vector<Value>& args) {
 void Interpreter::visit_callexpr_getfunc(CallExpr *x) {
    x->func->accept(this);
    _curr = Reference::deref(_curr);
-   if (!_curr.is<Function>() and !_curr.is<Overloaded>()) {
+   if (!_curr.is<Callable>() and !_curr.is<Overloaded>()) {
       _error(_T("Calling something other than a function."));
    }
 }
@@ -679,17 +681,14 @@ void Interpreter::visit_callexpr(CallExpr *x) {
       args.push_back(_curr);
    }
 
+   // Resolve
    if (func.is<Overloaded>()) {
       func = func.as<Overloaded>().resolve(args);
       assert(func.is<Callable>());
    }
 
    const Function *func_type;
-   if (func.is<Function>()) {
-      func_type = func.type()->as<Function>();
-   } else if (func.is<Callable>()) {
-      func_type = func.as<Callable>().func.type()->as<Function>();
-   }
+   func_type = func.as<Callable>().func.type()->as<Function>();
    for (int i = 0; i < args.size(); i++) {
       string t1 = func_type->param(i)->typestr();
       Value arg_i = args[i];
@@ -706,17 +705,10 @@ void Interpreter::visit_callexpr(CallExpr *x) {
    }
    
    // Invoke
-   string name;
-   if (func.is<Callable>()) {
-      Binding& fn = func.as<Callable>();
-      _ret = fn.call(args);
-      name = fn.func.as<Function>().ptr->name;
-   } else if (func.is<Function>()) {
-      FuncPtr& ptr = func.as<Function>();
-      _ret = ptr.ptr->call(Value::null, args);
-      name = ptr.ptr->name;
-   }
+   Binding& fn = func.as<Callable>();
+   _ret = fn.call(args);
    if (_ret == Value::null && !func_type->is_void()) {
+      string name = fn.func.as<Function>().ptr->name;
       Type *return_type = func_type->return_type();
       _error(_T("La función '%s' debería devolver un '%s'", 
                 name.c_str(),
