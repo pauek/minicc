@@ -82,7 +82,13 @@ public:
 
 template<typename T>
 class BaseType : public Type {
+   std::string _name;
 public:
+   BaseType(std::string name) : _name(name) {}
+
+   std::string name()    const { return _name; }
+   std::string typestr() const { return _name; }
+
    typedef T cpp_type;
    static T& cast(void *data) { 
       return *static_cast<T*>(data); 
@@ -110,7 +116,7 @@ public:
       return new T(*static_cast<T*>(data));
    }
    Value create() { 
-      return Value(this, 0); 
+      return Value(this, new T()); 
    }
    Value convert(Value init) {
       if (init.has_type(this)) {
@@ -123,8 +129,6 @@ public:
 
 template<typename T>
 class BasicType : public BaseType<T> {
-   std::string _name;
-
    std::string to_json(void *data) const {
       if (data == 0) {
          return "\"?\"";
@@ -135,10 +139,8 @@ class BasicType : public BaseType<T> {
    }
 
 public:
-   BasicType(std::string name) : _name(name) {}
+   BasicType(std::string name) : BaseType<T>(name) {}
    int properties()      const { return Type::Basic; }
-   std::string name()    const { return _name; }
-   std::string typestr() const { return _name; }
 
    void *read(std::istream& i, void *data) const {
       if (data == 0) {
@@ -225,21 +227,31 @@ public:
 
 class Function;
 
-class String : public BasicType<std::string> {
+template<
+   template<typename> class Base, 
+   typename T
+>
+class Class : public Base<T> {
    std::multimap<std::string, Value> _methods;
+protected:
    void _add_method(Function *type, Func *f);
+public:
+   Class(std::string name) : Base<T>(name) {}
+   bool get_method(std::string name, std::vector<Value>& result) const;
+};
 
+
+class String : public Class<BasicType, std::string> {
 public:
    String();
    static String *self;
    std::string to_json(void *data) const;
-   Value create() { return Value(this, (void*)(new std::string())); }
-
-   bool get_method(std::string name, std::vector<Value>& result) const;
+   Value create() { return Value((Type*)this, (void*)(new std::string())); }
 };
 
 struct FuncPtr {
    Func *ptr;
+   FuncPtr() : ptr(0) {}
    FuncPtr(Func *_ptr) : ptr(_ptr) {}
    bool operator==(const FuncPtr& p) const { return ptr == p.ptr; }
 };
@@ -248,7 +260,7 @@ class Function : public BaseType<FuncPtr> {
    Type *_return_type;
    std::vector<Type*> _param_types;
 public:
-   Function(Type *t) : _return_type(t) {}
+   Function(Type *t) : BaseType<FuncPtr>("<function>"), _return_type(t) {}
    Function *add_params(Type *t)  { _param_types.push_back(t); return this; }
    Function *add_params(Type *t1, Type *t2)  { 
       _param_types.push_back(t1);
@@ -269,7 +281,6 @@ public:
 
    int properties() const { return Internal; }
    std::string typestr() const;
-   std::string name() const { return "<function>"; }
 
    Value mkvalue(Func *f) { 
       // FIXME: Too many boxes, I should be able to call
@@ -285,6 +296,7 @@ struct Binding {
    Value self;
    Value func;
 
+   Binding() {}
    Binding(Value _self, Value _func) 
       : self(_self), func(_func) {}
 
@@ -298,10 +310,8 @@ struct Binding {
 
 class Callable : public BaseType<Binding> {
 public:
-              Callable() {}
+              Callable() : BaseType<Binding>("<callable>") {}
          int  properties() const { return Internal; }
- std::string  typestr()    const { return "<Callable>"; }
- std::string  name()       const { return "<Callable>"; }
 
    Value  mkvalue(Value self, Value func) {
       return Value(this, new Binding(self, func));
@@ -324,10 +334,8 @@ struct OverloadedValue {
 
 class Overloaded : public BaseType<OverloadedValue> {
 public:
-              Overloaded() {}
+              Overloaded() : BaseType<OverloadedValue>("<unresolved-function>") {}
          int  properties()  const { return Internal; }
- std::string  typestr()     const { return "<unresolved-function>"; }
- std::string  name()        const { return "<unresolved-function>"; }
        Value  convert(Value init) { assert(false); }
        Value  mkvalue(Value self, const std::vector<Value>& candidates);
 
@@ -336,19 +344,15 @@ public:
 };
 
 class Struct : public BaseType<SimpleTable<Value>> {
-   std::string        _name;
    SimpleTable<Type*> _fields;
 public:
-   Struct(std::string name) : _name(name) {}
+   Struct(std::string name) : BaseType<SimpleTable<Value>>(name) {}
    void add_field(std::string field_name, Type *t) { _fields.set(field_name, t); }
 
    int   properties() const { return Internal; }
    Value create();
    Value convert(Value init);
    void *clone(void *data) const;
-
-   std::string typestr() const { return _name; }
-   std::string name()    const { return _name; }
 
    std::string to_json(void *data) const;
 
@@ -363,23 +367,21 @@ class Array : public BaseType<std::vector<Value>> {
                          std::vector<int>::const_iterator curr,
                          const std::vector<int>& sizes);
 public:
-                Array(Type *celltype, int sz) : _celltype(celltype), _sz(sz) {}
+                Array(Type *celltype, int sz) 
+                   : BaseType<std::vector<Value>>("<array>"), _celltype(celltype), _sz(sz) {}
    static Type *mkarray(Type *celltype, const std::vector<int>& sizes); // use this as constructor for 2D and up...
            int  properties() const { return Basic; }
    std::string  typestr()    const { return _celltype->typestr() + "[]"; }
-   std::string  name()       const { return "<array>"; }
          Value  create();
          Value  convert(Value init);
    std::string  to_json(void *) const;
 };
 
-class Vector : public BaseType<std::vector<Value>> {
+class Vector : public Class<BaseType, std::vector<Value>> {
    Type *_celltype; // celltype == 0 means it's the template
-   std::multimap<std::string, Value> _methods;
-   void _add_method(Function *type, Func *f);
 
 public:
-   Vector()        : _celltype(0) {}
+   Vector()        : Class("vector"), _celltype(0) {}
    Vector(Type *t);
 
    Type *instantiate(std::vector<Type*>& args) const;
@@ -393,9 +395,6 @@ public:
    Value convert(Value init);
 
    std::string typestr() const;
-   std::string name()    const { return "vector"; }
-   bool get_method(std::string name, std::vector<Value>& result) const;
-
    std::string to_json(void *data) const;
 
    static Vector *self;
@@ -404,13 +403,12 @@ public:
 
 class VectorValue : public BaseType<std::vector<Value>> {
 public:
+   VectorValue() : BaseType<std::vector<Value>>("<vector-value>") {}
    typedef std::vector<Value> cpp_type;
    int   properties() const { return Internal; }
    Value create()           { return Value(this, new std::vector<Value>()); }
    static Value make() { return self->create(); }
    static VectorValue *self;
-   std::string typestr() const { return "vector<?>"; }
-   std::string name()    const { return "vector"; }
 };
 
 class Ostream : public Type {

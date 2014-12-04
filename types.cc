@@ -366,7 +366,7 @@ Value Struct::convert(Value init) {
    if (init.is<VectorValue>()) {
       vector<Value>& values = init.as<VectorValue>();
       if (values.size() > _fields.size()) {
-         _error("Demasiados valores al inicializar la tupla de tipo '" + _name + "'");
+         _error("Demasiados valores al inicializar la tupla de tipo '" + name() + "'");
       }
       SimpleTable<Value> *tab = new SimpleTable<Value>();
       int k = 0;
@@ -425,13 +425,8 @@ string Function::typestr() const {
    return o.str();
 }
 
-/*
-void FuncValue::invoke(Interpreter *I, const std::vector<Value>& args) {
-   ptr->invoke(I, args); 
-}
-*/
-
-bool Vector::get_method(string name, vector<Value>& result) const {
+template<template<typename> class Base, typename T>
+bool Class<Base, T>::get_method(string name, vector<Value>& result) const {
    auto it = _methods.find(name);
    if (it == _methods.end()) {
       return false;
@@ -443,25 +438,16 @@ bool Vector::get_method(string name, vector<Value>& result) const {
    return true;
 }
 
-bool String::get_method(string name, vector<Value>& result) const {
-   auto it = _methods.find(name);
-   if (it == _methods.end()) {
-      return false;
-   }
-   while (it != _methods.end() and it->first == name) {
-      result.push_back(it->second);
-      it++;
-   }
-   return true;
+template<template<typename> class Base, typename T>
+void Class<Base, T>::_add_method(Function *type, Func *f) {
+   _methods.insert(make_pair(f->name, type->mkvalue(f)));
 }
 
 // Methods ////////////////////////////////////////////////////////////
 
-void Vector::_add_method(Function *type, Func *f) {
-   _methods.insert(make_pair(f->name, type->mkvalue(f)));
-}
-
-Vector::Vector(Type *celltype) : _celltype(celltype) {
+Vector::Vector(Type *celltype) 
+   : Class("vector"), _celltype(celltype) 
+{
    // vector(size)
    struct VectorConstructor1 : public Func {
       Type *celltype;
@@ -592,11 +578,7 @@ Vector::Vector(Type *celltype) : _celltype(celltype) {
                new ClearMethod());
 }
 
-void String::_add_method(Function *type, Func *f) {
-   _methods.insert(make_pair(f->name, type->mkvalue(f)));
-}
-
-String::String() : BasicType("string") {
+String::String() : Class("string") {
    // constructor(size, char)
    struct StringConstructor1 : public Func {
       StringConstructor1() : Func("string") {}
