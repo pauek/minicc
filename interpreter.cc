@@ -845,6 +845,9 @@ void Interpreter::visit_increxpr(IncrExpr *x) {
       } else {
          after.as<Int>()--;
       }
+   } else if (after.is<Iterator<Vector>>()) {
+      vector<Value>::iterator& it = after.as<Iterator<Vector>>();
+      it++;
    } else {
       // TODO: Find operator++ (method or function)
       _error(_T("Estás incrementando un valor de tipo '%s'", 

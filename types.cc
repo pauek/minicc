@@ -617,6 +617,17 @@ Vector::Vector(Type *celltype)
    };
    _add_method(new Function(iterator_type),
                new BeginMethod(iterator_type));
+   // end
+   struct EndMethod : public Func {
+      Type *iter_type;
+      EndMethod(Type *t) : Func("end"), iter_type(t) {}
+      Value call(Value self, const vector<Value>& args) {
+         vector<Value>& the_vector = self.as<Vector>();
+         return Value(iter_type, new vector<Value>::iterator(the_vector.end()));
+      }
+   };
+   _add_method(new Function(iterator_type),
+               new EndMethod(iterator_type));
 }
 
 String::String() : Class("string") {
