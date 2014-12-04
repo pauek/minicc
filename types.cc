@@ -603,7 +603,7 @@ Vector::Vector(Type *celltype)
                new ClearMethod());
 
    // Iterator type + methods
-   Type* iterator_type = new Iterator<Vector>(this);
+   Type* iterator_type = new RandomAccessIterator<Vector>(this);
    _add_inner_class(iterator_type);
 
    // begin
@@ -754,7 +754,7 @@ template<class C>
 Iterator<C>::Iterator(C *type)
    : Class<BaseType, typename C::cpp_iterator>("iterator"), _container_type(type)
 {
-   typedef Class<BaseType, typename C::cpp_iterator> _Class;
+   typedef Class<BaseType, typename C::cpp_iterator> _Class; // shut up, clang...
    
    // ++
    struct IncrOperator : public Func {
@@ -777,6 +777,26 @@ Iterator<C>::Iterator(C *type)
    };
    _Class::_add_method(new Function(this),
                        new DerefOperator());
+}
+
+template<class C>
+RandomAccessIterator<C>::RandomAccessIterator(C *type) 
+   : Iterator<C>(type) 
+{
+   typedef Class<BaseType, typename C::cpp_iterator> _Class; // shut up, clang...
+
+   // +
+   struct PlusOperator : public Func {
+      PlusOperator() : Func("+") {}
+      Value call(Value self, const vector<Value>& args) {
+         typedef typename C::cpp_iterator iter;
+         iter& the_iterator = self.as<Iterator<C>>();
+         iter *sum = new iter(the_iterator + args[0].as<Int>());
+         return Value(self.type(), sum); 
+      }
+   };
+   _Class::_add_method((new Function(this))->add_params(Int::self),
+                       new PlusOperator());
 }
 
 string Environment::to_json() const {

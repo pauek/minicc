@@ -422,6 +422,12 @@ public:
    typedef typename C::cpp_iterator cpp_type;
 };
 
+template<class C>
+class RandomAccessIterator : public Iterator<C> {
+public:
+   RandomAccessIterator(C *type);
+};
+
 class VectorValue : public BaseType<std::vector<Value>> {
 public:
    VectorValue() : BaseType<std::vector<Value>>("<vector-value>") {}
@@ -457,7 +463,7 @@ public:
 
 template<typename T>
 bool Value::is() const {
-   return !is_null() and (typeid(*(_box->type)) == typeid(T)); 
+   return !is_null() and dynamic_cast<T*>(_box->type) != 0;
 }
 
 template<typename T>
