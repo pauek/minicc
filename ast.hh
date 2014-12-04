@@ -291,7 +291,7 @@ struct Ident : public Expr {
    void accept(AstVisitor *v);
    bool has_errors() const;
    std::string typestr() const;
-   std::string get_namespace() const;
+   std::string get_prefix_head() const;
 
    void shift(std::string new_id);
 };
@@ -405,7 +405,7 @@ struct TypeSpec : public AstNode {
    std::string typestr() const;
 
    bool is_template() const { return !id->subtypes.empty(); }
-   std::string get_namespace() const;
+   std::string get_prefix_head() const;
 };
 
 // Declarations ////////////////////////////////////////////

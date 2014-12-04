@@ -5,4 +5,4 @@ int main() {
    std::cout << "hola "<< std::endl;
 }
 [[err]]--------------------------------------------------
-Error de ejecución: No se ha encontrado 'std::cout'.
+Error de ejecución: No se ha encontrado 'cout' en el namespace 'std'.

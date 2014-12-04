@@ -37,14 +37,13 @@ bool Interpreter::getenv(string id, Value& v) {
 }
 
 Type *Interpreter::get_type(TypeSpec *spec) {
-   string namespc = spec->get_namespace();
+   string namespc = spec->get_prefix_head();
    if (namespc != "") {
       auto it = _namespaces.find(namespc);
-      if (it == _namespaces.end()) {
-         _error(_T("No se ha encontrado el \"namespace\" '%s'.", namespc.c_str()));
+      if (it != _namespaces.end()) {
+         Environment *e = it->second;
+         return e->get_type(spec);
       }
-      Environment *e = it->second;
-      return e->get_type(spec);
    }
    return _env->get_type(spec);
 }
@@ -222,20 +221,24 @@ void Interpreter::visit_structdecl(StructDecl *x) {
 
 void Interpreter::visit_ident(Ident *x) {
    Value v;
-   string namespc = x->get_namespace();
+   string namespc = x->get_prefix_head();
+   bool found = false;
    if (namespc != "") {
       auto it = _namespaces.find(namespc);
-      if (it == _namespaces.end()) {
-         _error(_T("No se ha encontrado el \"namespace\" '%s'.", 
-                   namespc.c_str()));
+      if (it != _namespaces.end()) {
+         Environment *e = it->second;
+         if (e->get(x->name, v)) {
+            found = true;
+         } else {
+            _error(_T("No se ha encontrado '%s' en el namespace '%s'.", 
+                      x->name.c_str(), namespc.c_str()));
+         }
       }
-      Environment *e = it->second;
-      if (!e->get(x->name, v)) {
-         _error(_T("No se ha encontrado '%s::%s'.", 
-                   namespc.c_str(), x->name.c_str()));
-      }
-   } else {
-      if (!getenv(x->name, v)) {
+   }
+   if (!found) {
+      if (getenv(x->name, v)) {
+         found = true;
+      } else {
          _error(_T("No se ha encontrado '%s'.", 
                    x->name.c_str()));
       }

@@ -2,4 +2,4 @@ int main() {
    foo::bar X;
 }
 [[err]]--------------------------------------------------
-Error de ejecución: No se ha encontrado el "namespace" 'foo'.
+Error de ejecución: El tipo 'foo::bar' no existe.
