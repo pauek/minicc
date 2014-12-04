@@ -282,17 +282,11 @@ struct Literal : public Expr {
    static std::string escape(std::string s, char delim);
 };
 
-struct TemplateIdent;
-struct FullIdent;
 struct SimpleIdent : public Expr {
    std::string name;
 
    SimpleIdent(std::string _name = "") : name(_name) {}
    void accept(AstVisitor *v);
-
-   TemplateIdent *to_template();
-   FullIdent     *to_full();
-
    virtual bool is_template() const { return false; }
 };
 

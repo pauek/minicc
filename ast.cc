@@ -267,18 +267,6 @@ bool TypedefDecl::has_errors() const {
    return AstNode::has_errors();
 }
 
-TemplateIdent *SimpleIdent::to_template() {
-   TemplateIdent *new_id = new TemplateIdent(name);
-   delete this;
-   return new_id;
-}
-
-FullIdent *SimpleIdent::to_full() {
-   FullIdent *new_id = new FullIdent(name);
-   delete this;
-   return new_id;
-}
-
 string TemplateIdent::typestr() const {
    string _id = name;
    if (!subtypes.empty()) {
