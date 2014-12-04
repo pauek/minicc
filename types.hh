@@ -389,26 +389,22 @@ public:
 class Vector : public Class<BaseType, std::vector<Value>> {
    Type *_celltype; // celltype == 0 means it's the template
 
+   static Value default_value_for(Type *t);
 public:
    Vector()        : Class("vector"), _celltype(0) {}
    Vector(Type *t);
 
-   Type *instantiate(std::vector<Type*>& args) const;
-   
-   typedef std::vector<Value> cpp_type;
-
-   Type *celltype() const { return _celltype; }
-
    int   properties() const { return Template | Emulated; }
-   Value create()           { return Value(this, (void*)(new std::vector<Value>())); }
    Value convert(Value init);
+   Type *instantiate(std::vector<Type*>& args) const;
+   Type *celltype() const { return _celltype; }
 
    std::string typestr() const;
    std::string to_json(void *data) const;
 
    static Vector *self;
-   static Value default_value_for(Type *t);
 
+   typedef std::vector<Value> cpp_type;
    typedef std::vector<Value>::iterator cpp_iterator;
 };
 

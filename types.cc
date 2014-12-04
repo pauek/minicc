@@ -754,11 +754,8 @@ Type *Vector::instantiate(vector<Type *>& subtypes) const {
 }
 
 string Vector::typestr() const {
-   if (_celltype == 0) {
-      return "vector";
-   } else {
-      return std::string("vector<") + _celltype->typestr() + ">"; 
-   }
+   string subtype = (_celltype != 0 ? _celltype->typestr() : "?");
+   return name() + "<" + subtype + ">";
 }
 
 template<class C>
