@@ -483,6 +483,7 @@ void Interpreter::visit_binaryexpr(BinaryExpr *x) {
       if (ret) {
          return;
       }
+      // TODO: Find operator as method or function
       _error(_T("Los operandos de '%s' no son compatibles", x->op.c_str()));
    }
    _error(_T("Interpreter::visit_binaryexpr: UNIMPLEMENTED (%s)", x->op.c_str()));
@@ -502,6 +503,7 @@ void Interpreter::visit_binaryexpr_assignment(Value left, Value right) {
    left = Reference::deref(left);
    right = left.type()->convert(right);
    if (right == Value::null) {
+      // TODO: Find operator as method or function
       _error(_T("La asignación no se puede hacer porque los "
                 "tipos no son compatibles (%s) vs (%s)", 
                 left.type_name().c_str(), 
@@ -720,6 +722,7 @@ void Interpreter::visit_callexpr(CallExpr *x) {
    Value func = _curr;
    vector<Value> args;
    eval_arguments(x->args, args);
+   // TODO: Find operator() (method or function)
    if (func.is<Overloaded>()) {
       func = func.as<Overloaded>().resolve(args);
       assert(func.is<Callable>());
@@ -736,6 +739,7 @@ void Interpreter::visit_indexexpr(IndexExpr *x) {
    x->base->accept(this);
    _curr = Reference::deref(_curr);
    if (!_curr.is<Array>() and !_curr.is<Vector>()) {
+      // TODO: Find operator[] (method or function)
       _error(_T("Las expresiones de índice deben usarse sobre tablas o vectores"));
    }
    vector<Value>& vals = (_curr.is<Array>() ? _curr.as<Array>() : _curr.as<Vector>());
@@ -836,6 +840,7 @@ void Interpreter::visit_increxpr(IncrExpr *x) {
          after.as<Int>()--;
       }
    } else {
+      // TODO: Find operator++ (method or function)
       _error(_T("Estás incrementando un valor de tipo '%s'", 
                 after.type_name().c_str()));
    }
