@@ -1,4 +1,5 @@
-- Implementar vector<X>::iterator.
+- Completar métodos de list<T>.
+- Implementar map<K, V> (+ pair<K, V>).
 
 - Borrar el AST correctamente (quizás no haga falta, el AST está presente todo el rato).
 - Testear a fondo el stepper.
