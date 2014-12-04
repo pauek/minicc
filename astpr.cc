@@ -126,7 +126,29 @@ void AstPrinter::visit_block(Block *x) {
    out(beginl) << "})";
 }
 
-void AstPrinter::visit_ident(Ident *x) {
+void AstPrinter::visit_simpleident(SimpleIdent *x) {
+   out() << "id:'" << x->name << "'";
+}
+
+void AstPrinter::visit_template_subtypes(TemplateIdent *x) {
+   if (!x->subtypes.empty()) {
+      out() << "<";
+      for (int i = 0; i < x->subtypes.size(); i++) {
+         if (i > 0) {
+            out() << ", ";
+         }
+         x->subtypes[i]->accept(this);
+      }
+      out() << ">";
+   }
+}
+
+void AstPrinter::visit_templateident(TemplateIdent *x) {
+   out() << "id:'" << x->name << "'";
+   visit_template_subtypes(x);
+}
+
+void AstPrinter::visit_fullident(FullIdent *x) {
    out() << "id:";
    if (!x->prefix.empty()) {
       out() << '[';
@@ -139,16 +161,7 @@ void AstPrinter::visit_ident(Ident *x) {
       out() << ']';
    }
    out() << "'" << x->name << "'";
-   if (!x->subtypes.empty()) {
-      out() << "<";
-      for (int i = 0; i < x->subtypes.size(); i++) {
-         if (i > 0) {
-            out() << ", ";
-         }
-         x->subtypes[i]->accept(this);
-      }
-      out() << ">";
-   }
+   visit_template_subtypes(x);
 }
 
 void AstPrinter::visit_literal(Literal *x) {

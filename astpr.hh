@@ -6,6 +6,8 @@
 #include "ast.hh"
 
 class AstPrinter : public AstVisitor, public ReadWriter {
+
+   void visit_template_subtypes(TemplateIdent *);
    
 public:
    AstPrinter(std::ostream *o = &std::cout) 
@@ -26,7 +28,9 @@ public:
    void visit_block(Block *x);
    void visit_binaryexpr(BinaryExpr *x);
    void visit_literal(Literal *x);
-   void visit_ident(Ident *x);
+   void visit_simpleident(SimpleIdent *x);
+   void visit_templateident(TemplateIdent *x);
+   void visit_fullident(FullIdent *x);
    void visit_vardecl(VarDecl *);
    void visit_arraydecl(ArrayDecl *);
    void visit_objdecl(ObjDecl *);

@@ -44,7 +44,7 @@ void Stepper::visit_declstmt(DeclStmt *x)     { generic_visit(x); }
 void Stepper::visit_increxpr(IncrExpr *x)     { generic_visit(x); }
 void Stepper::visit_binaryexpr(BinaryExpr *x) { generic_visit(x); }
 void Stepper::visit_literal(Literal *x)       { x->accept(&I); }
-void Stepper::visit_ident(Ident *x)           { x->accept(&I); }
+void Stepper::visit_fullident(FullIdent *x)   { x->accept(&I); }
 void Stepper::visit_fieldexpr(FieldExpr *x)   { x->accept(&I); }
 
 void Stepper::visit_program(Program *x) {

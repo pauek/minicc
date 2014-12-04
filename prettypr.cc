@@ -252,12 +252,12 @@ void PrettyPrinter::print_block(Block *x) {
    out() << "}" << cp._cmt();
 }
 
-void PrettyPrinter::visit_ident(Ident *x) {
+void PrettyPrinter::visit_simpleident(SimpleIdent *x) {
+   out() << x->name;
+}
+
+void PrettyPrinter::visit_templateident(TemplateIdent *x) {
    CommentPrinter cp(x, this);
-   for (Ident *pre : x->prefix) {
-      pre->accept(this);
-      out() << cp._cmt_() << "::" << cp._cmt_();
-   }
    out() << x->name;
    if (!x->subtypes.empty()) {
       out() << cp._cmt_() << "<" << cp.cmt_();
@@ -270,6 +270,15 @@ void PrettyPrinter::visit_ident(Ident *x) {
       }
       out() << ">";
    }
+}
+
+void PrettyPrinter::visit_fullident(FullIdent *x) {
+   CommentPrinter cp(x, this);
+   for (TemplateIdent *pre : x->prefix) {
+      pre->accept(this);
+      out() << cp._cmt_() << "::" << cp._cmt_();
+   }
+   visit_templateident(x);
 }
 
 void PrettyPrinter::visit_literal(Literal *x) {

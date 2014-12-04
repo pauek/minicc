@@ -37,7 +37,7 @@ bool Interpreter::getenv(string id, Value& v) {
 }
 
 Type *Interpreter::get_type(TypeSpec *spec) {
-   string namespc = spec->get_prefix_head();
+   string namespc = spec->get_potential_namespace();
    if (namespc != "") {
       auto it = _namespaces.find(namespc);
       if (it != _namespaces.end()) {
@@ -219,9 +219,9 @@ void Interpreter::visit_structdecl(StructDecl *x) {
    register_type(x->struct_name(), type);
 }
 
-void Interpreter::visit_ident(Ident *x) {
+void Interpreter::visit_fullident(FullIdent *x) {
    Value v;
-   string namespc = x->get_prefix_head();
+   string namespc = x->get_potential_namespace();
    bool found = false;
    if (namespc != "") {
       auto it = _namespaces.find(namespc);
@@ -378,7 +378,7 @@ void Interpreter::visit_binaryexpr(BinaryExpr *x) {
    // cin >> ...
    if (leftderef == Cin && x->op == ">>") {
       Value old = _curr;
-      Ident *id = dynamic_cast<Ident*>(x->right);
+      FullIdent *id = dynamic_cast<FullIdent*>(x->right);
       if (id == 0) {
          _error(_T("La lectura con 'cin' requiere que pongas variables"));
       }

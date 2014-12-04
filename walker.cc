@@ -3,18 +3,33 @@
 #include "walker.hh"
 using namespace std;
 
-void Walker::visit_include(Include* x)       { walk(x); }
-void Walker::visit_macro(Macro* x)           { walk(x); }
-void Walker::visit_using(Using* x)           { walk(x); }
-void Walker::visit_ident(Ident *x)           { walk(x); }
-void Walker::visit_literal(Literal *x)       { walk(x); }
-void Walker::visit_jumpstmt(JumpStmt *x)     { walk(x); }
-void Walker::visit_errorstmt(Stmt::Error *x) { walk(x); }
-void Walker::visit_errorexpr(Expr::Error *x) { walk(x); }
-void Walker::visit_vardecl(VarDecl *x)       { walk(x); }
-void Walker::visit_arraydecl(ArrayDecl *x)   { walk(x); }
-void Walker::visit_objdecl(ObjDecl *x)       { walk(x); }
-void Walker::visit_enumdecl(EnumDecl *x)     { walk(x); }
+void Walker::visit_include(Include* x)             { walk(x); }
+void Walker::visit_macro(Macro* x)                 { walk(x); }
+void Walker::visit_using(Using* x)                 { walk(x); }
+void Walker::visit_simpleident(SimpleIdent *x)     { walk(x); }
+void Walker::visit_literal(Literal *x)             { walk(x); }
+void Walker::visit_jumpstmt(JumpStmt *x)           { walk(x); }
+void Walker::visit_errorstmt(Stmt::Error *x)       { walk(x); }
+void Walker::visit_errorexpr(Expr::Error *x)       { walk(x); }
+void Walker::visit_vardecl(VarDecl *x)             { walk(x); }
+void Walker::visit_arraydecl(ArrayDecl *x)         { walk(x); }
+void Walker::visit_objdecl(ObjDecl *x)             { walk(x); }
+void Walker::visit_enumdecl(EnumDecl *x)           { walk(x); }
+
+void Walker::visit_templateident(TemplateIdent *x) { 
+   walk(x); 
+   for (TypeSpec *spec : x->subtypes) {
+      spec->accept(this);
+   }
+}
+
+void Walker::visit_fullident(FullIdent *x) { 
+   walk(x);
+   for (TemplateIdent *pre : x->prefix) {
+      pre->accept(this);
+   }
+   visit_templateident(x);
+}
 
 void Walker::visit_program(Program* x) {
    walk(x);

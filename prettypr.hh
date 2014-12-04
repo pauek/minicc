@@ -25,7 +25,9 @@ public:
    void visit_typedefdecl(TypedefDecl *x);
    void visit_enumdecl(EnumDecl *x);
    void visit_block(Block *x);
-   void visit_ident(Ident *x);
+   void visit_simpleident(SimpleIdent *x);
+   void visit_templateident(TemplateIdent *x);
+   void visit_fullident(FullIdent *x);
    void visit_binaryexpr(BinaryExpr *x); 
    void visit_vardecl(VarDecl *);
    void visit_arraydecl(ArrayDecl *);

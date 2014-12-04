@@ -188,14 +188,18 @@ bool Block::has_errors() const {
    return AstNode::has_errors();
 }
 
-bool Ident::has_errors() const {
+bool TemplateIdent::has_errors() const {
    for (TypeSpec *t : subtypes) {
       _ERRORS(t);
    }
-   for (Ident *id : prefix) {
+   return AstNode::has_errors();
+}
+
+bool FullIdent::has_errors() const {
+   for (TemplateIdent *id : prefix) {
       _ERRORS(id);
    }
-   return AstNode::has_errors();
+   return TemplateIdent::has_errors() || AstNode::has_errors();
 }
 
 bool BinaryExpr::has_errors() const {
@@ -263,13 +267,20 @@ bool TypedefDecl::has_errors() const {
    return AstNode::has_errors();
 }
 
-string Ident::typestr() const {
-   string _id;
-   for (int i = 0; i < prefix.size(); i++) {
-      _id += prefix[i]->typestr();
-      _id += "::";
-   }
-   _id += name;
+TemplateIdent *SimpleIdent::to_template() {
+   TemplateIdent *new_id = new TemplateIdent(name);
+   delete this;
+   return new_id;
+}
+
+FullIdent *SimpleIdent::to_full() {
+   FullIdent *new_id = new FullIdent(name);
+   delete this;
+   return new_id;
+}
+
+string TemplateIdent::typestr() const {
+   string _id = name;
    if (!subtypes.empty()) {
       _id += "<";
       for (int i = 0; i < subtypes.size(); i++) {
@@ -283,15 +294,25 @@ string Ident::typestr() const {
    return _id;
 }
 
-string Ident::get_prefix_head() const {
-   if (prefix.size() == 1) {
+string FullIdent::typestr() const {
+   string _id;
+   for (int i = 0; i < prefix.size(); i++) {
+      _id += prefix[i]->typestr();
+      _id += "::";
+   }
+   _id += TemplateIdent::typestr();
+   return _id;
+}
+
+string FullIdent::get_potential_namespace() const {
+   if (prefix.size() == 1 and !prefix[0]->is_template()) {
       return prefix[0]->name;
    }
    return "";
 }
 
-string TypeSpec::get_prefix_head() const {
-   return id->get_prefix_head();
+string TypeSpec::get_potential_namespace() const {
+   return id->get_potential_namespace();
 }
 
 string TypeSpec::typestr() const {
@@ -348,14 +369,14 @@ int StructDecl::num_fields() const {
 }
 
 bool BinaryExpr::is_read_expr() const {
-   Ident *id = dynamic_cast<Ident*>(left);
+   FullIdent *id = dynamic_cast<FullIdent*>(left);
    return 
       (left->is_read_expr() and op == ">>") or
       (id != 0 and id->name == "cin");   
 }
 
 bool BinaryExpr::is_write_expr() const {
-   Ident *id = dynamic_cast<Ident*>(left);
+   FullIdent *id = dynamic_cast<FullIdent*>(left);
    return 
       (left->is_write_expr() and op == "<<") or
       (id != 0 and id->name == "cout");   
@@ -375,7 +396,7 @@ string ExprStmt::describe() const {
 }
 
 string IncrExpr::describe() const {
-   Ident *id = dynamic_cast<Ident*>(expr);
+   FullIdent *id = dynamic_cast<FullIdent*>(expr);
    if (id != 0) {
       return _T("Se incrementa la variable '%s'.", id->name.c_str());
    }
@@ -410,9 +431,8 @@ string DeclStmt::describe() const {
    return _T("Variables %s are declared.", S.str().c_str());
 }
 
-
-void Ident::shift(string new_id) {
-   Ident *pre = new Ident(name);
+void FullIdent::shift(string new_id) {
+   TemplateIdent *pre = new TemplateIdent(name);
    pre->subtypes.swap(subtypes);
    pre->comments.swap(comments);
    pre->errors.swap(errors);

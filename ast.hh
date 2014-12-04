@@ -282,18 +282,40 @@ struct Literal : public Expr {
    static std::string escape(std::string s, char delim);
 };
 
-struct Ident : public Expr {
+struct TemplateIdent;
+struct FullIdent;
+struct SimpleIdent : public Expr {
    std::string name;
-   std::vector<TypeSpec*> subtypes; // for templates
-   std::vector<Ident*> prefix;  // for classes & namespaces;
 
-   Ident(std::string _name = "") : name(_name) {}
+   SimpleIdent(std::string _name = "") : name(_name) {}
+   void accept(AstVisitor *v);
+
+   TemplateIdent *to_template();
+   FullIdent     *to_full();
+
+   virtual bool is_template() const { return false; }
+};
+
+struct TemplateIdent : public SimpleIdent {
+   std::vector<TypeSpec*> subtypes;
+public:
+   TemplateIdent(std::string name) : SimpleIdent(name) {}
+   bool is_template() const { return !subtypes.empty(); }
+   std::string typestr() const;
    void accept(AstVisitor *v);
    bool has_errors() const;
+};
+
+struct FullIdent : public TemplateIdent {
+   std::vector<TemplateIdent*> prefix;  // for classes & namespaces;
+public:
+   FullIdent(std::string name) : TemplateIdent(name) {}
    std::string typestr() const;
-   std::string get_prefix_head() const;
+   void accept(AstVisitor *v);
+   bool has_errors() const;
 
    void shift(std::string new_id);
+   std::string get_potential_namespace() const;
 };
 
 struct BinaryExpr : public Expr {
@@ -366,7 +388,7 @@ struct IndexExpr : public Expr {
 
 struct FieldExpr : public Expr {
    Expr *base;
-   Ident *field;
+   SimpleIdent *field;
    bool pointer;
 
    FieldExpr() : base(0), field(0) {}
@@ -397,7 +419,7 @@ struct TypeSpec : public AstNode {
 
    bool                    reference;
    std::vector<Qualifiers> qual;
-   Ident                  *id;
+   FullIdent              *id;
 
    TypeSpec() : id(0), reference(false) {}
    void accept(AstVisitor *v);
@@ -405,7 +427,7 @@ struct TypeSpec : public AstNode {
    std::string typestr() const;
 
    bool is_template() const { return !id->subtypes.empty(); }
-   std::string get_prefix_head() const;
+   std::string get_potential_namespace() const;
 };
 
 // Declarations ////////////////////////////////////////////
@@ -418,11 +440,11 @@ struct FuncDecl : public AstNode {
    };
 
    TypeSpec *return_typespec;
-   Ident *id;
+   SimpleIdent *id;
    std::vector<Param*> params;
    Block* block;
    
-   FuncDecl(Ident *_id) : id(_id) {}
+   FuncDecl(SimpleIdent *_id) : id(_id) {}
 
    std::string funcname() const;
    void accept(AstVisitor *v);
@@ -430,7 +452,7 @@ struct FuncDecl : public AstNode {
 };
 
 struct StructDecl : public AstNode {
-   Ident *id;
+   SimpleIdent *id;
    std::vector<DeclStmt*> decls;
    
    StructDecl() : id(0) {}
@@ -508,41 +530,43 @@ class AstVisitor {
 public:
    void visit(AstNode *x) { x->accept(this); }
 
-   virtual void visit_program(Program*)           { assert(false); }
-   virtual void visit_include(Include*)           { assert(false); }
-   virtual void visit_macro(Macro *)              { assert(false); }
-   virtual void visit_using(Using *)              { assert(false); }
-   virtual void visit_funcdecl(FuncDecl *)        { assert(false); }
-   virtual void visit_structdecl(StructDecl *)    { assert(false); }
-   virtual void visit_typedefdecl(TypedefDecl *)  { assert(false); }
-   virtual void visit_enumdecl(EnumDecl *)        { assert(false); }
-   virtual void visit_typespec(TypeSpec *)        { assert(false); }
-   virtual void visit_block(Block *)              { assert(false); }
-   virtual void visit_ident(Ident *)              { assert(false); }
-   virtual void visit_binaryexpr(BinaryExpr *)    { assert(false); }
-   virtual void visit_vardecl(VarDecl *)          { assert(false); }
-   virtual void visit_arraydecl(ArrayDecl *)      { assert(false); }
-   virtual void visit_objdecl(ObjDecl *)          { assert(false); }
-   virtual void visit_declstmt(DeclStmt *)        { assert(false); }
-   virtual void visit_exprstmt(ExprStmt *)        { assert(false); }
-   virtual void visit_ifstmt(IfStmt *)            { assert(false); }
-   virtual void visit_iterstmt(IterStmt *)        { assert(false); }
-   virtual void visit_jumpstmt(JumpStmt *)        { assert(false); }
-   virtual void visit_callexpr(CallExpr *)        { assert(false); }
-   virtual void visit_indexexpr(IndexExpr *)      { assert(false); }
-   virtual void visit_fieldexpr(FieldExpr *)      { assert(false); }
-   virtual void visit_condexpr(CondExpr *)        { assert(false); }
-   virtual void visit_exprlist(ExprList *)        { assert(false); }
-   virtual void visit_signexpr(SignExpr *)        { assert(false); }
-   virtual void visit_increxpr(IncrExpr *)        { assert(false); }
-   virtual void visit_negexpr(NegExpr *)          { assert(false); }
-   virtual void visit_addrexpr(AddrExpr *)        { assert(false); }
-   virtual void visit_derefexpr(DerefExpr *)      { assert(false); }
-   virtual void visit_literal(Literal *)          { assert(false); }
+   virtual void visit_program(Program*)              { assert(false); }
+   virtual void visit_include(Include*)              { assert(false); }
+   virtual void visit_macro(Macro *)                 { assert(false); }
+   virtual void visit_using(Using *)                 { assert(false); }
+   virtual void visit_funcdecl(FuncDecl *)           { assert(false); }
+   virtual void visit_structdecl(StructDecl *)       { assert(false); }
+   virtual void visit_typedefdecl(TypedefDecl *)     { assert(false); }
+   virtual void visit_enumdecl(EnumDecl *)           { assert(false); }
+   virtual void visit_typespec(TypeSpec *)           { assert(false); }
+   virtual void visit_block(Block *)                 { assert(false); }
+   virtual void visit_simpleident(SimpleIdent *)     { assert(false); }
+   virtual void visit_templateident(TemplateIdent *) { assert(false); }
+   virtual void visit_fullident(FullIdent *)         { assert(false); }
+   virtual void visit_binaryexpr(BinaryExpr *)       { assert(false); }
+   virtual void visit_vardecl(VarDecl *)             { assert(false); }
+   virtual void visit_arraydecl(ArrayDecl *)         { assert(false); }
+   virtual void visit_objdecl(ObjDecl *)             { assert(false); }
+   virtual void visit_declstmt(DeclStmt *)           { assert(false); }
+   virtual void visit_exprstmt(ExprStmt *)           { assert(false); }
+   virtual void visit_ifstmt(IfStmt *)               { assert(false); }
+   virtual void visit_iterstmt(IterStmt *)           { assert(false); }
+   virtual void visit_jumpstmt(JumpStmt *)           { assert(false); }
+   virtual void visit_callexpr(CallExpr *)           { assert(false); }
+   virtual void visit_indexexpr(IndexExpr *)         { assert(false); }
+   virtual void visit_fieldexpr(FieldExpr *)         { assert(false); }
+   virtual void visit_condexpr(CondExpr *)           { assert(false); }
+   virtual void visit_exprlist(ExprList *)           { assert(false); }
+   virtual void visit_signexpr(SignExpr *)           { assert(false); }
+   virtual void visit_increxpr(IncrExpr *)           { assert(false); }
+   virtual void visit_negexpr(NegExpr *)             { assert(false); }
+   virtual void visit_addrexpr(AddrExpr *)           { assert(false); }
+   virtual void visit_derefexpr(DerefExpr *)         { assert(false); }
+   virtual void visit_literal(Literal *)             { assert(false); }
 
-   virtual void visit_errorstmt(Stmt::Error *)    { assert(false); }
-   virtual void visit_errorexpr(Expr::Error *)    { assert(false); }
-};
+   virtual void visit_errorstmt(Stmt::Error *)       { assert(false); }
+   virtual void visit_errorexpr(Expr::Error *)       { assert(false); }
+};   
 
 // Visit implementations
 inline void Program::accept(AstVisitor *v)       { v->visit_program(this); }
@@ -555,7 +579,9 @@ inline void TypedefDecl::accept(AstVisitor* v)   { v->visit_typedefdecl(this); }
 inline void EnumDecl::accept(AstVisitor* v)      { v->visit_enumdecl(this); }
 inline void TypeSpec::accept(AstVisitor *v)      { v->visit_typespec(this); }
 inline void Block::accept(AstVisitor *v)         { v->visit_block(this); }
-inline void Ident::accept(AstVisitor *v)         { v->visit_ident(this); }
+inline void SimpleIdent::accept(AstVisitor *v)   { v->visit_simpleident(this); }
+inline void TemplateIdent::accept(AstVisitor *v) { v->visit_templateident(this); }
+inline void FullIdent::accept(AstVisitor *v)     { v->visit_fullident(this); }
 inline void BinaryExpr::accept(AstVisitor *v)    { v->visit_binaryexpr(this); }
 inline void VarDecl::accept(AstVisitor *v)       { v->visit_vardecl(this); }
 inline void ArrayDecl::accept(AstVisitor *v)     { v->visit_arraydecl(this); }

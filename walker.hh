@@ -24,7 +24,9 @@ public:
    void visit_block(Block *x);
    void visit_binaryexpr(BinaryExpr *x);
    void visit_literal(Literal *x);
-   void visit_ident(Ident *x);
+   void visit_simpleident(SimpleIdent *x);
+   void visit_templateident(TemplateIdent *x);
+   void visit_fullident(FullIdent *x);
    void visit_vardecl(VarDecl *x);
    void visit_arraydecl(ArrayDecl *x);
    void visit_objdecl(ObjDecl *x);

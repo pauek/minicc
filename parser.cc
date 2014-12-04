@@ -171,8 +171,8 @@ AstNode* Parser::parse_using_declaration() {
    return u;
 }
 
-Ident *Parser::parse_ident(Token tok, Pos ini) {
-   Ident *id = new Ident(tok.str);
+FullIdent *Parser::parse_ident(Token tok, Pos ini) {
+   FullIdent *id = new FullIdent(tok.str);
    Pos fin = _in.pos();
    while (true) {
       tok = _in.peek_token();
@@ -210,11 +210,10 @@ Ident *Parser::parse_ident(Token tok, Pos ini) {
 
 bool Parser::_parse_type_process_token(TypeSpec *type, Token tok, Pos p) {
    if (tok.group & Token::BasicType) {
-      Ident *id = new Ident(tok.str);
       if (type->id != 0) {
          error(type, _T("Basic types are not templates"));
       }
-      type->id = id;
+      type->id = new FullIdent(tok.str);
       return true;
    } 
    if (tok.group & Token::TypeQual) {
@@ -264,7 +263,7 @@ AstNode *Parser::parse_func_or_var() {
    c[0] = _in.skip("\n\t ");
    Pos id_ini = _in.pos();
    Token tok = _in.read_id();
-   Ident *id = parse_ident(tok, id_ini);
+   FullIdent *id = parse_ident(tok, id_ini);
    c[1] = _in.skip("\n\t ");
    if (_in.curr() == '(') {
       _in.discard();
@@ -707,7 +706,7 @@ Expr *Parser::parse_fieldexpr(Expr *x, Token tok) {
    _in.consume(tok.kind == Token::Arrow ? "->" : ".");
    _skip(e);
    Token id = _in.read_id();
-   e->field = new Ident(id.str);
+   e->field = new SimpleIdent(id.str);
    e->fin = _in.pos();
    return e;
 }
@@ -1004,7 +1003,7 @@ StructDecl *Parser::parse_struct() {
    StructDecl *decl = new StructDecl();
    _skip(decl);
 
-   decl->id = new Ident(_in.read_id().str);
+   decl->id = new SimpleIdent(_in.read_id().str);
    _skip(decl);
    
    tok = _in.next_token();

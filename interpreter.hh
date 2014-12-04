@@ -88,7 +88,7 @@ public:
    void visit_funcdecl(FuncDecl *x);
    void visit_structdecl(StructDecl *x);
    void visit_block(Block *x);
-   void visit_ident(Ident *x);
+   void visit_fullident(FullIdent *x);
    void visit_binaryexpr(BinaryExpr *x); 
    void visit_vardecl(VarDecl *);
    void visit_arraydecl(ArrayDecl *);
