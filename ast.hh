@@ -284,8 +284,10 @@ struct Literal : public Expr {
 
 struct SimpleIdent : public Expr {
    std::string name;
+   bool is_namespace; // this is 'true' if this SimpleIdent is a namespace 
+                      // (used by the interpreter)
 
-   SimpleIdent(std::string _name = "") : name(_name) {}
+   SimpleIdent(std::string _name = "") : name(_name), is_namespace(false) {}
    void accept(AstVisitor *v);
    virtual bool is_template() const { return false; }
 };
@@ -309,7 +311,8 @@ public:
    bool has_errors() const;
 
    void shift(std::string new_id);
-   std::string get_potential_namespace() const;
+   SimpleIdent *get_potential_namespace() const;
+   std::vector<TemplateIdent*> get_non_namespaces();
 };
 
 struct BinaryExpr : public Expr {
@@ -421,7 +424,7 @@ struct TypeSpec : public AstNode {
    std::string typestr() const;
 
    bool is_template() const { return !id->subtypes.empty(); }
-   std::string get_potential_namespace() const;
+   SimpleIdent *get_potential_namespace() const;
 };
 
 // Declarations ////////////////////////////////////////////

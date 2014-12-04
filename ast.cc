@@ -292,14 +292,24 @@ string FullIdent::typestr() const {
    return _id;
 }
 
-string FullIdent::get_potential_namespace() const {
+SimpleIdent *FullIdent::get_potential_namespace() const {
    if (prefix.size() == 1 and !prefix[0]->is_template()) {
-      return prefix[0]->name;
+      return prefix[0];
    }
-   return "";
+   return 0;
 }
 
-string TypeSpec::get_potential_namespace() const {
+vector<TemplateIdent*> FullIdent::get_non_namespaces() {
+   vector<TemplateIdent*>::iterator it = prefix.begin();
+   while (it != prefix.end() and (*it)->is_namespace) {
+      it++;
+   }
+   vector<TemplateIdent*> result(it, prefix.end());
+   result.push_back(this);
+   return result;
+}
+
+SimpleIdent *TypeSpec::get_potential_namespace() const {
    return id->get_potential_namespace();
 }
 

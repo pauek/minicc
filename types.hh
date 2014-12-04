@@ -50,6 +50,7 @@ public:
    virtual         int  properties() const = 0;
    virtual        bool  get_method(std::string, 
                                    std::vector<Value>& M)         const { return false; }
+   virtual        Type *get_inner_class(std::string)                    { return 0; }
    virtual       Value  create()                                        { assert(false); }
    virtual        bool  accepts(const Type *t)                    const { return this == t; }
    virtual       Value  convert(Value init)                             { assert(false); }
@@ -74,6 +75,9 @@ class Environment;
 class TypeMap {
    std::map<std::string, Type*> _typemap;
    std::map<std::string, Type*> _typecache; // all types indexed by typestr
+
+   Type *instantiate_template(const std::vector<TypeSpec*>& subtypespecs, 
+                              Type *T, Environment *topmost);
 public:
    void  register_type(std::string name, Type *);
    Type *get_type(TypeSpec *spec, Environment *topmost);
@@ -238,11 +242,15 @@ class Class : public Base<T> {
 protected:
    void _add_method(Function *type, Func *f);
    void _add_inner_class(Type *type) {
-      _inner_classes.set(type->typestr(), type);
+      _inner_classes.set(type->name(), type);
    }
 public:
    Class(std::string name) : Base<T>(name) {}
-   bool get_method(std::string name, std::vector<Value>& result) const;
+   bool  get_method(std::string name, std::vector<Value>& result) const;
+   Type *get_inner_class(std::string name) {
+      Type *t;
+      return (_inner_classes.get(name, t) ? t : 0);
+   }
 };
 
 
@@ -404,13 +412,16 @@ public:
    typedef std::vector<Value>::iterator cpp_iterator;
 };
 
-template<class Container>
-class Iterator : public Class<BaseType, typename Container::cpp_iterator> {
+template<class C> /* C == Container */
+class Iterator : public Class<BaseType, typename C::cpp_iterator> {
+   C *_container_type;
 public:
-   Iterator(Container *container_type) 
-      : Class<BaseType, typename Container::cpp_iterator>(container_type->typestr() + "::iterator") {}
+   Iterator(C *type) 
+      : Class<BaseType, typename C::cpp_iterator>("iterator"), _container_type(type)
+   {}
 
-   typedef typename Container::cpp_iterator cpp_type;
+   std::string typestr() const { return _container_type->typestr() + "::iterator"; }
+   typedef typename C::cpp_iterator cpp_type;
 };
 
 class VectorValue : public BaseType<std::vector<Value>> {

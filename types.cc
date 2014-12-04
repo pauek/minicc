@@ -35,6 +35,16 @@ Value Endl("\n");
 
 // Methods
 
+Type *TypeMap::instantiate_template(const vector<TypeSpec*>& subtypespecs, 
+                                    Type *T, Environment *topmost) {
+   assert(T->is(Type::Template));
+   vector<Type*> subtypes;
+   for (int i = 0; i < subtypespecs.size(); i++) {
+      subtypes.push_back(topmost->get_type(subtypespecs[i], topmost));
+   }
+   return T->instantiate(subtypes);
+}
+
 Type *TypeMap::get_type(TypeSpec *spec, Environment *topmost) {
    // 1. If typestr already registered, return the type
    {
@@ -45,18 +55,32 @@ Type *TypeMap::get_type(TypeSpec *spec, Environment *topmost) {
    }
    // 2. Construct the Type from the TypeSpec
    {
-      auto it = _typemap.find(spec->id->name);
-      if (it == _typemap.end()) {
-         return 0;
-      }
-      Type *T = it->second;
-      if (spec->is_template()) {
-         assert(T->is(Type::Template));
-         vector<Type*> subtypes;
-         for (int i = 0; i < spec->id->subtypes.size(); i++) {
-            subtypes.push_back(topmost->get_type(spec->id->subtypes[i], topmost));
+      vector<TemplateIdent*> path = spec->id->get_non_namespaces();
+      assert(!path.empty());
+
+      // find first type
+      Type *T;
+      TemplateIdent *spec0 = path[0];
+      auto it = _typecache.find(spec0->typestr());
+      if (it != _typecache.end()) {
+         T = it->second;
+      } else {
+         auto it = _typemap.find(spec0->name);
+         if (it == _typemap.end()) {
+            return 0;
          }
-         T = T->instantiate(subtypes);
+         T = it->second;
+         if (spec0->is_template()) {
+            T = instantiate_template(spec0->subtypes, T, topmost);
+         }
+      }
+      // traverse inner classes
+      for (int i = 1; i < path.size(); i++) {
+         Type *inner = T->get_inner_class(path[i]->name);
+         if (inner == 0) {
+            return 0;
+         }
+         T = inner;
       }
       if (spec->reference) {
          T = new Reference(T);
@@ -67,7 +91,8 @@ Type *TypeMap::get_type(TypeSpec *spec, Environment *topmost) {
 }
 
 void TypeMap::register_type(string name, Type *typespec) {
-   assert(_typemap.find(name) == _typemap.end());
+   auto it = _typemap.find(name);
+   assert(it == _typemap.end() or it->second->typestr() == typespec->typestr());
    _typemap[name] = typespec;
    _typecache[typespec->typestr()] = typespec;
 }
@@ -448,8 +473,6 @@ void Class<Base, T>::_add_method(Function *type, Func *f) {
 Vector::Vector(Type *celltype) 
    : Class("vector"), _celltype(celltype) 
 {
-   _add_inner_class(new Iterator<Vector>(this));
-
    // vector(size)
    struct VectorConstructor1 : public Func {
       Type *celltype;
@@ -578,6 +601,22 @@ Vector::Vector(Type *celltype)
    };
    _add_method(new Function(Void),
                new ClearMethod());
+
+   // Iterator type + methods
+   Type* iterator_type = new Iterator<Vector>(this);
+   _add_inner_class(iterator_type);
+
+   // begin
+   struct BeginMethod : public Func {
+      Type *iter_type;
+      BeginMethod(Type *t) : Func("begin"), iter_type(t) {}
+      Value call(Value self, const vector<Value>& args) {
+         vector<Value>& the_vector = self.as<Vector>();
+         return Value(iter_type, new vector<Value>::iterator(the_vector.begin()));
+      }
+   };
+   _add_method(new Function(iterator_type),
+               new BeginMethod(iterator_type));
 }
 
 String::String() : Class("string") {

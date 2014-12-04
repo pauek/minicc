@@ -37,10 +37,11 @@ bool Interpreter::getenv(string id, Value& v) {
 }
 
 Type *Interpreter::get_type(TypeSpec *spec) {
-   string namespc = spec->get_potential_namespace();
-   if (namespc != "") {
-      auto it = _namespaces.find(namespc);
+   SimpleIdent *namespc = spec->get_potential_namespace();
+   if (namespc != 0) {
+      auto it = _namespaces.find(namespc->name);
       if (it != _namespaces.end()) {
+         namespc->is_namespace = true;
          Environment *e = it->second;
          return e->get_type(spec);
       }
@@ -168,9 +169,10 @@ void Interpreter::visit_include(Include* x) {
    } 
    else if (x->filename == "vector") {
       std->register_type("vector",  Vector::self);
+      std->register_type("string",  String::self); // 'vector' includes 'string'
    }
    else if (x->filename == "string") {
-      std->register_type("string",  String::self); // 'vector' includes 'string'
+      std->register_type("string",  String::self);
    }
    else if (x->filename == "algorithm") {
       Function *max_func_type = new Function(Int::self);
@@ -221,17 +223,18 @@ void Interpreter::visit_structdecl(StructDecl *x) {
 
 void Interpreter::visit_fullident(FullIdent *x) {
    Value v;
-   string namespc = x->get_potential_namespace();
+   SimpleIdent *namespc = x->get_potential_namespace();
    bool found = false;
-   if (namespc != "") {
-      auto it = _namespaces.find(namespc);
+   if (namespc != 0) {
+      auto it = _namespaces.find(namespc->name);
       if (it != _namespaces.end()) {
+         namespc->is_namespace = true;
          Environment *e = it->second;
          if (e->get(x->name, v)) {
             found = true;
          } else {
             _error(_T("No se ha encontrado '%s' en el namespace '%s'.", 
-                      x->name.c_str(), namespc.c_str()));
+                      x->name.c_str(), namespc->name.c_str()));
          }
       }
    }
@@ -872,5 +875,20 @@ void Interpreter::visit_typedefdecl(TypedefDecl *x) {
       }
       const int size = _curr.as<Int>();
       register_type(array->name, new Array(type, size));
+   }
+}
+
+void Interpreter::visit_derefexpr(DerefExpr *x) {
+   x->expr->accept(this);
+   if (_curr.is<Reference>()) {
+      _curr = Reference::deref(_curr);
+   }
+   if (_curr.is<Iterator<Vector>>()) {
+      // FIXME: Generalizar esto??
+      vector<Value>::iterator it = _curr.as<Iterator<Vector>>();
+      _curr = *it;
+   } else {
+      _error(_T("Don't know how to deref a value of type '%s'", 
+                _curr.type()->typestr().c_str()));
    }
 }
