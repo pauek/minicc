@@ -750,6 +750,35 @@ string Vector::typestr() const {
    }
 }
 
+template<class C>
+Iterator<C>::Iterator(C *type)
+   : Class<BaseType, typename C::cpp_iterator>("iterator"), _container_type(type)
+{
+   typedef Class<BaseType, typename C::cpp_iterator> _Class;
+   
+   // ++
+   struct IncrOperator : public Func {
+      IncrOperator() : Func("++") {}
+      Value call(Value self, const vector<Value>& args) {
+         typename C::cpp_iterator& the_iterator = self.as<Iterator<C>>();
+         the_iterator++;
+         return self.clone();
+      }
+   };
+   _Class::_add_method(new Function(this),
+                       new IncrOperator());
+   // *
+   struct DerefOperator : public Func {
+      DerefOperator() : Func("*") {}
+      Value call(Value self, const vector<Value>& args) {
+         typename C::cpp_iterator& the_iterator = self.as<Iterator<C>>();
+         return *the_iterator;
+      }
+   };
+   _Class::_add_method(new Function(this),
+                       new DerefOperator());
+}
+
 string Environment::to_json() const {
    ostringstream json;
    json << "{\"name\":\"" << _name << "\",\"tab\":";

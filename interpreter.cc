@@ -593,6 +593,20 @@ void Interpreter::visit_arraydecl(ArrayDecl *x) {
                     : arraytype->convert(init)));
 }
 
+void Interpreter::call_operator(string op, const vector<Value>& args) {
+   if (!bind_method(_curr, op)) {
+      _error(_T("El tipo '%s' no tiene 'operator%s'", _curr.type()->typestr().c_str(), op.c_str()));
+   }
+   if (_curr.is<Overloaded>()) {
+      _curr = _curr.as<Overloaded>().resolve(args);
+      assert(_curr.is<Callable>());
+   }
+   Binding& opfun = _curr.as<Callable>();
+   const Function *func_type = opfun.func.type()->as<Function>();
+   check_arguments(func_type, args);
+   _curr = opfun.call(args);
+}
+   
 void Interpreter::visit_objdecl(ObjDecl *x) {
    Type *type = get_type(x->typespec);
    if (type != 0) {
@@ -845,13 +859,12 @@ void Interpreter::visit_increxpr(IncrExpr *x) {
       } else {
          after.as<Int>()--;
       }
-   } else if (after.is<Iterator<Vector>>()) {
-      vector<Value>::iterator& it = after.as<Iterator<Vector>>();
-      it++;
    } else {
+      _curr = after;
+      call_operator("++");
       // TODO: Find operator++ (method or function)
-      _error(_T("Estás incrementando un valor de tipo '%s'", 
-                after.type_name().c_str()));
+      // _error(_T("Estás incrementando un valor de tipo '%s'", 
+      //           after.type_name().c_str()));
    }
    _curr = (x->preincr ? before : after);
 }
@@ -882,16 +895,10 @@ void Interpreter::visit_typedefdecl(TypedefDecl *x) {
 }
 
 void Interpreter::visit_derefexpr(DerefExpr *x) {
+   // TODO: deal with pointers
    x->expr->accept(this);
    if (_curr.is<Reference>()) {
       _curr = Reference::deref(_curr);
    }
-   if (_curr.is<Iterator<Vector>>()) {
-      // FIXME: Generalizar esto??
-      vector<Value>::iterator it = _curr.as<Iterator<Vector>>();
-      _curr = *it;
-   } else {
-      _error(_T("Don't know how to deref a value of type '%s'", 
-                _curr.type()->typestr().c_str()));
-   }
+   call_operator("*");
 }

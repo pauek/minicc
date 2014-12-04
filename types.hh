@@ -416,9 +416,7 @@ template<class C> /* C == Container */
 class Iterator : public Class<BaseType, typename C::cpp_iterator> {
    C *_container_type;
 public:
-   Iterator(C *type) 
-      : Class<BaseType, typename C::cpp_iterator>("iterator"), _container_type(type)
-   {}
+   Iterator(C *type);
 
    std::string typestr() const { return _container_type->typestr() + "::iterator"; }
    typedef typename C::cpp_iterator cpp_type;
