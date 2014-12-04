@@ -799,8 +799,27 @@ ForwardIterator<C>::ForwardIterator(C *type)
 }
 
 template<class C>
-RandomAccessIterator<C>::RandomAccessIterator(C *type) 
+BidirectionalIterator<C>::BidirectionalIterator(C *type) 
    : ForwardIterator<C>(type) 
+{
+   typedef Class<BaseType, typename C::cpp_iterator> _Class; // shut up, clang...
+
+   // --
+   struct DecrOperator : public Func {
+      DecrOperator() : Func("--") {}
+      Value call(Value self, const vector<Value>& args) {
+         typename C::cpp_iterator& the_iterator = self.as<Iterator<C>>();
+         the_iterator--;
+         return self.clone();
+      }
+   };
+   _Class::_add_method(new Function(this),
+                       new DecrOperator());
+}
+
+template<class C>
+RandomAccessIterator<C>::RandomAccessIterator(C *type) 
+   : BidirectionalIterator<C>(type) 
 {
    typedef Class<BaseType, typename C::cpp_iterator> _Class; // shut up, clang...
 

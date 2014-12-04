@@ -429,7 +429,13 @@ public:
 };
 
 template<class C>
-class RandomAccessIterator : public ForwardIterator<C> {
+class BidirectionalIterator : public ForwardIterator<C> {
+public:
+   BidirectionalIterator(C *type);
+};
+
+template<class C>
+class RandomAccessIterator : public BidirectionalIterator<C> {
 public:
    RandomAccessIterator(C *type);
 };

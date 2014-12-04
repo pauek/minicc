@@ -431,7 +431,7 @@ void Interpreter::visit_binaryexpr(BinaryExpr *x) {
          }
       } else {
          _curr = left;
-         call_operator("+", vector<Value>(1, right));
+         call_operator(x->op, vector<Value>(1, right));
          ret = true;
       }
       if (ret) {
@@ -859,10 +859,7 @@ void Interpreter::visit_increxpr(IncrExpr *x) {
       }
    } else {
       _curr = after;
-      call_operator("++");
-      // TODO: Find operator++ (method or function)
-      // _error(_T("Estás incrementando un valor de tipo '%s'", 
-      //           after.type_name().c_str()));
+      call_operator(x->kind == IncrExpr::Positive ? "++" : "--");
    }
    _curr = (x->preincr ? before : after);
 }
