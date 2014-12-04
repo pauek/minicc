@@ -448,6 +448,8 @@ void Class<Base, T>::_add_method(Function *type, Func *f) {
 Vector::Vector(Type *celltype) 
    : Class("vector"), _celltype(celltype) 
 {
+   _add_inner_class(new Iterator<Vector>(this));
+
    // vector(size)
    struct VectorConstructor1 : public Func {
       Type *celltype;

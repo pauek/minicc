@@ -86,8 +86,9 @@ class BaseType : public Type {
 public:
    BaseType(std::string name) : _name(name) {}
 
-   std::string name()    const { return _name; }
-   std::string typestr() const { return _name; }
+   std::string name()       const { return _name; }
+   std::string typestr()    const { return _name; }
+           int properties() const { return Internal; }
 
    typedef T cpp_type;
    static T& cast(void *data) { 
@@ -233,8 +234,12 @@ template<
 >
 class Class : public Base<T> {
    std::multimap<std::string, Value> _methods;
+   SimpleTable<Type*> _inner_classes;
 protected:
    void _add_method(Function *type, Func *f);
+   void _add_inner_class(Type *type) {
+      _inner_classes.set(type->typestr(), type);
+   }
 public:
    Class(std::string name) : Base<T>(name) {}
    bool get_method(std::string name, std::vector<Value>& result) const;
@@ -279,7 +284,6 @@ public:
    bool is_void()          const { return _return_type == 0; }
    bool check_signature(const std::vector<Value>& args) const;
 
-   int properties() const { return Internal; }
    std::string typestr() const;
 
    Value mkvalue(Func *f) { 
@@ -311,7 +315,6 @@ struct Binding {
 class Callable : public BaseType<Binding> {
 public:
               Callable() : BaseType<Binding>("<callable>") {}
-         int  properties() const { return Internal; }
 
    Value  mkvalue(Value self, Value func) {
       return Value(this, new Binding(self, func));
@@ -335,7 +338,6 @@ struct OverloadedValue {
 class Overloaded : public BaseType<OverloadedValue> {
 public:
               Overloaded() : BaseType<OverloadedValue>("<unresolved-function>") {}
-         int  properties()  const { return Internal; }
        Value  convert(Value init) { assert(false); }
        Value  mkvalue(Value self, const std::vector<Value>& candidates);
 
@@ -349,7 +351,6 @@ public:
    Struct(std::string name) : BaseType<SimpleTable<Value>>(name) {}
    void add_field(std::string field_name, Type *t) { _fields.set(field_name, t); }
 
-   int   properties() const { return Internal; }
    Value create();
    Value convert(Value init);
    void *clone(void *data) const;
@@ -399,13 +400,23 @@ public:
 
    static Vector *self;
    static Value default_value_for(Type *t);
+
+   typedef std::vector<Value>::iterator cpp_iterator;
+};
+
+template<class Container>
+class Iterator : public Class<BaseType, typename Container::cpp_iterator> {
+public:
+   Iterator(Container *container_type) 
+      : Class<BaseType, typename Container::cpp_iterator>(container_type->typestr() + "::iterator") {}
+
+   typedef typename Container::cpp_iterator cpp_type;
 };
 
 class VectorValue : public BaseType<std::vector<Value>> {
 public:
    VectorValue() : BaseType<std::vector<Value>>("<vector-value>") {}
    typedef std::vector<Value> cpp_type;
-   int   properties() const { return Internal; }
    Value create()           { return Value(this, new std::vector<Value>()); }
    static Value make() { return self->create(); }
    static VectorValue *self;
