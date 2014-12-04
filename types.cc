@@ -22,6 +22,7 @@ Ostream     *Ostream::self     = new Ostream();
 Istream     *Istream::self     = new Istream();
 VectorValue *VectorValue::self = new VectorValue();
 Vector      *Vector::self      = new Vector();
+List        *List::self        = new List();
 Overloaded  *Overloaded::self  = new Overloaded();
 Callable    *Callable::self    = new Callable();
 
@@ -266,6 +267,190 @@ bool Bool::accepts(const Type *t) const {
    return t->is<Bool>() or t->is<Int>();
 }
 
+// Vector ////////////////////////////////////////////////////////////
+
+Vector::Vector(Type *celltype) 
+   : Class("vector"), _celltype(celltype) 
+{
+   // vector(size)
+   struct VectorConstructor1 : public Func {
+      Type *celltype;
+      VectorConstructor1(Type *t) : Func("vector"), celltype(t) {}
+      Value call(Value self, const vector<Value>& args) {
+         vector<Value>& the_vector = self.as<Vector>();
+         const int sz = args[0].as<Int>();
+         the_vector.resize(sz);
+         for (int i = 0; i < sz; i++) {
+            the_vector[i] = default_value_for(celltype);
+         }
+         return Value::null;
+      }
+   };
+   _add_method((new Function(Void))->add_params(Int::self), 
+               new VectorConstructor1(celltype));
+
+   // vector(size, elem)
+   struct VectorConstructor2 : public Func {
+      VectorConstructor2() : Func("vector") {}
+      Value call(Value self, const vector<Value>& args) {
+         vector<Value>& the_vector = self.as<Vector>();
+         const int sz = args[0].as<Int>();
+         the_vector.resize(sz);
+         Value init = Reference::deref(args[1]);
+         for (int i = 0; i < sz; i++) {
+            the_vector[i] = init.clone();
+         }
+         return Value::null;
+      }
+   };
+   _add_method((new Function(Void))->add_params(Int::self, celltype), 
+               new VectorConstructor2());
+
+   // size
+   struct SizeMethod : public Func {
+      SizeMethod() : Func("size") {}
+      Value call(Value self, const vector<Value>& args) {
+         assert(args.empty());
+         vector<Value>& the_vector = self.as<Vector>();
+         return Value(int(the_vector.size()));
+      }
+   };
+   _add_method(new Function(Int::self), 
+               new SizeMethod());
+
+   // empty
+   struct EmptyMethod : public Func {
+      EmptyMethod() : Func("empty") {}
+      Value call(Value self, const vector<Value>& args) {
+         assert(args.empty());
+         vector<Value>& the_vector = self.as<Vector>();
+         return Value(bool(the_vector.empty()));
+      }
+   };
+   _add_method(new Function(Bool::self), 
+               new EmptyMethod());
+
+   // push_back
+   struct PushBackMethod : public Func {
+      PushBackMethod() : Func("push_back") {}
+      Value call(Value self, const vector<Value>& args) {
+         vector<Value>& v = self.as<Vector>();
+         v.push_back(args[0]);
+         return Value::null;
+      }
+   };
+   _add_method((new Function(Void))->add_params(celltype),
+               new PushBackMethod());
+
+   // pop_back
+   struct PopBackMethod : public Func {
+      PopBackMethod() : Func("pop_back") {}
+      Value call(Value self, const vector<Value>& args) {
+         vector<Value>& the_vector = self.as<Vector>();
+         the_vector.pop_back();
+         return Value::null;
+      }
+   };
+   _add_method((new Function(Void)),
+               new PopBackMethod());
+
+   // resize(int)
+   struct Resize1Method : public Func {
+      Type *celltype;
+      Resize1Method(Type *t) : Func("resize"), celltype(t) {}
+      Value call(Value self, const vector<Value>& args) {
+         vector<Value>& the_vector = self.as<Vector>();
+         the_vector.resize(args[0].as<Int>(), default_value_for(celltype));
+         return Value::null;
+      }
+   };
+   _add_method((new Function(Void))->add_params(Int::self),
+               new Resize1Method(celltype));
+
+   // resize(int, T)
+   struct Resize2Method : public Func {
+      Resize2Method() : Func("resize") {}
+      Value call(Value self, const vector<Value>& args) {
+         vector<Value>& the_vector = self.as<Vector>();
+         the_vector.resize(args[0].as<Int>(), args[1]);
+         return Value::null;
+      }
+   };
+   _add_method((new Function(Void))->add_params(Int::self, celltype),
+               new Resize2Method());
+   
+   // front
+   struct FrontMethod : public Func {
+      FrontMethod() : Func("front") {}
+      Value call(Value self, const vector<Value>& args)  {
+         vector<Value>& the_vector = self.as<Vector>();
+         return Reference::mkref(the_vector.front());
+      }
+   };
+   _add_method(new Function(celltype),
+               new FrontMethod());
+
+   // back
+   struct BackMethod : public Func {
+      BackMethod() : Func("back") {}
+      Value call(Value self, const vector<Value>& args) {
+         vector<Value>& the_vector = self.as<Vector>();
+         return Reference::mkref(the_vector.back());
+      }
+   };
+   _add_method(new Function(celltype),
+               new BackMethod());
+
+   // clear
+   struct ClearMethod : public Func {
+      ClearMethod() : Func("clear") {}
+      Value call(Value self, const vector<Value>& args) {
+         vector<Value>& the_vector = self.as<Vector>();
+         the_vector.clear();
+         return Value::null;
+      }
+   };
+   _add_method(new Function(Void),
+               new ClearMethod());
+
+   // Iterator type + methods
+   Type* iterator_type = new RandomAccessIterator<Vector>(this);
+   _add_inner_class(iterator_type);
+
+   // begin
+   struct BeginMethod : public Func {
+      Type *iter_type;
+      BeginMethod(Type *t) : Func("begin"), iter_type(t) {}
+      Value call(Value self, const vector<Value>& args) {
+         vector<Value>& the_vector = self.as<Vector>();
+         return Value(iter_type, new vector<Value>::iterator(the_vector.begin()));
+      }
+   };
+   _add_method(new Function(iterator_type),
+               new BeginMethod(iterator_type));
+   // end
+   struct EndMethod : public Func {
+      Type *iter_type;
+      EndMethod(Type *t) : Func("end"), iter_type(t) {}
+      Value call(Value self, const vector<Value>& args) {
+         vector<Value>& the_vector = self.as<Vector>();
+         return Value(iter_type, new vector<Value>::iterator(the_vector.end()));
+      }
+   };
+   _add_method(new Function(iterator_type),
+               new EndMethod(iterator_type));
+}
+
+Type *Vector::instantiate(vector<Type *>& subtypes) const {
+   assert(subtypes.size() == 1);
+   assert(subtypes[0] != 0);
+   return new Vector(subtypes[0]);
+}
+
+string Vector::typestr() const {
+   string subtype = (_celltype != 0 ? _celltype->typestr() : "?");
+   return name() + "<" + subtype + ">";
+}
 
 Value Vector::convert(Value x) {
    //
@@ -309,6 +494,259 @@ string Vector::to_json(void *data) const {
    o << "]";
    return o.str();
 }
+
+// List //////////////////////////////////////////////////////////////
+
+List::List(Type *celltype) 
+   : Class("list"), _celltype(celltype) 
+{
+   // list(size)
+   struct ListConstructor1 : public Func {
+      Type *celltype;
+      ListConstructor1(Type *t) : Func("list"), celltype(t) {}
+      Value call(Value self, const vector<Value>& args) {
+         list<Value>& the_list = self.as<List>();
+         the_list.resize(args[0].as<Int>());
+         for (Value& elem : the_list) {
+            elem = default_value_for(celltype);
+         }
+         return Value::null;
+      }
+   };
+   _add_method((new Function(Void))->add_params(Int::self), 
+               new ListConstructor1(celltype));
+
+   // list(size, elem)
+   struct ListConstructor2 : public Func {
+      ListConstructor2() : Func("list") {}
+      Value call(Value self, const vector<Value>& args) {
+         list<Value>& the_list = self.as<List>();
+         the_list.resize(args[0].as<Int>());
+         Value init = Reference::deref(args[1]);
+         for (Value& elem : the_list) {
+            elem = init.clone();
+         }
+         return Value::null;
+      }
+   };
+   _add_method((new Function(Void))->add_params(Int::self, celltype), 
+               new ListConstructor2());
+
+   // size
+   struct SizeMethod : public Func {
+      SizeMethod() : Func("size") {}
+      Value call(Value self, const vector<Value>& args) {
+         assert(args.empty());
+         list<Value>& the_list = self.as<List>();
+         return Value(int(the_list.size()));
+      }
+   };
+   _add_method(new Function(Int::self), 
+               new SizeMethod());
+
+   // empty
+   struct EmptyMethod : public Func {
+      EmptyMethod() : Func("empty") {}
+      Value call(Value self, const vector<Value>& args) {
+         assert(args.empty());
+         list<Value>& the_list = self.as<List>();
+         return Value(bool(the_list.empty()));
+      }
+   };
+   _add_method(new Function(Bool::self), 
+               new EmptyMethod());
+
+   // push_back
+   struct PushBackMethod : public Func {
+      PushBackMethod() : Func("push_back") {}
+      Value call(Value self, const vector<Value>& args) {
+         list<Value>& the_list = self.as<List>();
+         the_list.push_back(args[0]);
+         return Value::null;
+      }
+   };
+   _add_method((new Function(Void))->add_params(celltype),
+               new PushBackMethod());
+
+   // push_front
+   struct PushFrontMethod : public Func {
+      PushFrontMethod() : Func("push_front") {}
+      Value call(Value self, const vector<Value>& args) {
+         list<Value>& the_list = self.as<List>();
+         the_list.push_front(args[0]);
+         return Value::null;
+      }
+   };
+   _add_method((new Function(Void))->add_params(celltype),
+               new PushFrontMethod());
+
+   // pop_back
+   struct PopBackMethod : public Func {
+      PopBackMethod() : Func("pop_back") {}
+      Value call(Value self, const vector<Value>& args) {
+         list<Value>& the_list = self.as<List>();
+         the_list.pop_back();
+         return Value::null;
+      }
+   };
+   _add_method((new Function(Void)),
+               new PopBackMethod());
+
+   // pop_front
+   struct PopFrontMethod : public Func {
+      PopFrontMethod() : Func("pop_front") {}
+      Value call(Value self, const vector<Value>& args) {
+         list<Value>& the_list = self.as<List>();
+         the_list.pop_front();
+         return Value::null;
+      }
+   };
+   _add_method((new Function(Void)),
+               new PopFrontMethod());
+
+   // resize(int)
+   struct Resize1Method : public Func {
+      Type *celltype;
+      Resize1Method(Type *t) : Func("resize"), celltype(t) {}
+      Value call(Value self, const vector<Value>& args) {
+         list<Value>& the_list = self.as<List>();
+         the_list.resize(args[0].as<Int>(), default_value_for(celltype));
+         return Value::null;
+      }
+   };
+   _add_method((new Function(Void))->add_params(Int::self),
+               new Resize1Method(celltype));
+
+   // resize(int, T)
+   struct Resize2Method : public Func {
+      Resize2Method() : Func("resize") {}
+      Value call(Value self, const vector<Value>& args) {
+         list<Value>& the_list = self.as<List>();
+         the_list.resize(args[0].as<Int>(), args[1]);
+         return Value::null;
+      }
+   };
+   _add_method((new Function(Void))->add_params(Int::self, celltype),
+               new Resize2Method());
+   
+   // front
+   struct FrontMethod : public Func {
+      FrontMethod() : Func("front") {}
+      Value call(Value self, const vector<Value>& args)  {
+         list<Value>& the_list = self.as<List>();
+         return Reference::mkref(the_list.front());
+      }
+   };
+   _add_method(new Function(celltype),
+               new FrontMethod());
+
+   // back
+   struct BackMethod : public Func {
+      BackMethod() : Func("back") {}
+      Value call(Value self, const vector<Value>& args) {
+         list<Value>& the_list = self.as<List>();
+         return Reference::mkref(the_list.back());
+      }
+   };
+   _add_method(new Function(celltype),
+               new BackMethod());
+
+   // clear
+   struct ClearMethod : public Func {
+      ClearMethod() : Func("clear") {}
+      Value call(Value self, const vector<Value>& args) {
+         list<Value>& the_list = self.as<List>();
+         the_list.clear();
+         return Value::null;
+      }
+   };
+   _add_method(new Function(Void),
+               new ClearMethod());
+
+   // Iterator type + methods
+   Type* iterator_type = new BidirectionalIterator<List>(this);
+   _add_inner_class(iterator_type);
+
+   // begin
+   struct BeginMethod : public Func {
+      Type *iter_type;
+      BeginMethod(Type *t) : Func("begin"), iter_type(t) {}
+      Value call(Value self, const vector<Value>& args) {
+         list<Value>& the_list = self.as<List>();
+         return Value(iter_type, new list<Value>::iterator(the_list.begin()));
+      }
+   };
+   _add_method(new Function(iterator_type),
+               new BeginMethod(iterator_type));
+   // end
+   struct EndMethod : public Func {
+      Type *iter_type;
+      EndMethod(Type *t) : Func("end"), iter_type(t) {}
+      Value call(Value self, const vector<Value>& args) {
+         list<Value>& the_list = self.as<List>();
+         return Value(iter_type, new list<Value>::iterator(the_list.end()));
+      }
+   };
+   _add_method(new Function(iterator_type),
+               new EndMethod(iterator_type));
+}
+
+Type *List::instantiate(vector<Type *>& subtypes) const {
+   assert(subtypes.size() == 1);
+   assert(subtypes[0] != 0);
+   return new List(subtypes[0]);
+}
+
+string List::typestr() const {
+   string subtype = (_celltype != 0 ? _celltype->typestr() : "?");
+   return name() + "<" + subtype + ">";
+}
+
+Value List::convert(Value x) {
+   //
+   // To support C++11-style initialization of vectors, this method should
+   // be like Array::convert...
+   //
+   x = Reference::deref(x);
+   if (x.is<List>()) {
+      return x.clone();
+   }
+   return Value::null;
+}
+
+Value List::default_value_for(Type *t) {
+   // Valor por defecto para cada tipo controlado por vector!
+   if (t->is<Int>()) {
+      return Value(0);
+   } else if (t->is<Bool>()) {
+      return Value(false);
+   } else if (t->is<Float>()) {
+      return Value(0.0f);
+   } else if (t->is<Double>()) {
+      return Value(0.0);
+   } else if (t->is<Char>()) {
+      return Value('\0');
+   } else {
+      return t->create();
+   }
+}
+
+string List::to_json(void *data) const {
+   ostringstream o;
+   o << "[";
+   vector<Value>& vec = *(vector<Value>*)data;
+   for (int i = 0; i < vec.size(); i++) {
+      if (i > 0) {
+         o << ", ";
+      }
+      o << vec[i].to_json();
+   }
+   o << "]";
+   return o.str();
+}
+
+
+// Array /////////////////////////////////////////////////////////////
 
 Type *Array::_mkarray(Type *celltype,
                      vector<int>::const_iterator curr,
@@ -470,165 +908,6 @@ void Class<Base, T>::_add_method(Function *type, Func *f) {
 
 // Methods ////////////////////////////////////////////////////////////
 
-Vector::Vector(Type *celltype) 
-   : Class("vector"), _celltype(celltype) 
-{
-   // vector(size)
-   struct VectorConstructor1 : public Func {
-      Type *celltype;
-      VectorConstructor1(Type *t) : Func("vector"), celltype(t) {}
-      Value call(Value self, const vector<Value>& args) {
-         vector<Value>& the_vector = self.as<Vector>();
-         const int sz = args[0].as<Int>();
-         the_vector.resize(sz);
-         for (int i = 0; i < sz; i++) {
-            the_vector[i] = default_value_for(celltype);
-         }
-         return Value::null;
-      }
-   };
-   _add_method((new Function(Void))->add_params(Int::self), 
-               new VectorConstructor1(celltype));
-
-   // vector(size, elem)
-   struct VectorConstructor2 : public Func {
-      VectorConstructor2() : Func("vector") {}
-      Value call(Value self, const vector<Value>& args) {
-         vector<Value>& the_vector = self.as<Vector>();
-         const int sz = args[0].as<Int>();
-         the_vector.resize(sz);
-         Value init = Reference::deref(args[1]);
-         for (int i = 0; i < sz; i++) {
-            the_vector[i] = init.clone();
-         }
-         return Value::null;
-      }
-   };
-   _add_method((new Function(Void))->add_params(Int::self, celltype), 
-               new VectorConstructor2());
-
-   // size
-   struct SizeMethod : public Func {
-      SizeMethod() : Func("size") {}
-      Value call(Value self, const vector<Value>& args) {
-         assert(args.empty());
-         vector<Value>& the_vector = self.as<Vector>();
-         return Value(int(the_vector.size()));
-      }
-   };
-   _add_method(new Function(Int::self), 
-               new SizeMethod());
-
-   // empty
-   struct EmptyMethod : public Func {
-      EmptyMethod() : Func("empty") {}
-      Value call(Value self, const vector<Value>& args) {
-         assert(args.empty());
-         vector<Value>& the_vector = self.as<Vector>();
-         return Value(bool(the_vector.empty()));
-      }
-   };
-   _add_method(new Function(Bool::self), 
-               new EmptyMethod());
-
-   // push_back
-   struct PushBackMethod : public Func {
-      PushBackMethod() : Func("push_back") {}
-      Value call(Value self, const vector<Value>& args) {
-         vector<Value>& v = self.as<Vector>();
-         v.push_back(args[0]);
-         return Value::null;
-      }
-   };
-   _add_method((new Function(Void))->add_params(celltype),
-               new PushBackMethod());
-
-   // resize(int)
-   struct Resize1Method : public Func {
-      Type *celltype;
-      Resize1Method(Type *t) : Func("resize"), celltype(t) {}
-      Value call(Value self, const vector<Value>& args) {
-         vector<Value>& the_vector = self.as<Vector>();
-         the_vector.resize(args[0].as<Int>(), default_value_for(celltype));
-         return Value::null;
-      }
-   };
-   _add_method((new Function(Void))->add_params(Int::self),
-               new Resize1Method(celltype));
-
-   // resize(int, T)
-   struct Resize2Method : public Func {
-      Resize2Method() : Func("resize") {}
-      Value call(Value self, const vector<Value>& args) {
-         vector<Value>& the_vector = self.as<Vector>();
-         the_vector.resize(args[0].as<Int>(), args[1]);
-         return Value::null;
-      }
-   };
-   _add_method((new Function(Void))->add_params(Int::self, celltype),
-               new Resize2Method());
-   
-   // front
-   struct FrontMethod : public Func {
-      FrontMethod() : Func("front") {}
-      Value call(Value self, const vector<Value>& args)  {
-         vector<Value>& the_vector = self.as<Vector>();
-         return Reference::mkref(the_vector.front());
-      }
-   };
-   _add_method(new Function(celltype),
-               new FrontMethod());
-
-   // back
-   struct BackMethod : public Func {
-      BackMethod() : Func("back") {}
-      Value call(Value self, const vector<Value>& args) {
-         vector<Value>& the_vector = self.as<Vector>();
-         return Reference::mkref(the_vector.back());
-      }
-   };
-   _add_method(new Function(celltype),
-               new BackMethod());
-
-   // clear
-   struct ClearMethod : public Func {
-      ClearMethod() : Func("clear") {}
-      Value call(Value self, const vector<Value>& args) {
-         vector<Value>& the_vector = self.as<Vector>();
-         the_vector.clear();
-         return Value::null;
-      }
-   };
-   _add_method(new Function(Void),
-               new ClearMethod());
-
-   // Iterator type + methods
-   Type* iterator_type = new RandomAccessIterator<Vector>(this);
-   _add_inner_class(iterator_type);
-
-   // begin
-   struct BeginMethod : public Func {
-      Type *iter_type;
-      BeginMethod(Type *t) : Func("begin"), iter_type(t) {}
-      Value call(Value self, const vector<Value>& args) {
-         vector<Value>& the_vector = self.as<Vector>();
-         return Value(iter_type, new vector<Value>::iterator(the_vector.begin()));
-      }
-   };
-   _add_method(new Function(iterator_type),
-               new BeginMethod(iterator_type));
-   // end
-   struct EndMethod : public Func {
-      Type *iter_type;
-      EndMethod(Type *t) : Func("end"), iter_type(t) {}
-      Value call(Value self, const vector<Value>& args) {
-         vector<Value>& the_vector = self.as<Vector>();
-         return Value(iter_type, new vector<Value>::iterator(the_vector.end()));
-      }
-   };
-   _add_method(new Function(iterator_type),
-               new EndMethod(iterator_type));
-}
 
 String::String() : Class("string") {
    // constructor(size, char)
@@ -747,16 +1026,6 @@ String::String() : Class("string") {
                new PlusOperator());
 }
 
-Type *Vector::instantiate(vector<Type *>& subtypes) const {
-   assert(subtypes.size() == 1);
-   assert(subtypes[0] != 0);
-   return new Vector(subtypes[0]);
-}
-
-string Vector::typestr() const {
-   string subtype = (_celltype != 0 ? _celltype->typestr() : "?");
-   return name() + "<" + subtype + ">";
-}
 
 template<class C>
 Iterator<C>::Iterator(C *type)

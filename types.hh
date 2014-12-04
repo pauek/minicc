@@ -408,6 +408,28 @@ public:
    typedef std::vector<Value>::iterator cpp_iterator;
 };
 
+class List : public Class<BaseType, std::list<Value>> {
+   Type *_celltype; // celltype == 0 means it's the template
+
+   static Value default_value_for(Type *t);
+public:
+   List()        : Class("list"), _celltype(0) {}
+   List(Type *t);
+
+   int   properties() const { return Template | Emulated; }
+   Value convert(Value init);
+   Type *instantiate(std::vector<Type*>& args) const;
+   Type *celltype() const { return _celltype; }
+
+   std::string typestr() const;
+   std::string to_json(void *data) const;
+
+   static List *self;
+
+   typedef std::list<Value> cpp_type;
+   typedef std::list<Value>::iterator cpp_iterator;
+};
+
 template<class C> /* C == Container */
 class Iterator : public Class<BaseType, typename C::cpp_iterator> {
    C *_container_type;

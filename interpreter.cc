@@ -171,6 +171,9 @@ void Interpreter::visit_include(Include* x) {
       std->register_type("vector",  Vector::self);
       std->register_type("string",  String::self); // 'vector' includes 'string'
    }
+   else if (x->filename == "list") {
+      std->register_type("list",  List::self);
+   }
    else if (x->filename == "string") {
       std->register_type("string",  String::self);
    }
