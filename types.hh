@@ -39,8 +39,8 @@ public:
    static Type *mkref(Type *t);
    
    enum Property {
-      Basic       = 1,  Emulated = 2, 
-      UserDefined = 4,  Template = 8,
+      Basic       = 1,  Emulated =  2, 
+      UserDefined = 4,  Template =  8,
       Internal    = 16
    };
 
@@ -59,7 +59,7 @@ public:
    template<typename T>
    bool is() const { return dynamic_cast<const T*>(this) != 0; }
 
-   bool is(Property prop) const { return properties() | prop; }
+   bool is(Property prop) const { return properties() & prop; }
 
    template<typename T>
    const T *as() const { return dynamic_cast<const T*>(this); }
@@ -253,11 +253,11 @@ public:
    }
 };
 
-
 class String : public Class<BasicType, std::string> {
 public:
    String();
    static String *self;
+   int properties() const { return Internal; }
    std::string to_json(void *data) const;
    Value create() { return Value((Type*)this, (void*)(new std::string())); }
 };

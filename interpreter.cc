@@ -422,19 +422,17 @@ void Interpreter::visit_binaryexpr(BinaryExpr *x) {
    }
    else if (x->op == "+" || x->op == "*" || x->op == "-" || x->op == "/") {
       bool ret = false;
-      switch (x->op[0]) {
-      case '+': {
-         if (left.is<String>() and right.is<String>()) {
-            _curr = Value(left.as<String>() + right.as<String>());
-            ret = true;
-         } else {
-            ret = visit_sumprod<_Add>(left, right);
+      if (left.type()->is(Type::Basic) and right.type()->is(Type::Basic)) {
+         switch (x->op[0]) {
+         case '+': ret = visit_sumprod<_Add>(left, right); break;
+         case '*': ret = visit_sumprod<_Mul>(left, right); break;
+         case '-': ret = visit_sumprod<_Sub>(left, right); break;
+         case '/': ret = visit_sumprod<_Div>(left, right); break;
          }
-         break;
-      }
-      case '*': ret = visit_sumprod<_Mul>(left, right); break;
-      case '-': ret = visit_sumprod<_Sub>(left, right); break;
-      case '/': ret = visit_sumprod<_Div>(left, right); break;
+      } else {
+         _curr = left;
+         call_operator("+", vector<Value>(1, right));
+         ret = true;
       }
       if (ret) {
          return;

@@ -734,6 +734,17 @@ String::String() : Class("string") {
    };
    _add_method((new Function(this))->add_params(Int::self, Int::self),
                new Erase2Method());
+
+   // +
+   struct PlusOperator : public Func {
+      PlusOperator() : Func("+") {}
+      Value call(Value self, const vector<Value>& args) {
+         string& the_string = self.as<String>();
+         return Value(the_string + args[0].as<String>()); 
+      }
+   };
+   _add_method((new Function(this))->add_params(this),
+               new PlusOperator());
 }
 
 Type *Vector::instantiate(vector<Type *>& subtypes) const {
@@ -772,7 +783,7 @@ Iterator<C>::Iterator(C *type)
       DerefOperator() : Func("*") {}
       Value call(Value self, const vector<Value>& args) {
          typename C::cpp_iterator& the_iterator = self.as<Iterator<C>>();
-         return *the_iterator;
+         return Reference::mkref(*the_iterator);
       }
    };
    _Class::_add_method(new Function(this),
