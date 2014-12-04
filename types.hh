@@ -423,7 +423,13 @@ public:
 };
 
 template<class C>
-class RandomAccessIterator : public Iterator<C> {
+class ForwardIterator : public Iterator<C> {
+public:
+   ForwardIterator(C *type);
+};
+
+template<class C>
+class RandomAccessIterator : public ForwardIterator<C> {
 public:
    RandomAccessIterator(C *type);
 };
