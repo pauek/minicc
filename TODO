@@ -1,4 +1,6 @@
-- Completar métodos de list<T>.
+- Implementar list<T>::{reverse,unique}.
+- Implementar insert y erase en vector<T> y list<T>.
+- Implementar list<T>::sort.
 - Implementar map<K, V> (+ pair<K, V>).
 
 - Borrar el AST correctamente (quizás no haga falta, el AST está presente todo el rato).
