@@ -132,6 +132,9 @@ Value Reference::convert(Value x) {
 }
 
 Value Reference::mkref(Value& v) {
+   if (v.is<Reference>()) {
+      return v;
+   }
    Value::Box *b = v._box;
    v._box->count++;
    return Value(Type::mkref(v._box->type), (void*)b);
@@ -335,7 +338,8 @@ Vector::Vector(Type *celltype)
       PushBackMethod() : Func("push_back") {}
       Value call(Value self, const vector<Value>& args) {
          vector<Value>& v = self.as<Vector>();
-         v.push_back(args[0]);
+         Value pushed = Reference::deref(args[0].clone());
+         v.push_back(pushed.clone());
          return Value::null;
       }
    };
@@ -561,7 +565,8 @@ List::List(Type *celltype)
       PushBackMethod() : Func("push_back") {}
       Value call(Value self, const vector<Value>& args) {
          list<Value>& the_list = self.as<List>();
-         the_list.push_back(args[0]);
+         Value pushed = Reference::deref(args[0]);
+         the_list.push_back(pushed.clone());
          return Value::null;
       }
    };
@@ -662,6 +667,32 @@ List::List(Type *celltype)
    };
    _add_method(new Function(Void),
                new ClearMethod());
+
+   // reverse
+   struct ReverseMethod : public Func {
+      ReverseMethod() : Func("reverse") {}
+      Value call(Value self, const vector<Value>& args) {
+         list<Value>& the_list = self.as<List>();
+         the_list.reverse();
+         return Value::null;
+      }
+   };
+   _add_method(new Function(Void),
+               new ReverseMethod());
+
+   // unique
+   struct UniqueMethod : public Func {
+      UniqueMethod() : Func("unique") {}
+      Value call(Value self, const vector<Value>& args) {
+         list<Value>& the_list = self.as<List>();
+         the_list.unique([](const Value& a, const Value& b) {
+            return a.equals(b);
+         });
+         return Value::null;
+      }
+   };
+   _add_method(new Function(Void),
+               new UniqueMethod());
 
    // Iterator type + methods
    Type* iterator_type = new BidirectionalIterator<List>(this);
