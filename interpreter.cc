@@ -162,10 +162,10 @@ void Interpreter::visit_include(Include* x) {
       std->register_type("istream", Istream::self);
       std->register_type("string",  String::self); // 'iostream' includes 'string'
       
-      std->set("endl", Endl, hidden);
-      std->set("cerr", Cerr, hidden);
+      std->set("endl", Value("\n"), hidden);
+      // std->set("cerr", Cerr, hidden);
       std->set("cout", Value(out()), hidden);
-      std->set("cin",  Cin,  hidden);
+      std->set("cin",  Value(in()), hidden);
    } 
    else if (x->filename == "vector") {
       std->register_type("vector",  Vector::self);
@@ -372,6 +372,7 @@ void Interpreter::visit_binaryexpr(BinaryExpr *x) {
       left = Reference::deref(left);
    }
 
+   /*
    // cin >> ...
    if (leftderef == Cin && x->op == ">>") {
       Value old = _curr;
@@ -389,6 +390,7 @@ void Interpreter::visit_binaryexpr(BinaryExpr *x) {
       _curr = old;
       return;
    }
+   */
 
    x->right->accept(this);
    Value right = _curr;

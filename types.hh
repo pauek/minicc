@@ -478,13 +478,14 @@ public:
 class Istream : public Class<Type> {
    void destroy(void *data)  const {}
 public:
-   Istream() : Class<Type>("istream") {}
+   Istream();
    int properties()      const { return Emulated; }
    static Istream *self;
-   typedef std::istream& cpp_type;
+
    static std::istream& cast(void *data) { 
       return *static_cast<std::istream*>(data); 
    }
+   typedef std::istream& cpp_type;
 };
 
 // Value template methods (DO NOT MOVE)

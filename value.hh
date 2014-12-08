@@ -76,7 +76,4 @@ public:
 std::ostream& operator<<(std::ostream& o, const Value& v);
 std::istream& operator>>(std::istream& o, Value& v);
 
-
-extern Value Cout, Cin, Cerr, Endl;
-
 #endif

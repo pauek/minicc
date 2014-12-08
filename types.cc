@@ -26,10 +26,6 @@ List        *List::self        = new List();
 Overloaded  *Overloaded::self  = new Overloaded();
 Callable    *Callable::self    = new Callable();
 
-Value Cout(cout), Cerr(cerr);
-Value Cin(cin);
-Value Endl("\n");
-
 string String::to_json(void *data) const {
    return string("\"") + *(string*)data + "\"";
 }
@@ -1324,9 +1320,7 @@ int Function::check_signature(const std::vector<Value>& args) const {
    return score;
 }
 
-Ostream::Ostream()
-   : Class<Type>("ostream") 
-{
+Ostream::Ostream() : Class<Type>("ostream") {
    // <<
    struct OutputOperator : public Func {
       OutputOperator() : Func("<<") {}
@@ -1344,5 +1338,27 @@ Ostream::Ostream()
    for (int i = 0; i < BasicTypes.size(); i++) {
       _add_method((new Function(this))->add_params(BasicTypes[i]),
                   output_op);
+   }
+}
+
+Istream::Istream() : Class<Type>("istream") {
+   // >>
+   struct InputOperator : public Func {
+      InputOperator() : Func(">>") {}
+      Value call(Value self, const vector<Value>& args) {
+         istream& in = self.as<Istream>();
+         Value holder = args[0];
+         in >> holder;
+         return self; 
+      }
+   };
+   Func *input_op = new InputOperator();
+   static vector<Type*> BasicTypes = {
+      Int::self, Char::self, Bool::self, 
+      Float::self, Double::self, String::self /* FIXME: move to String */
+   };
+   for (int i = 0; i < BasicTypes.size(); i++) {
+      _add_method((new Function(this))->add_params(BasicTypes[i]),
+                  input_op);
    }
 }
