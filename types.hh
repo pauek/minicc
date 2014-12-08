@@ -23,9 +23,12 @@ struct Func {
 };
 
 class Type {
+   std::string _name;
    Type *reference_type;
 
 public:
+   Type(std::string name) : _name(name), reference_type(0) {}
+
    //      void  *alloc(T x) = a different method for every Type
    virtual   void  destroy(void *data) const                 { assert(false); }
    virtual   bool  equals(void *data_a, void *data_b)  const { assert(false); }
@@ -45,8 +48,8 @@ public:
    };
 
 
-   virtual std::string  name() const = 0;
-   virtual std::string  typestr() const = 0;
+   virtual std::string  name()    const { return _name; }
+   virtual std::string  typestr() const { return _name; }
    virtual         int  properties() const = 0;
    virtual        bool  get_method(std::string, 
                                    std::vector<Value>& M)         const { return false; }
@@ -86,12 +89,9 @@ public:
 
 template<typename T>
 class BaseType : public Type {
-   std::string _name;
 public:
-   BaseType(std::string name) : _name(name) {}
+   BaseType(std::string name) : Type(name) {}
 
-   std::string name()       const { return _name; }
-   std::string typestr()    const { return _name; }
            int properties() const { return Internal; }
 
    typedef T cpp_type;
@@ -166,11 +166,10 @@ public:
 class Reference : public Type {
    const Type *_subtype;
 public:
-   Reference(const Type *subtype) : _subtype(subtype) {}
+   Reference(const Type *subtype) : Type("<reference>"), _subtype(subtype) {}
 
     const Type *subtype()           const { return _subtype; }
    std::string  typestr()           const { return _subtype->typestr() + "&"; }
-   std::string  name()              const { return "<reference>"; }
            int  properties()        const { return Basic; }
 
           void *alloc(Value& x)     const;
@@ -464,21 +463,19 @@ public:
    static VectorValue *self;
 };
 
-class Ostream : public Type {
+class Ostream : public Class<Type> {
    void destroy(void *data)  const {}
 public:
+   Ostream() : Class<Type>("ostream") {}
    int properties()      const { return Emulated; }
-   std::string typestr() const { return "ostream"; }
-   std::string name()    const { return "ostream"; }
    static Ostream *self;
 };
 
-class Istream : public Type {
+class Istream : public Class<Type> {
    void destroy(void *data)  const {}
 public:
+   Istream() : Class<Type>("istream") {}
    int properties()      const { return Emulated; }
-   std::string typestr() const { return "istream"; }
-   std::string name()    const { return "istream"; }
    static Istream *self;
    typedef std::istream& cpp_type;
    static std::istream& cast(void *data) { 
