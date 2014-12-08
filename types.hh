@@ -10,9 +10,8 @@
 
 using std::string;
 
-struct TypeError {
-   std::string msg;
-   TypeError(std::string _msg) : msg(_msg) {}
+struct TypeError : public Error {
+   TypeError(std::string _msg) : Error(_msg) {}
 };
 
 struct Func {
@@ -286,7 +285,7 @@ public:
    Type *param(int i)      const { return _param_types[i]; }
    Type *return_type()     const { return _return_type; }
    bool is_void()          const { return _return_type == 0; }
-   bool check_signature(const std::vector<Value>& args) const;
+    int check_signature(const std::vector<Value>& args) const;
 
    std::string typestr() const;
 
@@ -466,9 +465,14 @@ public:
 class Ostream : public Class<Type> {
    void destroy(void *data)  const {}
 public:
-   Ostream() : Class<Type>("ostream") {}
+   Ostream();
    int properties()      const { return Emulated; }
    static Ostream *self;
+
+   static std::ostream& cast(void *data) { 
+      return *static_cast<std::ostream*>(data); 
+   }
+   typedef std::ostream cpp_type;
 };
 
 class Istream : public Class<Type> {

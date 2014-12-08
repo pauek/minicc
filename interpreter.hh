@@ -10,9 +10,8 @@
 #include "value.hh"
 #include "types.hh"
 
-struct EvalError {
-   std::string msg;
-   EvalError(std::string _msg) : msg(_msg) {}
+struct EvalError : public Error {
+   EvalError(std::string _msg) : Error(_msg) {}
 };
 
 class Interpreter : public AstVisitor, public ReadWriter 

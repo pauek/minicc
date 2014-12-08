@@ -92,7 +92,7 @@ int main(int argc, char *argv[]) {
          }
       }
    } 
-   catch (EvalError* e) {
+   catch (Error* e) {
       cerr << _T("Execution Error") << ": " << e->msg << endl;
       return 1;
    }

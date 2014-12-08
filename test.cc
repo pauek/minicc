@@ -131,7 +131,7 @@ void test_visitor(string filename, VisitorType vtype) {
          }
       }
    } 
-   catch (EvalError* e) {
+   catch (Error* e) {
       Serr << "Error de ejecución: " << e->msg << endl;
    }
 

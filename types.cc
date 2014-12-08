@@ -1276,19 +1276,29 @@ Environment *Environment::pop() {
 
 Value OverloadedValue::resolve(const std::vector<Value>& args) {
    vector<Value> results;
+   list<pair<int, int>> scores;
    for (int i = 0; i < _candidates.size(); i++) {
       Function *ftype = _candidates[i].type()->as<Function>();
       assert(ftype != 0);
-      if (ftype->check_signature(args)) {
+      int score = ftype->check_signature(args);
+      if (score != -1) {
+         int curr = results.size();
          results.push_back(_candidates[i]);
+         scores.push_back(make_pair(score, curr));
       }
    }
-   if (results.size() > 1) {
-      _error(_T("More than one method is applicable"));
-   } else if (results.empty()) {
+   if (results.empty()) {
       _error(_T("No method applicable"));
    }
-   return Callable::self->mkvalue(_self, results[0]);
+   Value winner;
+   if (results.size() > 1) {
+      scores.sort(); // sort by score
+      winner = results[scores.back().second];
+      // _error(_T("More than one method is applicable"));
+   } else {
+      winner = results[0];
+   }
+   return Callable::self->mkvalue(_self, winner);
 }
 
 Value Overloaded::mkvalue(Value self, const vector<Value>& candidates) {
@@ -1298,15 +1308,41 @@ Value Overloaded::mkvalue(Value self, const vector<Value>& candidates) {
    return Value(Overloaded::self, ov);
 }
 
-bool Function::check_signature(const std::vector<Value>& args) const {
+int Function::check_signature(const std::vector<Value>& args) const {
    if (args.size() != _param_types.size()) {
-      return false;
+      return -1;
    }
+   int score = 0;
    for (int i = 0; i < args.size(); i++) {
+      if (_param_types[i] == args[i].type()) {
+         score++;
+      }
       if (!_param_types[i]->accepts(args[i].type())) {
-         return false;
+         return -1;
       }
    }
-   return true;
+   return score;
 }
 
+Ostream::Ostream()
+   : Class<Type>("ostream") 
+{
+   // <<
+   struct OutputOperator : public Func {
+      OutputOperator() : Func("<<") {}
+      Value call(Value self, const vector<Value>& args) {
+         ostream& out = self.as<Ostream>();
+         out << args[0];
+         return self; 
+      }
+   };
+   Func *output_op = new OutputOperator();
+   static vector<Type*> BasicTypes = {
+      Int::self, Char::self, Bool::self, 
+      Float::self, Double::self, String::self /* FIXME: move to String */
+   };
+   for (int i = 0; i < BasicTypes.size(); i++) {
+      _add_method((new Function(this))->add_params(BasicTypes[i]),
+                  output_op);
+   }
+}

@@ -37,7 +37,7 @@ string execute(string input) {
       Interpreter I(&in, &out);
       program->accept(&I);
    } 
-   catch (EvalError* e) {
+   catch (Error* e) {
       ofstream errors("/minicc/errors");
       errors <<  e->msg << endl;
    }

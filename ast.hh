@@ -40,6 +40,7 @@ struct AstNode {
 struct Error {
    Pos pos;
    std::string msg;
+   Error(std::string m) : msg(m) {}
    Error(Pos p, std::string m) : pos(p), msg(m) {}
 };
 

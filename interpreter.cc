@@ -164,7 +164,7 @@ void Interpreter::visit_include(Include* x) {
       
       std->set("endl", Endl, hidden);
       std->set("cerr", Cerr, hidden);
-      std->set("cout", Cout, hidden);
+      std->set("cout", Value(out()), hidden);
       std->set("cin",  Cin,  hidden);
    } 
    else if (x->filename == "vector") {
@@ -372,15 +372,6 @@ void Interpreter::visit_binaryexpr(BinaryExpr *x) {
       left = Reference::deref(left);
    }
 
-   // cout << ...
-   if (leftderef == Cout && x->op == "<<") {
-      Value old = _curr;
-      x->right->accept(this);
-      out() << Reference::deref(_curr);
-      _curr = old;
-      return;
-   }
-
    // cin >> ...
    if (leftderef == Cin && x->op == ">>") {
       Value old = _curr;
@@ -493,7 +484,9 @@ void Interpreter::visit_binaryexpr(BinaryExpr *x) {
       // TODO: Find operator as method or function
       _error(_T("Los operandos de '%s' no son compatibles", x->op.c_str()));
    }
-   _error(_T("Interpreter::visit_binaryexpr: UNIMPLEMENTED (%s)", x->op.c_str()));
+   _curr = left;
+   call_operator(x->op, vector<Value>(1, right));
+   // _error(_T("Interpreter::visit_binaryexpr: UNIMPLEMENTED (%s)", x->op.c_str()));
 }
 
 inline bool assignment_types_ok(const Value& a, const Value& b) {
