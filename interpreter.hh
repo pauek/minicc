@@ -73,7 +73,7 @@ std::map<std::string, Environment*> _namespaces;
    void check_arguments(const Function *func_type, const std::vector<Value>& args);
    void check_result(Binding& fn, const Function *func_type);
    bool bind_method(Value obj, string method_name);
-   void call_operator(std::string op, const std::vector<Value>& args = std::vector<Value>());
+   bool call_operator(std::string op, const std::vector<Value>& args = std::vector<Value>());
 
 public:
    Interpreter() : _env(0) { _init(); }

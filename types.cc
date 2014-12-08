@@ -1361,4 +1361,13 @@ Istream::Istream() : Class<Type>("istream") {
       _add_method((new Function(this))->add_params(BasicTypes[i]),
                   input_op);
    }
+   // bool
+   struct BoolOperator : public Func {
+      BoolOperator() : Func("bool") {}
+      Value call(Value self, const vector<Value>& args) {
+         return Value(bool(self.as<Istream>()));
+      }
+   };
+   _add_method((new Function(Bool::self)),
+               new BoolOperator());
 }

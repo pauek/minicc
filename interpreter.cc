@@ -427,7 +427,10 @@ void Interpreter::visit_binaryexpr(BinaryExpr *x) {
          }
       } else {
          _curr = left;
-         call_operator(x->op, vector<Value>(1, right));
+         if (!call_operator(x->op, vector<Value>(1, right))) {
+            _error(_T("El tipo '%s' no tiene 'operator*'", 
+                      _curr.type()->typestr().c_str(), x->op.c_str()));
+         }
          ret = true;
       }
       if (ret) {
@@ -487,8 +490,10 @@ void Interpreter::visit_binaryexpr(BinaryExpr *x) {
       _error(_T("Los operandos de '%s' no son compatibles", x->op.c_str()));
    }
    _curr = left;
-   call_operator(x->op, vector<Value>(1, right));
-   // _error(_T("Interpreter::visit_binaryexpr: UNIMPLEMENTED (%s)", x->op.c_str()));
+   if (call_operator(x->op, vector<Value>(1, right))) {
+      return;
+   }
+   _error(_T("Interpreter::visit_binaryexpr: UNIMPLEMENTED (%s)", x->op.c_str()));
 }
 
 inline bool assignment_types_ok(const Value& a, const Value& b) {
@@ -589,9 +594,9 @@ void Interpreter::visit_arraydecl(ArrayDecl *x) {
                     : arraytype->convert(init)));
 }
 
-void Interpreter::call_operator(string op, const vector<Value>& args) {
+bool Interpreter::call_operator(string op, const vector<Value>& args) {
    if (!bind_method(_curr, op)) {
-      _error(_T("El tipo '%s' no tiene 'operator%s'", _curr.type()->typestr().c_str(), op.c_str()));
+      return false;
    }
    if (_curr.is<Overloaded>()) {
       _curr = _curr.as<Overloaded>().resolve(args);
@@ -601,6 +606,7 @@ void Interpreter::call_operator(string op, const vector<Value>& args) {
    const Function *func_type = opfun.func.type()->as<Function>();
    check_arguments(func_type, args);
    _curr = opfun.call(args);
+   return true;
 }
    
 void Interpreter::visit_objdecl(ObjDecl *x) {
@@ -651,7 +657,9 @@ void Interpreter::visit_exprstmt(ExprStmt* x) {
 void Interpreter::visit_ifstmt(IfStmt *x) {
    x->cond->accept(this);
    if (!_curr.is<Bool>()) {
-      _error(_T("An if's condition needs to be a bool value"));
+      if (!call_operator("bool")) {      
+         _error(_T("An if's condition needs to be a bool value"));
+      }
    }
    if (_curr.as<Bool>()) {
       x->then->accept(this);
@@ -670,8 +678,10 @@ void Interpreter::visit_iterstmt(IterStmt *x) {
    while (true) {
       x->cond->accept(this);
       if (!_curr.is<Bool>()) {
-         _error(_T("La condición de un '%s' debe ser un valor de tipo bool.",
-                   (x->is_for() ? "for" : "while")));
+         if (!call_operator("bool")) {      
+            _error(_T("La condición de un '%s' debe ser un valor de tipo bool.",
+                      (x->is_for() ? "for" : "while")));
+         }
       }
       if (!_curr.as<Bool>()) {
          break;
@@ -857,7 +867,11 @@ void Interpreter::visit_increxpr(IncrExpr *x) {
       }
    } else {
       _curr = after;
-      call_operator(x->kind == IncrExpr::Positive ? "++" : "--");
+      string op = (x->kind == IncrExpr::Positive ? "++" : "--");
+      if (!call_operator(op)) {
+         _error(_T("El tipo '%s' no tiene 'operator%s'", 
+                   _curr.type()->typestr().c_str(), op.c_str()));
+      }
    }
    _curr = (x->preincr ? before : after);
 }
@@ -893,5 +907,8 @@ void Interpreter::visit_derefexpr(DerefExpr *x) {
    if (_curr.is<Reference>()) {
       _curr = Reference::deref(_curr);
    }
-   call_operator("*");
+   if (!call_operator("*")) {
+      _error(_T("El tipo '%s' no tiene 'operator*'", 
+                _curr.type()->typestr().c_str()));
+   }
 }
