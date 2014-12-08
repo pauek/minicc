@@ -726,6 +726,7 @@ List::List(Type *celltype)
                new UniqueMethod());
 
    // Iterator type + methods
+   typedef BidirectionalIterator<List> MyIterator;
    Type* iterator_type = new BidirectionalIterator<List>(this);
    _add_inner_class(iterator_type);
 
@@ -751,6 +752,35 @@ List::List(Type *celltype)
    };
    _add_method(new Function(iterator_type),
                new EndMethod(iterator_type));
+   // insert
+   struct InsertMethod : public Func {
+      Type *iter_type;
+      InsertMethod(Type *t) : Func("insert"), iter_type(t) {}
+      Value call(Value self, const vector<Value>& args) {
+         list<Value>& the_list = self.as<List>();
+         Value pos = Reference::deref(args[0]);
+         list<Value>::iterator it = pos.as<MyIterator>();
+         list<Value>::iterator result = the_list.insert(it, args[1]);
+         return Value(iter_type, new list<Value>::iterator(result));
+      }
+   };
+   _add_method((new Function(iterator_type))->add_params(iterator_type, celltype),
+               new InsertMethod(iterator_type));
+
+   // erase
+   struct EraseMethod : public Func {
+      Type *iter_type;
+      EraseMethod(Type *t) : Func("erase"), iter_type(t) {}
+      Value call(Value self, const vector<Value>& args) {
+         list<Value>& the_list = self.as<List>();
+         Value pos = Reference::deref(args[0]);
+         list<Value>::iterator it = pos.as<MyIterator>();
+         list<Value>::iterator result = the_list.erase(it);
+         return Value(iter_type, new list<Value>::iterator(result));
+      }
+   };
+   _add_method((new Function(iterator_type))->add_params(iterator_type),
+               new EraseMethod(iterator_type));
 }
 
 Type *List::instantiate(vector<Type *>& subtypes) const {
