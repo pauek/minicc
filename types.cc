@@ -26,13 +26,13 @@ List        *List::self        = new List();
 Overloaded  *Overloaded::self  = new Overloaded();
 Callable    *Callable::self    = new Callable();
 
-string String::to_json(void *data) const {
-   return string("\"") + *(string*)data + "\"";
-}
-
 Value Cout(cout), Cerr(cerr);
 Value Cin(cin);
 Value Endl("\n");
+
+string String::to_json(void *data) const {
+   return string("\"") + *(string*)data + "\"";
+}
 
 // Methods
 
@@ -980,8 +980,8 @@ string Function::typestr() const {
    return o.str();
 }
 
-template<template<typename> class Base, typename T>
-bool Class<Base, T>::get_method(string name, vector<Value>& result) const {
+template<class Base>
+bool Class<Base>::get_method(string name, vector<Value>& result) const {
    auto it = _methods.find(name);
    if (it == _methods.end()) {
       return false;
@@ -993,8 +993,8 @@ bool Class<Base, T>::get_method(string name, vector<Value>& result) const {
    return true;
 }
 
-template<template<typename> class Base, typename T>
-void Class<Base, T>::_add_method(Function *type, Func *f) {
+template<class Base>
+void Class<Base>::_add_method(Function *type, Func *f) {
    _methods.insert(make_pair(f->name, type->mkvalue(f)));
 }
 
@@ -1121,9 +1121,9 @@ String::String() : Class("string") {
 
 template<class C>
 Iterator<C>::Iterator(C *type)
-   : Class<BaseType, typename C::cpp_iterator>("iterator"), _container_type(type)
+   : Class<BaseType<typename C::cpp_iterator>>("iterator"), _container_type(type)
 {
-   typedef Class<BaseType, typename C::cpp_iterator> _Class; // shut up, clang...
+   typedef Class<BaseType<typename C::cpp_iterator>> _Class; // shut up, clang...
    
    // *
    struct DerefOperator : public Func {
@@ -1141,7 +1141,7 @@ template<class C>
 ForwardIterator<C>::ForwardIterator(C *type) 
    : Iterator<C>(type) 
 {
-   typedef Class<BaseType, typename C::cpp_iterator> _Class; // shut up, clang...
+   typedef Class<BaseType<typename C::cpp_iterator>> _Class; // shut up, clang...
 
    // ++
    struct IncrOperator : public Func {
@@ -1160,7 +1160,7 @@ template<class C>
 BidirectionalIterator<C>::BidirectionalIterator(C *type) 
    : ForwardIterator<C>(type) 
 {
-   typedef Class<BaseType, typename C::cpp_iterator> _Class; // shut up, clang...
+   typedef Class<BaseType<typename C::cpp_iterator>> _Class; // shut up, clang...
 
    // --
    struct DecrOperator : public Func {
@@ -1179,7 +1179,7 @@ template<class C>
 RandomAccessIterator<C>::RandomAccessIterator(C *type) 
    : BidirectionalIterator<C>(type) 
 {
-   typedef Class<BaseType, typename C::cpp_iterator> _Class; // shut up, clang...
+   typedef Class<BaseType<typename C::cpp_iterator>> _Class; // shut up, clang...
 
    // +
    struct PlusOperator : public Func {

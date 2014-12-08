@@ -232,11 +232,8 @@ public:
 
 class Function;
 
-template<
-   template<typename> class Base, 
-   typename T
->
-class Class : public Base<T> {
+template<class Base>
+class Class : public Base {
    std::multimap<std::string, Value> _methods;
    SimpleTable<Type*> _inner_classes;
 protected:
@@ -245,7 +242,7 @@ protected:
       _inner_classes.set(type->name(), type);
    }
 public:
-   Class(std::string name) : Base<T>(name) {}
+   Class(std::string name) : Base(name) {}
    bool  get_method(std::string name, std::vector<Value>& result) const;
    Type *get_inner_class(std::string name) {
       Type *t;
@@ -253,7 +250,7 @@ public:
    }
 };
 
-class String : public Class<BasicType, std::string> {
+class String : public Class<BasicType<std::string>> {
 public:
    String();
    static String *self;
@@ -386,7 +383,7 @@ public:
    std::string  to_json(void *) const;
 };
 
-class Vector : public Class<BaseType, std::vector<Value>> {
+class Vector : public Class<BaseType<std::vector<Value>>> {
    Type *_celltype; // celltype == 0 means it's the template
 
    static Value default_value_for(Type *t);
@@ -408,7 +405,7 @@ public:
    typedef std::vector<Value>::iterator cpp_iterator;
 };
 
-class List : public Class<BaseType, std::list<Value>> {
+class List : public Class<BaseType<std::list<Value>>> {
    Type *_celltype; // celltype == 0 means it's the template
 
    static Value default_value_for(Type *t);
@@ -431,7 +428,7 @@ public:
 };
 
 template<class C> /* C == Container */
-class Iterator : public Class<BaseType, typename C::cpp_iterator> {
+class Iterator : public Class<BaseType<typename C::cpp_iterator>> {
    C *_container_type;
 public:
    Iterator(C *type);
