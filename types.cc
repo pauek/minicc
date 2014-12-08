@@ -418,7 +418,8 @@ Vector::Vector(Type *celltype)
                new ClearMethod());
 
    // Iterator type + methods
-   Type* iterator_type = new RandomAccessIterator<Vector>(this);
+   typedef RandomAccessIterator<Vector> MyIterator;
+   Type* iterator_type = new MyIterator(this);
    _add_inner_class(iterator_type);
 
    // begin
@@ -443,6 +444,36 @@ Vector::Vector(Type *celltype)
    };
    _add_method(new Function(iterator_type),
                new EndMethod(iterator_type));
+
+   // insert
+   struct InsertMethod : public Func {
+      Type *iter_type;
+      InsertMethod(Type *t) : Func("insert"), iter_type(t) {}
+      Value call(Value self, const vector<Value>& args) {
+         vector<Value>& the_vector = self.as<Vector>();
+         Value pos = Reference::deref(args[0]);
+         vector<Value>::iterator it = pos.as<MyIterator>();
+         vector<Value>::iterator result = the_vector.insert(it, args[1]);
+         return Value(iter_type, new vector<Value>::iterator(result));
+      }
+   };
+   _add_method((new Function(iterator_type))->add_params(iterator_type, celltype),
+               new InsertMethod(iterator_type));
+
+   // erase
+   struct EraseMethod : public Func {
+      Type *iter_type;
+      EraseMethod(Type *t) : Func("erase"), iter_type(t) {}
+      Value call(Value self, const vector<Value>& args) {
+         vector<Value>& the_vector = self.as<Vector>();
+         Value pos = Reference::deref(args[0]);
+         vector<Value>::iterator it = pos.as<MyIterator>();
+         vector<Value>::iterator result = the_vector.erase(it);
+         return Value(iter_type, new vector<Value>::iterator(result));
+      }
+   };
+   _add_method((new Function(iterator_type))->add_params(iterator_type),
+               new EraseMethod(iterator_type));
 }
 
 Type *Vector::instantiate(vector<Type *>& subtypes) const {
