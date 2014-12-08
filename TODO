@@ -1,4 +1,3 @@
-- Implementar insert y erase en vector<T> y list<T>.
 - Implementar list<T>::sort.
 - Implementar map<K, V> (+ pair<K, V>).
 - Implementar istringstream y ostringstream.
