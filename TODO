@@ -1,8 +1,6 @@
 - Implementar list<T>::sort.
 - Implementar map<K, V> (+ pair<K, V>).
 - Implementar istringstream y ostringstream.
-- Permitir conversiones a tipos básicos desde clases
-  (con operator T()). Para permitir "while (cin >> x) ...".
 
 - Borrar el AST correctamente (quizás no haga falta, el AST está presente todo el rato).
 - Testear a fondo el stepper.
