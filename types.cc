@@ -470,6 +470,21 @@ Vector::Vector(Type *celltype)
    };
    _add_method((new Function(iterator_type))->add_params(iterator_type),
                new EraseMethod(iterator_type));
+
+   // []
+   struct IndexedAccessOperator : public Func {
+      IndexedAccessOperator() : Func("[]") {}
+      Value call(Value self, const vector<Value>& args) {
+         vector<Value>& the_vector = self.as<Vector>();
+         int index = args[0].as<Int>();
+         if (index < 0 or index >= the_vector.size()) {
+            throw Error("Acceso fuera de rango"); // FIXME
+         }
+         return Reference::mkref(the_vector[index]);
+      }
+   };
+   _add_method((new Function(this))->add_params(Int::self),
+               new IndexedAccessOperator());
 }
 
 Type *Vector::instantiate(vector<Type *>& subtypes) const {
@@ -1112,6 +1127,22 @@ String::String() : Class("string") {
    };
    _add_method((new Function(this))->add_params(this),
                new PlusOperator());
+
+   // []
+   struct IndexedAccessOperator : public Func {
+      IndexedAccessOperator() : Func("[]") {}
+      Value call(Value self, const vector<Value>& args) {
+         string& the_string = self.as<String>();
+         int index = args[0].as<Int>();
+         if (index < 0 or index >= the_string.size()) {
+            throw Error("Acceso fuera de rango"); // FIXME
+         }
+         Value character(the_string[index]);
+         return Reference::mkref(character);
+      }
+   };
+   _add_method((new Function(this))->add_params(Int::self),
+               new IndexedAccessOperator());
 }
 
 

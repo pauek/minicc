@@ -763,23 +763,26 @@ void Interpreter::visit_callexpr(CallExpr *x) {
 
 void Interpreter::visit_indexexpr(IndexExpr *x) {
    x->base->accept(this);
-   _curr = Reference::deref(_curr);
-   if (!_curr.is<Array>() and !_curr.is<Vector>()) {
-      // TODO: Find operator[] (method or function)
+   Value base = Reference::deref(_curr);
+   x->index->accept(this);
+   Value index = Reference::deref(_curr);
+   if (base.is<Array>()) {
+      if (!index.is<Int>()) {
+         _error(_T("El índice en un acceso a tabla debe ser un entero"));
+      }
+      vector<Value>& vals = base.as<Array>();
+      const int i = index.as<Int>();
+      if (i < 0 || i >= vals.size()) {
+         // TODO: Producir error de ejecución
+         _error(_T("La casilla %d no existe", i));
+      }
+      _curr = Reference::mkref(vals[i]);
+      return;
+   }
+   _curr = base;
+   if (!call_operator("[]", vector<Value>(1, index))) {
       _error(_T("Las expresiones de índice deben usarse sobre tablas o vectores"));
    }
-   vector<Value>& vals = (_curr.is<Array>() ? _curr.as<Array>() : _curr.as<Vector>());
-   x->index->accept(this);
-   _curr = Reference::deref(_curr);
-   if (!_curr.is<Int>()) {
-      // FIXME: maps!
-      _error(_T("El índice en un acceso a tabla debe ser un entero"));
-   }
-   const int i = _curr.as<Int>();
-   if (i < 0 || i >= vals.size()) {
-      _error(_T("La casilla %d no existe", i));
-   }
-   _curr = Reference::mkref(vals[i]);
 }
 
 bool Interpreter::bind_method(Value obj, string method_name) {
