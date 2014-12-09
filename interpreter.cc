@@ -155,6 +155,20 @@ struct MaxFunc : public Func {
 };
 MaxFunc _max;
 
+struct GetlineFunc : public Func {
+   GetlineFunc() : Func("getline") {}
+   Value call(Value self, const vector<Value>& args) {
+      Value the_string = Reference::deref(args[1]);
+      Value the_istream = Reference::deref(args[0]);
+      return Value(std::getline(the_istream.as<Istream>(), the_string.as<String>()));
+   }
+   Value mkcallable() {
+      Function *functype = (new Function(Istream::self))->add_params(Istream::self, String::self);
+      return Callable::self->mkvalue(Value::null, functype->mkvalue(this));
+   }
+};
+GetlineFunc _getline;
+
 void Interpreter::visit_include(Include* x) {
    Environment *std = _namespaces["std"];
    if (x->filename == "iostream") {
@@ -166,6 +180,8 @@ void Interpreter::visit_include(Include* x) {
       // std->set("cerr", Cerr, hidden);
       std->set("cout", Value(out()), hidden);
       std->set("cin",  Value(in()), hidden);
+
+      std->set("getline", _getline.mkcallable(), hidden);
    } 
    else if (x->filename == "vector") {
       std->register_type("vector",  Vector::self);
