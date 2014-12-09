@@ -528,8 +528,12 @@ void Interpreter::visit_binaryexpr_op_assignment(char op, Value left, Value righ
    bool ok = false;
    switch (op) {
    case '+': {
+      // FIXME: use 'string::operator+='
       if (left.is<String>() and right.is<String>()) {
          left.as<String>() += right.as<String>();
+         ok = true;
+      } else if (left.is<String>() and right.is<Char>()) {
+         left.as<String>() += right.as<Char>();
          ok = true;
       } else {
          ok = visit_op_assignment<_AAdd>(left, right);
