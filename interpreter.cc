@@ -178,6 +178,9 @@ void Interpreter::visit_include(Include* x) {
       std->register_type("string",  String::self);
    }
    else if (x->filename == "algorithm") {
+      // FIXME: make max a template, so that when you call it,
+      // it instantiates the proper type of function.
+      //
       Function *max_func_type = new Function(Int::self);
       max_func_type->add_params(Int::self, Int::self);
       Value func     = max_func_type->mkvalue(&_max);
@@ -748,10 +751,27 @@ void Interpreter::check_result(Binding& fn, const Function *func_type) {
 }
 
 void Interpreter::visit_callexpr(CallExpr *x) {
-   visit_callexpr_getfunc(x);
-   Value func = _curr;
    vector<Value> args;
    eval_arguments(x->args, args);
+   
+   // Type Conversion?
+   FullIdent *id = x->func->as<FullIdent>();
+   if (id != 0) {
+      TypeSpec spec(id);
+      Type *type = get_type(&spec);
+      if (type != 0) {
+         if (args.size() != 1) {
+            _error(_T("La conversión de tipo recibe un solo argumento"));
+         }
+         _curr = type->convert(args[0]);
+         return;
+      }
+   }
+   
+   // Function
+   visit_callexpr_getfunc(x);
+   Value func = _curr;
+
    // TODO: Find operator() (method or function)
    if (func.is<Overloaded>()) {
       func = func.as<Overloaded>().resolve(args);

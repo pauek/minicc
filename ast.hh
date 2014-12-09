@@ -35,6 +35,8 @@ struct AstNode {
                   bool is()           const { return dynamic_cast<const X*>(this) != 0; }
    template<typename X>
               const X *as()           const { return dynamic_cast<const X*>(this); }
+   template<typename X>
+                    X *as()                 { return dynamic_cast<X*>(this); }
 };
 
 struct Error {
@@ -420,6 +422,7 @@ struct TypeSpec : public AstNode {
    FullIdent              *id;
 
    TypeSpec() : id(0), reference(false) {}
+   TypeSpec(FullIdent *_id) : id(_id), reference(false) {}
    void accept(AstVisitor *v);
    bool has_errors() const;
    std::string typestr() const;
