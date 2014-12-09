@@ -780,6 +780,12 @@ void Interpreter::visit_callexpr(CallExpr *x) {
             _error(_T("La conversión de tipo recibe un solo argumento"));
          }
          _curr = type->convert(args[0]);
+         if (_curr == Value::null) {
+            _curr = args[0];
+            if (call_operator(id->typestr())) {
+               return;
+            }
+         }
          return;
       }
    }
