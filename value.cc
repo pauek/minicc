@@ -115,8 +115,8 @@ Value::Value(bool x)        { _attach(new Box(Bool::self,   Bool::self->alloc(x)
 Value::Value(float x)       { _attach(new Box(Float::self,  Float::self->alloc(x))); }
 Value::Value(double x)      { _attach(new Box(Double::self, Double::self->alloc(x))); }
 Value::Value(string x)      { _attach(new Box(String::self, String::self->alloc(x))); }
-Value::Value(ostream& o)    { _attach(new Box(Ostream::self, &o)); }
-Value::Value(istream& i)    { _attach(new Box(Istream::self, &i)); }
+Value::Value(ostream& o)    { _attach(new Box(OStream::self, &o)); }
+Value::Value(istream& i)    { _attach(new Box(IStream::self, &i)); }
 Value::Value(const char *x) { _attach(new Box(String::self, String::self->alloc(string(x)))); }
 
 std::ostream& operator<<(std::ostream& o, const Value& v) {

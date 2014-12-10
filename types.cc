@@ -18,8 +18,8 @@ Double      *Double::self      = new Double();
 Char        *Char::self        = new Char();
 Bool        *Bool::self        = new Bool();
 String      *String::self      = new String();
-Ostream     *Ostream::self     = new Ostream();
-Istream     *Istream::self     = new Istream();
+OStream     *OStream::self     = new OStream();
+IStream     *IStream::self     = new IStream();
 VectorValue *VectorValue::self = new VectorValue();
 Vector      *Vector::self      = new Vector();
 List        *List::self        = new List();
@@ -1351,12 +1351,12 @@ int Function::check_signature(const std::vector<Value>& args) const {
    return score;
 }
 
-void Ostream::_add_ostream_methods() {
+void OStream::_add_ostream_methods() {
    // <<
    struct OutputOperator : public Func {
       OutputOperator() : Func("<<") {}
       Value call(Value self, const vector<Value>& args) {
-         ostream& out = self.as<Ostream>();
+         ostream& out = self.as<OStream>();
          out << args[0];
          return self; 
       }
@@ -1372,12 +1372,12 @@ void Ostream::_add_ostream_methods() {
    }
 }
 
-void Istream::_add_istream_methods() {
+void IStream::_add_istream_methods() {
    // >>
    struct InputOperator : public Func {
       InputOperator() : Func(">>") {}
       Value call(Value self, const vector<Value>& args) {
-         istream& in = self.as<Istream>();
+         istream& in = self.as<IStream>();
          Value holder = args[0];
          in >> holder;
          return self; 
@@ -1396,7 +1396,7 @@ void Istream::_add_istream_methods() {
    struct BoolOperator : public Func {
       BoolOperator() : Func("bool") {}
       Value call(Value self, const vector<Value>& args) {
-         return Value(bool(self.as<Istream>()));
+         return Value(bool(self.as<IStream>()));
       }
    };
    _add_method((new Function(Bool::self)),

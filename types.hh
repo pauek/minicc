@@ -462,14 +462,14 @@ public:
    static VectorValue *self;
 };
 
-class Ostream : public Class<Type> {
+class OStream : public Class<Type> {
    void destroy(void *data)  const {}
 protected:
    void _add_ostream_methods();
 public:
-   Ostream() : Class<Type>("ostream") { _add_ostream_methods(); }
+   OStream() : Class<Type>("ostream") { _add_ostream_methods(); }
    int properties()      const { return Emulated; }
-   static Ostream *self;
+   static OStream *self;
 
    static std::ostream& cast(void *data) { 
       return *static_cast<std::ostream*>(data); 
@@ -477,14 +477,14 @@ public:
    typedef std::ostream cpp_type;
 };
 
-class Istream : public Class<Type> {
+class IStream : public Class<Type> {
    void destroy(void *data)  const {}
 protected:
    void _add_istream_methods();
 public:
-   Istream() : Class<Type>("istream") { _add_istream_methods(); }
+   IStream() : Class<Type>("istream") { _add_istream_methods(); }
    int properties()      const { return Emulated; }
-   static Istream *self;
+   static IStream *self;
 
    static std::istream& cast(void *data) { 
       return *static_cast<std::istream*>(data); 

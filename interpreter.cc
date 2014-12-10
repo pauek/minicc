@@ -160,10 +160,10 @@ struct GetlineFunc : public Func {
    Value call(Value self, const vector<Value>& args) {
       Value the_string = Reference::deref(args[1]);
       Value the_istream = Reference::deref(args[0]);
-      return Value(std::getline(the_istream.as<Istream>(), the_string.as<String>()));
+      return Value(std::getline(the_istream.as<IStream>(), the_string.as<String>()));
    }
    Value mkcallable() {
-      Function *functype = (new Function(Istream::self))->add_params(Istream::self, String::self);
+      Function *functype = (new Function(IStream::self))->add_params(IStream::self, String::self);
       return Callable::self->mkvalue(Value::null, functype->mkvalue(this));
    }
 };
@@ -172,8 +172,8 @@ GetlineFunc _getline;
 void Interpreter::visit_include(Include* x) {
    Environment *std = _namespaces["std"];
    if (x->filename == "iostream") {
-      std->register_type("ostream", Ostream::self);
-      std->register_type("istream", Istream::self);
+      std->register_type("ostream", OStream::self);
+      std->register_type("istream", IStream::self);
       std->register_type("string",  String::self); // 'iostream' includes 'string'
       
       std->set("endl", Value("\n"), hidden);
@@ -403,7 +403,7 @@ void Interpreter::visit_binaryexpr(BinaryExpr *x) {
       if (!getenv(id->name, right)) {
          _error(_T("La variable '%s' no está declarada", id->name.c_str()));
       }
-      // assert(leftderef.as<Istream>() == std::cin); // no compila con Emscripten
+      // assert(leftderef.as<IStream>() == std::cin); // no compila con Emscripten
       right = Reference::deref(right);
       in() >> right;
       _curr = old;
