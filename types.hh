@@ -497,9 +497,7 @@ public:
 class IStringStream : public IStream {
 public:
    IStringStream();
-
    static IStringStream *self;
-
    Value create() { return Value(this, new std::istringstream()); }
 
    static std::istringstream& cast(void *data) { 
@@ -511,9 +509,7 @@ public:
 class OStringStream : public OStream {
 public:
    OStringStream();
-
    Value create() { return Value(this, new std::ostringstream()); }
-
    static OStringStream *self;
 
    static std::ostringstream& cast(void *data) { 

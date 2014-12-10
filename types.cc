@@ -1047,7 +1047,9 @@ String::String() : Class("string") {
       Substr1Method() : Func("substr") {}
       Value call(Value self, const vector<Value>& args) {
          string& the_string = self.as<String>();
-         return Value(the_string.substr(args[0].as<Int>(), args[1].as<Int>()));
+         Value pos  = Reference::deref(args[0]);
+         Value size = Reference::deref(args[1]);
+         return Value(the_string.substr(pos.as<Int>(), size.as<Int>()));
       }
    };
    _add_method((new Function(this))->add_params(Int::self, Int::self),
@@ -1075,16 +1077,27 @@ String::String() : Class("string") {
    _add_method((new Function(Int::self))->add_params(this),
                new FindMethod1());
 
-   // find(str, pos)
+   // find(char)
    struct FindMethod2 : public Func {
       FindMethod2() : Func("find") {}
+      Value call(Value self, const vector<Value>& args) {
+         string& the_string = self.as<String>();
+         return Value(int(the_string.find(args[0].as<Char>())));
+      }
+   };
+   _add_method((new Function(Int::self))->add_params(Char::self),
+               new FindMethod2());
+
+   // find(str, pos)
+   struct FindMethod3 : public Func {
+      FindMethod3() : Func("find") {}
       Value call(Value self, const vector<Value>& args) {
          string& the_string = self.as<String>();
          return Value(int(the_string.find(args[0].as<String>(), args[1].as<Int>())));
       }
    };
    _add_method((new Function(Int::self))->add_params(this, Int::self),
-               new FindMethod2());
+               new FindMethod3());
 
    // insert(pos, str)
    struct InsertMethod : public Func {
