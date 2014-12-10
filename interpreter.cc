@@ -398,6 +398,9 @@ void Interpreter::visit_binaryexpr(BinaryExpr *x) {
    x->right->accept(this);
    Value right = _curr;
    right = Reference::deref(right);
+   if (x->op == ",") {
+      return; // already evaluated
+   }
    if (x->op == "=") {
       visit_binaryexpr_assignment(left, right);
       return;
