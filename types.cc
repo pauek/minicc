@@ -1351,7 +1351,7 @@ int Function::check_signature(const std::vector<Value>& args) const {
    return score;
 }
 
-Ostream::Ostream() : Class<Type>("ostream") {
+void Ostream::_add_ostream_methods() {
    // <<
    struct OutputOperator : public Func {
       OutputOperator() : Func("<<") {}
@@ -1372,7 +1372,7 @@ Ostream::Ostream() : Class<Type>("ostream") {
    }
 }
 
-Istream::Istream() : Class<Type>("istream") {
+void Istream::_add_istream_methods() {
    // >>
    struct InputOperator : public Func {
       InputOperator() : Func(">>") {}

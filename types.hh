@@ -464,8 +464,10 @@ public:
 
 class Ostream : public Class<Type> {
    void destroy(void *data)  const {}
+protected:
+   void _add_ostream_methods();
 public:
-   Ostream();
+   Ostream() : Class<Type>("ostream") { _add_ostream_methods(); }
    int properties()      const { return Emulated; }
    static Ostream *self;
 
@@ -477,8 +479,10 @@ public:
 
 class Istream : public Class<Type> {
    void destroy(void *data)  const {}
+protected:
+   void _add_istream_methods();
 public:
-   Istream();
+   Istream() : Class<Type>("istream") { _add_istream_methods(); }
    int properties()      const { return Emulated; }
    static Istream *self;
 
