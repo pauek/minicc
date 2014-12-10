@@ -395,26 +395,6 @@ void Interpreter::visit_binaryexpr(BinaryExpr *x) {
       left = Reference::deref(left);
    }
 
-   /*
-   // cin >> ...
-   if (leftderef == Cin && x->op == ">>") {
-      Value old = _curr;
-      FullIdent *id = dynamic_cast<FullIdent*>(x->right);
-      if (id == 0) {
-         _error(_T("La lectura con 'cin' requiere que pongas variables"));
-      }
-      Value right;
-      if (!getenv(id->name, right)) {
-         _error(_T("La variable '%s' no está declarada", id->name.c_str()));
-      }
-      // assert(leftderef.as<IStream>() == std::cin); // no compila con Emscripten
-      right = Reference::deref(right);
-      in() >> right;
-      _curr = old;
-      return;
-   }
-   */
-
    x->right->accept(this);
    Value right = _curr;
    right = Reference::deref(right);
