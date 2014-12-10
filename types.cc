@@ -1020,7 +1020,8 @@ String::String() : Class("string") {
       StringConstructor1() : Func("string") {}
       Value call(Value self, const vector<Value>& args) {
          string& the_string = self.as<String>();
-         const int sz = args[0].as<Int>();
+         Value size = Reference::deref(args[0]);
+         const int sz = size.as<Int>();
          the_string = "";
          for (int i = 0; i < sz; i++) {
             the_string += args[1].as<Char>();
@@ -1152,8 +1153,8 @@ String::String() : Class("string") {
          if (index < 0 or index >= the_string.size()) {
             throw Error("Acceso fuera de rango"); // FIXME
          }
-         Value character(the_string[index]);
-         return Reference::mkref(character);
+         Value the_char(the_string[index]);
+         return Reference::mkref(the_char); // TODO: Devolver una referencia al caracter!!!
       }
    };
    _add_method((new Function(this))->add_params(Int::self),
