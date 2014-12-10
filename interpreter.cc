@@ -425,7 +425,14 @@ void Interpreter::visit_binaryexpr(BinaryExpr *x) {
       bool ret = false;
       if (left.type()->is(Type::Basic) and right.type()->is(Type::Basic)) {
          switch (x->op[0]) {
-         case '+': ret = visit_sumprod<_Add>(left, right); break;
+         case '+': {
+            if (left.is<Char>() and right.is<Int>()) {
+               _curr = Value(char(left.as<Char>() + right.as<Int>()));
+               return;
+            } else {
+               ret = visit_sumprod<_Add>(left, right); break;
+            }
+         }
          case '*': ret = visit_sumprod<_Mul>(left, right); break;
          case '-': ret = visit_sumprod<_Sub>(left, right); break;
          case '/': ret = visit_sumprod<_Div>(left, right); break;
