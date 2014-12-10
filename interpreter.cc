@@ -193,6 +193,10 @@ void Interpreter::visit_include(Include* x) {
    else if (x->filename == "string") {
       std->register_type("string",  String::self);
    }
+   else if (x->filename == "sstream") {
+      std->register_type("istringstream", IStringStream::self);
+      std->register_type("ostringstream", OStringStream::self);
+   }
    else if (x->filename == "algorithm") {
       // FIXME: make max a template, so that when you call it,
       // it instantiates the proper type of function.

@@ -466,6 +466,7 @@ class OStream : public Class<Type> {
    void destroy(void *data)  const {}
 protected:
    void _add_ostream_methods();
+   OStream(std::string name) : Class<Type>(name) { _add_ostream_methods(); }
 public:
    OStream() : Class<Type>("ostream") { _add_ostream_methods(); }
    int properties()      const { return Emulated; }
@@ -481,6 +482,7 @@ class IStream : public Class<Type> {
    void destroy(void *data)  const {}
 protected:
    void _add_istream_methods();
+   IStream(std::string name) : Class<Type>(name) { _add_istream_methods(); }
 public:
    IStream() : Class<Type>("istream") { _add_istream_methods(); }
    int properties()      const { return Emulated; }
@@ -490,6 +492,34 @@ public:
       return *static_cast<std::istream*>(data); 
    }
    typedef std::istream& cpp_type;
+};
+
+class IStringStream : public IStream {
+public:
+   IStringStream();
+
+   static IStringStream *self;
+
+   Value create() { return Value(this, new std::istringstream()); }
+
+   static std::istringstream& cast(void *data) { 
+      return *static_cast<std::istringstream*>(data); 
+   }
+   typedef std::istringstream& cpp_type;
+};
+
+class OStringStream : public OStream {
+public:
+   OStringStream();
+
+   Value create() { return Value(this, new std::ostringstream()); }
+
+   static OStringStream *self;
+
+   static std::ostringstream& cast(void *data) { 
+      return *static_cast<std::ostringstream*>(data); 
+   }
+   typedef std::ostringstream& cpp_type;
 };
 
 // Value template methods (DO NOT MOVE)

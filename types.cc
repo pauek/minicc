@@ -11,20 +11,22 @@ void _error(std::string msg) {
 }
 
 // static + Globals
-Type        *Void = 0;
-Int         *Int::self         = new Int();
-Float       *Float::self       = new Float();
-Double      *Double::self      = new Double();
-Char        *Char::self        = new Char();
-Bool        *Bool::self        = new Bool();
-String      *String::self      = new String();
-OStream     *OStream::self     = new OStream();
-IStream     *IStream::self     = new IStream();
-VectorValue *VectorValue::self = new VectorValue();
-Vector      *Vector::self      = new Vector();
-List        *List::self        = new List();
-Overloaded  *Overloaded::self  = new Overloaded();
-Callable    *Callable::self    = new Callable();
+Type          *Void = 0;
+Int           *Int::self           = new Int();
+Float         *Float::self         = new Float();
+Double        *Double::self        = new Double();
+Char          *Char::self          = new Char();
+Bool          *Bool::self          = new Bool();
+String        *String::self        = new String();
+OStream       *OStream::self       = new OStream();
+IStream       *IStream::self       = new IStream();
+VectorValue   *VectorValue::self   = new VectorValue();
+Vector        *Vector::self        = new Vector();
+List          *List::self          = new List();
+Overloaded    *Overloaded::self    = new Overloaded();
+Callable      *Callable::self      = new Callable();
+OStringStream *OStringStream::self = new OStringStream();
+IStringStream *IStringStream::self = new IStringStream();
 
 string String::to_json(void *data) const {
    return string("\"") + *(string*)data + "\"";
@@ -1401,4 +1403,30 @@ void IStream::_add_istream_methods() {
    };
    _add_method((new Function(Bool::self)),
                new BoolOperator());
+}
+
+IStringStream::IStringStream() : IStream("istringstream") {
+   struct Constructor1 : public Func {
+      Constructor1() : Func("istringstream") {}
+      Value call(Value self, const vector<Value>& args) {
+         istringstream& the_stream = self.as<IStringStream>();
+         Value the_content = Reference::deref(args[0]);
+         the_stream.str(the_content.as<String>());
+         return Value::null;
+      }
+   };
+   _add_method((new Function(Void))->add_params(String::self), 
+               new Constructor1());
+}
+
+OStringStream::OStringStream() : OStream("ostringstream") {
+   struct StrMethod : public Func {
+      StrMethod() : Func("str") {}
+      Value call(Value self, const vector<Value>& args) {
+         ostringstream &the_stream = self.as<OStringStream>();
+         return Value(the_stream.str());
+      }
+   };
+   _add_method(new Function(String::self),
+               new StrMethod());
 }
