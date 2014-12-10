@@ -390,7 +390,6 @@ bool Interpreter::visit_comparison(Value left, Value right) {
 void Interpreter::visit_binaryexpr(BinaryExpr *x) {
    x->left->accept(this);
    Value left = _curr;
-   Value leftderef = Reference::deref(left);
    if (x->kind != Expr::Assignment) {
       left = Reference::deref(left);
    }
