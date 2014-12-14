@@ -1002,6 +1002,21 @@ string Function::typestr() const {
 }
 
 template<class Base>
+void Class<Base>::_add_static(string name, Value v) {
+   _statics[name] = v;
+}
+
+template<class Base>
+bool Class<Base>::get_static(string name, Value& v) const {
+   auto it = _statics.find(name);
+   if (it != _statics.end()) {
+      v = it->second;
+      return true;
+   }
+   return false;
+}
+
+template<class Base>
 bool Class<Base>::get_method(string name, vector<Value>& result) const {
    auto it = _methods.find(name);
    if (it == _methods.end()) {
@@ -1108,6 +1123,19 @@ String::String() : Class("string") {
    _add_method((new Function(Int::self))->add_params(this, Int::self),
                new FindMethod3());
 
+   // find(char, pos)
+   struct FindMethod4 : public Func {
+      FindMethod4() : Func("find") {}
+      Value call(Value self, const vector<Value>& args) {
+         string& the_string = self.as<String>();
+         Value the_char = Reference::deref(args[0]);
+         return Value(int(the_string.find(the_char.as<Char>(), args[1].as<Int>())));
+      }
+   };
+   _add_method((new Function(Int::self))->add_params(Char::self, Int::self),
+               new FindMethod4());
+
+
    // insert(pos, str)
    struct InsertMethod : public Func {
       InsertMethod() : Func("insert") {}
@@ -1167,6 +1195,9 @@ String::String() : Class("string") {
    };
    _add_method((new Function(this))->add_params(Int::self),
                new IndexedAccessOperator());
+
+   // npos
+   _add_static("npos", Value(int(string::npos)));
 }
 
 

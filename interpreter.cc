@@ -37,7 +37,7 @@ bool Interpreter::getenv(string id, Value& v) {
 }
 
 Type *Interpreter::get_type(TypeSpec *spec) {
-   SimpleIdent *namespc = spec->get_potential_namespace();
+   SimpleIdent *namespc = spec->get_potential_namespace_or_class();
    if (namespc != 0) {
       auto it = _namespaces.find(namespc->name);
       if (it != _namespaces.end()) {
@@ -249,29 +249,44 @@ void Interpreter::visit_structdecl(StructDecl *x) {
 
 void Interpreter::visit_fullident(FullIdent *x) {
    Value v;
-   SimpleIdent *namespc = x->get_potential_namespace();
-   bool found = false;
-   if (namespc != 0) {
-      auto it = _namespaces.find(namespc->name);
+   
+   // Try a namespace
+   SimpleIdent *namespc_or_class = x->get_potential_namespace_or_class();
+   if (namespc_or_class != 0) {
+      auto it = _namespaces.find(namespc_or_class->name);
       if (it != _namespaces.end()) {
-         namespc->is_namespace = true;
+         namespc_or_class->is_namespace = true;
          Environment *e = it->second;
          if (e->get(x->name, v)) {
-            found = true;
-         } else {
-            _error(_T("No se ha encontrado '%s' en el namespace '%s'.", 
-                      x->name.c_str(), namespc->name.c_str()));
+            goto found;
          }
+         _error(_T("No se ha encontrado '%s' en el namespace '%s'.", 
+                   x->name.c_str(), namespc_or_class->name.c_str()));
+         return;
       }
    }
-   if (!found) {
-      if (getenv(x->name, v)) {
-         found = true;
-      } else {
-         _error(_T("No se ha encontrado '%s'.", 
-                   x->name.c_str()));
+
+   // Try a static variable in a class
+   if (namespc_or_class != 0) {
+      FullIdent fid(namespc_or_class->name);
+      TypeSpec spec(&fid);
+      Type *type = get_type(&spec);
+      if (type != 0 and !type->get_static(x->name, v)) {
+         _error(_T("No se ha encontrado '%s' en la clase '%s'.",
+                   x->name.c_str(), namespc_or_class->name.c_str()));
       }
+      goto found;
    }
+
+   // Try the environment
+   if (getenv(x->name, v)) {
+      goto found;
+   } 
+     
+   _error(_T("No se ha encontrado '%s'.", 
+             x->name.c_str()));
+
+ found:
    _curr = (v.is<Reference>() ? v : Reference::mkref(v));
 }
 

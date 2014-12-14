@@ -314,7 +314,7 @@ public:
    bool has_errors() const;
 
    void shift(std::string new_id);
-   SimpleIdent *get_potential_namespace() const;
+   SimpleIdent *get_potential_namespace_or_class() const;
    std::vector<TemplateIdent*> get_non_namespaces();
 };
 
@@ -428,7 +428,7 @@ struct TypeSpec : public AstNode {
    std::string typestr() const;
 
    bool is_template() const { return !id->subtypes.empty(); }
-   SimpleIdent *get_potential_namespace() const;
+   SimpleIdent *get_potential_namespace_or_class() const;
 };
 
 // Declarations ////////////////////////////////////////////

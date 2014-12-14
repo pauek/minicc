@@ -53,6 +53,7 @@ public:
    virtual         int  properties() const = 0;
    virtual        bool  get_method(std::string, 
                                    std::vector<Value>& M)         const { return false; }
+   virtual        bool  get_static(std::string, Value& v)         const { return false; }
    virtual        Type *get_inner_class(std::string)                    { return 0; }
    virtual       Value  create()                                        { assert(false); }
    virtual        bool  accepts(const Type *t)                    const { return this == t; }
@@ -241,14 +242,17 @@ class Function;
 template<class Base>
 class Class : public Base {
    std::multimap<std::string, Value> _methods;
+   std::map<std::string, Value> _statics;
    SimpleTable<Type*> _inner_classes;
 protected:
+   void _add_static(std::string, Value);
    void _add_method(Function *type, Func *f);
    void _add_inner_class(Type *type) {
       _inner_classes.set(type->name(), type);
    }
 public:
    Class(std::string name) : Base(name) {}
+   bool  get_static(std::string name, Value& result) const;
    bool  get_method(std::string name, std::vector<Value>& result) const;
    Type *get_inner_class(std::string name) {
       Type *t;
