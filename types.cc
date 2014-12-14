@@ -1137,7 +1137,8 @@ String::String() : Class("string") {
       FindMethod2() : Func("find") {}
       Value call(Value self, const vector<Value>& args) {
          string& the_string = self.as<String>();
-         return Value(int(the_string.find(args[0].as<Char>())));
+         Value the_search = Reference::deref(args[0]);
+         return Value(int(the_string.find(the_search.as<Char>())));
       }
    };
    _add_method((new Function(Int::self))->add_params(Char::self),
@@ -1454,7 +1455,11 @@ int Function::check_signature(const std::vector<Value>& args) const {
    }
    int score = 0;
    for (int i = 0; i < args.size(); i++) {
-      if (_param_types[i] == args[i].type()) {
+      // En esta compración de tipos hay que ir con cuidado con
+      // Char_ref! Por eso se usa typestr en vez de comparar los punteros 
+      // directamente
+      //
+      if (_param_types[i]->typestr() == args[i].type()->typestr()) {
          score++;
       }
       if (!_param_types[i]->accepts(args[i].type())) {
