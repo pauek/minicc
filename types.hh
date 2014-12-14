@@ -14,11 +14,12 @@ struct TypeError : public Error {
    TypeError(std::string _msg) : Error(_msg) {}
 };
 
+class Interpreter;
 struct Func {
    std::string name;
    Func(std::string n) : name(n) {}
    virtual ~Func() {}
-   virtual Value call(Value self, const std::vector<Value>& args) = 0;
+   virtual Value call(Interpreter *I, Value self, const std::vector<Value>& args) = 0;
 };
 
 class Type {
@@ -324,8 +325,8 @@ struct Binding {
    Binding(Value _self, Value _func) 
       : self(_self), func(_func) {}
 
-   Value call(const std::vector<Value>& args) {
-      return func.as<Function>().ptr->call(self, args);
+   Value call(Interpreter *I, const std::vector<Value>& args) {
+      return func.as<Function>().ptr->call(I, self, args);
    }
    bool operator==(const Binding& x) const {
       return self == x.self and func == x.func;

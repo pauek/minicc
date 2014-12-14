@@ -113,13 +113,12 @@ public:
 };
 
 struct UserFunc : public Func {
-   Interpreter *I;
    FuncDecl *decl;
 
    UserFunc(Interpreter *_I, std::string n, FuncDecl *d) 
-      : I(_I), Func(n), decl(d) {}
+      : Func(n), decl(d) {}
 
-   Value call(Value self, const std::vector<Value>& args) {
+   Value call(Interpreter *I, Value self, const std::vector<Value>& args) {
       I->invoke_user_func(decl, args);
       return I->_ret;
    }

@@ -130,7 +130,7 @@ void Interpreter::visit_program_find_main() {
 void Interpreter::visit_program(Program* x) {
    visit_program_prepare(x);
    visit_program_find_main();
-   _curr.as<Callable>().call(vector<Value>());
+   _curr.as<Callable>().call(this, vector<Value>());
 }
 
 void Interpreter::visit_comment(CommentSeq* cn) {}
@@ -146,7 +146,7 @@ void Interpreter::visit_using(Using* x) {
 
 struct MaxFunc : public Func {
    MaxFunc() : Func("max") {}
-   Value call(Value self, const vector<Value>& args) {
+   Value call(Interpreter *I, Value self, const vector<Value>& args) {
       assert(args.size() == 2);
       assert(args[0].is<Int>());
       assert(args[1].is<Int>());
@@ -157,7 +157,7 @@ MaxFunc _max;
 
 struct GetlineFunc : public Func {
    GetlineFunc() : Func("getline") {}
-   Value call(Value self, const vector<Value>& args) {
+   Value call(Interpreter *I, Value self, const vector<Value>& args) {
       Value the_string = Reference::deref(args[1]);
       Value the_istream = Reference::deref(args[0]);
       return Value(std::getline(the_istream.as<IStream>(), the_string.as<String>()));
@@ -641,7 +641,7 @@ bool Interpreter::call_operator(string op, const vector<Value>& args) {
    Binding& opfun = _curr.as<Callable>();
    const Function *func_type = opfun.func.type()->as<Function>();
    check_arguments(func_type, args);
-   _curr = opfun.call(args);
+   _curr = opfun.call(this, args);
    return true;
 }
    
@@ -663,7 +663,7 @@ void Interpreter::visit_objdecl(ObjDecl *x) {
       Binding& constructor = _curr.as<Callable>();
       const Function *func_type = constructor.func.type()->as<Function>();
       check_arguments(func_type, args);
-      constructor.call(args); // <-- Invoke!
+      constructor.call(this, args); // <-- Invoke!
       
       setenv(x->name, new_obj);
       return;
@@ -815,7 +815,7 @@ void Interpreter::visit_callexpr(CallExpr *x) {
    Binding& fn = func.as<Callable>();
    const Function *func_type = fn.func.type()->as<Function>();
    check_arguments(func_type, args);
-   _ret = fn.call(args); // <-- Invoke!
+   _ret = fn.call(this, args); // <-- Invoke!
    check_result(fn, func_type);
    _curr = _ret;
 }
