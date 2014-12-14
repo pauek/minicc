@@ -1125,7 +1125,8 @@ String::String() : Class("string") {
       FindMethod1() : Func("find") {}
       Value call(Value self, const vector<Value>& args) {
          string& the_string = self.as<String>();
-         return Value(int(the_string.find(args[0].as<String>())));
+         Value the_searched = Reference::deref(args[0]);
+         return Value(int(the_string.find(the_searched.as<String>())));
       }
    };
    _add_method((new Function(Int::self))->add_params(this),
@@ -1147,7 +1148,9 @@ String::String() : Class("string") {
       FindMethod3() : Func("find") {}
       Value call(Value self, const vector<Value>& args) {
          string& the_string = self.as<String>();
-         return Value(int(the_string.find(args[0].as<String>(), args[1].as<Int>())));
+         Value the_search = Reference::deref(args[0]);
+         Value the_pos    = Reference::deref(args[1]);
+         return Value(int(the_string.find(the_search.as<String>(), the_pos.as<Int>())));
       }
    };
    _add_method((new Function(Int::self))->add_params(this, Int::self),
@@ -1179,6 +1182,22 @@ String::String() : Class("string") {
    };
    _add_method((new Function(this))->add_params(Int::self, this),
                new InsertMethod());
+
+   // replace(pos, len, str)
+   struct ReplaceMethod : public Func {
+      ReplaceMethod() : Func("replace") {}
+      Value call(Value self, const vector<Value>& args) {
+         string& the_string = self.as<String>();
+         Value the_pos         = Reference::deref(args[0]);
+         Value the_len         = Reference::deref(args[1]);
+         Value the_replacement = Reference::deref(args[2]);
+         return Value(the_string.replace(the_pos.as<Int>(), 
+                                         the_len.as<Int>(),
+                                         the_replacement.as<String>()));
+      }
+   };
+   _add_method((new Function(this))->add_params(Int::self, Int::self, this),
+               new ReplaceMethod());
 
    // erase(from)
    struct Erase1Method : public Func {
