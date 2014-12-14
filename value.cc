@@ -102,6 +102,11 @@ bool Value::equals(const Value& v) const {
    return _box->type->equals(_box->data, v._box->data);
 }
 
+bool Value::less_than(const Value& v) const {
+   assert(same_type_as(v));
+   return _box->type->less_than(_box->data, v._box->data);
+}
+
 string Value::type_name() const {
    assert(_box != 0);
    return _box->type->typestr();

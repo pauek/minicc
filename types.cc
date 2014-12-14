@@ -776,6 +776,20 @@ List::List(Type *celltype)
    _add_method(new Function(Void),
                new UniqueMethod());
 
+   // sort
+   struct SortMethod : public Func {
+      SortMethod() : Func("sort") {}
+      Value call(Value self, const vector<Value>& args) {
+         list<Value>& the_list = self.as<List>();
+         the_list.sort([](const Value& a, const Value& b) {
+            return a.less_than(b);
+         });
+         return Value::null;
+      }
+   };
+   _add_method(new Function(Void),
+               new SortMethod());
+
    // Iterator type + methods
    typedef BidirectionalIterator<List> MyIterator;
    Type* iterator_type = new BidirectionalIterator<List>(this);

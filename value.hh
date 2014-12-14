@@ -58,11 +58,15 @@ public:
    const bool operator==(const Value& v) const {
       return _box == v._box;
    }
-   bool equals(const Value& v) const; // Comparison of data
+
+   // Comparison of data
+   bool equals(const Value& v) const;        
+   bool less_than(const Value& other) const;
 
    const Value& operator=(const Value& v); // copies reference, not Box!
    bool assign(const Value& v); // copies content of Box
    Value clone() const;
+
 
    void write(std::ostream& o) const;
    void read(std::istream& i);

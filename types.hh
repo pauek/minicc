@@ -31,6 +31,7 @@ public:
    //      void  *alloc(T x) = a different method for every Type
    virtual   void  destroy(void *data) const                 { assert(false); }
    virtual   bool  equals(void *a, void *b)            const { assert(false); }
+   virtual   bool  less_than(void *a, void *b)         const { assert(false); }
    virtual   bool  assign(void *a, void *b)            const { assert(false); }
    virtual   void *clone(void *data)                   const { assert(false); }
    virtual   void  write(std::ostream& o, void *data)  const { assert(false); }
@@ -151,7 +152,10 @@ class BasicType : public BaseType<T> {
 public:
    BasicType(std::string name) : BaseType<T>(name) {}
    int properties()      const { return Type::Basic; }
-
+   bool less_than(void *a, void *b) const {
+      assert(a != 0 and b != 0);
+      return (*static_cast<T*>(a)) < (*static_cast<T*>(b));
+   }
    void *read(std::istream& i, void *data) const {
       if (data == 0) {
          data = new T;
@@ -274,6 +278,7 @@ struct FuncPtr {
    FuncPtr() : ptr(0) {}
    FuncPtr(Func *_ptr) : ptr(_ptr) {}
    bool operator==(const FuncPtr& p) const { return ptr == p.ptr; }
+   // bool operator< (const FuncPtr& p) const { return ptr < p.ptr;  } // nonsensical...
 };
 
 class Function : public BaseType<FuncPtr> {
