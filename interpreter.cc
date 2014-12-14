@@ -528,7 +528,12 @@ void Interpreter::visit_binaryexpr_assignment(Value left, Value right) {
                 left.type_name().c_str(), 
                 right.type_name().c_str()));
    }
-   left.assign(right);
+   if (!left.assign(right)) {
+      _error(_T("La asignación no se puede hacer porque los "
+                "tipos no son compatibles (%s) vs (%s)", 
+                left.type_name().c_str(), 
+                right.type_name().c_str()));
+   }
    _curr = left;
 }
 

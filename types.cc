@@ -16,6 +16,7 @@ Int           *Int::self           = new Int();
 Float         *Float::self         = new Float();
 Double        *Double::self        = new Double();
 Char          *Char::self          = new Char();
+Char          *Char::self_ref      = new Char(false);
 Bool          *Bool::self          = new Bool();
 String        *String::self        = new String();
 OStream       *OStream::self       = new OStream();
@@ -106,6 +107,13 @@ Type *Type::mkref(Type *t) {
       t->reference_type = new Reference(t);
    }
    return t->reference_type;
+}
+
+
+void Char::destroy(void *data) const {
+   if (_destroy) {
+      BaseType<char>::destroy(data);
+   }
 }
 
 void *Reference::alloc(Value& x) const {
@@ -1153,7 +1161,7 @@ String::String() : Class("string") {
          if (index < 0 or index >= the_string.size()) {
             throw Error("Acceso fuera de rango"); // FIXME
          }
-         Value the_char(the_string[index]);
+         Value the_char(Char::self_ref, (void*)(&the_string[index]));
          return Reference::mkref(the_char); // TODO: Devolver una referencia al caracter!!!
       }
    };

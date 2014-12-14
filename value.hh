@@ -52,9 +52,7 @@ public:
 
    std::string type_name() const;
 
-   bool same_type_as(const Value& v) const { 
-      return _box->type == v._box->type; 
-   }
+   bool same_type_as(const Value& v) const;
    
    // This means "it is the same object" (the same Box), like in Java
    const bool operator==(const Value& v) const {

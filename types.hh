@@ -30,7 +30,8 @@ public:
 
    //      void  *alloc(T x) = a different method for every Type
    virtual   void  destroy(void *data) const                 { assert(false); }
-   virtual   bool  equals(void *data_a, void *data_b)  const { assert(false); }
+   virtual   bool  equals(void *a, void *b)            const { assert(false); }
+   virtual   bool  assign(void *a, void *b)            const { assert(false); }
    virtual   void *clone(void *data)                   const { assert(false); }
    virtual   void  write(std::ostream& o, void *data)  const { assert(false); }
    virtual   void *read(std::istream& i, void *data)   const { assert(false); }
@@ -112,6 +113,10 @@ public:
          return false;
       }
       return (*static_cast<T*>(a)) == (*static_cast<T*>(b));
+   }
+   bool assign(void *a, void *b) const {
+      *static_cast<T*>(a) = *static_cast<T*>(b);
+      return true;
    }
    void *clone(void *data) const {
       if (data == 0) {
@@ -209,12 +214,15 @@ public:
 };
 
 class Char : public BasicType<char> {
+   bool _destroy; // reference to a char within a string
 public:
-   Char() : BasicType("char") {}
+   Char(bool destroy = true) : _destroy(destroy), BasicType("char") {}
    Value convert(Value init); 
     bool accepts(const Type *t) const;
-  std::string to_json(void *data) const;
+    void destroy(void *data) const;
+   std::string to_json(void *data) const;
    static Char *self;
+   static Char *self_ref;
 };
 
 class Bool : public BasicType<bool> {

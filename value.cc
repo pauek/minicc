@@ -55,6 +55,14 @@ const Value& Value::operator=(const Value& v) {
    return *this;
 }
 
+bool Value::same_type_as(const Value& v) const {
+   // If you compare the pointers, you are obliged to have singletons
+   // for every type. But in the case of chars, for instance, there 
+   // are two 'char' types, one for references (which are not destroyed)
+   // and one for normal 'char' variables.
+   return _box->type->typestr() == v._box->type->typestr(); 
+}
+
 Value Value::clone() const {
    if (is_null()) {
       return Value();
@@ -71,9 +79,7 @@ bool Value::assign(const Value& v) {
    if (!same_type_as(v)) {
       return false;
    }
-   _box->type->destroy(_box->data);
-   _box->data = _box->type->clone(v._box->data);
-   return true;
+   return _box->type->assign(_box->data, v._box->data);
 }
 
 void Value::write(ostream& o) const {
