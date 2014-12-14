@@ -1114,7 +1114,8 @@ String::String() : Class("string") {
       Substr2Method() : Func("substr") {}
       Value call(Value self, const vector<Value>& args) {
          string& the_string = self.as<String>();
-         return Value(the_string.substr(args[0].as<Int>()));
+         Value the_pos = Reference::deref(args[0]);
+         return Value(the_string.substr(the_pos.as<Int>()));
       }
    };
    _add_method((new Function(this))->add_params(Int::self),
