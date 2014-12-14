@@ -1129,7 +1129,8 @@ String::String() : Class("string") {
       Value call(Value self, const vector<Value>& args) {
          string& the_string = self.as<String>();
          Value the_char = Reference::deref(args[0]);
-         return Value(int(the_string.find(the_char.as<Char>(), args[1].as<Int>())));
+         Value the_pos  = Reference::deref(args[1]);
+         return Value(int(the_string.find(the_char.as<Char>(), the_pos.as<Int>())));
       }
    };
    _add_method((new Function(Int::self))->add_params(Char::self, Int::self),
