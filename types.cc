@@ -287,7 +287,8 @@ Vector::Vector(Type *celltype)
       VectorConstructor1(Type *t) : Func("vector"), celltype(t) {}
       Value call(Value self, const vector<Value>& args) {
          vector<Value>& the_vector = self.as<Vector>();
-         const int sz = args[0].as<Int>();
+         Value the_size = Reference::deref(args[0]);
+         const int sz = the_size.as<Int>();
          the_vector.resize(sz);
          for (int i = 0; i < sz; i++) {
             the_vector[i] = default_value_for(celltype);
@@ -303,7 +304,8 @@ Vector::Vector(Type *celltype)
       VectorConstructor2() : Func("vector") {}
       Value call(Value self, const vector<Value>& args) {
          vector<Value>& the_vector = self.as<Vector>();
-         const int sz = args[0].as<Int>();
+         Value the_size = Reference::deref(args[0]);
+         const int sz = the_size.as<Int>();
          the_vector.resize(sz);
          Value init = Reference::deref(args[1]);
          for (int i = 0; i < sz; i++) {
@@ -344,7 +346,7 @@ Vector::Vector(Type *celltype)
       PushBackMethod() : Func("push_back") {}
       Value call(Value self, const vector<Value>& args) {
          vector<Value>& v = self.as<Vector>();
-         Value pushed = Reference::deref(args[0].clone());
+         Value pushed = Reference::deref(args[0]);
          v.push_back(pushed.clone());
          return Value::null;
       }
@@ -370,7 +372,8 @@ Vector::Vector(Type *celltype)
       Resize1Method(Type *t) : Func("resize"), celltype(t) {}
       Value call(Value self, const vector<Value>& args) {
          vector<Value>& the_vector = self.as<Vector>();
-         the_vector.resize(args[0].as<Int>(), default_value_for(celltype));
+         Value the_new_size = Reference::deref(args[0]);
+         the_vector.resize(the_new_size.as<Int>(), default_value_for(celltype));
          return Value::null;
       }
    };
@@ -382,7 +385,9 @@ Vector::Vector(Type *celltype)
       Resize2Method() : Func("resize") {}
       Value call(Value self, const vector<Value>& args) {
          vector<Value>& the_vector = self.as<Vector>();
-         the_vector.resize(args[0].as<Int>(), args[1]);
+         Value the_new_size  = Reference::deref(args[0]);
+         Value the_new_value = Reference::deref(args[1]);
+         the_vector.resize(the_new_size.as<Int>(), the_new_value);
          return Value::null;
       }
    };
@@ -458,8 +463,9 @@ Vector::Vector(Type *celltype)
       Value call(Value self, const vector<Value>& args) {
          vector<Value>& the_vector = self.as<Vector>();
          Value pos = Reference::deref(args[0]);
+         Value val = Reference::deref(args[1]);
          vector<Value>::iterator it = pos.as<MyIterator>();
-         vector<Value>::iterator result = the_vector.insert(it, args[1]);
+         vector<Value>::iterator result = the_vector.insert(it, val);
          return Value(iter_type, new vector<Value>::iterator(result));
       }
    };
@@ -486,11 +492,12 @@ Vector::Vector(Type *celltype)
       IndexedAccessOperator() : Func("[]") {}
       Value call(Value self, const vector<Value>& args) {
          vector<Value>& the_vector = self.as<Vector>();
-         int index = args[0].as<Int>();
-         if (index < 0 or index >= the_vector.size()) {
+         Value the_index = Reference::deref(args[0]);
+         int k = the_index.as<Int>();
+         if (k < 0 or k >= the_vector.size()) {
             throw Error("Acceso fuera de rango"); // FIXME
          }
-         return Reference::mkref(the_vector[index]);
+         return Reference::mkref(the_vector[k]);
       }
    };
    _add_method((new Function(this))->add_params(Int::self),
@@ -562,7 +569,8 @@ List::List(Type *celltype)
       ListConstructor1(Type *t) : Func("list"), celltype(t) {}
       Value call(Value self, const vector<Value>& args) {
          list<Value>& the_list = self.as<List>();
-         the_list.resize(args[0].as<Int>());
+         Value the_new_size = Reference::deref(args[0]);
+         the_list.resize(the_new_size.as<Int>());
          for (Value& elem : the_list) {
             elem = default_value_for(celltype);
          }
@@ -577,8 +585,10 @@ List::List(Type *celltype)
       ListConstructor2() : Func("list") {}
       Value call(Value self, const vector<Value>& args) {
          list<Value>& the_list = self.as<List>();
-         the_list.resize(args[0].as<Int>());
-         Value init = Reference::deref(args[1]);
+         Value the_new_size  = Reference::deref(args[0]);
+         Value the_new_value = Reference::deref(args[1]);
+         the_list.resize(the_new_size.as<Int>());
+         Value init = Reference::deref(the_new_value);
          for (Value& elem : the_list) {
             elem = init.clone();
          }
@@ -630,7 +640,8 @@ List::List(Type *celltype)
       PushFrontMethod() : Func("push_front") {}
       Value call(Value self, const vector<Value>& args) {
          list<Value>& the_list = self.as<List>();
-         the_list.push_front(args[0]);
+         Value pushed = Reference::deref(args[0]);
+         the_list.push_front(pushed.clone());
          return Value::null;
       }
    };
@@ -667,7 +678,16 @@ List::List(Type *celltype)
       Resize1Method(Type *t) : Func("resize"), celltype(t) {}
       Value call(Value self, const vector<Value>& args) {
          list<Value>& the_list = self.as<List>();
-         the_list.resize(args[0].as<Int>(), default_value_for(celltype));
+         Value the_new_size  = Reference::deref(args[0]);
+         int sz = the_new_size.as<Int>();
+         // emulate the resize method to clone values
+         if (sz < the_list.size()) {
+            the_list.resize(sz);
+         } else {
+            for (int i = the_list.size(); i < sz; i++) {
+               the_list.push_back(default_value_for(celltype));
+            }
+         }
          return Value::null;
       }
    };
@@ -679,7 +699,17 @@ List::List(Type *celltype)
       Resize2Method() : Func("resize") {}
       Value call(Value self, const vector<Value>& args) {
          list<Value>& the_list = self.as<List>();
-         the_list.resize(args[0].as<Int>(), args[1]);
+         Value the_new_size  = Reference::deref(args[0]);
+         Value the_new_value = Reference::deref(args[1]);
+         int sz = the_new_size.as<Int>();
+         // emulate the resize method to clone values
+         if (sz < the_list.size()) {
+            the_list.resize(sz);
+         } else {
+            for (int i = the_list.size(); i < sz; i++) {
+               the_list.push_back(the_new_value.clone());
+            }
+         }
          return Value::null;
       }
    };
@@ -1142,7 +1172,9 @@ String::String() : Class("string") {
       InsertMethod() : Func("insert") {}
       Value call(Value self, const vector<Value>& args) {
          string& the_string = self.as<String>();
-         return Value(the_string.insert(args[0].as<Int>(), args[1].as<String>()));
+         Value the_pos    = Reference::deref(args[0]);
+         Value the_insert = Reference::deref(args[1]);
+         return Value(the_string.insert(the_pos.as<Int>(), the_insert.as<String>()));
       }
    };
    _add_method((new Function(this))->add_params(Int::self, this),
@@ -1153,7 +1185,8 @@ String::String() : Class("string") {
       Erase1Method() : Func("erase") {}
       Value call(Value self, const vector<Value>& args) {
          string& the_string = self.as<String>();
-         return Value(the_string.erase(args[0].as<Int>()));
+         Value the_pos = Reference::deref(args[0]);
+         return Value(the_string.erase(the_pos.as<Int>()));
       }
    };
    _add_method((new Function(this))->add_params(Int::self),
@@ -1164,7 +1197,9 @@ String::String() : Class("string") {
       Erase2Method() : Func("erase") {}
       Value call(Value self, const vector<Value>& args) {
          string& the_string = self.as<String>();
-         return Value(the_string.erase(args[0].as<Int>(), args[1].as<Int>()));
+         Value the_pos  = Reference::deref(args[0]);
+         Value the_size = Reference::deref(args[1]);
+         return Value(the_string.erase(the_pos.as<Int>(), the_size.as<Int>()));
       }
    };
    _add_method((new Function(this))->add_params(Int::self, Int::self),
@@ -1175,7 +1210,8 @@ String::String() : Class("string") {
       PlusOperator() : Func("+") {}
       Value call(Value self, const vector<Value>& args) {
          string& the_string = self.as<String>();
-         return Value(the_string + args[0].as<String>()); 
+         Value the_other_string = Reference::deref(args[0]);
+         return Value(the_string + the_other_string.as<String>()); 
       }
    };
    _add_method((new Function(this))->add_params(this),
@@ -1186,11 +1222,12 @@ String::String() : Class("string") {
       IndexedAccessOperator() : Func("[]") {}
       Value call(Value self, const vector<Value>& args) {
          string& the_string = self.as<String>();
-         int index = args[0].as<Int>();
-         if (index < 0 or index >= the_string.size()) {
+         Value the_index = Reference::deref(args[0]);
+         int k = the_index.as<Int>();
+         if (k < 0 or k >= the_string.size()) {
             throw Error("Acceso fuera de rango"); // FIXME
          }
-         Value the_char(Char::self_ref, (void*)(&the_string[index]));
+         Value the_char(Char::self_ref, (void*)(&the_string[k]));
          return Reference::mkref(the_char); // TODO: Devolver una referencia al caracter!!!
       }
    };
@@ -1270,7 +1307,8 @@ RandomAccessIterator<C>::RandomAccessIterator(C *type)
       Value call(Value self, const vector<Value>& args) {
          typedef typename C::cpp_iterator iter;
          iter& the_iterator = self.as<Iterator<C>>();
-         iter *sum = new iter(the_iterator + args[0].as<Int>());
+         Value the_int = Reference::deref(args[0]);
+         iter *sum = new iter(the_iterator + the_int.as<Int>());
          return Value(self.type(), sum); 
       }
    };
