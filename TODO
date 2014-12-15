@@ -1,6 +1,4 @@
-- Implementar list<T>::sort().
 - Implementar map<K, V> (+ pair<K, V>).
-- Implementar list<T>::sort(fn).
 - Implementar 'const_iterator' y 'reverse_iterator' para vector y list.
 - Introducir 'const'!!!!
 
