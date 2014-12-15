@@ -790,6 +790,27 @@ List::List(Type *celltype)
    _add_method(new Function(Void),
                new SortMethod());
 
+   // sort
+   struct SortFnMethod : public Func {
+      SortFnMethod() : Func("sort") {}
+      Value call(Interpreter *I, Value self, const vector<Value>& args) {
+         list<Value>& the_list = self.as<List>();
+         Value the_function = Reference::deref(args[0]);
+         the_list.sort([&](const Value& a, const Value& b) {
+            vector<Value> args = {a, b};
+            Binding& fn = the_function.as<Callable>();
+            const Function *func_type = fn.func.type()->as<Function>();
+            // I->check_arguments(func_type, args);
+            Value ret = fn.call(I, args);
+            // I->check_result(fn, func_type)
+            return ret.as<Bool>();
+         });
+         return Value::null;
+      }
+   };
+   _add_method((new Function(Void))->add_params(Callable::self),
+               new SortFnMethod());
+
    // Iterator type + methods
    typedef BidirectionalIterator<List> MyIterator;
    Type* iterator_type = new BidirectionalIterator<List>(this);
