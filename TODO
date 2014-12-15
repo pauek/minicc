@@ -2,6 +2,7 @@
 - Implementar map<K, V> (+ pair<K, V>).
 - Implementar list<T>::sort(fn).
 - Implementar 'const_iterator' y 'reverse_iterator' para vector y list.
+- Introducir 'const'!!!!
 
 - Borrar el AST correctamente (quizás no haga falta, el AST está presente todo el rato).
 - Testear a fondo el stepper.
