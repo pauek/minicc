@@ -887,6 +887,7 @@ void Interpreter::visit_fieldexpr(FieldExpr *x) {
    }
    Value obj = _curr;
    if (obj.is<Struct>()) {
+      // TODO: Move this to 'get_field' in 'Struct' class???
       SimpleTable<Value>& fields = obj.as<Struct>();
       Value v;
       if (!fields.get(x->field->name, v)) {
