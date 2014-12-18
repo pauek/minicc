@@ -190,6 +190,9 @@ void Interpreter::visit_include(Include* x) {
    else if (x->filename == "list") {
       std->register_type("list",  List::self);
    }
+   else if (x->filename == "map") {
+      std->register_type("pair", Pair::self);
+   }
    else if (x->filename == "string") {
       std->register_type("string",  String::self);
    }

@@ -443,6 +443,28 @@ public:
    typedef std::list<Value>::iterator cpp_iterator;
 };
 
+class Pair : public Class<BaseType<std::pair<Value, Value>>> {
+   Type *_first, *_second; // (_first == 0 && _second == 0) means it's the template
+
+public:
+   Pair() : Class("pair"), _first(0), _second(0) {}
+   Pair(Type *_1, Type *_2);
+
+   int   properties() const { return Template | Emulated; }
+   Value convert(Value init);
+   Type *instantiate(std::vector<Type*>& args) const;
+   Type *first()  const { return _first; }
+   Type *second() const { return _second; }
+
+   std::string typestr() const;
+   std::string to_json(void *data) const;
+
+   static Pair *self;
+
+   typedef std::vector<Value> cpp_type;
+   typedef std::vector<Value>::iterator cpp_iterator;
+};
+
 template<class C> /* C == Container */
 class Iterator : public Class<BaseType<typename C::cpp_iterator>> {
    C *_container_type;

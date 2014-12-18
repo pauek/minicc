@@ -24,6 +24,7 @@ IStream       *IStream::self       = new IStream();
 VectorValue   *VectorValue::self   = new VectorValue();
 Vector        *Vector::self        = new Vector();
 List          *List::self          = new List();
+Pair          *Pair::self          = new Pair();
 Overloaded    *Overloaded::self    = new Overloaded();
 Callable      *Callable::self      = new Callable();
 OStringStream *OStringStream::self = new OStringStream();
@@ -923,6 +924,57 @@ string List::to_json(void *data) const {
    return o.str();
 }
 
+// Pair //////////////////////////////////////////////////////////////
+
+Pair::Pair(Type *_1, Type *_2) 
+   : Class("pair"), _first(_1), _second(_2)
+{
+   
+}
+
+Value Pair::convert(Value x) {
+   x = Reference::deref(x);
+   if (x.is<Pair>()) {
+      return x.clone();
+   }
+   if (x.is<VectorValue>()) {
+      vector<Value>& values = x.as<VectorValue>();
+      if (values.size() > 2) {
+         _error("Demasiados valores al inicializar un '" + name() + "'");
+      }
+      pair<Value, Value> *p = new pair<Value, Value>();
+      p->first = (values.size() >= 1 ?
+                  _first->convert(values[0]) :
+                  _first->create());
+      p->second = (values.size() == 2 ?
+                   _second->convert(values[1]) :
+                   _second->create());
+      return Value(this, p);
+   }
+   return Value::null;
+}
+
+Type *Pair::instantiate(vector<Type *>& subtypes) const {
+   assert(subtypes.size() == 2);
+   assert(subtypes[0] != 0);
+   assert(subtypes[1] != 0);
+   return new Pair(subtypes[0], subtypes[1]);
+}
+
+std::string Pair::typestr() const {
+   string _1 = (_first != 0  ? _first->typestr() : "?");
+   string _2 = (_second != 0 ? _second->typestr() : "?");
+   return  string("pair<") + _1 + "," + _2 + ">";
+}
+
+std::string Pair::to_json(void *data) const {
+   pair<Value, Value> *p = (pair<Value,Value>*)data;
+   ostringstream json;
+   json << "{\"<type>\":\"pair\","
+        << "\"first\":"  << p->first.to_json()  << ","
+        << "\"second\":" << p->second.to_json() << "}";
+   return json.str();
+}
 
 // Array /////////////////////////////////////////////////////////////
 
