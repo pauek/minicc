@@ -929,7 +929,19 @@ string List::to_json(void *data) const {
 Pair::Pair(Type *_1, Type *_2) 
    : Class("pair"), _first(_1), _second(_2)
 {
-   
+   // TODO: add pair methods...
+}
+
+int Pair::get_field(Value self, std::string name, std::vector<Value>& result) const {
+   pair<Value, Value> the_pair = self.as<Pair>();
+   if (name == "first") {
+      result.push_back(the_pair.first);
+      return 1;
+   } else if (name == "second") {
+      result.push_back(the_pair.second);
+      return 1;
+   }
+   return Base::get_field(self, name, result);
 }
 
 Value Pair::convert(Value x) {
@@ -1134,16 +1146,18 @@ bool Class<Base>::get_static(string name, Value& v) const {
 }
 
 template<class Base>
-bool Class<Base>::get_field(string name, vector<Value>& result) const {
+int Class<Base>::get_field(Value self, string name, vector<Value>& result) const {
    auto it = _methods.find(name);
    if (it == _methods.end()) {
-      return false;
+      return 0;
    }
+   int count = 0;
    while (it != _methods.end() and it->first == name) {
       result.push_back(it->second);
       it++;
+      count++;
    }
-   return true;
+   return count;
 }
 
 template<class Base>
@@ -1531,6 +1545,10 @@ Value OverloadedValue::resolve(const std::vector<Value>& args) {
 }
 
 Value Overloaded::mkvalue(Value self, const vector<Value>& candidates) {
+   assert(candidates.size() > 0);
+   if (candidates.size() == 1) {
+      return candidates[0];
+   }
    OverloadedValue *ov = new OverloadedValue();
    ov->_self = self;
    ov->_candidates = candidates;

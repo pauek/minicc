@@ -53,7 +53,8 @@ public:
    virtual std::string  name()    const { return _name; }
    virtual std::string  typestr() const { return _name; }
    virtual         int  properties() const = 0;
-   virtual        bool  get_field(std::string, 
+   virtual         int  get_field(Value self,
+                                  std::string, 
                                   std::vector<Value>& M)          const { return false; }
    virtual        bool  get_static(std::string, Value& v)         const { return false; }
    virtual        Type *get_inner_class(std::string)                    { return 0; }
@@ -258,7 +259,7 @@ protected:
 public:
    Class(std::string name) : Base(name) {}
    bool  get_static(std::string name, Value& result) const;
-   bool  get_field(std::string name, std::vector<Value>& result) const;
+    int  get_field(Value self, std::string name, std::vector<Value>& result) const;
    Type *get_inner_class(std::string name) {
       Type *t;
       return (_inner_classes.get(name, t) ? t : 0);
@@ -446,6 +447,8 @@ public:
 class Pair : public Class<BaseType<std::pair<Value, Value>>> {
    Type *_first, *_second; // (_first == 0 && _second == 0) means it's the template
 
+   typedef Class<BaseType<std::pair<Value, Value>>> Base;
+   
 public:
    Pair() : Class("pair"), _first(0), _second(0) {}
    Pair(Type *_1, Type *_2);
@@ -455,14 +458,15 @@ public:
    Type *instantiate(std::vector<Type*>& args) const;
    Type *first()  const { return _first; }
    Type *second() const { return _second; }
+   
+    int get_field(Value self, std::string name, std::vector<Value>& result) const;
 
    std::string typestr() const;
    std::string to_json(void *data) const;
 
    static Pair *self;
 
-   typedef std::vector<Value> cpp_type;
-   typedef std::vector<Value>::iterator cpp_iterator;
+   typedef std::pair<Value, Value> cpp_type;
 };
 
 template<class C> /* C == Container */

@@ -72,7 +72,7 @@ std::map<std::string, Environment*> _namespaces;
    void eval_arguments(const std::vector<Expr*>& exprs, std::vector<Value>& args);
    void check_arguments(const Function *func_type, const std::vector<Value>& args);
    void check_result(Binding& fn, const Function *func_type);
-   bool bind_method(Value obj, string method_name);
+   bool bind_field(Value obj, string method_name);
    bool call_operator(std::string op, const std::vector<Value>& args = std::vector<Value>());
 
 public:

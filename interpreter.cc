@@ -634,7 +634,7 @@ void Interpreter::visit_arraydecl(ArrayDecl *x) {
 }
 
 bool Interpreter::call_operator(string op, const vector<Value>& args) {
-   if (!bind_method(_curr, op)) {
+   if (!bind_field(_curr, op)) {
       return false;
    }
    if (_curr.is<Overloaded>()) {
@@ -656,7 +656,7 @@ void Interpreter::visit_objdecl(ObjDecl *x) {
       
       string constructor_name = type->name();
       Value new_obj = type->create();
-      if (!bind_method(new_obj, constructor_name)) {
+      if (!bind_field(new_obj, constructor_name)) {
          _error(_T("El tipo '%s' no tiene constructor", type->typestr().c_str()));
       }
       if (_curr.is<Overloaded>()) {
@@ -847,10 +847,19 @@ void Interpreter::visit_indexexpr(IndexExpr *x) {
    }
 }
 
-bool Interpreter::bind_method(Value obj, string method_name) {
+bool Interpreter::bind_field(Value obj, string method_name) {
    vector<Value> candidates;
-   if (obj.type()->get_field(method_name, candidates)) {
-      assert(candidates.size() > 0);
+   int count = obj.type()->get_field(obj, method_name, candidates);
+   assert(candidates.size() > 0);
+   if (count == 1) {
+      Value& v = candidates[0];
+      if (v.is<Function>()) {
+         _curr = Callable::self->mkvalue(obj, v);
+      } else {
+         _curr = v;
+      }
+      return true;
+   } else if (count > 1) {
       _curr = Overloaded::self->mkvalue(obj, candidates);
       return true;
    }
@@ -869,7 +878,7 @@ void Interpreter::visit_fieldexpr(FieldExpr *x) {
       _curr = Reference::mkref(v);
       return;
    }
-   if (!bind_method(obj, x->field->name)) {
+   if (!bind_field(obj, x->field->name)) {
       _error(_T("Este objeto no tiene un campo '%s'", x->field->name.c_str()));
    }
 }
