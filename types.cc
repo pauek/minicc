@@ -1065,6 +1065,28 @@ Map::Map(Type *k, Type *v)
    Base::_add_method((new Function(insert_return_type))->add_params(_pair_type),
                      new InsertMethod(iterator_type, insert_return_type));
 
+   // begin
+   struct BeginMethod : public Func {
+      Type *iter_type;
+      BeginMethod(Type *t) : Func("begin"), iter_type(t) {}
+      Value call(Interpreter *I, Value self, const vector<Value>& args) {
+         map<Value, Value>& the_map = self.as<Map>();
+         return Value(iter_type, new map<Value, Value>::iterator(the_map.begin()));
+      }
+   };
+   _add_method(new Function(iterator_type),
+               new BeginMethod(iterator_type));
+   // end
+   struct EndMethod : public Func {
+      Type *iter_type;
+      EndMethod(Type *t) : Func("end"), iter_type(t) {}
+      Value call(Interpreter *I, Value self, const vector<Value>& args) {
+         map<Value, Value>& the_map = self.as<Map>();
+         return Value(iter_type, new map<Value, Value>::iterator(the_map.end()));
+      }
+   };
+   _add_method(new Function(iterator_type),
+               new EndMethod(iterator_type));
    // []
    struct FindOperator : public Func {
       Type *value_type;
