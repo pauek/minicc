@@ -25,6 +25,7 @@ VectorValue   *VectorValue::self   = new VectorValue();
 Vector        *Vector::self        = new Vector();
 List          *List::self          = new List();
 Pair          *Pair::self          = new Pair();
+Map           *Map::self           = new Map();
 Overloaded    *Overloaded::self    = new Overloaded();
 Callable      *Callable::self      = new Callable();
 OStringStream *OStringStream::self = new OStringStream();
@@ -1016,6 +1017,54 @@ std::string Pair::to_json(void *data) const {
         << "\"second\":" << p->second.to_json() << "}";
    return json.str();
 }
+
+// Map ///////////////////////////////////////////////////////////////
+
+Map::Map(Type *k, Type *v) 
+   : Class("map"), _key(k), _value(v)
+{
+   // size
+   struct SizeMethod : public Func {
+      SizeMethod() : Func("size") {}
+      Value call(Interpreter *I, Value self, const vector<Value>& args) {
+         assert(args.empty());
+         map<Value, Value>& the_map = self.as<Map>();
+         return Value(int(the_map.size()));
+      }
+   };
+   Base::_add_method(new Function(Int::self), 
+                     new SizeMethod());
+}
+
+Type *Map::instantiate(vector<Type *>& subtypes) const {
+   assert(subtypes.size() == 2);
+   assert(subtypes[0] != 0);
+   assert(subtypes[1] != 0);
+   return new Map(subtypes[0], subtypes[1]);
+}
+
+std::string Map::typestr() const {
+   string _1 = (_key   != 0 ? _key->typestr()   : "?");
+   string _2 = (_value != 0 ? _value->typestr() : "?");
+   return  string("map<") + _1 + "," + _2 + ">";
+}
+
+std::string Map::to_json(void *data) const {
+   map<Value, Value>& the_map = *(map<Value,Value>*)data;
+   ostringstream json;
+   json << "{\"<type>\":\"map\",\"<elements>\":[";
+   for (auto it = the_map.begin(); it != the_map.end(); it++) {
+      if (it != the_map.begin()) {
+         json << ", ";
+      }
+      json << "{\"key\":" << it->first.to_json() << "\", "
+           << "\"value\":" << it->second.to_json() << "}";
+   }
+   json << "]}";
+   return json.str();
+}
+
+
 
 // Array /////////////////////////////////////////////////////////////
 

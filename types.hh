@@ -470,6 +470,28 @@ public:
    typedef std::pair<Value, Value> cpp_type;
 };
 
+class Map : public Class<BaseType<std::map<Value, Value>>> {
+   Type *_key, *_value; // (_first == 0 && _second == 0) means it's the template
+
+   typedef Class<BaseType<std::map<Value, Value>>> Base;
+   
+public:
+   Map() : Class("map"), _key(0), _value(0) {}
+   Map(Type *k, Type *v);
+
+   int   properties() const { return Template | Emulated; }
+   Type *instantiate(std::vector<Type*>& args) const;
+   Type *key()   const { return _key; }
+   Type *value() const { return _value; }
+
+   std::string typestr() const;
+   std::string to_json(void *data) const;
+
+   static Map *self;
+
+   typedef std::map<Value, Value> cpp_type;
+};
+
 template<class C> /* C == Container */
 class Iterator : public Class<BaseType<typename C::cpp_iterator>> {
    C *_container_type;

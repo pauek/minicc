@@ -192,6 +192,7 @@ void Interpreter::visit_include(Include* x) {
    }
    else if (x->filename == "map") {
       std->register_type("pair", Pair::self);
+      std->register_type("map", Map::self);
    }
    else if (x->filename == "string") {
       std->register_type("string",  String::self);
