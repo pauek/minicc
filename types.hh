@@ -420,6 +420,7 @@ public:
 
    typedef std::vector<Value> cpp_type;
    typedef std::vector<Value>::iterator cpp_iterator;
+   static Value elem_to_value(Vector *, const Value& v) { return v; }
 };
 
 class List : public Class<BaseType<std::list<Value>>> {
@@ -442,6 +443,7 @@ public:
 
    typedef std::list<Value> cpp_type;
    typedef std::list<Value>::iterator cpp_iterator;
+   static Value elem_to_value(List *, const Value& v) { return v; }
 };
 
 class Pair : public Class<BaseType<std::pair<Value, Value>>> {
@@ -471,12 +473,13 @@ public:
 };
 
 class Map : public Class<BaseType<std::map<Value, Value>>> {
+   Type *_pair_type;
    Type *_key, *_value; // (_first == 0 && _second == 0) means it's the template
 
    typedef Class<BaseType<std::map<Value, Value>>> Base;
    
 public:
-   Map() : Class("map"), _key(0), _value(0) {}
+   Map() : Class("map"), _key(0), _value(0), _pair_type(0) {}
    Map(Type *k, Type *v);
 
    int   properties() const { return Template | Emulated; }
@@ -490,6 +493,10 @@ public:
    static Map *self;
 
    typedef std::map<Value, Value> cpp_type;
+   typedef std::map<Value, Value>::iterator cpp_iterator;
+   static Value elem_to_value(Map *map_type, const std::pair<Value, Value>& elem) { 
+      return Value(map_type->_pair_type, (void*)(new std::pair<Value, Value>(elem)));
+   }
 };
 
 template<class C> /* C == Container */

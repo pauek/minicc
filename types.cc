@@ -1023,6 +1023,8 @@ std::string Pair::to_json(void *data) const {
 Map::Map(Type *k, Type *v) 
    : Class("map"), _key(k), _value(v)
 {
+   _pair_type = new Pair(_key, _value);
+   
    // size
    struct SizeMethod : public Func {
       SizeMethod() : Func("size") {}
@@ -1034,6 +1036,33 @@ Map::Map(Type *k, Type *v)
    };
    Base::_add_method(new Function(Int::self), 
                      new SizeMethod());
+
+   // iterator type
+   typedef BidirectionalIterator<Map> MyIterator;
+   Type* iterator_type = new BidirectionalIterator<Map>(this);
+   _add_inner_class(iterator_type);
+
+   // insert
+   struct InsertMethod : public Func {
+      Type *iterator_type, *insert_return_type;
+
+      InsertMethod(Type *t1, Type *t2) 
+         : Func("insert"), iterator_type(t1), insert_return_type(t2) {}
+
+      Value call(Interpreter *I, Value self, const vector<Value>& args) {
+         map<Value, Value>& the_map = self.as<Map>();
+         Value elem = Reference::deref(args[0]);
+         typedef pair<map<Value, Value>::iterator, bool> _pair;
+         _pair res = the_map.insert(elem.as<Pair>());
+         pair<Value, Value>* vres = new pair<Value, Value>();
+         vres->first = Value(iterator_type, new map<Value,Value>::iterator(res.first));
+         vres->second = Value(res.second);
+         return Value(insert_return_type, vres);
+      }
+   };
+   Type *insert_return_type = new Pair(iterator_type, Bool::self);
+   Base::_add_method((new Function(insert_return_type))->add_params(_pair_type),
+                     new InsertMethod(iterator_type, insert_return_type));
 }
 
 Type *Map::instantiate(vector<Type *>& subtypes) const {
@@ -1447,14 +1476,16 @@ Iterator<C>::Iterator(C *type)
    
    // *
    struct DerefOperator : public Func {
-      DerefOperator() : Func("*") {}
+      C *type;
+      DerefOperator(C *t) : Func("*"), type(t) {}
       Value call(Interpreter *I, Value self, const vector<Value>& args) {
          typename C::cpp_iterator& the_iterator = self.as<Iterator<C>>();
-         return Reference::mkref(*the_iterator);
+         Value v = C::elem_to_value(type, *the_iterator);
+         return Reference::mkref(v);
       }
    };
    _Class::_add_method(new Function(this),
-                       new DerefOperator());
+                       new DerefOperator(type));
 }
 
 template<class C>

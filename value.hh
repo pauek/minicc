@@ -63,6 +63,10 @@ public:
    bool equals(const Value& v) const;        
    bool less_than(const Value& other) const;
 
+   bool operator<(const Value& v) const {
+      return less_than(v);
+   }
+
    const Value& operator=(const Value& v); // copies reference, not Box!
    bool assign(const Value& v); // copies content of Box
    Value clone() const;
