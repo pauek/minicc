@@ -877,7 +877,15 @@ bool Interpreter::bind_field(Value obj, string method_name) {
 
 void Interpreter::visit_fieldexpr(FieldExpr *x) {
    x->base->accept(this);
-   Value obj = Reference::deref(_curr);
+   _curr = Reference::deref(_curr);
+   if (x->pointer) {
+      if (!call_operator("*")) {
+         _error(_T("El tipo '%s' no tiene 'operator*'", 
+                   _curr.type()->typestr().c_str()));
+      }
+      _curr = Reference::deref(_curr);
+   }
+   Value obj = _curr;
    if (obj.is<Struct>()) {
       SimpleTable<Value>& fields = obj.as<Struct>();
       Value v;
