@@ -1,4 +1,4 @@
-- Implementar pair<K, V>.
+- Implementar el operador "->".
 - Implementar instanciación de funciones de template (max, make_pair).
 - Implementar map<K, V>.
 - Implementar 'const_iterator' y 'reverse_iterator' para vector y list.
