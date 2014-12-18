@@ -926,11 +926,40 @@ string List::to_json(void *data) const {
 
 // Pair //////////////////////////////////////////////////////////////
 
+bool pair_less_than(const pair<Value, Value>& a, const pair<Value, Value>& b) {
+   if (a.first.less_than(b.first)) {
+      return true;
+   } else if (b.first.less_than(a.first)) {
+      return false;
+   } else {
+      return a.second.less_than(b.second);
+   }
+}
+
 Pair::Pair(Type *_1, Type *_2) 
    : Class("pair"), _first(_1), _second(_2)
 {
-   // TODO: add pair methods...
+   // <
+   struct LessThanOperator : public Func {
+      LessThanOperator() : Func("<") {}
+      Value call(Interpreter *I, Value self, const vector<Value>& args) {
+         Value other = Reference::deref(args[0]);
+         pair<Value, Value>& a = self.as<Pair>();
+         pair<Value, Value>& b = other.as<Pair>();
+         return Value(pair_less_than(a, b));
+      }
+   };
+   Base::_add_method((new Function(Bool::self))->add_params(this),
+                     new LessThanOperator());
 }
+
+bool Pair::less_than(void *a, void *b) const {
+   assert(a != 0 and b != 0);
+   pair<Value,Value>& A = *static_cast<pair<Value,Value>*>(a);
+   pair<Value,Value>& B = *static_cast<pair<Value,Value>*>(b);
+   return pair_less_than(A, B);
+}
+
 
 int Pair::get_field(Value self, std::string name, std::vector<Value>& result) const {
    pair<Value, Value> the_pair = self.as<Pair>();

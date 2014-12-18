@@ -458,7 +458,7 @@ void Interpreter::visit_binaryexpr(BinaryExpr *x) {
       } else {
          _curr = left;
          if (!call_operator(x->op, vector<Value>(1, right))) {
-            _error(_T("El tipo '%s' no tiene 'operator*'", 
+            _error(_T("El tipo '%s' no tiene 'operator%s'", 
                       _curr.type()->typestr().c_str(), x->op.c_str()));
          }
          ret = true;
@@ -504,14 +504,23 @@ void Interpreter::visit_binaryexpr(BinaryExpr *x) {
    }
    else if (x->op == "<" || x->op == ">" || x->op == "<=" || x->op == ">=") {
       bool ret = false;
-      if (x->op[0] == '<') {
-         ret = (x->op.size() == 1 
-                ? visit_comparison<_Lt>(left, right)
-                : visit_comparison<_Le>(left, right));
+      if (left.type()->is(Type::Basic) and right.type()->is(Type::Basic)) {
+         if (x->op[0] == '<') {
+            ret = (x->op.size() == 1 
+                   ? visit_comparison<_Lt>(left, right)
+                   : visit_comparison<_Le>(left, right));
+         } else {
+            ret = (x->op.size() == 1 
+                   ? visit_comparison<_Gt>(left, right)
+                   : visit_comparison<_Ge>(left, right));
+         }
       } else {
-         ret = (x->op.size() == 1 
-                ? visit_comparison<_Gt>(left, right)
-                : visit_comparison<_Ge>(left, right));
+         _curr = left;
+         if (!call_operator(x->op, vector<Value>(1, right))) {
+            _error(_T("El tipo '%s' no tiene 'operator%s'", 
+                      _curr.type()->typestr().c_str(), x->op.c_str()));
+         }
+         ret = true;
       }
       if (ret) {
          return;
@@ -961,6 +970,7 @@ void Interpreter::visit_negexpr(NegExpr *x) {
 void Interpreter::visit_typedefdecl(TypedefDecl *x) {
    string name = x->decl->name;
    Type *type = get_type(x->decl->typespec);
+   assert(type != 0);
    if (x->decl->is<VarDecl>()) {
       const VarDecl *var = x->decl->as<VarDecl>();
       register_type(var->name, type);

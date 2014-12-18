@@ -458,7 +458,8 @@ public:
    Type *instantiate(std::vector<Type*>& args) const;
    Type *first()  const { return _first; }
    Type *second() const { return _second; }
-   
+
+   bool less_than(void *a, void *b) const;
     int get_field(Value self, std::string name, std::vector<Value>& result) const;
 
    std::string typestr() const;
