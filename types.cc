@@ -1134,7 +1134,7 @@ bool Class<Base>::get_static(string name, Value& v) const {
 }
 
 template<class Base>
-bool Class<Base>::get_method(string name, vector<Value>& result) const {
+bool Class<Base>::get_field(string name, vector<Value>& result) const {
    auto it = _methods.find(name);
    if (it == _methods.end()) {
       return false;

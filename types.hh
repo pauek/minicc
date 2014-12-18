@@ -53,8 +53,8 @@ public:
    virtual std::string  name()    const { return _name; }
    virtual std::string  typestr() const { return _name; }
    virtual         int  properties() const = 0;
-   virtual        bool  get_method(std::string, 
-                                   std::vector<Value>& M)         const { return false; }
+   virtual        bool  get_field(std::string, 
+                                  std::vector<Value>& M)          const { return false; }
    virtual        bool  get_static(std::string, Value& v)         const { return false; }
    virtual        Type *get_inner_class(std::string)                    { return 0; }
    virtual       Value  create()                                        { assert(false); }
@@ -258,7 +258,7 @@ protected:
 public:
    Class(std::string name) : Base(name) {}
    bool  get_static(std::string name, Value& result) const;
-   bool  get_method(std::string name, std::vector<Value>& result) const;
+   bool  get_field(std::string name, std::vector<Value>& result) const;
    Type *get_inner_class(std::string name) {
       Type *t;
       return (_inner_classes.get(name, t) ? t : 0);

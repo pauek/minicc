@@ -849,7 +849,7 @@ void Interpreter::visit_indexexpr(IndexExpr *x) {
 
 bool Interpreter::bind_method(Value obj, string method_name) {
    vector<Value> candidates;
-   if (obj.type()->get_method(method_name, candidates)) {
+   if (obj.type()->get_field(method_name, candidates)) {
       assert(candidates.size() > 0);
       _curr = Overloaded::self->mkvalue(obj, candidates);
       return true;
