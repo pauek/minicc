@@ -143,6 +143,7 @@ Value Reference::mkref(Value& v) {
    if (v.is<Reference>()) {
       return v;
    }
+   assert(!v.is_null());
    Value::Box *b = v._box;
    v._box->count++;
    return Value(Type::mkref(v._box->type), (void*)b);
@@ -1063,6 +1064,21 @@ Map::Map(Type *k, Type *v)
    Type *insert_return_type = new Pair(iterator_type, Bool::self);
    Base::_add_method((new Function(insert_return_type))->add_params(_pair_type),
                      new InsertMethod(iterator_type, insert_return_type));
+
+   // []
+   struct FindOperator : public Func {
+      Type *value_type;
+      FindOperator(Type *t) : Func("[]"), value_type(t) {}
+      Value call(Interpreter *I, Value self, const vector<Value>& args) {
+         map<Value, Value>& the_map = self.as<Map>();
+         Value key = Reference::deref(args[0]);
+         Value& val = the_map[key];
+         val = value_type->create();
+         return Reference::mkref(val);
+      }
+   };
+   Base::_add_method((new Function(_value))->add_params(_key),
+                     new FindOperator(_value));
 }
 
 Type *Map::instantiate(vector<Type *>& subtypes) const {
