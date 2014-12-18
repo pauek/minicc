@@ -1,0 +1,53 @@
+#include <iostream>
+#include <fstream>
+#include <vector>
+#include <cmath>
+#include <cctype>
+#include <sstream>
+#include <list>
+#include <map>
+#include <set>
+
+using namespace std;
+
+
+int main() {
+    ifstream I ("linkedin.txt");
+    string frase,clau,paraula,usuari1;
+    set<string>sett;
+    map<string,set<string>> M;
+    while(getline(I,frase)){
+        clau=frase.substr(0,frase.find(':'));
+        istringstream S (frase.substr(frase.find(':')+1));
+        while(S>>paraula){
+            M[clau].insert(paraula);
+        }
+    }
+
+    cout<<"Usuari? ";
+    cin>> usuari1;
+    cout<<endl;
+    map<string,set<string>> :: iterator it;
+    t=M.find(usuari1);
+    if(it!=M.end()){
+    set<string>&L=it->second;
+    set <string>::iterator rt,iter,jt=L.begin();
+    for(;jt!=L.end(); jt++){
+        it=M.find(*jt);
+        set<string>&p=it->second;
+        for(rt=p.begin(); rt!=p.end(); rt++){
+            if((*rt)!=usuari1){
+                iter=L.find(*rt);
+                if(iter==L.end()){
+                     sett.insert(*rt);
+                    }
+                }
+            }
+        }
+   auto brp=sett.begin();
+    for(;brp!=sett.end();brp++){
+        cout<<(*brp)<<" ";}
+    }
+}
+
+
