@@ -1035,8 +1035,8 @@ Map::Map(Type *k, Type *v)
          return Value(int(the_map.size()));
       }
    };
-   Base::_add_method(new Function(Int::self), 
-                     new SizeMethod());
+   _add_method(new Function(Int::self), 
+               new SizeMethod());
 
    // iterator type
    typedef BidirectionalIterator<Map> MyIterator;
@@ -1062,8 +1062,22 @@ Map::Map(Type *k, Type *v)
       }
    };
    Type *insert_return_type = new Pair(iterator_type, Bool::self);
-   Base::_add_method((new Function(insert_return_type))->add_params(_pair_type),
-                     new InsertMethod(iterator_type, insert_return_type));
+   _add_method((new Function(insert_return_type))->add_params(_pair_type),
+               new InsertMethod(iterator_type, insert_return_type));
+
+   // find
+   struct FindMethod : public Func {
+      Type *iterator_type;
+      FindMethod(Type *t) : Func("find"), iterator_type(t) {}
+      Value call(Interpreter *I, Value self, const vector<Value>& args) {
+         map<Value, Value>& the_map = self.as<Map>();
+         Value key = Reference::deref(args[0]);
+         map<Value, Value>::iterator it = the_map.find(key);
+         return Value(iterator_type, new map<Value,Value>::iterator(it));
+      }
+   };
+   _add_method((new Function(iterator_type))->add_params(_key),
+               new FindMethod(iterator_type));
 
    // begin
    struct BeginMethod : public Func {
@@ -1095,12 +1109,14 @@ Map::Map(Type *k, Type *v)
          map<Value, Value>& the_map = self.as<Map>();
          Value key = Reference::deref(args[0]);
          Value& val = the_map[key];
-         val = value_type->create();
+         if (val == Value::null) {
+            val = value_type->create();
+         }
          return Reference::mkref(val);
       }
    };
-   Base::_add_method((new Function(_value))->add_params(_key),
-                     new FindOperator(_value));
+   _add_method((new Function(_value))->add_params(_key),
+               new FindOperator(_value));
 }
 
 Type *Map::instantiate(vector<Type *>& subtypes) const {

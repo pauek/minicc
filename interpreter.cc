@@ -860,7 +860,6 @@ void Interpreter::visit_indexexpr(IndexExpr *x) {
 bool Interpreter::bind_field(Value obj, string method_name) {
    vector<Value> candidates;
    int count = obj.type()->get_field(obj, method_name, candidates);
-   assert(candidates.size() > 0);
    if (count == 1) {
       Value& v = candidates[0];
       if (v.is<Function>()) {
