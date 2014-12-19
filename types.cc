@@ -1104,6 +1104,32 @@ Map::Map(Type *k, Type *v)
    _add_method((new Function(iterator_type))->add_params(_key),
                new FindMethod(iterator_type));
 
+   // erase(key)
+   struct EraseKeyMethod : public Func {
+      EraseKeyMethod() : Func("erase") {}
+      Value call(Interpreter *I, Value self, const vector<Value>& args) {
+         map<Value, Value>& the_map = self.as<Map>();
+         Value key = Reference::deref(args[0]);
+         the_map.erase(key);
+         return Value::null;
+      }
+   };
+   _add_method((new Function(Void))->add_params(_key),
+               new EraseKeyMethod());
+
+   // erase(iterator)
+   struct EraseIteratorMethod : public Func {
+      EraseIteratorMethod() : Func("erase") {}
+      Value call(Interpreter *I, Value self, const vector<Value>& args) {
+         map<Value, Value>& the_map = self.as<Map>();
+         Value the_iterator = Reference::deref(args[0]);
+         the_map.erase(the_iterator.as<MyIterator>());
+         return Value::null;
+      }
+   };
+   _add_method((new Function(Void))->add_params(iterator_type),
+               new EraseIteratorMethod());
+
    // begin
    struct BeginMethod : public Func {
       Type *iter_type;
