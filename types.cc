@@ -1038,6 +1038,31 @@ Map::Map(Type *k, Type *v)
    _add_method(new Function(Int::self), 
                new SizeMethod());
 
+   // empty
+   struct EmptyMethod : public Func {
+      EmptyMethod() : Func("empty") {}
+      Value call(Interpreter *I, Value self, const vector<Value>& args) {
+         assert(args.empty());
+         map<Value, Value>& the_map = self.as<Map>();
+         return Value(bool(the_map.empty()));
+      }
+   };
+   _add_method(new Function(Bool::self), 
+               new EmptyMethod());
+
+   // clear
+   struct ClearMethod : public Func {
+      ClearMethod() : Func("clear") {}
+      Value call(Interpreter *I, Value self, const vector<Value>& args) {
+         assert(args.empty());
+         map<Value, Value>& the_map = self.as<Map>();
+         the_map.clear();
+         return Value::null;
+      }
+   };
+   _add_method(new Function(Void),
+               new ClearMethod());
+
    // iterator type
    typedef BidirectionalIterator<Map> MyIterator;
    Type* iterator_type = new BidirectionalIterator<Map>(this);
