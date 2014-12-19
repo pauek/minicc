@@ -35,6 +35,7 @@ Value::Value(Box *box) {
 
 Value::~Value() {
    _detach(_box);
+   _box = 0;
 }
 
 Value::Value(const Value& v) {

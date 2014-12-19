@@ -1158,7 +1158,10 @@ Map::Map(Type *k, Type *v)
       FindOperator(Type *t) : Func("[]"), value_type(t) {}
       Value call(Interpreter *I, Value self, const vector<Value>& args) {
          map<Value, Value>& the_map = self.as<Map>();
-         Value key = Reference::deref(args[0]);
+         // Each key has to be a new object, otherwise the box of a key
+         // could be modified outside the map and the behavior of the map 
+         // would be chaotic.
+         Value key = Reference::deref(args[0]).clone(); // clone the key and use the clone
          Value& val = the_map[key];
          if (val == Value::null) {
             val = value_type->create();
