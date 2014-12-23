@@ -689,12 +689,14 @@ Expr *Parser::parse_callexpr(Expr *x) {
 
 Expr *Parser::parse_indexexpr(Expr *x) {
    IndexExpr *e = new IndexExpr();
+   e->ini = x->ini;
    e->base = x;
    _in.consume('[');
    e->index = parse_expr();
    if (!_in.expect("]")) {
       error(e, _in.pos().str() + ": " + _T("Expected '%s' here.", "]"));
    }
+   e->fin = _in.pos();
    _skip(e);
    return e;
 }

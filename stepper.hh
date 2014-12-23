@@ -75,6 +75,7 @@ public:
           void visit_literal(Literal *x); 
           void visit_fieldexpr(FieldExpr *x); 
           void visit_fullident(FullIdent *x);
+          void visit_indexexpr(IndexExpr *x);
 
    struct PopState : public StepperState {
       Range spn;
