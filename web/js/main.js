@@ -151,7 +151,8 @@ var stepper = {
    },
    step: function () {
       var json = this._stepper.state();
-      this._history.push(JSON.parse(json));
+      var obj  = JSON.parse(json);
+      this._history.push(obj);
       if (!this._stepper.step()) {
          alert(this._stepper.error());
          return false;
@@ -186,68 +187,156 @@ function bottomPartition() {
    $('#bottom .scroll').height((total - controls) + 'px');
 }
 
-function value_str(value, addClass, insert) {
-   var s = '', elem = 'div', links = [];
-   var classes = ['var'];
-   var id;
-   if (value.data === null) {
-      classes.push('unknown');
-      s = '?';
-   } else if (value.data instanceof Array) {
-      classes.push('array');
-      elem = 'table';
-      s += '<tr>'
-      for (var j = 0; j < value.data.length; j++) {
-         s += '<td>';
-         var res = value_str(value.data[j], 
-                             (j == 0 ? "first" : null), 
-                             '<div class="index">' + j + '</div>');
-         push.apply(links, res.links);
-         s += res.html;
-         s += '</td>';
-      } 
-      s += '</tr>';
-   } else if (value.data instanceof Object) {
-      var type = value.data["<type>"];
-      if (type == 'ref') {
-         elem = 'div';
-         classes.push('ref');
-         var addr = value.data['ref'];
-         links.push({from: value.box, to: addr});
-      } else if (type == 'struct') {
-         classes.push('struct');
-         elem = 'div';
-         s += '<table>';
-         for (var prop in value.data) {
-            if (prop == '<type>') {
-               continue;
-            }
-            s += '<tr><td><div class="name">' + prop + '</div></td><td>';
-            var res = value_str(value.data[prop]);
-            push.apply(links, res.links);
-            s += res.html;
-            s += '</td></tr>';
-         }
-         s += '</table>';
+function render_elem(elem, box, content, extra) {
+   var html = '<' + elem + ' id="box-' + box + '" class="var ';
+   if (extra && extra.classes) {
+      for (var i = 0; i < extra.classes.length; i++) {
+         html += ' ' + extra.classes[i];
       }
-   } else {
-      classes.push('value');
-      s = value.data;
    }
-   if (addClass) {
-      classes.push(addClass);
+   html += '">';
+   html += content;
+   if (extra && extra.insert) {
+      html += extra.insert;
    }
-   var html = '<' + elem + ' id="box-' + value.box + '" class="';
-   for (var i = 0; i < classes.length; i++) {
-      if (i > 0) {
-         html += ' ';
-      }
-      html += classes[i];
-   }
-   html += '">' + s + (insert ? insert : '') + '</' + elem + '>';
+   html += '</' + elem + '>';
+   return html;
+}
+
+function new_extras(classes, insert) {
    return {
-      html:  html,
-      links: links
+      classes: classes || [],
+      insert: insert || '',
+      add: function (_class, _insert) {
+         var classes = this.classes;
+         var insert  = this.insert;
+         if (_class) {
+            classes = this.classes.concat(_class);
+         }
+         if (_insert) {
+            insert += _insert;
+         }
+         return new_extras(classes, insert);
+      },
+   };
+}
+
+var to_html = function (val, _extras) {
+   var extras = _extras || new_extras();
+   if (val.data === null) {
+      return {
+         html:  render_elem('div', val.box, '?', 
+                            extras.add('unknown')),
+         links: []
+      };
+   } 
+   else if (val.data instanceof Array) {
+      return to_html.array(val, extras);
+   } 
+   else if (val.data instanceof Object) {
+      return to_html[val.data["<type>"]](val, extras);
+   } 
+   else {
+      var data = val.data;
+      if (typeof(data) == "string") {
+         data = '"' + data + '"';
+      }
+      return {
+         html: render_elem('div', val.box, data, 
+                           extras.add('value')),
+         links: []
+      };
+   }
+}
+
+to_html.array = function (val, extras) {
+   var links = [];
+   var html = '<tr>';
+   if (val.data.length == 0) {
+      return {
+         html: render_elem('div', val.box, '', 
+                           extras.add('value empty')),
+         links: links,
+      };
+   }
+   for (var j = 0; j < val.data.length; j++) {
+      html += '<td>';
+      var first = [];
+      if (j == 0) {
+         first.push("first");
+      }
+      var insert = '<div class="index">' + j + '</div>';
+      var res = to_html(val.data[j], extras.add(first, insert));
+      push.apply(links, res.links);
+      html += res.html;
+      html += '</td>';
+   } 
+   html += '</tr>';
+   return {
+      html: render_elem('table', val.box, html, 
+                        extras.add('array')),
+      links: links,
+   }
+}
+
+to_html.ref = function (val, extras) {
+   extras.classes.push('ref');
+   return  {
+      html: render_elem('div', val.box, '', extras),
+      links: [{from: val.box, to: val.data['ref']}]
+   };
+}
+
+to_html.list = function (val, extras) {
+   var links = [];
+   var elems = val.data['<elements>'];
+   if (elems.length == 0) {
+      return {
+         html: render_elem('div', val.box, '', 
+                           extras.add('value empty')),
+         links: links,
+      };
+   }
+   var html = '<tr>';
+   var insert = '<div class="join"></div>';
+   for (var i = 0; i < elems.length; i++) {
+      html += '<td>';
+      
+      var res = to_html(elems[i], (i == 0 ? 
+                                   extras.add('first') : 
+                                   extras.add(null, insert)));
+      push.apply(links, res.links);
+      html += res.html;
+      html += '</td>';
+   } 
+   html += '</tr>';
+   return {
+      html: render_elem('table', val.box, html, 
+                        extras.add('list')),
+      links: links,
+   }
+}
+
+to_html.struct = function (val, extras) {
+   var links = [];
+   extras.classes.push('struct');
+
+   var html = '<table>';
+   for (var prop in value.data) {
+      if (prop == '<type>') {
+         continue;
+      }
+      html += '<tr><td><div class="name">' + prop + '</div></td><td>';
+      var res = value_str(value.data[prop]);
+      push.apply(links, res.links);
+      html += res.html;
+      html += '</td></tr>';
+   }
+   html += '</table>';
+
+   return {
+      html: render_elem('div', val.box, html, extras),
+      links: links,
    };
 }
 
@@ -268,8 +357,8 @@ function position_calculator(origin) {
       return function(elem) {
          var offset = elem.offset();
          return {
-            x: offset.left - origin.left + elem.outerWidth() * fx,
-            y: offset.top  - origin.top  + elem.outerWidth() * fy
+            x: offset.left - origin.left + elem.outerWidth()  * fx,
+            y: offset.top  - origin.top  + elem.outerHeight() * fy
          };
       }
    }
@@ -389,14 +478,14 @@ function showstate(S) {
          html += " active";
       }
       html += '"><h5>' + env[i].name + '</h5>';
-      var T = env[i].tab;
+      var table = env[i].tab;
       html += '<div class="wrapper"><table>'
-      for (var prop in T) {
-         if (prop == "<active>") {
+      for (var name in table) {
+         if (name == "<active>") {
             continue;
          }
-         html += '<tr><td><div class="name">' + prop + '</div></td><td>';
-         var res = value_str(T[prop]);
+         html += '<tr><td><div class="name">' + name + '</div></td><td>';
+         var res = to_html(table[name]);
          push.apply(env[i].links, res.links);
          html += res.html;
          html += '</td></tr>';
@@ -575,6 +664,7 @@ function backwards() {
 }
 
 $(document).ready(function () {
+
    if (localStorage["minicc:program"]) {
       initial_program = localStorage["minicc:program"];
    }

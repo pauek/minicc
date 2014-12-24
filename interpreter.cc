@@ -20,10 +20,12 @@ void Interpreter::prepare_global_environment() {
 
    Environment *global = new Environment("[global]", cpp, hidden);
    Environment *std    = new Environment("std", cpp, hidden);
+   Environment *minicc = new Environment("minicc", cpp, hidden);
 
    _namespaces["[c++]"]    = cpp;
    _namespaces["[global]"] = global;
    _namespaces["std"]      = std;
+   _namespaces["minicc"]   = minicc;
 
    _env = global;
 }
@@ -155,6 +157,16 @@ struct MaxFunc : public Func {
 };
 MaxFunc _max;
 
+struct TojsonFunc : public Func {
+   TojsonFunc() : Func("to_json") {}
+   Value call(Interpreter *I, Value self, const vector<Value>& args) {
+      assert(args.size() == 1);
+      Value arg0 = Reference::deref(args[0]);
+      return Value(arg0.to_json());
+   }
+};
+TojsonFunc _tojson;
+
 struct GetlineFunc : public Func {
    GetlineFunc() : Func("getline") {}
    Value call(Interpreter *I, Value self, const vector<Value>& args) {
@@ -170,7 +182,8 @@ struct GetlineFunc : public Func {
 GetlineFunc _getline;
 
 void Interpreter::visit_include(Include* x) {
-   Environment *std = _namespaces["std"];
+   Environment *std    = _namespaces["std"];
+   Environment *minicc = _namespaces["minicc"];
    if (x->filename == "iostream") {
       std->register_type("ostream", OStream::self);
       std->register_type("istream", IStream::self);
@@ -210,6 +223,15 @@ void Interpreter::visit_include(Include* x) {
       Value func     = max_func_type->mkvalue(&_max);
       Value callable = Callable::self->mkvalue(Value::null, func);
       std->set("max", callable);
+   } 
+   else if (x->filename == "json") {
+      Function *tojson_func_type = new Function(String::self);
+      tojson_func_type->add_params(Any);
+      Value func = tojson_func_type->mkvalue(&_tojson);
+      Value callable = Callable::self->mkvalue(Value::null, func);
+      minicc->set("tojson", callable);
+   } else {
+      _error(_T("No existe el fichero de include '%s'", x->filename.c_str()));
    }
 }
 
@@ -760,7 +782,11 @@ void Interpreter::visit_callexpr_getfunc(CallExpr *x) {
 
 void Interpreter::check_arguments(const Function *func_type, const vector<Value>& args) {
    for (int i = 0; i < args.size(); i++) {
-      string t1 = func_type->param(i)->typestr();
+      Type *param_type = func_type->param(i);
+      if (param_type == Any) {
+         continue;
+      }
+      string t1 = param_type->typestr();
       Value arg_i = args[i];
       if (!func_type->param(i)->is<Reference>()) {
          arg_i = Reference::deref(arg_i);
@@ -792,11 +818,7 @@ void Interpreter::check_result(Binding& fn, const Function *func_type) {
    }
 }
 
-void Interpreter::visit_callexpr(CallExpr *x) {
-   vector<Value> args;
-   eval_arguments(x->args, args);
-   
-   // Type Conversion?
+bool Interpreter::visit_type_conversion(CallExpr *x, const vector<Value>& args) {
    FullIdent *id = x->func->as<FullIdent>();
    if (id != 0) {
       TypeSpec spec(id);
@@ -808,18 +830,15 @@ void Interpreter::visit_callexpr(CallExpr *x) {
          _curr = type->convert(args[0]);
          if (_curr == Value::null) {
             _curr = args[0];
-            if (call_operator(id->typestr())) {
-               return;
-            }
+            call_operator(id->typestr());
          }
-         return;
+         return true;
       }
    }
-   
-   // Function
-   visit_callexpr_getfunc(x);
-   Value func = _curr;
+   return false;
+}
 
+void Interpreter::visit_callexpr_call(Value func, const vector<Value>& args) {
    // TODO: Find operator() (method or function)
    if (func.is<Overloaded>()) {
       func = func.as<Overloaded>().resolve(args);
@@ -831,6 +850,16 @@ void Interpreter::visit_callexpr(CallExpr *x) {
    _ret = fn.call(this, args); // <-- Invoke!
    check_result(fn, func_type);
    _curr = _ret;
+}
+
+void Interpreter::visit_callexpr(CallExpr *x) {
+   vector<Value> args;
+   eval_arguments(x->args, args);
+   if (visit_type_conversion(x, args)) {
+      return;
+   }
+   visit_callexpr_getfunc(x);
+   visit_callexpr_call(_curr, args);
 }
 
 void Interpreter::visit_indexexpr(IndexExpr *x) {

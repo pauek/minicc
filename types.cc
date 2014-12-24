@@ -12,6 +12,7 @@ void _error(std::string msg) {
 
 // static + Globals
 Type          *Void = 0;
+Type          *Any  = (Type *)1;
 Int           *Int::self           = new Int();
 Float         *Float::self         = new Float();
 Double        *Double::self        = new Double();
@@ -913,17 +914,17 @@ Value List::default_value_for(Type *t) {
 }
 
 string List::to_json(void *data) const {
-   ostringstream o;
-   o << "[";
-   vector<Value>& vec = *(vector<Value>*)data;
-   for (int i = 0; i < vec.size(); i++) {
-      if (i > 0) {
-         o << ", ";
+   ostringstream json;
+   json << "{\"<type>\":\"list\",\"<elements>\":[";
+   list<Value>& lst = *(list<Value>*)data;
+   for (auto it = lst.begin(); it != lst.end(); it++) {
+      if (it != lst.begin()) {
+         json << ", ";
       }
-      o << vec[i].to_json();
+      json << it->to_json();
    }
-   o << "]";
-   return o.str();
+   json << "]}";
+   return json.str();
 }
 
 // Pair //////////////////////////////////////////////////////////////

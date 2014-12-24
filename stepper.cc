@@ -316,12 +316,25 @@ Todo Stepper::AssignmentVisitState::step(Stepper *S) {
 }
 
 void Stepper::visit_callexpr(CallExpr *x) {
+   vector<Value> args;
+   I.eval_arguments(x->args, args);
+
+   if (I.visit_type_conversion(x, args)) {
+      push(new PopState(x->span()));
+      return;
+   }
+
    I.visit_callexpr_getfunc(x);
    Func *fptr = I._curr.as<Callable>().func.as<Function>().ptr;
-   FuncDecl *fn = dynamic_cast<const UserFunc*>(fptr)->decl;
+   const UserFunc *userfunc = dynamic_cast<const UserFunc*>(fptr);
+   if (userfunc == 0) {
+      I.visit_callexpr_call(I._curr, args);
+      push(new PopState(x->span()));
+      return;
+   }
+   FuncDecl *fn = userfunc->decl;
    assert(fn != 0);
    CallExprVisitState *s = new CallExprVisitState(x, fn);
-   vector<Value> args(fn->params.size(), Value::null);
    I.pushenv(fn->funcname());
    s->step(this);
    push(s);

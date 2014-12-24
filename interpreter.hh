@@ -46,6 +46,8 @@ std::map<std::string, Environment*> _namespaces;
      void  visit_binaryexpr_assignment(Value left, Value right);
      void  visit_binaryexpr_op_assignment(char, Value left, Value right);
      void  visit_callexpr_getfunc(CallExpr *x);
+     bool  visit_type_conversion(CallExpr *x, const std::vector<Value>& args);
+     void  visit_callexpr_call(Value func, const std::vector<Value>& args);
 
    template<class Op>
      bool  visit_op_assignment(Value left, Value right);

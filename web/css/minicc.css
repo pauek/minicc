@@ -113,9 +113,22 @@ header {
   border: 1px solid #ddd;
 }
 #env .var {
-  padding: .3em .3em;
   display: inline-block;
   margin: .1em 0;
+}
+#env .list .var {
+  margin-left: .3em;
+  position: relative;
+}
+#env .list .var.first {
+  margin-left: inherit;
+}
+#env .list .join {
+  position: absolute;
+  border-bottom: 1px solid #ccc;
+  left: -0.4em;
+  width: 0.4em;
+  top: 50%;
 }
 #env .ref {
   background-color: white;
@@ -138,6 +151,10 @@ header {
   border: 1px solid #ddd;
   background-color: white;
   color: #4449ff;
+}
+#env .value.empty {
+  padding: 1px 1px;
+  height: 1.2em;
 }
 #env .var.unknown {
   color: #aaa;
@@ -221,20 +238,18 @@ header {
   border: 1px solid #ddd;
   background: white;
 }
+#env table.array, #env table.array td {
+  border: none;
+}
 #env table.array > tbody > tr > td > div.var {
-  border-left: none;
-  padding-bottom: 1em;
-}
-#env table.array > tbody > tr > td > div.var.first {
-  border-left: 1px solid #ddd;
-}
-#env table.array > tbody > tr > td > .var {
+  padding-bottom: .5em;
+  margin-left: -1px;
   position: relative;
 }
 #env table.array .index {
   position: absolute;
   color: #aaa;
-  font-size: 75%;
+  font-size: 55%;
   right: 1px;
   bottom: -1px;
 }
@@ -245,10 +260,12 @@ header {
   overflow: scroll;
 }
 #refs {
+  z-index: 2;
   position: absolute;
   top: 0;
   left: 0;
 }
 #env .var.hasref {
   border: 1px solid red;
+  z-index: 1;
 }

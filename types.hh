@@ -78,6 +78,8 @@ public:
    friend class Reference;
 };
 
+extern Type *Void, *Any;
+
 class Environment;
 class TypeMap {
    std::map<std::string, Type*> _typemap;
