@@ -26,10 +26,10 @@ release: CXXFLAGS += -O2 -s DISABLE_EXCEPTION_CATCHING=0
 release: web/js/minicc.js
 
 web/js/minicc.js: .dependweb $(BCFILES)
-	emcc --bind $(CXXFLAGS) -o web/js/minicc.js $(BCFILES) 
+	$(CXX) --bind $(CXXFLAGS) -o web/js/minicc.js $(BCFILES) 
 
 .cc.bc:
-	emcc -c $(CXXFLAGS) -o $@ $<
+	$(CXX) -c $(CXXFLAGS) -o $@ $<
 
 clean:
 	rm -f web/js/minicc.js $(BCFILES) .dependweb
