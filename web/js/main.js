@@ -322,12 +322,12 @@ to_html.struct = function (val, extras) {
    extras.classes.push('struct');
 
    var html = '<table>';
-   for (var prop in value.data) {
+   for (var prop in val.data) {
       if (prop == '<type>') {
          continue;
       }
       html += '<tr><td><div class="name">' + prop + '</div></td><td>';
-      var res = value_str(value.data[prop]);
+      var res = to_html(val.data[prop]);
       push.apply(links, res.links);
       html += res.html;
       html += '</td></tr>';
