@@ -167,7 +167,7 @@ header {
 }
 #env .fenv td {
   vertical-align: middle;
-  padding: 0;
+  padding: 0.1em 0.15em 0.1em 0;
 }
 #env .array > .value, #env .array > .unknown, #env .array > .struct {
   border-left: none;
@@ -242,7 +242,7 @@ header {
   border: none;
 }
 #env table.array > tbody > tr > td > div.var {
-  padding: .2em .35em .2em 0;
+  padding: 0 .1em .3em 0;
   margin-left: -1px;
   position: relative;
 }
