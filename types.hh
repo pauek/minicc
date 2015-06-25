@@ -651,8 +651,14 @@ class WithEnvironment {
    typedef std::map<std::string, Environment*> NamespaceMap;
    Environment  *_env;
    NamespaceMap  _namespaces;
+   std::istream *_in;
+   std::ostream *_out;
 public:
-   WithEnvironment() : _env(0) {}
+   WithEnvironment() 
+      : _env(0), _in(0), _out(0) {}
+
+   WithEnvironment(std::istream *i, std::ostream *o) 
+      : _env(0), _in(i), _out(o) {}
 
    void  pushenv(std::string name) {
       _env = new Environment(name, _env);

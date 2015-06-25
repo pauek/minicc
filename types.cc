@@ -1985,8 +1985,8 @@ bool WithEnvironment::include_header_file(string name) {
       
       std->set("endl", Value("\n"), hidden);
       // std->set("cerr", Cerr, hidden);
-      std->set("cout", Value("<cout>"), hidden);
-      std->set("cin",  Value("<cin>"),  hidden);
+      std->set("cout", Value(*_out), hidden);
+      std->set("cin",  Value(*_in),  hidden);
 
       std->set("getline", _getline.mkcallable(), hidden);
    } 

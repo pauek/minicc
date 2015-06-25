@@ -63,12 +63,6 @@ void Interpreter::visit_using(Using* x) {
 
 void Interpreter::visit_include(Include* x) {
    include_header_file(x->filename);
-   if (x->filename == "iostream") {
-      // Set I/O funcs
-      Environment *std = get_namespace("std");
-      std->set("cout", Value(out()), hidden);
-      std->set("cin",  Value(in()),  hidden);
-   }
 }
 
 void Interpreter::visit_funcdecl(FuncDecl *x) {

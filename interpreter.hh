@@ -64,7 +64,7 @@ class Interpreter :
 public:
    Interpreter() {}
    Interpreter(std::istream *i, std::ostream *o)
-      : ReadWriter(i, o) {}
+      : ReadWriter(i, o), WithEnvironment(i, o) {}
 
    void visit_comment(CommentSeq *x);
    void visit_include(Include *x);

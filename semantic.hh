@@ -15,7 +15,6 @@ class SemanticAnalyzer :
 {
     Value _curr, _ret;
 
-     void  visit_program_prepare(Program *x);
      void  visit_binaryexpr_assignment(Value left, Value right);
      void  visit_binaryexpr_op_assignment(char, Value left, Value right);
      void  visit_callexpr_getfunc(CallExpr *x);

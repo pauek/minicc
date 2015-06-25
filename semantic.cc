@@ -4,18 +4,10 @@
 #include "semantic.hh"
 using namespace std;
 
-void SemanticAnalyzer::visit_program_prepare(Program *x) {
+void SemanticAnalyzer::visit_program(Program* x) {
    prepare_global_environment();
    for (AstNode *n : x->nodes) {
       n->accept(this);
-   }
-}
-
-
-void SemanticAnalyzer::visit_program(Program* x) {
-   visit_program_prepare(x);
-   for (int i = 0; i < x->nodes.size(); i++) {
-      x->nodes[i]->accept(this);
    }
 }
 
