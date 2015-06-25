@@ -1,5 +1,5 @@
-#ifndef INTERPRETER_HH
-#define INTERPRETER_HH
+#ifndef SEMANTIC_HH
+#define SEMANTIC_HH
 
 #include <assert.h>
 #include <iostream>
@@ -10,28 +10,12 @@
 #include "value.hh"
 #include "types.hh"
 
-struct EvalError : public Error {
-   EvalError(std::string _msg) : Error(_msg) {}
-};
-
-class Interpreter : 
-   public AstVisitor, public ReadWriter, WithEnvironment 
+class SemanticAnalyzer : 
+   public AstVisitor, public WithEnvironment
 {
-                              Value _curr, _ret;
-           std::vector<std::string> _env_names;
-
-    void   _error(std::string msg) {
-       throw new EvalError(msg);
-    }
-
-     Value new_value_from_structdecl(StructDecl *x);
-
-     void  invoke_func_prepare_arg(FuncDecl *x, Value args, int i);
-     void  invoke_func_prepare(FuncDecl *x, const std::vector<Value>& args);
-     void  invoke_user_func(FuncDecl *x, const std::vector<Value>&);
+    Value _curr, _ret;
 
      void  visit_program_prepare(Program *x);
-     void  visit_program_find_main();
      void  visit_binaryexpr_assignment(Value left, Value right);
      void  visit_binaryexpr_op_assignment(char, Value left, Value right);
      void  visit_callexpr_getfunc(CallExpr *x);
@@ -53,18 +37,8 @@ class Interpreter :
    template<class Op>
      bool  visit_comparison(Value left, Value right);
 
-    friend class Stepper;
-
-   void eval_arguments(const std::vector<Expr*>& exprs, std::vector<Value>& args);
-   void check_arguments(const Function *func_type, const std::vector<Value>& args);
-   void check_result(Binding& fn, const Function *func_type);
-   bool bind_field(Value obj, string method_name);
-   bool call_operator(std::string op, const std::vector<Value>& args = std::vector<Value>());
-
 public:
-   Interpreter() {}
-   Interpreter(std::istream *i, std::ostream *o)
-      : ReadWriter(i, o) {}
+   SemanticAnalyzer() {}
 
    void visit_comment(CommentSeq *x);
    void visit_include(Include *x);
@@ -94,20 +68,6 @@ public:
    void visit_literal(Literal *x);
    void visit_typedefdecl(TypedefDecl *x);
    void visit_derefexpr(DerefExpr *x);
-
-   friend class UserFunc;
-};
-
-struct UserFunc : public Func {
-   FuncDecl *decl;
-
-   UserFunc(std::string n, FuncDecl *d) 
-      : Func(n), decl(d) {}
-
-   Value call(Interpreter *I, Value self, const std::vector<Value>& args) {
-      I->invoke_user_func(decl, args);
-      return I->_ret;
-   }
 };
 
 #endif

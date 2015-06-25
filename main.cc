@@ -8,6 +8,7 @@ using namespace std;
 #include "astpr.hh"
 #include "prettypr.hh"
 #include "stepper.hh"
+#include "semantic.hh"
 #include "interpreter.hh"
 #include "translator.hh"
 #include "walker.hh"
@@ -52,6 +53,12 @@ int main(int argc, char *argv[]) {
    ifstream codefile(filename.c_str());
    Parser P(&codefile);
    AstNode *program = P.parse();
+
+   // semantic analysis
+   SemanticAnalyzer A;
+   program->accept(&A);
+
+   // TODO: static analysis
 
    vector<Error*> ve;
    collect_errors(program, ve);

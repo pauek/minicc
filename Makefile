@@ -1,7 +1,9 @@
-CXX=clang++
+ifndef CXX
+	CXX=gcc
+endif
 
 OBJECTS=main.o test.o input.o parser.o ast.o token.o value.o \
-	prettypr.o astpr.o interpreter.o stepper.o walker.o translator.o \
+	prettypr.o astpr.o interpreter.o stepper.o walker.o translator.o semantic.o \
 	types.o
 
 SRCS=$(OBJECTS:.o=.cc)

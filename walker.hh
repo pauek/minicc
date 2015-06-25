@@ -58,6 +58,7 @@ struct ErrorCollector : public Walker {
    void walk(AstNode *n) {
       const std::vector<Error*>& ve = n->errors;
       errors.insert(errors.end(), ve.begin(), ve.end());
+      n->errors.clear();
    }
 };
 

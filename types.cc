@@ -1598,6 +1598,14 @@ Iterator<C>::Iterator(C *type)
 }
 
 template<class C>
+string Iterator<C>::to_json(void *data) const {
+   typename C::cpp_iterator& the_iterator = *(typename C::cpp_iterator*)data;
+   ostringstream json;
+   json << "{\"<type>\":\"iterator\",\"<address>\":\"" << &(*the_iterator) << "\"}";
+   return json.str();
+}
+
+template<class C>
 ForwardIterator<C>::ForwardIterator(C *type) 
    : Iterator<C>(type) 
 {
@@ -1869,4 +1877,174 @@ OStringStream::OStringStream() : OStream("ostringstream") {
    };
    _add_method(new Function(String::self),
                new StrMethod());
+}
+
+struct MaxFunc : public Func {
+   MaxFunc() : Func("max") {}
+   Value call(Interpreter *I, Value self, const vector<Value>& args) {
+      assert(args.size() == 2);
+      assert(args[0].is<Int>());
+      assert(args[1].is<Int>());
+      return Value(std::max(args[0].as<Int>(), args[1].as<Int>()));
+   }
+};
+MaxFunc _max;
+
+struct TojsonFunc : public Func {
+   TojsonFunc() : Func("to_json") {}
+   Value call(Interpreter *I, Value self, const vector<Value>& args) {
+      assert(args.size() == 1);
+      Value arg0 = Reference::deref(args[0]);
+      return Value(arg0.to_json());
+   }
+};
+TojsonFunc _tojson;
+
+struct GetlineFunc : public Func {
+   GetlineFunc() : Func("getline") {}
+   Value call(Interpreter *I, Value self, const vector<Value>& args) {
+      Value the_string = Reference::deref(args[1]);
+      Value the_istream = Reference::deref(args[0]);
+      return Value(std::getline(the_istream.as<IStream>(), the_string.as<String>()));
+   }
+   Value mkcallable() {
+      Function *functype = (new Function(IStream::self))->add_params(IStream::self, String::self);
+      return Callable::self->mkvalue(Value::null, functype->mkvalue(this));
+   }
+};
+GetlineFunc _getline;
+
+
+void WithEnvironment::prepare_global_environment() {
+   _namespaces.clear();
+   Environment *cpp    = new Environment("[c++]", 0, hidden);  // for C++ integrated stuff
+   cpp->register_type("int",    Int::self);
+   cpp->register_type("char",   Char::self);
+   cpp->register_type("float",  Float::self);
+   cpp->register_type("double", Double::self);
+   cpp->register_type("bool",   Bool::self);
+
+   Environment *global = new Environment("[global]", cpp, hidden);
+   Environment *std    = new Environment("std", cpp, hidden);
+   Environment *minicc = new Environment("minicc", cpp, hidden);
+
+   _namespaces["[c++]"]    = cpp;
+   _namespaces["[global]"] = global;
+   _namespaces["std"]      = std;
+   _namespaces["minicc"]   = minicc;
+
+   _env = global;
+}
+
+Type *WithEnvironment::get_type(TypeSpec *spec) {
+   SimpleIdent *namespc = spec->get_potential_namespace_or_class();
+   if (namespc != 0) {
+      auto it = _namespaces.find(namespc->name);
+      if (it != _namespaces.end()) {
+         namespc->is_namespace = true;
+         Environment *e = it->second;
+         return e->get_type(spec);
+      }
+   }
+   return _env->get_type(spec);
+}
+
+void WithEnvironment::register_type(string name, Type *type) {
+   _env->register_type(name, type);
+}
+
+void WithEnvironment::setenv(string id, Value v, bool hidden) {
+   _env->set(id, v, hidden);
+}
+
+bool WithEnvironment::getenv(string id, Value& v) {
+   return _env->get(id, v);
+}
+
+bool WithEnvironment::using_namespace(string name) {
+   auto it = _namespaces.find(name);
+   if (it == _namespaces.end()) {
+      return false;
+   }
+   _env->using_namespace(it->second);
+   return true;
+}
+
+Environment *WithEnvironment::get_namespace(string name) {
+   auto it = _namespaces.find(name);
+   return (it == _namespaces.end() ? 0 : it->second);
+}
+
+bool WithEnvironment::include_header_file(string name) {
+   Environment *std    = _namespaces["std"];
+   Environment *minicc = _namespaces["minicc"];
+   if (name == "iostream") {
+      std->register_type("ostream", OStream::self);
+      std->register_type("istream", IStream::self);
+      std->register_type("string",  String::self); // 'iostream' includes 'string'
+      
+      std->set("endl", Value("\n"), hidden);
+      // std->set("cerr", Cerr, hidden);
+      std->set("cout", Value("<cout>"), hidden);
+      std->set("cin",  Value("<cin>"),  hidden);
+
+      std->set("getline", _getline.mkcallable(), hidden);
+   } 
+   else if (name == "vector") {
+      std->register_type("vector",  Vector::self);
+      std->register_type("string",  String::self); // 'vector' includes 'string'
+   }
+   else if (name == "list") {
+      std->register_type("list",  List::self);
+   }
+   else if (name == "map") {
+      std->register_type("pair", Pair::self);
+      std->register_type("map", Map::self);
+   }
+   else if (name == "string") {
+      std->register_type("string",  String::self);
+   }
+   else if (name == "sstream") {
+      std->register_type("istringstream", IStringStream::self);
+      std->register_type("ostringstream", OStringStream::self);
+   }
+   else if (name == "algorithm") {
+      // FIXME: make max a template, so that when you call it,
+      // it instantiates the proper type of function.
+      //
+      Function *max_func_type = new Function(Int::self);
+      max_func_type->add_params(Int::self, Int::self);
+      Value func     = max_func_type->mkvalue(&_max);
+      Value callable = Callable::self->mkvalue(Value::null, func);
+      std->set("max", callable);
+   } 
+   else if (name == "json") {
+      Function *tojson_func_type = new Function(String::self);
+      tojson_func_type->add_params(Any);
+      Value func = tojson_func_type->mkvalue(&_tojson);
+      Value callable = Callable::self->mkvalue(Value::null, func);
+      minicc->set("tojson", callable);
+   } else {
+      return false;
+   }
+   return true;
+}
+
+string WithEnvironment::env2json() const {
+   Environment *e = _env;
+   ostringstream json;
+   json << "[";
+   int i = 0;
+   while (e != 0) {
+      if (!e->hidden()) {
+         if (i > 0) {
+            json << ",";
+         }
+         json << e->to_json();
+         i++;
+      }
+      e = e->parent();
+   }
+   json << "]";
+   return json.str();
 }

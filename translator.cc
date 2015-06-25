@@ -14,6 +14,10 @@ const char* Translator::_translations[100][Translator::NUM_LANGS] = { /*
       Catalan 
    } */
    {
+      "usage: minicc <filename>",
+      "uso:   minicc <fichero>",
+      "ús:    minicc <fitxer>"
+   }, {
       "UNIMPLEMENTED",
       "NO IMPLEMENTADO",
       "NO IMPLEMENTAT"

@@ -508,6 +508,8 @@ public:
    Iterator(C *type);
 
    std::string typestr() const { return _container_type->typestr() + "::iterator"; }
+   std::string to_json(void *data) const;
+
    typedef typename C::cpp_iterator cpp_type;
 };
 
@@ -639,6 +641,46 @@ Environment *pop();
    
        bool  get(std::string name, Value& res);
        void  set(std::string name, Value data, bool hidden = false);
+};
+
+const int hidden = true;
+
+// to assist visitors that use the environment
+// 
+class WithEnvironment { 
+   typedef std::map<std::string, Environment*> NamespaceMap;
+   Environment  *_env;
+   NamespaceMap  _namespaces;
+public:
+   WithEnvironment() : _env(0) {}
+
+   void  pushenv(std::string name) {
+      _env = new Environment(name, _env);
+   }
+
+   void  popenv() {
+      _env = _env->pop();
+      assert(_env != 0);
+      actenv();
+   }
+
+   void  actenv() {
+      _env->set_active(true);
+   }
+
+   bool  getenv(std::string id, Value& v);
+   void  setenv(std::string id, Value v, bool hidden = false);
+   
+   Type *get_type(TypeSpec *spec);
+   void  register_type(std::string name, Type *);
+
+   Environment *get_namespace(string name);
+   bool  using_namespace(string name);
+   bool  include_header_file(string name);
+   
+   void  prepare_global_environment();
+
+   string env2json() const;
 };
 
 std::string json_encode(std::string s);
