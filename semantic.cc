@@ -38,16 +38,20 @@ void SemanticAnalyzer::visit_funcdecl(FuncDecl *x) {
    string funcname = x->funcname();
    Type *return_type = get_type(x->return_typespec);  // return_type == 0 means 'void'
    Function *functype = new Function(return_type);
+ 
+   pushenv(x->funcname());
    for (auto p : x->params) {
       Type *param_type = get_type(p->typespec);
       assert(param_type != 0);
       functype->add_params(param_type);
+      setenv(p->name, param_type->create_abstract());
    }
+   x->block->accept(this);
+   popenv();
+
    Value func = functype->mkvalue(new UserFunc(funcname, x));
    Value callable = Callable::self->mkvalue(Value::null, func); // bind with 'null'
    setenv(funcname, callable, hidden);
-   
-   x->block->accept(this);
 }
 
 void SemanticAnalyzer::visit_structdecl(StructDecl *x) {
@@ -191,7 +195,7 @@ template<class Op>
 bool SemanticAnalyzer::visit_sumprod(Value left, Value _right) {
    Value right = left.type()->convert(_right);
    if (left.is<Int>()) {
-      _curr = Value(Op::eval(left.as<Int>(), right.as<Int>()));
+      _curr = Int::self->create_abstract();
       return true;
    }
    if (left.is<Float>()) {
@@ -593,7 +597,8 @@ void SemanticAnalyzer::visit_callexpr_getfunc(CallExpr *x) {
    x->func->accept(this);
    _curr = Reference::deref(_curr);
    if (!_curr.is<Callable>() and !_curr.is<Overloaded>()) {
-      // _error(_T("Calling something other than a function."));
+      x->add_error(_T("Intentas llamar como función un valor de tipo '%s'.", 
+                      _curr.type()->typestr().c_str()));
    }
 }
 
