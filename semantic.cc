@@ -16,7 +16,7 @@ void SemanticAnalyzer::visit_macro(Macro* x) {}
 
 void SemanticAnalyzer::visit_using(Using* x) {
    if (!using_namespace(x->namespc)) {
-      // TODO: _error(_T("No se ha encontrado el \"namespace\" '%s'.", x->namespc.c_str()));
+      x->add_error(_T("El \"namespace\" '%s' no existe.", x->namespc.c_str()));
    }
 }
 

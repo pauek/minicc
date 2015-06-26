@@ -13,9 +13,10 @@ class CommentPrinter {
    PrettyPrinter *pr;
 
    CommentSeq *commseq() { 
-      CommentSeq *c = (i < x->comments.size() ? x->comments[i++] : 0);
+      CommentSeq *c = (i < x->comments.size() ? x->comments[i] : 0);
       was_empty = (c == 0);
       had_endl = (c != 0 ? c->has_endl() : false);
+      i++;
       return c;
    }
    string CMT(bool pre, bool post, bool _endl, bool missing);

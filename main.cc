@@ -54,17 +54,19 @@ int main(int argc, char *argv[]) {
    Parser P(&codefile);
    AstNode *program = P.parse();
 
-   // semantic analysis
+   // Compilation errors
    SemanticAnalyzer A;
    program->accept(&A);
-
-   // TODO: static analysis
-
    vector<Error*> ve;
    collect_errors(program, ve);
    for (Error *e : ve) {
-      cerr << _T("Compilation Error") << ": " << e->msg << endl;
+      cerr << filename << ":" << e->ini << ": " << e->msg << endl;
    }
+   if (!ve.empty()) {
+      return 1;
+   }
+
+   // TODO: static analysis
 
    try {
       if (todo != "step") {

@@ -1,5 +1,5 @@
 ifndef CXX
-	CXX=gcc
+	CXX=clang++ # TODO: Fix bug compiling with G++!!
 endif
 
 OBJECTS=main.o test.o input.o parser.o ast.o token.o value.o \

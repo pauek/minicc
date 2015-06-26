@@ -10,6 +10,7 @@ using namespace std;
 #include "interpreter.hh"
 #include "translator.hh"
 #include "stepper.hh"
+#include "semantic.hh"
 #include "walker.hh"
 
 // Detect lines like:
@@ -64,10 +65,10 @@ enum VisitorType { pretty_printer, ast_printer, interpreter, stepper };
 void exec_visitor(Program *P, VisitorType vtype) {
 }
 
-void test_visitor(string filename, VisitorType vtype) {
+void parse_test_file(string filename, 
+                     string& code, string& in, string& out, string& err) {
    ifstream F(filename);
-   string line, code, in, out, err;
-
+   string line;
    string *acum = &code;
    while (getline(F, line)) {
       string label = test_separator(line);
@@ -89,6 +90,34 @@ void test_visitor(string filename, VisitorType vtype) {
          acum = &err;
       }
    }
+}
+
+void compare_result(string filename, string sout, string serr,
+                    string out, string err) {
+   char res = '.';
+   string sep((82 - filename.size()) / 2, '-');
+   string header = sep + " " + filename + " " + sep + "\n";
+   if (sout != out) {
+      cerr << header << "[out]:" << endl;
+      header = "";
+      cerr << "target  \"\"\"" << visible_spaces(out, sout) << "\"\"\"" << endl;
+      cerr << "current \"\"\"" << visible_spaces(sout, out) << "\"\"\"" << endl;
+      cerr << endl;
+      res = 'x';
+   }
+   if (serr != err) {
+      cerr << header << "[err]:" << endl;
+      cerr << "target  \"\"\"" << visible_spaces(err, serr) << "\"\"\"" << endl;
+      cerr << "current \"\"\"" << visible_spaces(serr, err) << "\"\"\"" << endl;
+      cerr << endl;
+      res = 'x';
+   }
+   cout << res << flush;
+}
+
+void test_visitor(string filename, VisitorType vtype) {
+   string code, in, out, err;
+   parse_test_file(filename, code, in, out, err);
    
    ostringstream Sout, Saux, Serr;
    istringstream Scode(code), Sin(in);
@@ -135,29 +164,37 @@ void test_visitor(string filename, VisitorType vtype) {
       Serr << "Error de ejecución: " << e->msg << endl;
    }
 
-   char res = '.';
-   string sep((82 - filename.size()) / 2, '-');
-   string header = sep + " " + filename + " " + sep + "\n";
-   if (Sout.str() != out) {
-      cerr << header << "[out]:" << endl;
-      header = "";
-      cerr << "target  \"\"\"" << visible_spaces(out, Sout.str()) << "\"\"\"" << endl;
-      cerr << "current \"\"\"" << visible_spaces(Sout.str(), out) << "\"\"\"" << endl;
-      cerr << endl;
-      res = 'x';
+   compare_result(filename, Sout.str(), Serr.str(), out, err);
+}
+
+
+
+void test_semantic(string filename) {
+   string code, in, out, err;
+   parse_test_file(filename, code, in, out, err);
+
+   ostringstream Sout, Saux, Serr;
+   istringstream Scode(code), Sin(in);
+   Parser P(&Scode, &Serr);
+   AstNode *program;
+   program = P.parse();
+
+   SemanticAnalyzer A;
+   program->accept(&A);
+   vector<Error*> ve;
+   collect_errors(program, ve);
+   for (Error *e : ve) {
+      Serr << filename << ":" << e->ini << ": " << e->msg << endl;
    }
-   if (Serr.str() != err) {
-      cerr << header << "[err]:" << endl;
-      cerr << "target  \"\"\"" << visible_spaces(err, Serr.str()) << "\"\"\"" << endl;
-      cerr << "current \"\"\"" << visible_spaces(Serr.str(), err) << "\"\"\"" << endl;
-      cerr << endl;
-      res = 'x';
-   }
-   cout << res << flush;
+   compare_result(filename, Sout.str(), Serr.str(), out, err);
 }
 
 void test(string kind, string filename) {
    VisitorType vtype;
+   if (kind == "semantic") {
+      test_semantic(filename);
+      return;
+   }
    if (kind == "ast") {
       vtype = ast_printer;
    } else if (kind == "print") {

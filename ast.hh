@@ -23,6 +23,8 @@ struct AstNode {
       std::vector<Error*> errors;
  std::vector<CommentSeq*> comments;
 
+                  void add_error(std::string msg);
+
    virtual            ~AstNode() {}
    virtual        void accept(AstVisitor* v) = 0;
    virtual         int num_children() const { return 0; }
@@ -40,10 +42,11 @@ struct AstNode {
 };
 
 struct Error {
-   Pos pos;
+   Pos ini, fin;
    std::string msg;
-   Error(std::string m) : msg(m) {}
-   Error(Pos p, std::string m) : pos(p), msg(m) {}
+   Error(std::string m)               : msg(m) {}
+   Error(Pos p, std::string m)        : ini(p), msg(m) {}
+   Error(Pos i, Pos f, std::string m) : ini(i), fin(f), msg(m) {}
 };
 
 struct Comment {
