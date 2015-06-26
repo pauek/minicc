@@ -20,16 +20,6 @@ void SemanticAnalyzer::visit_using(Using* x) {
    }
 }
 
-struct MaxFunc : public Func {
-   MaxFunc() : Func("max") {}
-   Value call(SemanticAnalyzer *I, Value self, const vector<Value>& args) {
-      assert(args.size() == 2);
-      assert(args[0].is<Int>());
-      assert(args[1].is<Int>());
-      return Value(std::max(args[0].as<Int>(), args[1].as<Int>()));
-   }
-};
-
 void SemanticAnalyzer::visit_include(Include* x) {
    include_header_file(x->filename);
 }
@@ -40,7 +30,11 @@ void SemanticAnalyzer::visit_funcdecl(FuncDecl *x) {
    Function *functype = new Function(return_type);
 
    // reverse use of '_ret' to check all return statements
-   _ret = return_type->create_abstract(); 
+   if (return_type) {
+      _ret = return_type->create_abstract(); 
+   } else {
+      _ret = Value::null;
+   }
  
    pushenv(x->funcname());
    for (auto p : x->params) {
@@ -560,18 +554,12 @@ void SemanticAnalyzer::visit_exprstmt(ExprStmt* x) {
 void SemanticAnalyzer::visit_ifstmt(IfStmt *x) {
    x->cond->accept(this);
    if (!_curr.is<Bool>()) {
-      /*
-      if (!call_operator("bool")) {      
-         _error(_T("An if's condition needs to be a bool value"));
-      }
-      */
+      // TODO: if (!call_operator("bool")) { ... }
+      x->cond->add_error(_T("An if's condition needs to be a bool value"));
    }
-   if (_curr.as<Bool>()) {
-      x->then->accept(this);
-   } else {
-      if (x->els != 0) {
-         x->els->accept(this);
-      }
+   x->then->accept(this);
+   if (x->els) {
+      x->els->accept(this);
    }
 }
 

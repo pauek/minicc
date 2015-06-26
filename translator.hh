@@ -20,7 +20,7 @@ class Translator {
    }
 
    static const int   NUM_LANGS = 3;
-   static const char *_translations[100][Translator::NUM_LANGS];
+   static const char *_translations[1000][Translator::NUM_LANGS];
 
 public:
    Translator() : language(0) {

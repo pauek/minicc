@@ -7,7 +7,7 @@ using namespace std;
 
 Translator Translator::translator;
 
-const char* Translator::_translations[100][Translator::NUM_LANGS] = { /* 
+const char* Translator::_translations[1000][Translator::NUM_LANGS] = { /* 
    { 
       English, 
       Spanish, 
@@ -47,7 +47,7 @@ const char* Translator::_translations[100][Translator::NUM_LANGS] = { /*
       "La crida indirecta a funcions no s'ha implementat"
    }, {
       "An if's condition needs to be a bool value",
-      "La condición de un 'if' debe ser un valor de tipo 'bool'",
+      "La condición de un 'if' debe ser de tipo 'bool'",
       "La condició d'un 'if' ha de ser un valor Booleà"
    }, {
       "Expected '}' but end of text found",

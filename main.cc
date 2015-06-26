@@ -14,7 +14,9 @@ using namespace std;
 #include "walker.hh"
 
 int main(int argc, char *argv[]) {
-   string filename, todo = "eval", lang = "";
+   Translator::translator.set_language("es");
+
+   string filename, todo = "eval";
    if (argc > 1) {
       string argv1 = argv[1];
       if (argv1.substr(0, 7) == "--test-") {
@@ -48,7 +50,6 @@ int main(int argc, char *argv[]) {
       exit(1);
    }
 
-   Translator::translator.set_language("es");
 
    ifstream codefile(filename.c_str());
    Parser P(&codefile);

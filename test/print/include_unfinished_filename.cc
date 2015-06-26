@@ -2,4 +2,4 @@
 [[out]]---------------------------------------------
 #include "asdfqwer"
 [[err]]---------------------------------------------
-1:20: '#include' missing closing '"'
+1:20: Al '#include' le falta el '"' de cerrar

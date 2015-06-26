@@ -3,7 +3,6 @@
 #include "interpreter.hh"
 using namespace std;
 
-
 void Interpreter::invoke_func_prepare_arg(FuncDecl *fn, Value arg, int i) {
    if (arg.is<Reference>()) {
       if (!fn->params[i]->typespec->reference) {
