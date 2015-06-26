@@ -5,6 +5,18 @@
 #include "ast.hh"
 #include "util.hh"
 
+/*
+
+A value can be:
+1) null:      _box = 0.
+2) 'astract': _box != 0   and   _box->data == 0.
+3) normal:    _box != 0   and   (_box->type != 0 and _box->data != 0).
+
+Abstract values are used to represent types (so that we can reuse
+environments for static analysis).
+
+ */
+
 struct Type;
 class Value { // new value
    struct Box {
@@ -24,7 +36,7 @@ class Value { // new value
 
 public:
    explicit Value() : _box(0) {}
-   explicit Value(Type *t, void *d);
+   explicit Value(Type *t, void *d = 0); // with data = 0 creates an 'abstract' Value
    Value(const Value& v);
 
    explicit Value(int x);
@@ -48,7 +60,8 @@ public:
    bool has_type(const Type *t) const { return _box->type == t; }
 
    static Value null;
-   bool is_null() const { return _box == 0; }
+   bool is_null()     const { return _box == 0; }
+   bool is_abstract() const { return _box != 0 and _box->data == 0; }
 
    std::string type_name() const;
 

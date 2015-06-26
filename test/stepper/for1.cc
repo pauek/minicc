@@ -10,7 +10,7 @@ int main() {
 4:4-4:8: main
 Empieza el programa.
 
-5:8-5:18: int i = 0;
+5:8-5:17: int i = 0
 Se declara la variable 'i'.
 
 5:19-5:24: i < 3

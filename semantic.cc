@@ -46,6 +46,8 @@ void SemanticAnalyzer::visit_funcdecl(FuncDecl *x) {
    Value func = functype->mkvalue(new UserFunc(funcname, x));
    Value callable = Callable::self->mkvalue(Value::null, func); // bind with 'null'
    setenv(funcname, callable, hidden);
+   
+   x->block->accept(this);
 }
 
 void SemanticAnalyzer::visit_structdecl(StructDecl *x) {
@@ -443,16 +445,20 @@ void SemanticAnalyzer::visit_block(Block *x) {
 }
 
 void SemanticAnalyzer::visit_vardecl(VarDecl *x) {
-   string type_name = x->typespec->typestr();
    Type *type = get_type(x->typespec);
    if (type == 0) {
-      // _error(_T("El tipo '%s' no existe.", type_name.c_str()));
+      setenv(x->name, Value::null);
+      return;
    }
-   try {
-      setenv(x->name, (_curr.is_null() ? type->create() : type->convert(_curr)));
-   } catch (TypeError& e) {
-      // _error(e.msg);
+   if (!_curr.is_null()) {
+      string Ta = type->typestr(), Tb = _curr.type()->typestr();
+      if (Ta != Tb) {
+         x->add_error(_T("El tipo del valor inicial ('%s') no se corresponde "
+                         "con el tipo de la variable ('%s').", 
+                         Tb.c_str(), Ta.c_str()));
+      }
    }
+   setenv(x->name, type->create_abstract());
 }
 
 void SemanticAnalyzer::visit_arraydecl(ArrayDecl *x) {
@@ -512,6 +518,11 @@ void SemanticAnalyzer::visit_objdecl(ObjDecl *x) {
 }
 
 void SemanticAnalyzer::visit_declstmt(DeclStmt* x) {
+   Type *type = get_type(x->typespec);
+   if (type == 0) {
+      string typestr = x->typespec->typestr();
+      x->add_error(_T("El tipo '%s' no existe.", typestr.c_str()));
+   }
    for (DeclStmt::Item& item : x->items) {
       if (item.init) {
          item.init->accept(this);

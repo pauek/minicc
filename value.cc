@@ -68,7 +68,11 @@ Value Value::clone() const {
    if (is_null()) {
       return Value();
    }
-   return Value(_box->type, _box->type->clone(_box->data));
+   void *data = 0;
+   if (_box->data != 0) {
+      data = _box->type->clone(_box->data);
+   }
+   return Value(_box->type, data);
 }
 
 bool Value::assign(const Value& v) {
@@ -80,7 +84,16 @@ bool Value::assign(const Value& v) {
    if (!same_type_as(v)) {
       return false;
    }
-   return _box->type->assign(_box->data, v._box->data);
+   if (v._box->data == 0) {
+      _box->type->destroy(_box->data);
+      _box->data = 0;
+      return true;
+   } else if (_box->data == 0) {
+      _box->data = v._box->type->clone(v._box->data);
+      return true;
+   } else {
+      return _box->type->assign(_box->data, v._box->data);
+   }
 }
 
 void Value::write(ostream& o) const {
@@ -100,11 +113,20 @@ bool Value::equals(const Value& v) const {
    if (!same_type_as(v)) {
       return false;
    }
+   if (_box->data == 0) {
+      return v._box->data == 0;
+   }
+   if (v._box->data == 0) {
+      return _box->data == 0;
+   }
    return _box->type->equals(_box->data, v._box->data);
 }
 
 bool Value::less_than(const Value& v) const {
    assert(same_type_as(v));
+   if (_box->data == 0 or v._box->data == 0) {
+      return false;
+   }
    return _box->type->less_than(_box->data, v._box->data);
 }
 

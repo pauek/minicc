@@ -886,6 +886,7 @@ DeclStmt *Parser::parse_declstmt(bool is_typedef) {
    _skip(stmt); // before identifier
    stmt->typespec = typespec;
    while (true) {
+      Pos item_ini = _in.pos();
       Token id = _in.next_token();
       string name = id.str;
       Decl::Kind kind = Decl::Normal;
@@ -907,6 +908,7 @@ DeclStmt *Parser::parse_declstmt(bool is_typedef) {
       } else {
          item.decl = _parse_vardecl(name, kind, comm);
       }
+      item.decl->ini = item_ini;
       if (_in.curr() == '=') {
          _in.next();
          _skip(stmt);
@@ -915,6 +917,7 @@ DeclStmt *Parser::parse_declstmt(bool is_typedef) {
                       : parse_expr(Expr::Assignment));
       }
       item.decl->typespec = stmt->typespec;
+      item.decl->fin = _in.pos();
       stmt->items.push_back(item);
       if (_in.curr() != ',' or is_typedef) {
          break;
@@ -922,10 +925,10 @@ DeclStmt *Parser::parse_declstmt(bool is_typedef) {
       _in.consume(",");
       _skip(stmt); // before identifier
    }
+   stmt->fin = _in.pos();
    if (!_in.expect(";")) {
       error(stmt, _in.pos().str() + ": " + _T("Expected '%s' here.", ";"));
    }
-   stmt->fin = _in.pos();
    return stmt;
 }
 

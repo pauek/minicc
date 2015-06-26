@@ -184,7 +184,8 @@ void test_semantic(string filename) {
    vector<Error*> ve;
    collect_errors(program, ve);
    for (Error *e : ve) {
-      Serr << filename << ":" << e->ini << ": " << e->msg << endl;
+      Serr << filename << "[" << e->ini << "-" << e->fin << "]: " 
+           << e->msg << endl;
    }
    compare_result(filename, Sout.str(), Serr.str(), out, err);
 }

@@ -21,10 +21,10 @@ int main() {
 7:4-7:8: main
 Empieza el programa.
 
-8:3-8:15: int a, b, c;
+8:3-8:14: int a, b, c
 Se declaran las variables 'a', 'b' y 'c'.
 
-9:3-9:11: X T[10];
+9:3-9:10: X T[10]
 Se declara la variable 'T'.
 
 10:7-10:8: 1
@@ -45,7 +45,7 @@ La expresión ha dado 3.
 12:3-12:7: c = 
 Asignamos el valor.
 
-13:8-13:18: int i = 0;
+13:8-13:17: int i = 0
 Se declara la variable 'i'.
 
 13:19-13:25: i < 10

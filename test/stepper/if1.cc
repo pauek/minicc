@@ -16,7 +16,7 @@ int main() {
 4:4-4:8: main
 Empieza el programa.
 
-5:3-5:9: int a;
+5:3-5:8: int a
 Se declara la variable 'a'.
 
 6:3-6:12: cin >> a;

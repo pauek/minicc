@@ -11,7 +11,7 @@ int main() {
 4:4-4:8: main
 Empieza el programa.
 
-5:3-5:24: int a[2] = {-5, -15};
+5:3-5:23: int a[2] = {-5, -15}
 Se declara la variable 'a'.
 
 6:11-6:15: a[0]
