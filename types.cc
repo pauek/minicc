@@ -177,7 +177,11 @@ bool BaseType<T>::accepts(const Type *t) const {
 // Initializations
 Value Int::convert(Value x) {
    x = Reference::deref(x);
-   if (x.is<Int>()) {
+   if (x.is_abstract()) {
+      if (x.is<Int>() or x.is<Float>() or x.is<Double>() or x.is<Char>() or x.is<Bool>()) {
+         return Value(Int::self, 0);
+      }
+   } else if (x.is<Int>()) {
       return x.clone();
    } else if (x.is<Float>()) {
       return Value(int(x.as<Float>()));
@@ -201,7 +205,11 @@ bool Int::accepts(const Type *t) const {
 
 Value Float::convert(Value x) {
    x = Reference::deref(x);
-   if (x.is<Float>()) {
+   if (x.is_abstract()) {
+      if (x.is<Float>() or x.is<Double>() or x.is<Int>()) {
+         return Value(Float::self, 0);
+      }
+   } else if (x.is<Float>()) {
       return x.clone();
    } else if (x.is<Int>()) {
       return Value(float(x.as<Int>()));
@@ -221,7 +229,11 @@ bool Float::accepts(const Type *t) const {
 
 Value Double::convert(Value x) {
    x = Reference::deref(x);
-   if (x.is<Double>()) {
+   if (x.is_abstract()) {
+      if (x.is<Double>() or x.is<Int>() or x.is<Float>()) {
+         return Value(Double::self, 0);
+      }
+   } else if (x.is<Double>()) {
       return x.clone();
    } else if (x.is<Int>()) {
       return Value(float(x.as<Int>()));
@@ -241,7 +253,11 @@ bool Double::accepts(const Type *t) const {
 
 Value Char::convert(Value x) {
    x = Reference::deref(x);
-   if (x.is<Char>()) {
+   if (x.is_abstract()) {
+      if (x.is<Char>() or x.is<Int>()) {
+         return Value(Char::self, 0);
+      }
+   } else if (x.is<Char>()) {
       return x.clone();
    } else if (x.is<Int>()) {
       return Value(char(x.as<Int>()));
@@ -265,7 +281,11 @@ string Char::to_json(void *data) const {
 
 Value Bool::convert(Value x) {
    x = Reference::deref(x);
-   if (x.is<Bool>()) {
+   if (x.is_abstract()) {
+      if (x.is<Bool>() or x.is<Int>()) {
+         return Value(Bool::self, 0);
+      }
+   } else if (x.is<Bool>()) {
       return x.clone();
    } else if (x.is<Int>()) {
       return Value(x.as<Int>() > 0);

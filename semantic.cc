@@ -21,7 +21,9 @@ void SemanticAnalyzer::visit_using(Using* x) {
 }
 
 void SemanticAnalyzer::visit_include(Include* x) {
-   include_header_file(x->filename);
+   if (!include_header_file(x->filename)) {
+      x->add_error(_T("El fichero de cabecera '%s' no existe.", x->filename.c_str()));
+   }
 }
 
 void SemanticAnalyzer::visit_funcdecl(FuncDecl *x) {
@@ -605,7 +607,7 @@ bool SemanticAnalyzer::visit_type_conversion(CallExpr *x, const vector<Value>& a
       Type *type = get_type(&spec);
       if (type != 0) {
          if (args.size() != 1) {
-            // _error(_T("La conversión de tipo recibe un solo argumento"));
+            x->add_error(_T("La conversión de tipo recibe un solo argumento"));
          }
          _curr = type->convert(args[0]);
          if (_curr == Value::null) {
@@ -618,6 +620,27 @@ bool SemanticAnalyzer::visit_type_conversion(CallExpr *x, const vector<Value>& a
    return false;
 }
 
+void SemanticAnalyzer::check_arguments(const Function *func_type, const vector<Value>& args) {
+   for (int i = 0; i < args.size(); i++) {
+      Type *param_type = func_type->param(i);
+      if (param_type == Any) {
+         continue;
+      }
+      string t1 = param_type->typestr();
+      Value arg_i = args[i];
+      if (!func_type->param(i)->is<Reference>()) {
+         arg_i = Reference::deref(arg_i);
+      } else if (!arg_i.type()->is<Reference>()) {
+         // _error(_T("En el parámetro %d se requiere una variable.", i+1));
+      }
+      string t2 = arg_i.type()->typestr();
+      if (t1 != t2) {
+         //_error(_T("El argumento %d no es compatible con el tipo del parámetro "
+         //          "(%s vs %s)", i+1, t1.c_str(), t2.c_str()));
+      }
+   }
+}
+
 void SemanticAnalyzer::visit_callexpr_call(Value func, const vector<Value>& args) {
    // TODO: Find operator() (method or function)
    if (func.is<Overloaded>()) {
@@ -626,20 +649,23 @@ void SemanticAnalyzer::visit_callexpr_call(Value func, const vector<Value>& args
    }
    Binding& fn = func.as<Callable>();
    const Function *func_type = fn.func.type()->as<Function>();
-   // check_arguments(func_type, args);
-   // _ret = fn.call(this, args); // <-- Invoke!
-   // check_result(fn, func_type);
+   check_arguments(func_type, args);
+   _ret = func_type->return_type()->create_abstract();
    _curr = _ret;
 }
 
 void SemanticAnalyzer::visit_callexpr(CallExpr *x) {
-   vector<Value> args;
-   // eval_arguments(x->args, args);
-   if (visit_type_conversion(x, args)) {
+   // eval arguments
+   vector<Value> argvals;
+   for (int i = 0; i < x->args.size(); i++) {
+      x->args[i]->accept(this);
+      argvals.push_back(_curr);
+   }
+   if (visit_type_conversion(x, argvals)) {
       return;
    }
    visit_callexpr_getfunc(x);
-   visit_callexpr_call(_curr, args);
+   visit_callexpr_call(_curr, argvals);
 }
 
 void SemanticAnalyzer::visit_indexexpr(IndexExpr *x) {
