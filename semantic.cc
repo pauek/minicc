@@ -39,11 +39,21 @@ void SemanticAnalyzer::visit_funcdecl(FuncDecl *x) {
    }
  
    pushenv(x->funcname());
-   for (auto p : x->params) {
+   for (int i = 0; i < x->params.size(); i++) {
+      auto p = x->params[i];
+      Value v;
+      if (getenv(p->name, v)) {
+         x->add_error(p->ini, p->fin, _T("El parámetro %d está repetido.", i+1));
+      }
       Type *param_type = get_type(p->typespec);
-      assert(param_type != 0);
-      functype->add_params(param_type);
-      setenv(p->name, param_type->create_abstract());
+      if (param_type == 0) {
+         x->add_error(p->ini, p->fin, _T("El tipo '%s' no existe.", 
+                                         p->typespec->typestr().c_str()));
+         // TODO: Maybe register some parameter type?
+      } else {
+         functype->add_params(param_type);
+         setenv(p->name, param_type->create_abstract());
+      }
    }
    x->block->accept(this);
    popenv();
@@ -542,13 +552,27 @@ void SemanticAnalyzer::visit_declstmt(DeclStmt* x) {
 }
 
 void SemanticAnalyzer::visit_exprstmt(ExprStmt* x) {
-   x->expr->accept(this);
+   if (x->expr) {
+      x->expr->accept(this);
+   }
    if (x->is_return) {
-      if (!_curr.same_type_as(_ret)) {
-         string Tcurr = _curr.type()->typestr();
-         string Tret  = _ret.type()->typestr();
-         x->add_error(_T("Se devuelve un '%s' cuando debería ser un '%s'.",
-                         Tcurr.c_str(), Tret.c_str()));
+      if (x->expr == 0) {
+         if (!_ret.is_null()) {
+            x->add_error(_T("La función debe devolver un '%s'.", 
+                            _ret.type()->typestr().c_str()));
+         }
+      } else {
+         if (!_curr.same_type_as(_ret)) {
+            string Tcurr = _curr.type()->typestr();
+            if (_ret.is_null()) {
+               x->add_error(_T("Se devuelve un '%s' cuando no se debería devolver ningún valor.",
+                               Tcurr.c_str()));
+            } else {
+               string Tret  = _ret.type()->typestr();
+               x->add_error(_T("Se devuelve un '%s' cuando debería ser un '%s'.",
+                               Tcurr.c_str(), Tret.c_str()));
+            }
+         }
       }
    }
 }

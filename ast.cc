@@ -10,6 +10,10 @@ void AstNode::add_error(string msg) {
    errors.push_back(new Error(ini, fin, msg));
 }
 
+void AstNode::add_error(Pos _ini, Pos _fin, string msg) {
+   errors.push_back(new Error(_ini, _fin, msg));
+}
+
 // OJO: El orden de la tabla es importante!
 // Hay que dejarla antes que el initializer y el map...
 //

@@ -24,6 +24,7 @@ struct AstNode {
  std::vector<CommentSeq*> comments;
 
                   void add_error(std::string msg);
+                  void add_error(Pos ini, Pos fin, std::string msg);
 
    virtual            ~AstNode() {}
    virtual        void accept(AstVisitor* v) = 0;
@@ -438,6 +439,7 @@ struct TypeSpec : public AstNode {
 
 struct FuncDecl : public AstNode {
    struct Param {
+      Pos ini, fin;
       TypeSpec *typespec;
       std::string name;
       Param() : typespec(0) {}

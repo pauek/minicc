@@ -57,6 +57,12 @@ const Value& Value::operator=(const Value& v) {
 }
 
 bool Value::same_type_as(const Value& v) const {
+   if (is_null()) {
+      return v.is_null();
+   }
+   if (v.is_null()) {
+      return is_null();
+   }
    // If you compare the pointers, you are obliged to have singletons
    // for every type. But in the case of chars, for instance, there 
    // are two 'char' types, one for references (which are not destroyed)

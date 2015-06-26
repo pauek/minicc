@@ -292,12 +292,14 @@ void Parser::parse_function(FuncDecl *fn) {
          break;
       }
       FuncDecl::Param *p = new FuncDecl::Param();
+      p->ini = _in.pos();
       p->typespec = parse_typespec();
       _skip(fn);
       Token tok = _in.read_id();
       p->name = tok.str;
       _skip(fn);
       fn->params.push_back(p);
+      p->fin = _in.pos();
 
       if (_in.curr() == ')') {
          break;
