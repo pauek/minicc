@@ -38,6 +38,9 @@ void SemanticAnalyzer::visit_funcdecl(FuncDecl *x) {
    string funcname = x->funcname();
    Type *return_type = get_type(x->return_typespec);  // return_type == 0 means 'void'
    Function *functype = new Function(return_type);
+
+   // reverse use of '_ret' to check all return statements
+   _ret = return_type->create_abstract(); 
  
    pushenv(x->funcname());
    for (auto p : x->params) {
@@ -48,7 +51,7 @@ void SemanticAnalyzer::visit_funcdecl(FuncDecl *x) {
    }
    x->block->accept(this);
    popenv();
-
+  
    Value func = functype->mkvalue(new UserFunc(funcname, x));
    Value callable = Callable::self->mkvalue(Value::null, func); // bind with 'null'
    setenv(funcname, callable, hidden);
@@ -545,7 +548,12 @@ void SemanticAnalyzer::visit_declstmt(DeclStmt* x) {
 void SemanticAnalyzer::visit_exprstmt(ExprStmt* x) {
    x->expr->accept(this);
    if (x->is_return) {
-      _ret = _curr;
+      if (!_curr.same_type_as(_ret)) {
+         string Tcurr = _curr.type()->typestr();
+         string Tret  = _ret.type()->typestr();
+         x->add_error(_T("Se devuelve un '%s' cuando debería ser un '%s'.",
+                         Tcurr.c_str(), Tret.c_str()));
+      }
    }
 }
 

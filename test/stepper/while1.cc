@@ -27,7 +27,7 @@ Se escribe a la salida.
 OUTPUT: "
 "
 
-8:6-8:10: i++;
+8:6-8:9: i++
 Se incrementa la variable 'i'.
 
 6:10-6:15: i < 3
@@ -42,7 +42,7 @@ Se escribe a la salida.
 OUTPUT: "
 "
 
-8:6-8:10: i++;
+8:6-8:9: i++
 Se incrementa la variable 'i'.
 
 6:10-6:15: i < 3
@@ -57,7 +57,7 @@ Se escribe a la salida.
 OUTPUT: "
 "
 
-8:6-8:10: i++;
+8:6-8:9: i++
 Se incrementa la variable 'i'.
 
 6:10-6:15: i < 3

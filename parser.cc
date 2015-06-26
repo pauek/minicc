@@ -435,11 +435,11 @@ ExprStmt *Parser::parse_exprstmt(bool is_return) {
       stmt->expr->fin = efin;
    }
    _skip(stmt);
+   stmt->fin = _in.pos();
    if (!_in.expect(";")) {
       error(stmt, _in.pos().str() + ": " + _T("Expected ';' after expression"));
       _in.skip_to(";\n"); // resync...
    }
-   stmt->fin = _in.pos();
    return stmt;
 }
 

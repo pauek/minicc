@@ -25,7 +25,7 @@ Se evalúa el segundo parámetro.
 4:4-4:5: f
 Saltamos a la función 'f'.
 
-5:3-5:16: return a * b;
+5:3-5:15: return a * b
 Se retorna 21.
 
 10:11-10:18: f(x, 7)

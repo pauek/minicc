@@ -19,7 +19,7 @@ Empieza el programa.
 5:3-5:8: int a
 Se declara la variable 'a'.
 
-6:3-6:12: cin >> a;
+6:3-6:11: cin >> a
 Se lee de la entrada.
 
 7:7-7:14: a == 42
