@@ -445,6 +445,11 @@ void SemanticAnalyzer::visit_block(Block *x) {
 }
 
 void SemanticAnalyzer::visit_vardecl(VarDecl *x) {
+   Value prev;
+   if (getenv(x->name, prev)) {
+      x->add_error(_T("La variable '%s' ya está declarada antes.", x->name.c_str()));
+      return;
+   }
    Type *type = get_type(x->typespec);
    if (type == 0) {
       setenv(x->name, Value::null);
