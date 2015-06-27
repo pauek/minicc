@@ -59,10 +59,11 @@ public:
    virtual        bool  get_static(std::string, Value& v)         const { return false; }
    virtual        Type *get_inner_class(std::string)                    { return 0; }
    virtual       Value  create()                                        { assert(false); }
-   virtual       Value  create_abstract()                               { assert(false); }
    virtual        bool  accepts(const Type *t)                    const { return this == t; }
    virtual       Value  convert(Value init)                             { assert(false); }
    virtual        Type *instantiate(std::vector<Type*>& subtypes) const { assert(false); } // for templates
+
+                  Value create_abstract() { return Value(this, 0); }
 
    template<typename T>
    bool is() const { return dynamic_cast<const T*>(this) != 0; }
@@ -133,9 +134,6 @@ public:
    }
    Value create() { 
       return Value(this, new T()); 
-   }
-   Value create_abstract() {
-      return Value(this, 0);
    }
    Value convert(Value init) {
       if (init.has_type(this)) {

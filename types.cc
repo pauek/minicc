@@ -126,6 +126,9 @@ void *Reference::alloc(Value& x) const {
 }
 
 void Reference::destroy(void *data) const {
+   if (data == 0) { // abstract Reference
+      return;
+   }
    Value::Box *b = (Value::Box*)data;
    if (--(b->count) == 0) {
       b->type->destroy(b->data);
