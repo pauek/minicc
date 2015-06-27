@@ -52,7 +52,7 @@ void SemanticAnalyzer::visit_funcdecl(FuncDecl *x) {
          // TODO: Maybe register some parameter type?
       } else {
          functype->add_params(param_type);
-         setenv(p->name, param_type->create_abstract());
+         setenv(p->name, param_type->create_abstract(), Param);
       }
    }
    x->block->accept(this);
@@ -460,7 +460,11 @@ void SemanticAnalyzer::visit_block(Block *x) {
 void SemanticAnalyzer::visit_vardecl(VarDecl *x) {
    Value prev;
    if (getenv(x->name, prev)) {
-      x->add_error(_T("La variable '%s' ya está declarada antes.", x->name.c_str()));
+      if (has_flag(x->name, Param)) {
+         x->add_error(_T("Ya existe un parámetro con nombre '%s'.", x->name.c_str()));
+      } else {
+         x->add_error(_T("La variable '%s' ya está declarada antes.", x->name.c_str()));
+      }
       return;
    }
    Type *type = get_type(x->typespec);
@@ -563,6 +567,12 @@ void SemanticAnalyzer::visit_exprstmt(ExprStmt* x) {
          }
       } else {
          if (!_curr.same_type_as(_ret)) {
+            if (_curr.is<Reference>() and !_ret.is<Reference>()) {
+               _curr = Reference::deref(_curr);
+               if (_ret.same_type_as(_curr)) {
+                  return;
+               }
+            }
             string Tcurr = _curr.type()->typestr();
             if (_ret.is_null()) {
                x->add_error(_T("Se devuelve un '%s' cuando no se debería devolver ningún valor.",

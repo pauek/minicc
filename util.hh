@@ -17,11 +17,12 @@ struct SimpleTable {
 
       std::string name()     const { return _data.first; }
                 T data()     const { return _data.second; }
-             bool is(Flag f) const { return _flags & f; }
+             bool has_flag(Flag f) const { return _flags & f; }
    };
 
    std::vector<Item> tab;
    Item *_get(std::string name);
+   const Item *_get(std::string name) const;
    
    int size() const { return tab.size(); }
    const std::pair<std::string, T>& operator[](int i) const { 
@@ -46,6 +47,11 @@ struct SimpleTable {
       return i != 0;
    }
 
+   bool has_flag(std::string name, Flag f) const {
+      const Item *i = _get(name);
+      return (i != 0 and i->has_flag(f));
+   }
+
    bool operator==(const SimpleTable& other) const {
       return tab == other.tab;
    }
@@ -53,6 +59,16 @@ struct SimpleTable {
 
 template<typename T>
 typename SimpleTable<T>::Item *SimpleTable<T>::_get(std::string name) {
+   for (int i = 0; i < tab.size(); i++) {
+      if (tab[i]._data.first == name) {
+         return &tab[i];
+      }
+   }
+   return 0;
+}
+
+template<typename T>
+const typename SimpleTable<T>::Item *SimpleTable<T>::_get(std::string name) const {
    for (int i = 0; i < tab.size(); i++) {
       if (tab[i]._data.first == name) {
          return &tab[i];

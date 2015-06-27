@@ -1689,7 +1689,7 @@ string Environment::to_json() const {
    json << "{\"name\":\"" << _name << "\",\"tab\":";
    json << "{\"<active>\":" << (_active ? "true" : "false");
    for (int i = 0; i < _tab.tab.size(); i++) {
-      if (_tab.tab[i].is(Hidden)) {
+      if (_tab.tab[i].has_flag(Hidden)) {
          continue;
       }
       json << ",\"" << _tab.tab[i].name() << "\":";
@@ -1751,10 +1751,6 @@ bool Environment::get(string name, Value& res) {
       return _parent->get(name, res);
    }
    return false;
-}
-
-void Environment::set(string name, Value data, int flags) {
-   _tab.set(name, data, flags);
 }
 
 Environment *Environment::pop() {
@@ -1974,12 +1970,16 @@ void WithEnvironment::register_type(string name, Type *type) {
    _env->register_type(name, type);
 }
 
-void WithEnvironment::setenv(string id, Value v, bool hidden) {
-   _env->set(id, v, hidden);
+void WithEnvironment::setenv(string id, Value v, int flags) {
+   _env->set(id, v, flags);
 }
 
 bool WithEnvironment::getenv(string id, Value& v) {
    return _env->get(id, v);
+}
+
+bool WithEnvironment::has_flag(string id, Flag f) const {
+   return _env->has_flag(id, f);
 }
 
 bool WithEnvironment::using_namespace(string name) {

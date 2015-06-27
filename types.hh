@@ -644,8 +644,14 @@ Environment *pop();
        Type *get_type(TypeSpec *spec, Environment *topmost = 0);
    
        bool  get(std::string name, Value& res);
-       void  set(std::string name, Value data, int flags = 0);
-       bool  is(std::string name, Flag f) const;
+
+       void  set(std::string name, Value data, int flags = 0) {
+          _tab.set(name, data, flags);
+       }
+
+       bool  has_flag(std::string name, Flag f) const {
+          return _tab.has_flag(name, f);
+       }
 };
 
 // to assist visitors that use the environment
@@ -678,7 +684,8 @@ public:
    }
 
    bool  getenv(std::string id, Value& v);
-   void  setenv(std::string id, Value v, bool hidden = false);
+   void  setenv(std::string id, Value v, int flags = 0);
+   bool  has_flag(std::string id, Flag f) const;
    
    Type *get_type(TypeSpec *spec);
    void  register_type(std::string name, Type *);
