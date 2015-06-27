@@ -75,7 +75,7 @@ void Interpreter::visit_funcdecl(FuncDecl *x) {
    }
    Value func = functype->mkvalue(new UserFunc(funcname, x));
    Value callable = Callable::self->mkvalue(Value::null, func); // bind with 'null'
-   setenv(funcname, callable, hidden);
+   setenv(funcname, callable, Hidden);
 }
 
 void Interpreter::visit_structdecl(StructDecl *x) {

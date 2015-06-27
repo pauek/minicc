@@ -1,20 +1,23 @@
 #ifndef UTIL_HH
 #define UTIL_HH
 
+enum Flag { Hidden = 1, Param = 2 };
+
 template<typename T>
 struct SimpleTable {
    struct Item {
       std::pair<std::string, T> _data; // name + data
-      bool                      _hidden;
+      unsigned short int        _flags;
 
-      Item(std::string n, T d, bool h = false) : _data(n, d), _hidden(h) {}
+      Item(std::string n, T d, int flags = 0) : _data(n, d), _flags(flags) {}
 
       bool operator==(const Item& i) const {
-         return _data == i._data and _hidden == i._hidden; // hidden?
+         return _data == i._data and _flags == i._flags; // hidden?
       }
 
-      std::string name() const { return _data.first; }
-      T data() const { return _data.second; }
+      std::string name()     const { return _data.first; }
+                T data()     const { return _data.second; }
+             bool is(Flag f) const { return _flags & f; }
    };
 
    std::vector<Item> tab;
@@ -25,12 +28,13 @@ struct SimpleTable {
       return tab[i]._data; 
    }
 
-   void set(std::string name, T data, bool hidden = false) {
+   void set(std::string name, T data, int flags = 0) {
       Item *i = _get(name);
       if (i == 0) {
-         tab.push_back(Item(name, data, hidden));
+         tab.push_back(Item(name, data, flags));
       } else {
          i->_data.second = data;
+         i->_flags = flags;
       }
    }
 

@@ -1689,7 +1689,7 @@ string Environment::to_json() const {
    json << "{\"name\":\"" << _name << "\",\"tab\":";
    json << "{\"<active>\":" << (_active ? "true" : "false");
    for (int i = 0; i < _tab.tab.size(); i++) {
-      if (_tab.tab[i]._hidden) {
+      if (_tab.tab[i].is(Hidden)) {
          continue;
       }
       json << ",\"" << _tab.tab[i].name() << "\":";
@@ -1753,8 +1753,8 @@ bool Environment::get(string name, Value& res) {
    return false;
 }
 
-void Environment::set(string name, Value data, bool hidden) {
-   _tab.set(name, data, hidden);
+void Environment::set(string name, Value data, int flags) {
+   _tab.set(name, data, flags);
 }
 
 Environment *Environment::pop() {
@@ -1934,6 +1934,7 @@ struct GetlineFunc : public Func {
 };
 GetlineFunc _getline;
 
+const bool hidden = true;
 
 void WithEnvironment::prepare_global_environment() {
    _namespaces.clear();

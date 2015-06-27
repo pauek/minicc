@@ -620,7 +620,7 @@ typename T::cpp_type& Value::as() const {
 }
 
 class Environment {
-             std::string  _name;
+              std::string  _name;
                     bool  _hidden;
              Environment *_parent;
       SimpleTable<Value>  _tab;
@@ -644,10 +644,9 @@ Environment *pop();
        Type *get_type(TypeSpec *spec, Environment *topmost = 0);
    
        bool  get(std::string name, Value& res);
-       void  set(std::string name, Value data, bool hidden = false);
+       void  set(std::string name, Value data, int flags = 0);
+       bool  is(std::string name, Flag f) const;
 };
-
-const int hidden = true;
 
 // to assist visitors that use the environment
 // 
