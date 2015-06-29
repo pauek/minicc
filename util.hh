@@ -39,6 +39,11 @@ struct SimpleTable {
       }
    }
 
+   bool exists(std::string name) const {
+      const Item *i = _get(name);
+      return i != 0;
+   }
+
    bool get(std::string name, T& res) {
       Item *i = _get(name);
       if (i) {

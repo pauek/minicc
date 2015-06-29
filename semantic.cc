@@ -69,16 +69,32 @@ void SemanticAnalyzer::visit_structdecl(StructDecl *x) {
    for (int i = 0; i < x->decls.size(); i++) {
       DeclStmt& decl = *x->decls[i];
       Type *field_type = get_type(decl.typespec);
-      assert(type != 0);
+      if (field_type == 0) {
+         decl.add_error(_T("El tipo '%s' no existe.", 
+                           decl.typespec->typestr().c_str()));
+
+         // TODO: crear un tipo 'Unknown' y poner field_type a eso aquí.
+      }
       for (DeclStmt::Item& item : decl.items) {
+         if (type->has_field(item.decl->name)) {
+            decl.add_error(_T("El campo '%s' está repetido.", item.decl->name.c_str()));
+         }
          if (item.decl->is<ArrayDecl>()) {
-            Expr *size_expr = dynamic_cast<ArrayDecl*>(item.decl)->sizes[0];
-            Literal *size_lit = dynamic_cast<Literal*>(size_expr);
-            assert(size_lit != 0);
-            assert(size_lit->type == Literal::Int);
-            const int sz = size_lit->val.as_int;
-            // TODO: don't create new Array type every time?
-            type->add_field(item.decl->name, new Array(field_type, sz)); 
+            ArrayDecl *array_decl = dynamic_cast<ArrayDecl*>(item.decl);
+            vector<int> sizes;
+            for (Expr *size_expr : array_decl->sizes) {
+               size_expr->accept(this);
+               if (_curr.is_abstract()) {
+                  array_decl->add_error(_T("El tamaño de una tabla en un 'struct' debe ser una constante."));
+               } else if (!_curr.is<Int>()) {
+                  array_decl->add_error(_T("El tamaño de una tabla no puede ser un '%s'.", 
+                                           _curr.type()->typestr().c_str()));
+               } else {
+                  sizes.push_back(_curr.as<Int>());
+               }
+            }
+            Type *arraytype = Array::mkarray(field_type, sizes);
+            type->add_field(item.decl->name, arraytype); 
          } else {
             type->add_field(item.decl->name, field_type);
          }
@@ -204,7 +220,11 @@ template<class Op>
 bool SemanticAnalyzer::visit_sumprod(Value left, Value _right) {
    Value right = left.type()->convert(_right);
    if (left.is<Int>()) {
-      _curr = Int::self->create_abstract();
+      if (left.is_abstract() or right.is_abstract()) {
+         _curr = Int::self->create_abstract();
+      } else {
+         _curr = Value(Op::eval(left.as<Int>(), right.as<Int>()));
+      }
       return true;
    }
    if (left.is<Float>()) {

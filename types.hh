@@ -376,6 +376,7 @@ class Struct : public BaseType<SimpleTable<Value>> {
 public:
    Struct(std::string name) : BaseType<SimpleTable<Value>>(name) {}
    void add_field(std::string field_name, Type *t) { _fields.set(field_name, t); }
+   bool has_field(std::string field_name)    const { return _fields.exists(field_name); }
 
    Value create();
    Value convert(Value init);
@@ -385,6 +386,8 @@ public:
 
    typedef SimpleTable<Value> cpp_type;
 };
+
+/*------  TODO: Arrays multidimensionales!!!  ------*/
 
 class Array : public BaseType<std::vector<Value>> {
           Type *_celltype;
