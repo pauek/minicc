@@ -783,8 +783,15 @@ void SemanticAnalyzer::visit_fieldexpr(FieldExpr *x) {
    
    if (!bind_field(obj, x->field->name)) {
       if (obj.type()->is(Type::Class)) {
-         x->add_error(_T("La clase '%s' no tiene miembro '%s'.", 
-                         obj.type()->typestr().c_str(),
+         AstNode *parent = x->parent;
+         const char *msg;
+         if (parent->is<CallExpr>()) {
+            msg = "La clase '%s' no tiene método '%s'.";
+         } else {
+            msg = "La clase '%s' no tiene campo '%s'.";
+         }
+         x->add_error(_T(msg, 
+                         obj.type()->typestr().c_str(), 
                          x->field->name.c_str()));
       } else {
          x->add_error(_T("El tipo '%s' no tiene el campo '%s'", 

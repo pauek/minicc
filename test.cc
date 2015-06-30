@@ -115,7 +115,7 @@ void compare_result(string filename, string sout, string serr,
    cout << res << flush;
 }
 
-void test_visitor(string filename, VisitorType vtype) {
+int test_visitor(string filename, VisitorType vtype) {
    string code, in, out, err;
    parse_test_file(filename, code, in, out, err);
    
@@ -163,13 +163,11 @@ void test_visitor(string filename, VisitorType vtype) {
    catch (Error* e) {
       Serr << "Error de ejecución: " << e->msg << endl;
    }
-
    compare_result(filename, Sout.str(), Serr.str(), out, err);
+   return 0;
 }
 
-
-
-void test_semantic(string filename) {
+int test_semantic(string filename) {
    string code, in, out, err;
    parse_test_file(filename, code, in, out, err);
 
@@ -188,22 +186,10 @@ void test_semantic(string filename) {
            << e->msg << endl;
    }
    compare_result(filename, Sout.str(), Serr.str(), out, err);
+   return 0;
 }
 
-void test(string kind, string filename) {
-   VisitorType vtype;
-   if (kind == "semantic") {
-      test_semantic(filename);
-      return;
-   }
-   if (kind == "ast") {
-      vtype = ast_printer;
-   } else if (kind == "print") {
-      vtype = pretty_printer;
-   } else if (kind == "interpreter") {
-      vtype = interpreter;
-   } else if (kind == "stepper") {
-      vtype = stepper;
-   }
-   test_visitor(filename, vtype);
-}
+int test_ast(string filename)   { return test_visitor(filename, ast_printer); }
+int test_print(string filename) { return test_visitor(filename, pretty_printer); }
+int test_eval(string filename)  { return test_visitor(filename, interpreter); }
+int test_step(string filename)  { return test_visitor(filename, stepper); }
