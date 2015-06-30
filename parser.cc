@@ -47,27 +47,27 @@ AstNode* Parser::parse() {
       Token tok = _in.peek_token();
       switch (tok.kind) {
       case Token::Sharp: {
-         prog->add(parse_macro());
+         prog->add(parse_macro(prog));
          break;
       }
       case Token::Using: {
-         prog->add(parse_using_declaration());
+         prog->add(parse_using_declaration(prog));
          break;
       }
       case Token::Struct: {
-         StructDecl *decl = parse_struct();
+         StructDecl *decl = parse_struct(prog);
          _types.insert(decl->id->name);
          prog->add(decl);
          break;
       }
       case Token::Typedef: {
-         TypedefDecl *typdef = parse_typedef();
+         TypedefDecl *typdef = parse_typedef(prog);
          _types.insert(typdef->decl->name);
          prog->add(typdef);
          break;
       }
       case Token::Enum: {
-         EnumDecl *enumdecl = parse_enum();
+         EnumDecl *enumdecl = parse_enum(prog);
          _types.insert(enumdecl->name);
          prog->add(enumdecl);
          break;
@@ -87,7 +87,7 @@ AstNode* Parser::parse() {
       default:
          if (tok.group & Token::Ident or 
              tok.group & Token::TypeSpec) {
-            prog->add(parse_func_or_var());
+            prog->add(parse_func_or_var(prog));
             break;
          }
          error(prog, _T("Unexpected '%s' here.", tok.str.c_str()));
@@ -99,7 +99,7 @@ AstNode* Parser::parse() {
    return prog;
 }
 
-AstNode* Parser::parse_macro() {
+AstNode* Parser::parse_macro(AstNode *parent) {
    Pos ini = _in.pos();
    _in.consume('#');
    _in.skip("\t "); // comments between '#' and the macro name are gobbled up...
@@ -150,7 +150,7 @@ AstNode* Parser::parse_macro() {
    return inc;
 }
 
-AstNode* Parser::parse_using_declaration() {
+AstNode* Parser::parse_using_declaration(AstNode *parent) {
    Using *u = new Using();
    u->ini = _in.pos();
    _in.consume("using");
@@ -171,7 +171,7 @@ AstNode* Parser::parse_using_declaration() {
    return u;
 }
 
-FullIdent *Parser::parse_ident(Token tok, Pos ini) {
+FullIdent *Parser::parse_ident(AstNode *parent, Token tok, Pos ini) {
    FullIdent *id = new FullIdent(tok.str);
    Pos fin = _in.pos();
    while (true) {
@@ -229,7 +229,7 @@ bool Parser::_parse_type_process_token(TypeSpec *type, Token tok, Pos p) {
       return true;
    } 
    if (type->id == 0 and (tok.group & Token::Ident)) {
-      type->id = parse_ident(tok, p);
+      type->id = parse_ident(type, tok, p);
       return true;
    } 
    if (tok.kind == Token::Amp) {
@@ -239,8 +239,10 @@ bool Parser::_parse_type_process_token(TypeSpec *type, Token tok, Pos p) {
    return false;
 }
 
-TypeSpec *Parser::parse_typespec() {
+TypeSpec *Parser::parse_typespec(AstNode *parent) {
    TypeSpec *type = new TypeSpec();
+   type->parent = parent;
+
    Pos p = _in.pos();
    _in.save();
    Token tok = _in.next_token();
@@ -255,28 +257,31 @@ TypeSpec *Parser::parse_typespec() {
 }
 
 
-AstNode *Parser::parse_func_or_var() {
+AstNode *Parser::parse_func_or_var(AstNode *parent) {
    CommentSeq *c[2] = { 0, 0 };
    Pos ini = _in.pos();
    _in.save();
-   TypeSpec *typespec = parse_typespec();
+   TypeSpec *typespec = parse_typespec(0);
    c[0] = _in.skip("\n\t ");
    Pos id_ini = _in.pos();
    Token tok = _in.read_id();
-   FullIdent *id = parse_ident(tok, id_ini);
+   FullIdent *id = parse_ident(0, tok, id_ini);
    c[1] = _in.skip("\n\t ");
    if (_in.curr() == '(') {
       _in.discard();
       FuncDecl *fn = new FuncDecl(id);
+      fn->parent = parent;
+      id->parent = fn;
       fn->comments.assign(c, c+2);
       fn->return_typespec = typespec;
+      typespec->parent = fn;
       fn->ini = ini;
       parse_function(fn);
       return fn;
    } else {
       delete typespec;
       _in.restore();
-      return parse_declstmt();
+      return parse_declstmt(parent);
    }
    return NULL;
 }
@@ -293,7 +298,7 @@ void Parser::parse_function(FuncDecl *fn) {
       }
       FuncDecl::Param *p = new FuncDecl::Param();
       p->ini = _in.pos();
-      p->typespec = parse_typespec();
+      p->typespec = parse_typespec(fn);
       _skip(fn);
       Token tok = _in.read_id();
       p->name = tok.str;
@@ -316,13 +321,14 @@ void Parser::parse_function(FuncDecl *fn) {
       fn->block = 0;
       _in.next();
    } else {
-      fn->block = parse_block();
+      fn->block = parse_block(fn);
    }
    fn->fin = _in.pos();
 }
 
-Block *Parser::parse_block() {
+Block *Parser::parse_block(AstNode *parent) {
    Block *block = new Block();
+   block->parent = parent;
    block->ini = _in.pos();
    if (!_in.expect("{")) {
       error(block, _T("I expected a '%s' here.", "{"));
@@ -336,7 +342,7 @@ Block *Parser::parse_block() {
          _in.next();
          break;
       }
-      Stmt *stmt = parse_stmt();
+      Stmt *stmt = parse_stmt(block);
       block->stmts.push_back(stmt);
       _skip(block);
    }
@@ -347,57 +353,59 @@ Block *Parser::parse_block() {
    return block;
 }
 
-Stmt* Parser::parse_stmt() {
+Stmt* Parser::parse_stmt(AstNode *parent) {
    Token tok1 = _in.peek_token();
    switch (tok1.kind) {
    case Token::LParen:
-      return parse_exprstmt();
+      return parse_exprstmt(parent);
 
    case Token::LCurly:  
-      return parse_block();
+      return parse_block(parent);
 
    case Token::Break: case Token::Continue: case Token::Goto:
-      return parse_jumpstmt();
+      return parse_jumpstmt(parent);
 
    case Token::While:
-      return parse_while();
+      return parse_while(parent);
 
    case Token::For:
-      return parse_for();
+      return parse_for(parent);
 
    case Token::If:
-      return parse_ifstmt();
+      return parse_ifstmt(parent);
 
    case Token::Switch:
-      return parse_switch();
+      return parse_switch(parent);
 
    case Token::Return: {
-      ExprStmt *stmt = parse_exprstmt(true);
+      ExprStmt *stmt = parse_exprstmt(parent, true);
       stmt->is_return = true;
       return stmt;
    }
    default:
       if (tok1.group == Token::Operator) {
-         return parse_exprstmt();
+         return parse_exprstmt(parent);
       }
-      return parse_decl_or_expr_stmt();
+      return parse_decl_or_expr_stmt(parent);
    }
 }
 
-Stmt *Parser::parse_decl_or_expr_stmt() {
+Stmt *Parser::parse_decl_or_expr_stmt(AstNode *parent) {
    _in.save();
-   DeclStmt *decl = parse_declstmt();
+   DeclStmt *decl = parse_declstmt(parent);
    if (decl->has_errors()) {
       _in.restore(); // backtracking
-      return parse_exprstmt();
+      delete decl;
+      return parse_exprstmt(parent);
    } else {
       _in.discard();
       return decl;
    }
 }
 
-Stmt *Parser::parse_jumpstmt() {
+Stmt *Parser::parse_jumpstmt(AstNode *parent) {
    JumpStmt *stmt = new JumpStmt();
+   stmt->parent = parent;
    stmt->ini = _in.pos();
    Token tok = _in.next_token();
    switch (tok.kind) {
@@ -421,8 +429,9 @@ Stmt *Parser::parse_jumpstmt() {
    return stmt;
 }
 
-ExprStmt *Parser::parse_exprstmt(bool is_return) {
+ExprStmt *Parser::parse_exprstmt(AstNode *parent, bool is_return) {
    ExprStmt *stmt = new ExprStmt();
+   stmt->parent = parent;
    stmt->ini = _in.pos();
    if (is_return) {
       Token tok = _in.next_token();
@@ -430,7 +439,7 @@ ExprStmt *Parser::parse_exprstmt(bool is_return) {
       _skip(stmt);
    }
    Pos eini = _in.pos();
-   stmt->expr = (_in.curr() == ';' ? 0 : parse_expr());
+   stmt->expr = (_in.curr() == ';' ? 0 : parse_expr(stmt));
    Pos efin = _in.pos();
    if (stmt->expr) {
       stmt->expr->ini = eini;
@@ -445,14 +454,14 @@ ExprStmt *Parser::parse_exprstmt(bool is_return) {
    return stmt;
 }
 
-Expr *Parser::parse_primary_expr() {
+Expr *Parser::parse_primary_expr(AstNode *parent) {
    Expr *e;
    Pos ini = _in.pos();
    Token tok = _in.next_token();
    switch (tok.kind) {
    case Token::LParen: {
       CommentSeq *cn = _in.skip("\n\t ");
-      e = parse_expr();
+      e = parse_expr(parent);
       e->paren = true;
       e->comments.insert(e->comments.begin(), cn);
       _skip(e);
@@ -466,6 +475,7 @@ Expr *Parser::parse_primary_expr() {
    case Token::True:
    case Token::False: {
       Literal* lit = new Literal(Literal::Bool);
+      lit->parent = parent;
       lit->val.as_bool = (tok.kind == Token::True);
       lit->ini = ini;
       lit->fin = _in.pos();
@@ -475,6 +485,7 @@ Expr *Parser::parse_primary_expr() {
    }
    case Token::IntLiteral: {
       Literal* lit = new Literal(Literal::Int);
+      lit->parent = parent;
       lit->val.as_int = atoi(_in.substr(tok).c_str());
       lit->ini = ini;
       lit->fin = _in.pos();
@@ -484,6 +495,7 @@ Expr *Parser::parse_primary_expr() {
    }
    case Token::CharLiteral: {
       Literal* lit = new Literal(Literal::Char);
+      lit->parent = parent;
       lit->val.as_string.s = new string(tok.str);
       lit->ini = ini;
       lit->fin = _in.pos();
@@ -496,6 +508,7 @@ Expr *Parser::parse_primary_expr() {
       Literal* lit = new Literal(Literal::Double);
       istringstream S(tok.str);
       S >> lit->val.as_double;
+      lit->parent = parent;
       lit->ini = ini;
       lit->fin = _in.pos();
       _skip(lit);
@@ -504,6 +517,7 @@ Expr *Parser::parse_primary_expr() {
    }
    case Token::StringLiteral: {
       Literal* lit = new Literal(Literal::String);
+      lit->parent = parent;
       lit->val.as_string.s = new string(tok.str);
       lit->ini = ini;
       lit->fin = _in.pos();
@@ -512,16 +526,16 @@ Expr *Parser::parse_primary_expr() {
       break;
    }
    default:
-      e = parse_ident(tok, ini);
+      e = parse_ident(parent, tok, ini);
       break;
    }
    return e;
 }
 
 
-Expr *Parser::parse_postfix_expr(Expr *e = 0) {
+Expr *Parser::parse_postfix_expr(AstNode *parent, Expr *e = 0) {
    if (e == 0) {
-      e = parse_primary_expr();
+      e = parse_primary_expr(parent);
    }
  begin:
    Token tok = _in.peek_token();
@@ -550,7 +564,7 @@ Expr *Parser::parse_postfix_expr(Expr *e = 0) {
    return e;
 }
 
-Expr *Parser::parse_unary_expr() {
+Expr *Parser::parse_unary_expr(AstNode *parent) {
    Expr *e;
    Pos ini = _in.pos();
    Token tok = _in.peek_token();
@@ -559,7 +573,7 @@ Expr *Parser::parse_unary_expr() {
       NegExpr *ne = new NegExpr();
       _in.next();
       _skip(ne);
-      ne->expr = parse_unary_expr();
+      ne->expr = parse_unary_expr(ne);
       e = ne;
       break;
    }
@@ -570,7 +584,7 @@ Expr *Parser::parse_unary_expr() {
                                   : SignExpr::Negative);
       _in.next();
       _skip(se);
-      se->expr = parse_unary_expr();
+      se->expr = parse_unary_expr(se);
       se->fin = se->expr->fin;
       e = se;
       break;
@@ -579,7 +593,7 @@ Expr *Parser::parse_unary_expr() {
       AddrExpr *ae = new AddrExpr();
       _in.next();
       _skip(ae);
-      ae->expr = parse_unary_expr();
+      ae->expr = parse_unary_expr(ae);
       ae->fin = ae->expr->fin;
       e = ae;
       break;
@@ -588,7 +602,7 @@ Expr *Parser::parse_unary_expr() {
       DerefExpr *de = new DerefExpr();
       _in.next();
       _skip(de);
-      de->expr = parse_unary_expr();
+      de->expr = parse_unary_expr(de);
       de->fin = de->expr->fin;
       e = de;
       break;
@@ -600,7 +614,7 @@ Expr *Parser::parse_unary_expr() {
                                   : IncrExpr::Negative);
       _in.consume(tok.kind == Token::PlusPlus ? "++" : "--");
       CommentSeq *comm = _in.skip("\n\t ");
-      ie->expr = parse_unary_expr();
+      ie->expr = parse_unary_expr(ie);
       ie->preincr = true;
       ie->fin = ie->expr->fin;
       ie->comments.insert(ie->comments.begin(), comm);
@@ -608,17 +622,17 @@ Expr *Parser::parse_unary_expr() {
       break;
    }
    default:
-      e = parse_postfix_expr();
+      e = parse_postfix_expr(parent);
       break;
    }
    e->ini = ini;
    return e;
 }
 
-Expr *Parser::parse_expr(BinaryExpr::Kind max) {
+Expr *Parser::parse_expr(AstNode *parent, BinaryExpr::Kind max) {
    CommentSeq *cn;
 
-   Expr *left = parse_unary_expr();
+   Expr *left = parse_unary_expr(parent);
 
    while (true) {
       Token tok = _in.peek_operator();
@@ -636,14 +650,14 @@ Expr *Parser::parse_expr(BinaryExpr::Kind max) {
          e->cond = left;
          e->comments.push_back(c0);
          _skip(e);
-         e->then = parse_expr(Expr::Assignment); // Expr::comma?
+         e->then = parse_expr(e, Expr::Assignment); // Expr::comma?
          _skip(e);
          Token colon = _in.read_operator();
          if (colon.kind != Token::Colon) {
             error(e, _T("Expected '%s' here.", ":"));
          }
          _skip(e);
-         e->els = parse_expr(Expr::Assignment);
+         e->els = parse_expr(e, Expr::Assignment);
          left = e;
       } else {
          BinaryExpr *e = new BinaryExpr();
@@ -655,7 +669,7 @@ Expr *Parser::parse_expr(BinaryExpr::Kind max) {
             Expr::Kind(Expr::right_associative(kind) 
                        ? kind 
                        : kind - 1);
-         Expr *right = parse_expr(submax);
+         Expr *right = parse_expr(e, submax);
          e->left = left;
          e->right = right;
          e->ini = left->ini;
@@ -669,16 +683,18 @@ Expr *Parser::parse_expr(BinaryExpr::Kind max) {
 Expr *Parser::parse_callexpr(Expr *x) {
    CallExpr *e = new CallExpr();
    e->func = x;
+   e->parent = x->parent;
+   x->parent = e;
    _skip(e);
    _in.consume('(');
    _skip(e);
    if (_in.curr() != ')') {
-      e->args.push_back(parse_expr(Expr::Assignment));
+      e->args.push_back(parse_expr(e, Expr::Assignment));
       _skip(e);
       while (_in.curr() == ',') {
          _in.next();
          _skip(e);
-         e->args.push_back(parse_expr(Expr::Assignment));
+         e->args.push_back(parse_expr(e, Expr::Assignment));
          _skip(e);
       }
    }
@@ -694,7 +710,7 @@ Expr *Parser::parse_indexexpr(Expr *x) {
    e->ini = x->ini;
    e->base = x;
    _in.consume('[');
-   e->index = parse_expr();
+   e->index = parse_expr(e);
    if (!_in.expect("]")) {
       error(e, _in.pos().str() + ": " + _T("Expected '%s' here.", "]"));
    }
@@ -705,6 +721,7 @@ Expr *Parser::parse_indexexpr(Expr *x) {
 
 Expr *Parser::parse_fieldexpr(Expr *x, Token tok) {
    FieldExpr *e = new FieldExpr();
+   e->ini  = x->ini;
    e->base = x;
    e->pointer = (tok.kind == Token::Arrow);
    _in.consume(tok.kind == Token::Arrow ? "->" : ".");
@@ -725,8 +742,9 @@ Expr *Parser::parse_increxpr(Expr *x, Token tok) {
    return e;
 }
 
-Stmt *Parser::parse_for() {
+Stmt *Parser::parse_for(AstNode *parent) {
    IterStmt *stmt = new IterStmt();
+   stmt->parent = parent;
    _in.consume("for");
    _skip(stmt);
    if (!_in.expect("(")) {
@@ -734,54 +752,56 @@ Stmt *Parser::parse_for() {
       // TODO: resync?
    }
    _skip(stmt);
-   stmt->init = parse_decl_or_expr_stmt();
+   stmt->init = parse_decl_or_expr_stmt(stmt);
    _skip(stmt);
-   stmt->cond = parse_expr();
+   stmt->cond = parse_expr(stmt);
    if (!_in.expect(";")) {
       error(stmt, _in.pos().str() + ": " + _T("Expected '%s' here.", ";"));
    }
    _skip(stmt);
-   stmt->post = parse_expr();
+   stmt->post = parse_expr(stmt);
    if (!_in.expect(")")) {
       error(stmt, _in.pos().str() + ": " + _T("Expected '%s' here.", ")"));
    }
    _skip(stmt);
-   stmt->substmt = parse_stmt();
+   stmt->substmt = parse_stmt(stmt);
    return stmt;
 }
 
-Stmt *Parser::parse_while() {
+Stmt *Parser::parse_while(AstNode *parent) {
    IterStmt *stmt = new IterStmt();
+   stmt->parent = parent;
    _in.consume("while");
    _skip(stmt);
    if (!_in.expect("(")) {
       error(stmt, _in.pos().str() + ": " + _T("Expected '%s' here.", "("));
    }
    _skip(stmt);
-   stmt->cond = parse_expr();
+   stmt->cond = parse_expr(stmt);
    _skip(stmt);
    if (!_in.expect(")")) {
       error(stmt, _in.pos().str() + ": " + _T("Expected '%s' here.", ")"));
    }
    _skip(stmt);
-   stmt->substmt = parse_stmt();
+   stmt->substmt = parse_stmt(stmt);
    return stmt;
 }
 
-Stmt *Parser::parse_ifstmt() {
+Stmt *Parser::parse_ifstmt(AstNode *parent) {
    IfStmt *stmt = new IfStmt();
+   stmt->parent = parent;
    _in.consume("if");
    _skip(stmt);
    if (!_in.expect("(")) {
       error(stmt, _in.pos().str() + ": " + _T("Expected '%s' here.", "("));
    }
    _skip(stmt);
-   stmt->cond = parse_expr();
+   stmt->cond = parse_expr(stmt);
    if (!_in.expect(")")) {
       error(stmt, _in.pos().str() + ": " + _T("Expected '%s' here.", ")"));
    }
    _skip(stmt);
-   stmt->then = parse_stmt();
+   stmt->then = parse_stmt(stmt);
    _in.save();
    _skip(stmt);
    string tok;
@@ -789,7 +809,7 @@ Stmt *Parser::parse_ifstmt() {
       _in.consume("else");
       _in.discard();
       _skip(stmt);
-      stmt->els = parse_stmt();
+      stmt->els = parse_stmt(stmt);
    } else {
       stmt->comments.pop_back();
       _in.restore();
@@ -797,30 +817,30 @@ Stmt *Parser::parse_ifstmt() {
    return stmt;
 }
 
-Stmt *Parser::parse_switch() {
+Stmt *Parser::parse_switch(AstNode *parent) {
    return error<Stmt>(_T("UNIMPLEMENTED"));
 }
 
-void Parser::parse_expr_seq(AstNode *n, vector<Expr*>& exprs) {
-   exprs.push_back(parse_expr(Expr::Assignment));
+void Parser::parse_expr_seq(AstNode *parent, vector<Expr*>& exprs) {
+   exprs.push_back(parse_expr(parent, Expr::Assignment));
    while (_in.curr() == ',') {
       _in.next();
-      _skip(n);
-      exprs.push_back(parse_expr(Expr::Assignment));
+      _skip(parent);
+      exprs.push_back(parse_expr(parent, Expr::Assignment));
    }
 }
 
-void Parser::parse_type_seq(AstNode *n, vector<TypeSpec*>& v) {
-   v.push_back(parse_typespec());
-   _skip(n);
+void Parser::parse_type_seq(AstNode *parent, vector<TypeSpec*>& v) {
+   v.push_back(parse_typespec(parent));
+   _skip(parent);
    while (_in.curr() == ',') {
       _in.next();
-      _skip(n);
-      v.push_back(parse_typespec());
+      _skip(parent);
+      v.push_back(parse_typespec(parent));
    }
 }
 
-Expr *Parser::parse_exprlist() {
+Expr *Parser::parse_exprlist(AstNode *parent) {
    assert(_in.curr() == '{');
    ExprList *elist = new ExprList();
    do {
@@ -830,8 +850,8 @@ Expr *Parser::parse_exprlist() {
          break;
       }
       elist->exprs.push_back(_in.curr() == '{' 
-                             ? parse_exprlist() 
-                             : parse_expr(Expr::Assignment));
+                             ? parse_exprlist(parent) 
+                             : parse_expr(parent, Expr::Assignment));
    } while (_in.curr() == ',');
 
    if (!_in.expect("}")) {
@@ -842,23 +862,25 @@ Expr *Parser::parse_exprlist() {
    return elist;
 }
 
-Decl *Parser::_parse_vardecl(string name, Decl::Kind kind, CommentSeq *comm) {
+Decl *Parser::_parse_vardecl(AstNode *parent, string name, Decl::Kind kind, CommentSeq *comm) {
    VarDecl *decl = new VarDecl();
+   decl->parent = parent;
    decl->name = name;
    decl->kind = kind;
    decl->comments.push_back(comm);
    return decl;
 }
 
-Decl *Parser::_parse_arraydecl(string name, Decl::Kind kind, CommentSeq *comm) {
+Decl *Parser::_parse_arraydecl(AstNode *parent, string name, Decl::Kind kind, CommentSeq *comm) {
    ArrayDecl *decl = new ArrayDecl();
    decl->comments.push_back(comm);
+   decl->parent = parent;
    decl->name = name;
    decl->kind = kind;
    while (_in.curr() == '[') {
       _in.consume("[");
       _skip(decl);
-      decl->sizes.push_back(parse_expr(Expr::Conditional));
+      decl->sizes.push_back(parse_expr(decl, Expr::Conditional));
       if (!_in.expect("]")) {
          error(decl, _in.pos().str() + ": " + _T("Expected '%s' here.", "]"));
       }
@@ -867,10 +889,11 @@ Decl *Parser::_parse_arraydecl(string name, Decl::Kind kind, CommentSeq *comm) {
    return decl;
 }
 
-Decl *Parser::_parse_objdecl(string name, CommentSeq *comm) {
+Decl *Parser::_parse_objdecl(AstNode *parent, string name, CommentSeq *comm) {
    _in.consume("(");
    ObjDecl *decl = new ObjDecl();
    decl->comments.push_back(comm);
+   decl->parent = parent;
    decl->name = name;
    _skip(decl);
    parse_expr_seq(decl, decl->args);
@@ -881,10 +904,11 @@ Decl *Parser::_parse_objdecl(string name, CommentSeq *comm) {
    return decl;
 }
 
-DeclStmt *Parser::parse_declstmt(bool is_typedef) {
+DeclStmt *Parser::parse_declstmt(AstNode *parent, bool is_typedef) {
    DeclStmt *stmt = new DeclStmt();
+   stmt->parent = parent;
    stmt->ini = _in.pos();
-   TypeSpec *typespec = parse_typespec();
+   TypeSpec *typespec = parse_typespec(stmt);
    _skip(stmt); // before identifier
    stmt->typespec = typespec;
    while (true) {
@@ -904,19 +928,19 @@ DeclStmt *Parser::parse_declstmt(bool is_typedef) {
       DeclStmt::Item item;
       CommentSeq *comm = _in.skip("\n\t ");
       if (_in.curr() == '(' and !is_typedef) {
-         item.decl = _parse_objdecl(name, comm);
+         item.decl = _parse_objdecl(stmt, name, comm);
       } else if (_in.curr() == '[') {
-         item.decl = _parse_arraydecl(name, kind, comm);
+         item.decl = _parse_arraydecl(stmt, name, kind, comm);
       } else {
-         item.decl = _parse_vardecl(name, kind, comm);
+         item.decl = _parse_vardecl(stmt, name, kind, comm);
       }
       item.decl->ini = item_ini;
       if (_in.curr() == '=') {
          _in.next();
          _skip(stmt);
          item.init = (_in.curr() == '{' 
-                      ? parse_exprlist() 
-                      : parse_expr(Expr::Assignment));
+                      ? parse_exprlist(item.decl) 
+                      : parse_expr(item.decl, Expr::Assignment));
       }
       item.decl->typespec = stmt->typespec;
       item.decl->fin = _in.pos();
@@ -934,9 +958,10 @@ DeclStmt *Parser::parse_declstmt(bool is_typedef) {
    return stmt;
 }
 
-EnumDecl *Parser::parse_enum() {
+EnumDecl *Parser::parse_enum(AstNode *parent) {
    _in.consume("enum");
    EnumDecl *decl = new EnumDecl();
+   decl->parent = parent;
    _skip(decl);
    Token tok = _in.next_token();
    if (!(tok.group & Token::Ident)) {
@@ -990,11 +1015,12 @@ EnumDecl *Parser::parse_enum() {
    return decl;
 }
 
-TypedefDecl *Parser::parse_typedef() {
+TypedefDecl *Parser::parse_typedef(AstNode *parent) {
    _in.consume("typedef");
    TypedefDecl *typdef = new TypedefDecl();
+   typdef->parent = parent;
    _skip(typdef);
-   DeclStmt *stmt = parse_declstmt(true);
+   DeclStmt *stmt = parse_declstmt(typdef, true);    // FIXME: Y si hay varias declaraciones??
    typdef->decl = stmt->items[0].decl;
    for (CommentSeq *c : stmt->comments) {
       typdef->comments.push_back(c);
@@ -1003,11 +1029,12 @@ TypedefDecl *Parser::parse_typedef() {
    return typdef;
 }
 
-StructDecl *Parser::parse_struct() {
+StructDecl *Parser::parse_struct(AstNode *parent) {
    Token tok = _in.next_token();
    assert(tok.kind == Token::Struct);
 
    StructDecl *decl = new StructDecl();
+   decl->parent = parent;
    _skip(decl);
 
    decl->id = new SimpleIdent(_in.read_id().str);
@@ -1023,7 +1050,9 @@ StructDecl *Parser::parse_struct() {
    
    tok = _in.peek_token();
    while (!_in.end() and tok.kind != Token::RCurly) {
-      decl->decls.push_back(parse_declstmt());
+      DeclStmt *field = parse_declstmt(decl);
+      decl->decls.push_back(field);
+      field->parent = decl;
       _skip(decl);
       tok = _in.peek_token();      
    }

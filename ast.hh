@@ -22,6 +22,7 @@ struct AstNode {
                       Pos ini, fin;
       std::vector<Error*> errors;
  std::vector<CommentSeq*> comments;
+                 AstNode *parent;
 
                   void add_error(std::string msg);
                   void add_error(Pos ini, Pos fin, std::string msg);
@@ -103,7 +104,7 @@ struct Program : public AstNode {
 
    int      num_children() const { return nodes.size(); }
    AstNode* child(int n)         { return nodes[n]; }
-   void     add(AstNode* n)      { nodes.push_back(n); }
+   void     add(AstNode* n)      { nodes.push_back(n), n->parent = this; }
    void     accept(AstVisitor* v);
 
    bool     has_errors() const;
