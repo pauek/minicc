@@ -72,8 +72,7 @@ void SemanticAnalyzer::visit_structdecl(StructDecl *x) {
       if (field_type == 0) {
          decl.add_error(_T("El tipo '%s' no existe.", 
                            decl.typespec->typestr().c_str()));
-
-         // TODO: crear un tipo 'Unknown' y poner field_type a eso aquí.
+         field_type = new UnknownType(decl.typespec->typestr());
       }
       for (DeclStmt::Item& item : decl.items) {
          if (type->has_field(item.decl->name)) {
@@ -114,10 +113,8 @@ void SemanticAnalyzer::visit_fullident(FullIdent *x) {
          if (namespc->get(x->name, v)) {
             goto found;
          }
-         /* TODO
-         _error(_T("No se ha encontrado '%s' en el namespace '%s'.", 
-                   x->name.c_str(), namespc_or_class->name.c_str()));
-         */
+         x->add_error(_T("No se ha encontrado '%s' en el namespace '%s'.", 
+                         x->name.c_str(), namespc_or_class->name.c_str()));
          return;
       }
    }
@@ -128,10 +125,8 @@ void SemanticAnalyzer::visit_fullident(FullIdent *x) {
       TypeSpec spec(&fid);
       Type *type = get_type(&spec);
       if (type != 0 and !type->get_static(x->name, v)) {
-         /* TODO
-         _error(_T("No se ha encontrado '%s' en la clase '%s'.",
-                   x->name.c_str(), namespc_or_class->name.c_str()));
-         */
+         x->add_error(_T("No se ha encontrado '%s' en la clase '%s'.",
+                         x->name.c_str(), namespc_or_class->name.c_str()));
       }
       goto found;
    }
@@ -139,12 +134,13 @@ void SemanticAnalyzer::visit_fullident(FullIdent *x) {
    // Try the environment
    if (getenv(x->name, v)) {
       goto found;
-   } 
-     
-   /* TODO 
-   _error(_T("No se ha encontrado '%s'.", 
-             x->name.c_str()));
-   */
+   } else {
+      x->add_error(_T("No se ha declarado '%s'.", x->name.c_str()));
+      Type *type = new UnknownType(x->name.c_str());
+      _curr = type->create_abstract();
+
+      // TODO: Pistas para 'cout', 'cin', 'endl', 'string', etc.
+   }
    return;
 
  found:
@@ -489,10 +485,10 @@ void SemanticAnalyzer::visit_vardecl(VarDecl *x) {
    }
    Type *type = get_type(x->typespec);
    if (type == 0) {
-      setenv(x->name, Value::null);
-      return;
-   }
-   if (!_curr.is_null()) {
+      string typestr = x->typespec->typestr(); 
+      type = new UnknownType(typestr);
+   } 
+   else if (!_curr.is_null()) {
       string Ta = type->typestr(), Tb = _curr.type()->typestr();
       if (Ta != Tb) {
          x->add_error(_T("El tipo del valor inicial ('%s') no se corresponde "
@@ -647,6 +643,9 @@ void SemanticAnalyzer::visit_iterstmt(IterStmt *x) {
 
 void SemanticAnalyzer::visit_callexpr_getfunc(CallExpr *x) {
    x->func->accept(this);
+   if (_curr.is<UnknownType>()) {
+      return;
+   }
    _curr = Reference::deref(_curr);
    if (!_curr.is<Callable>() and !_curr.is<Overloaded>()) {
       x->add_error(_T("Intentas llamar como función un valor de tipo '%s'.", 
@@ -719,7 +718,14 @@ void SemanticAnalyzer::visit_callexpr(CallExpr *x) {
       return;
    }
    visit_callexpr_getfunc(x);
-   visit_callexpr_call(_curr, argvals);
+   if (_curr.is<Callable>()) {
+      visit_callexpr_call(_curr, argvals);
+   } else {
+      ostringstream oss;
+      oss << "CallExpr(" << x << ")";
+      Type *rettype = new UnknownType(oss.str());
+      _curr = rettype->create_abstract();
+   }
 }
 
 void SemanticAnalyzer::visit_indexexpr(IndexExpr *x) {
@@ -752,6 +758,7 @@ void SemanticAnalyzer::visit_fieldexpr(FieldExpr *x) {
    x->base->accept(this);
    _curr = Reference::deref(_curr);
    if (x->pointer) {
+      assert(false);
       /*
       if (!call_operator("*")) {
          _error(_T("El tipo '%s' no tiene 'operator*'", 
@@ -762,6 +769,8 @@ void SemanticAnalyzer::visit_fieldexpr(FieldExpr *x) {
    }
    Value obj = _curr;
    if (obj.is<Struct>()) {
+      assert(false);
+
       // TODO: Move this to 'get_field' in 'Struct' class???
       SimpleTable<Value>& fields = obj.as<Struct>();
       Value v;
@@ -771,11 +780,19 @@ void SemanticAnalyzer::visit_fieldexpr(FieldExpr *x) {
       _curr = Reference::mkref(v);
       return;
    }
-   /*
+   
    if (!bind_field(obj, x->field->name)) {
-      _error(_T("Este objeto no tiene un campo '%s'", x->field->name.c_str()));
+      if (obj.type()->is(Type::Class)) {
+         x->add_error(_T("La clase '%s' no tiene miembro '%s'.", 
+                         obj.type()->typestr().c_str(),
+                         x->field->name.c_str()));
+      } else {
+         x->add_error(_T("El tipo '%s' no tiene el campo '%s'", 
+                         obj.type()->typestr().c_str(),
+                         x->field->name.c_str()));
+      }
+      _curr = UnknownType::self->create_abstract();
    }
-   */
 }
 
 void SemanticAnalyzer::visit_condexpr(CondExpr *x) {
@@ -889,4 +906,22 @@ void SemanticAnalyzer::visit_derefexpr(DerefExpr *x) {
                 _curr.type()->typestr().c_str()));
    }
    */
+}
+
+bool SemanticAnalyzer::bind_field(Value obj, string method_name) {
+   vector<Value> candidates;
+   int count = obj.type()->get_field(obj, method_name, candidates);
+   if (count == 1) {
+      Value& v = candidates[0];
+      if (v.is<Function>()) {
+         _curr = Callable::self->mkvalue(obj, v);
+      } else {
+         _curr = v;
+      }
+      return true;
+   } else if (count > 1) {
+      _curr = Overloaded::self->mkvalue(obj, candidates);
+      return true;
+   }
+   return false;
 }

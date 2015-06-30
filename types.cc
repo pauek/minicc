@@ -13,6 +13,7 @@ void _error(std::string msg) {
 // static + Globals
 Type          *Void = 0;
 Type          *Any  = (Type *)1;
+UnknownType   *UnknownType::self   = new UnknownType();
 Int           *Int::self           = new Int();
 Float         *Float::self         = new Float();
 Double        *Double::self        = new Double();

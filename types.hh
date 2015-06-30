@@ -29,7 +29,7 @@ class Type {
 public:
    Type(std::string name) : _name(name), reference_type(0) {}
 
-   //      void  *alloc(T x) = a different method for every Type
+   //        void *alloc(T x) = a different method for every Type
    virtual   void  destroy(void *data) const                 { assert(false); }
    virtual   bool  equals(void *a, void *b)            const { assert(false); }
    virtual   bool  less_than(void *a, void *b)         const { assert(false); }
@@ -44,11 +44,14 @@ public:
    static Type *mkref(Type *t);
    
    enum Property {
-      Basic       = 1,  Emulated =  2, 
-      UserDefined = 4,  Template =  8,
-      Internal    = 16
+      Unknown     =  1,
+      Basic       =  2,  
+      Emulated    =  4, 
+      UserDefined =  8,  
+      Template    = 16,
+      Internal    = 32,
+      Class       = 64
    };
-
 
    virtual std::string  name()    const { return _name; }
    virtual std::string  typestr() const { return _name; }
@@ -95,12 +98,26 @@ public:
    void  clear();
 };
 
+class UnknownType : public Type {
+public:
+   UnknownType()            : Type("<unknown>") {}
+   UnknownType(string name) : Type("<unknown:'" + name + "'>") {}
+
+   int properties() const { return Type::Unknown; }
+
+   void destroy(void *data) const {
+      assert(data == 0); // should only be used in abstract values.
+   }
+   
+   static UnknownType *self;
+};
+
 template<typename T>
 class BaseType : public Type {
 public:
    BaseType(std::string name) : Type(name) {}
 
-           int properties() const { return Internal; }
+   int properties() const { return Internal; }
 
    typedef T cpp_type;
    static T& cast(void *data) { 
@@ -262,6 +279,9 @@ protected:
    }
 public:
    Class(std::string name) : Base(name) {}
+
+   int properties() const { return Type::Class; }
+
    bool  get_static(std::string name, Value& result) const;
     int  get_field(Value self, std::string name, std::vector<Value>& result) const;
    Type *get_inner_class(std::string name) {
@@ -274,7 +294,7 @@ class String : public Class<BasicType<std::string>> {
 public:
    String();
    static String *self;
-   int properties() const { return Internal; }
+   int properties() const { return Internal | Class<BasicType<std::string>>::properties(); }
    std::string to_json(void *data) const;
    Value create() { return Value((Type*)this, (void*)(new std::string())); }
 };
@@ -415,7 +435,7 @@ public:
    Vector()        : Class("vector"), _celltype(0) {}
    Vector(Type *t);
 
-   int   properties() const { return Template | Emulated; }
+   int   properties() const { return Template | Emulated | Type::Class; }
    Value convert(Value init);
    Type *instantiate(std::vector<Type*>& args) const;
    Type *celltype() const { return _celltype; }
