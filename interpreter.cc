@@ -471,6 +471,9 @@ void Interpreter::visit_arraydecl(ArrayDecl *x) {
    vector<int> sizes;
    for (int i = 0; i < x->sizes.size(); i++) {
       x->sizes[i]->accept(this);
+      if (_curr.is<Reference>()) {
+         _curr = Reference::deref(_curr);
+      }
       if (!_curr.is<Int>()) {
          _error(_T("El tamaño de una tabla debe ser un entero"));
       }
