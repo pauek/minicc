@@ -123,8 +123,8 @@ int test_visitor(string filename, VisitorType vtype) {
    istringstream Scode(code), Sin(in);
    Parser P(&Scode, &Serr);
    AstNode *program;
-
    program = P.parse();
+
    AstVisitor *v;
    switch (vtype) {
    case pretty_printer: v = new PrettyPrinter(&Sout); break;

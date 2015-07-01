@@ -156,8 +156,7 @@ void SemanticAnalyzer::visit_literal(Literal *x) {
    case Literal::Char:   _curr = Value((*x->val.as_string.s)[0] /* FIXME */);
       break;
    default:
-      // TODO _error(_T("SemanticAnalyzer::visit_literal: UNIMPLEMENTED"));
-      ;
+      x->add_error(_T("SemanticAnalyzer::visit_literal: UNIMPLEMENTED"));
    }
 }
 
@@ -474,7 +473,7 @@ void SemanticAnalyzer::visit_block(Block *x) {
 }
 
 void SemanticAnalyzer::visit_vardecl(VarDecl *x) {
-   Value prev;
+   Value prev, init = _curr;
    if (getenv(x->name, prev)) {
       if (has_flag(x->name, Param)) {
          x->add_error(_T("Ya existe un parámetro con nombre '%s'.", x->name.c_str()));
@@ -488,15 +487,18 @@ void SemanticAnalyzer::visit_vardecl(VarDecl *x) {
       string typestr = x->typespec->typestr(); 
       type = new UnknownType(typestr);
    } 
-   else if (!_curr.is_null()) {
-      string Ta = type->typestr(), Tb = _curr.type()->typestr();
+   
+   if (init.is_null()) {
+      init = type->create_abstract();
+   } else {
+      string Ta = type->typestr(), Tb = init.type()->typestr();
       if (Ta != Tb) {
          x->add_error(_T("El tipo del valor inicial ('%s') no se corresponde "
                          "con el tipo de la variable ('%s').", 
                          Tb.c_str(), Ta.c_str()));
       }
    }
-   setenv(x->name, type->create_abstract());
+   setenv(x->name, init);
 }
 
 void SemanticAnalyzer::visit_arraydecl(ArrayDecl *x) {
@@ -504,20 +506,28 @@ void SemanticAnalyzer::visit_arraydecl(ArrayDecl *x) {
    vector<int> sizes;
    for (int i = 0; i < x->sizes.size(); i++) {
       x->sizes[i]->accept(this);
+      if (_curr.is<Reference>()) {
+         _curr = Reference::deref(_curr);
+      }
       if (!_curr.is<Int>()) {
-         // _error(_T("El tamaño de una tabla debe ser un entero"));
+         x->add_error(_T("El tamaño de una tabla debe ser un entero"));
+         return;
+      } else if (_curr.as<Int>() <= 0) {
+         x->add_error(_T("El tamaño de una tabla debe ser un entero positivo"));
+         return;
+      } else {
+         const int sz = _curr.as<Int>();
+         sizes.push_back(sz);
       }
-      if (_curr.as<Int>() <= 0) {
-         // _error(_T("El tamaño de una tabla debe ser un entero positivo"));
-      }
-      const int sz = _curr.as<Int>();
-      sizes.push_back(sz);
    }
+   
    Type *celltype = get_type(x->typespec);
    if (celltype == 0) {
-      // _error(_T("El tipo '%s' no existe", x->typespec->typestr().c_str()));
+      x->add_error(_T("El tipo '%s' no existe", 
+                      x->typespec->typestr().c_str()));
+      celltype = UnknownType::self;
    }
-   // TODO: don't create new Array type every time?
+   // FIXME: don't create new Array type every time?
    Type *arraytype = Array::mkarray(celltype, sizes);
    setenv(x->name, (init.is_null() 
                     ? arraytype->create()
