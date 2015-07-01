@@ -21,6 +21,10 @@ string Pos::str() const {
    return out.str();
 }
 
+void Pos::to_json(ostream& o) const {
+   o << "{\"lin\": " << lin << ", \"col\": " << col << "}";
+}
+
 void Input::error(string msg) {
    cerr << msg << endl;
    exit(1);

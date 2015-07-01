@@ -15,6 +15,8 @@ struct Pos {
     int c() const { return col; }
    void sl(int x) { lin = x; }
    void sc(int x) { col = x; }
+
+   void to_json(std::ostream& o) const;
 };
 
 struct Range {

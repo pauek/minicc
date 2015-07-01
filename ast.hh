@@ -49,6 +49,8 @@ struct Error {
    Error(std::string m)               : msg(m) {}
    Error(Pos p, std::string m)        : ini(p), msg(m) {}
    Error(Pos i, Pos f, std::string m) : ini(i), fin(f), msg(m) {}
+
+   void to_json(std::ostream& o) const;
 };
 
 struct Comment {

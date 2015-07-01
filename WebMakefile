@@ -1,6 +1,6 @@
 CXX=emcc
 
-BCFILES=web.bc input.bc parser.bc ast.bc token.bc value.bc \
+BCFILES=web.bc input.bc parser.bc semantic.bc ast.bc token.bc value.bc \
    prettypr.bc astpr.bc interpreter.bc stepper.bc walker.bc \
    translator.bc types.bc
 

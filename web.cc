@@ -8,10 +8,11 @@ using namespace std;
 #include <emscripten/bind.h>
 
 #include "parser.hh"
+#include "semantic.hh"
 #include "walker.hh"
 #include "prettypr.hh"
-#include "stepper.hh"
 #include "interpreter.hh"
+#include "stepper.hh"
 #include "translator.hh"
 
 AstNode *program;
@@ -20,13 +21,19 @@ string compile(string code) {
    istringstream S(code);
    Parser P(&S);
    program = P.parse();
-
+   SemanticAnalyzer A;
+   program->accept(&A);
    ostringstream E;
    vector<Error*> errors;
    collect_errors(program, errors);
+   E << "[";
+   bool first = true;
    for (Error *e : errors) {
-      E << e->msg << endl;
+      if (!first) E << ", " << endl;
+      e->to_json(E);
+      first = false;
    }
+   E << "]";
    return E.str();
 }
 

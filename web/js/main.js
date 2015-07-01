@@ -55,16 +55,19 @@ function setup(init) {
       readOnly: true,
    });
 
-   errors = CodeMirror.fromTextArea($('#errors > textarea')[0], {
-      mode: 'text/x-show-inv',
-      readOnly: true,
-   });
-
    editor.on("change", function () {
       setCompilado(false);
       cambiado = true;
+      borraErrores();
       $('#output').hide();
    });
+}
+
+function borraErrores() {
+   var marks = editor.getAllMarks();
+   for (var i = 0; i < marks.length; i++) {
+      marks[i].clear();
+   }
 }
 
 function saveProgram() {
@@ -74,11 +77,19 @@ function saveProgram() {
 function compile() {
    saveProgram();
    var code = editor.getValue();
-   var err = Module.compile(code);
-   if (err == "") {
+   var errjson = Module.compile(code);
+   if (errjson == "") {
       setCompilado(true);
    }
-   errors.setValue(err);
+   var errlist = JSON.parse(errjson);
+   console.log(errlist);
+   for (var i = 0; i < errlist.length; i++) {
+      var err = errlist[i];
+      var ini = {line: err.ini.lin-1, ch: err.ini.col};
+      var fin = {line: err.fin.lin-1, ch: err.fin.col};
+      editor.markText(ini, fin, {className: "error"});
+   }
+   $('#errlist').html(errjson);
    $('#errors').show();
 }
 

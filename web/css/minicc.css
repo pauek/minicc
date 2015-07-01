@@ -33,6 +33,9 @@ body {
 .current { 
   background: rgb(153, 205, 255); 
 }
+.error {
+  background: rgb(255, 100, 100);
+}
 
 header {
   border-bottom: 1px solid #ccc;

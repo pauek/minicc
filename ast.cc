@@ -14,6 +14,15 @@ void AstNode::add_error(Pos _ini, Pos _fin, string msg) {
    errors.push_back(new Error(_ini, _fin, msg));
 }
 
+void Error::to_json(ostream& o) const {
+   ostringstream oss;
+   o << "{";
+   o << "\"ini\": "; ini.to_json(o); o << ", ";
+   o << "\"fin\": "; fin.to_json(o); o << ", ";
+   o << "\"msg\": \"" << msg << "\"";
+   o << "}";
+}
+
 // OJO: El orden de la tabla es importante!
 // Hay que dejarla antes que el initializer y el map...
 //
