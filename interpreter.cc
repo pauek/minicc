@@ -471,9 +471,7 @@ void Interpreter::visit_arraydecl(ArrayDecl *x) {
    vector<int> sizes;
    for (int i = 0; i < x->sizes.size(); i++) {
       x->sizes[i]->accept(this);
-      if (_curr.is<Reference>()) {
-         _curr = Reference::deref(_curr);
-      }
+      _curr = Reference::deref(_curr);
       if (!_curr.is<Int>()) {
          _error(_T("El tamaño de una tabla debe ser un entero"));
       }
@@ -556,6 +554,7 @@ void Interpreter::visit_exprstmt(ExprStmt* x) {
 
 void Interpreter::visit_ifstmt(IfStmt *x) {
    x->cond->accept(this);
+   _curr = Reference::deref(_curr);
    if (!_curr.is<Bool>()) {
       if (!call_operator("bool")) {      
          _error(_T("An if's condition needs to be a bool value"));
@@ -855,9 +854,7 @@ void Interpreter::visit_typedefdecl(TypedefDecl *x) {
 void Interpreter::visit_derefexpr(DerefExpr *x) {
    // TODO: deal with pointers
    x->expr->accept(this);
-   if (_curr.is<Reference>()) {
-      _curr = Reference::deref(_curr);
-   }
+   _curr = Reference::deref(_curr);
    if (!call_operator("*")) {
       _error(_T("El tipo '%s' no tiene 'operator*'", 
                 _curr.type()->typestr().c_str()));
