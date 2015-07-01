@@ -70,7 +70,8 @@ public:
           void visit_exprstmt(ExprStmt *x); 
           void visit_declstmt(DeclStmt *x);
           void visit_ifstmt(IfStmt *x);
-          void visit_iterstmt(IterStmt *x);
+          void visit_forstmt(ForStmt *x);
+          void visit_whilestmt(WhileStmt *x);
           void visit_callexpr(CallExpr *x); 
           void visit_literal(Literal *x); 
           void visit_fieldexpr(FieldExpr *x); 
@@ -120,9 +121,9 @@ public:
    struct ForVisitState : public StepperState {
       enum At { Cond, Block, Post, Leave };
       At at;
-      IterStmt *x;
+      ForStmt *x;
       bool cond;
-      ForVisitState(IterStmt *_x) : x(_x), at(Cond) {}
+      ForVisitState(ForStmt *_x) : x(_x), at(Cond) {}
       Todo step(Stepper *S);
       Range span() const { return x->span(); }
    };
@@ -130,8 +131,8 @@ public:
    struct WhileVisitState : public StepperState {
       enum At { Cond, Block, Leave };
       At at;
-      IterStmt *x;
-      WhileVisitState(IterStmt *_x) : x(_x), at(Cond) {}
+      WhileStmt *x;
+      WhileVisitState(WhileStmt *_x) : x(_x), at(Cond) {}
       Todo step(Stepper *S);
       Range span() const { return x->cond->span(); }
    };

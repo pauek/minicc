@@ -743,23 +743,37 @@ Expr *Parser::parse_increxpr(Expr *x, Token tok) {
 }
 
 Stmt *Parser::parse_for(AstNode *parent) {
-   IterStmt *stmt = new IterStmt();
+   ForStmt *stmt = new ForStmt();
    stmt->parent = parent;
    _in.consume("for");
    _skip(stmt);
    if (!_in.expect("(")) {
       error(stmt, _in.pos().str() + ": " + _T("Expected '%s' here.", "("));
-      // TODO: resync?
+      // FIXME: resync?
    }
    _skip(stmt);
-   stmt->init = parse_decl_or_expr_stmt(stmt);
+   if (_in.curr() == ';') {
+      _in.next();
+      stmt->init = 0;
+   } else {
+      stmt->init = parse_decl_or_expr_stmt(stmt);
+   }
    _skip(stmt);
-   stmt->cond = parse_expr(stmt);
+   if (_in.curr() == ';') {
+      stmt->cond = 0;
+   } else {
+      stmt->cond = parse_expr(stmt);
+   }
+   _skip(stmt);
    if (!_in.expect(";")) {
       error(stmt, _in.pos().str() + ": " + _T("Expected '%s' here.", ";"));
    }
    _skip(stmt);
-   stmt->post = parse_expr(stmt);
+   if (_in.curr() == ')') {
+      stmt->post = 0;
+   } else {
+      stmt->post = parse_expr(stmt);
+   }
    if (!_in.expect(")")) {
       error(stmt, _in.pos().str() + ": " + _T("Expected '%s' here.", ")"));
    }
@@ -769,7 +783,7 @@ Stmt *Parser::parse_for(AstNode *parent) {
 }
 
 Stmt *Parser::parse_while(AstNode *parent) {
-   IterStmt *stmt = new IterStmt();
+   WhileStmt *stmt = new WhileStmt();
    stmt->parent = parent;
    _in.consume("while");
    _skip(stmt);

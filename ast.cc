@@ -175,8 +175,13 @@ bool IfStmt::has_errors() const {
    return AstNode::has_errors();
 }
 
-bool IterStmt::has_errors() const {
+bool ForStmt::has_errors() const {
    _ERRORS(init); _ERRORS(cond); _ERRORS(post); _ERRORS(substmt);
+   return AstNode::has_errors();
+}
+
+bool WhileStmt::has_errors() const {
+   _ERRORS(cond); _ERRORS(substmt);
    return AstNode::has_errors();
 }
 

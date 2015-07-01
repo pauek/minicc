@@ -546,9 +546,11 @@ void Interpreter::visit_declstmt(DeclStmt* x) {
 }
 
 void Interpreter::visit_exprstmt(ExprStmt* x) {
-   x->expr->accept(this);
-   if (x->is_return) {
-      _ret = _curr;
+   if (x->expr) {
+      x->expr->accept(this);
+      if (x->is_return) {
+         _ret = _curr;
+      }
    }
 }
 
@@ -569,7 +571,7 @@ void Interpreter::visit_ifstmt(IfStmt *x) {
    }
 }
 
-void Interpreter::visit_iterstmt(IterStmt *x) {
+void Interpreter::visit_forstmt(ForStmt *x) {
    pushenv("");
    if (x->init) {
       x->init->accept(this);
@@ -579,8 +581,7 @@ void Interpreter::visit_iterstmt(IterStmt *x) {
       _curr = Reference::deref(_curr);
       if (!_curr.is<Bool>()) {
          if (!call_operator("bool")) {      
-            _error(_T("La condición de un '%s' debe ser un valor de tipo bool.",
-                      (x->is_for() ? "for" : "while")));
+            _error(_T("La condición de un for debe ser un valor de tipo bool."));
          }
       }
       if (!_curr.as<Bool>()) {
@@ -590,6 +591,24 @@ void Interpreter::visit_iterstmt(IterStmt *x) {
       if (x->post) {
          x->post->accept(this);
       }
+   }
+   popenv();
+}
+
+void Interpreter::visit_whilestmt(WhileStmt *x) {
+   pushenv("");
+   while (true) {
+      x->cond->accept(this);
+      _curr = Reference::deref(_curr);
+      if (!_curr.is<Bool>()) {
+         if (!call_operator("bool")) {      
+            _error(_T("La condición de un while debe ser un valor de tipo bool."));
+         }
+      }
+      if (!_curr.as<Bool>()) {
+         break;
+      }
+      x->substmt->accept(this);
    }
    popenv();
 }

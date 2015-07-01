@@ -8,7 +8,7 @@ void xxx(string s) {
 Program{
    FuncDecl(id:'xxx', Type(id:'void'), Params = {"s": Type(id:'string')}, {
       Block({
-         IterStmt<while>(>=(id:'a', Int<20>), {
+         WhileStmt(>=(id:'a', Int<20>), {
             Block({
                ExprStmt(=(id:'a', +(id:'a', Int<2>)))
                ExprStmt(=(id:'i', id:'a'))

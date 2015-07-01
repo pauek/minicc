@@ -144,15 +144,15 @@ Todo Stepper::IfVisitState::step(Stepper *S) {
    return todo;
 }
 
-void Stepper::visit_iterstmt(IterStmt *x) {
-   if (x->is_for()) {
-      push(new ForVisitState(x));
-      x->init->accept(this);
-   } else {
-      WhileVisitState *s = new WhileVisitState(x);
-      s->step(this);
-      push(s);
-   }
+void Stepper::visit_forstmt(ForStmt *x) {
+   push(new ForVisitState(x));
+   x->init->accept(this);
+}
+
+void Stepper::visit_whilestmt(WhileStmt *x) {
+   WhileVisitState *s = new WhileVisitState(x);
+   s->step(this);
+   push(s);
 }
 
 Todo Stepper::ForVisitState::step(Stepper *S) {

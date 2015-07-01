@@ -415,21 +415,36 @@ void PrettyPrinter::visit_ifstmt(IfStmt *x) {
    }
 }
 
-void PrettyPrinter::visit_iterstmt(IterStmt *x) {
+void PrettyPrinter::visit_forstmt(ForStmt *x) {
    CommentPrinter cp(x, this);
-   if (x->is_for()) {
-      out() << "for " << cp.cmt_() << "(";
+   out() << "for " << cp.cmt_() << "(";
+   if (x->init) {
       x->init->accept(this);
-      out() << " ";
-      x->cond->accept(this);
-      out() << "; ";
-      x->post->accept(this);
-      out() << ")";
-   } else {
-      out() << "while " << cp.cmt_() << "(" << cp.cmt_();
-      x->cond->accept(this);
-      out() << cp._cmt() << ")";
    }
+   out() << " ";
+   if (x->cond) {
+      x->cond->accept(this);
+   }
+   out() << "; ";
+   if (x->post) {
+      x->post->accept(this);
+   }
+   out() << ")";
+   out() << cp._cmt();
+   if (!cp.last_had_endl()) {
+      out() << " ";
+   }
+   if (!x->substmt->is<Block>() and cp.last_had_endl()) {
+      out() << indentation();
+   } 
+   x->substmt->accept(this);
+}
+
+void PrettyPrinter::visit_whilestmt(WhileStmt *x) {
+   CommentPrinter cp(x, this);
+   out() << "while " << cp.cmt_() << "(" << cp.cmt_();
+   x->cond->accept(this);
+   out() << cp._cmt() << ")";
    out() << cp._cmt();
    if (!cp.last_had_endl()) {
       out() << " ";

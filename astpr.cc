@@ -308,20 +308,38 @@ void AstPrinter::visit_ifstmt(IfStmt *x) {
    out() << ")";
 }
 
-void AstPrinter::visit_iterstmt(IterStmt *x) {
-   if (x->is_for()) {
-      out() << "IterStmt<for>(";
+void AstPrinter::visit_forstmt(ForStmt *x) {
+   out() << "ForStmt(";
+   if (x->init) {
       x->init->accept(this);
-      out() << ", ";
-      x->cond->accept(this);
-      out() << ", ";
-      x->post->accept(this);
-      out() << ", {" << endl;
    } else {
-      out() << "IterStmt<while>(";
-      x->cond->accept(this);
-      out() << ", {" << endl;
+      out() << "_";
    }
+   out() << ", ";
+   if (x->cond) {
+      x->cond->accept(this);
+   } else {
+      out() << "_";
+   }
+   out() << ", ";
+   if (x->post) {
+      x->post->accept(this);
+   } else {
+      out() << "_";
+   }
+   out() << ", {" << endl;
+   indent(+1);
+   out(beginl);
+   x->substmt->accept(this);
+   out() << endl;
+   indent(-1);
+   out(beginl) << "})";
+}
+
+void AstPrinter::visit_whilestmt(WhileStmt *x) {
+   out() << "WhileStmt(";
+   x->cond->accept(this);
+   out() << ", {" << endl;
    indent(+1);
    out(beginl);
    x->substmt->accept(this);

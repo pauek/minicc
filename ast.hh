@@ -163,14 +163,22 @@ struct IfStmt : public Stmt {
    bool has_errors() const;
 };
 
-struct IterStmt : public Stmt { // while + for
+struct ForStmt : public Stmt { // while + for
    Stmt *init;
    Expr *cond, *post;
    Stmt *substmt;
 
-   IterStmt() : cond(0), init(0), substmt(0), post(0) {}
+   ForStmt() : cond(0), init(0), substmt(0), post(0) {}
    void accept(AstVisitor *v);
-   bool is_for() { return init != 0 and post != 0; }
+   bool has_errors() const;
+};
+
+struct WhileStmt : public Stmt { // while + for
+   Expr *cond;
+   Stmt *substmt;
+
+   WhileStmt() : cond(0), substmt(0) {}
+   void accept(AstVisitor *v);
    bool has_errors() const;
 };
 
@@ -557,7 +565,8 @@ public:
    virtual void visit_declstmt(DeclStmt *)           { assert(false); }
    virtual void visit_exprstmt(ExprStmt *)           { assert(false); }
    virtual void visit_ifstmt(IfStmt *)               { assert(false); }
-   virtual void visit_iterstmt(IterStmt *)           { assert(false); }
+   virtual void visit_forstmt(ForStmt *)             { assert(false); }
+   virtual void visit_whilestmt(WhileStmt *)         { assert(false); }
    virtual void visit_jumpstmt(JumpStmt *)           { assert(false); }
    virtual void visit_callexpr(CallExpr *)           { assert(false); }
    virtual void visit_indexexpr(IndexExpr *)         { assert(false); }
@@ -596,7 +605,8 @@ inline void ObjDecl::accept(AstVisitor *v)       { v->visit_objdecl(this); }
 inline void DeclStmt::accept(AstVisitor *v)      { v->visit_declstmt(this); }
 inline void ExprStmt::accept(AstVisitor *v)      { v->visit_exprstmt(this); }
 inline void IfStmt::accept(AstVisitor *v)        { v->visit_ifstmt(this); }
-inline void IterStmt::accept(AstVisitor *v)      { v->visit_iterstmt(this); }
+inline void ForStmt::accept(AstVisitor *v)       { v->visit_forstmt(this); }
+inline void WhileStmt::accept(AstVisitor *v)     { v->visit_whilestmt(this); }
 inline void JumpStmt::accept(AstVisitor *v)      { v->visit_jumpstmt(this); }
 inline void CallExpr::accept(AstVisitor *v)      { v->visit_callexpr(this); }
 inline void IndexExpr::accept(AstVisitor *v)     { v->visit_indexexpr(this); }

@@ -108,14 +108,22 @@ void Walker::visit_ifstmt(IfStmt *x) {
    }
 }
 
-void Walker::visit_iterstmt(IterStmt *x) {
+void Walker::visit_whilestmt(WhileStmt *x) {
    walk(x);
-   if (x->is_for()) {
+   x->cond->accept(this);
+   x->substmt->accept(this);
+}
+
+void Walker::visit_forstmt(ForStmt *x) {
+   walk(x);
+   if (x->init) {
       x->init->accept(this);
+   }
+   if (x->cond) {
       x->cond->accept(this);
+   }
+   if (x->post) {
       x->post->accept(this);
-   } else {
-      x->cond->accept(this);
    }
    x->substmt->accept(this);
 }

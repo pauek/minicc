@@ -6,10 +6,10 @@ void xxx(string s) {
 Program{
    FuncDecl(id:'xxx', Type(id:'void'), Params = {"s": Type(id:'string')}, {
       Block({
-         IterStmt<while>(=(id:'a', Bool<true>), {
+         WhileStmt(=(id:'a', Bool<true>), {
             ExprStmt(=(id:'a', +(id:'a', Int<2>)))
          })
-         IterStmt<while>(=(id:'a', Bool<true>), {
+         WhileStmt(=(id:'a', Bool<true>), {
             ExprStmt(=(id:'a', +(id:'a', Int<2>)))
          })
       })

@@ -37,7 +37,8 @@ public:
    void visit_declstmt(DeclStmt *x);
    void visit_exprstmt(ExprStmt *x);
    void visit_ifstmt(IfStmt *x);
-   void visit_iterstmt(IterStmt *x);
+   void visit_forstmt(ForStmt *x);
+   void visit_whilestmt(WhileStmt *x);
    void visit_jumpstmt(JumpStmt *x);
    void visit_callexpr(CallExpr *x);
    void visit_indexexpr(IndexExpr *x);

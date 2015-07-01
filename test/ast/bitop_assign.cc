@@ -25,7 +25,7 @@ Program{
          ExprStmt(|=(IndexExpr(id:'a', Int<3>), id:'c'))
          ExprStmt(^=(IndexExpr(id:'a', Int<4>), id:'b'))
          ExprStmt(^=(IndexExpr(id:'a', Int<5>), id:'c'))
-         IterStmt<for>(DeclStmt(Type(id:'int'), Vars = {"i" = Int<0>}), <(id:'i', Int<3>), IncrExpr<++, post>(id:'i'), {
+         ForStmt(DeclStmt(Type(id:'int'), Vars = {"i" = Int<0>}), <(id:'i', Int<3>), IncrExpr<++, post>(id:'i'), {
             Block({
                ExprStmt(<<(<<(<<(<<(id:'cout', IndexExpr(id:'a', *(Int<2>, id:'i'))), Char< >), IndexExpr(id:'a', +(*(Int<2>, id:'i'), Int<1>))), id:'endl'))
             })

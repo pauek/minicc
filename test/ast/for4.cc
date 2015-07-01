@@ -1,5 +1,5 @@
 void print() {
-   for (int i = 1; i < 100; i = i + 1) {
+   for (; a == b ;) {
       cout << i << endl;
    }
 }
@@ -7,7 +7,7 @@ void print() {
 Program{
    FuncDecl(id:'print', Type(id:'void'), Params = {}, {
       Block({
-         ForStmt(DeclStmt(Type(id:'int'), Vars = {"i" = Int<1>}), <(id:'i', Int<100>), =(id:'i', +(id:'i', Int<1>)), {
+         ForStmt(_, ==(id:'a', id:'b'), _, {
             Block({
                ExprStmt(<<(<<(id:'cout', id:'i'), id:'endl'))
             })

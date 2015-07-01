@@ -624,31 +624,42 @@ void SemanticAnalyzer::visit_ifstmt(IfStmt *x) {
    }
 }
 
-void SemanticAnalyzer::visit_iterstmt(IterStmt *x) {
+void SemanticAnalyzer::visit_forstmt(ForStmt *x) {
    pushenv("");
    if (x->init) {
       x->init->accept(this);
    }
-   while (true) {
-      x->cond->accept(this);
-      if (!_curr.is<Bool>()) {
-         /*
-         if (!call_operator("bool")) {      
-            _error(_T("La condición de un '%s' debe ser un valor de tipo bool.",
-                      (x->is_for() ? "for" : "while")));
-         }
-         */
-      }
-      if (!_curr.as<Bool>()) {
-         break;
-      }
-      x->substmt->accept(this);
-      if (x->post) {
-         x->post->accept(this);
-      }
+   x->cond->accept(this);
+   if (!_curr.is<Bool>()) {
+      /*
+        if (!call_operator("bool")) {      
+        _error(_T("La condición de un '%s' debe ser un valor de tipo bool.",
+        (x->is_for() ? "for" : "while")));
+        }
+      */
+   }
+   x->substmt->accept(this);
+   if (x->post) {
+      x->post->accept(this);
    }
    popenv();
 }
+
+void SemanticAnalyzer::visit_whilestmt(WhileStmt *x) {
+   pushenv("");
+   x->cond->accept(this);
+   if (!_curr.is<Bool>()) {
+      /*
+        if (!call_operator("bool")) {      
+        _error(_T("La condición de un '%s' debe ser un valor de tipo bool.",
+        (x->is_for() ? "for" : "while")));
+        }
+      */
+   }
+   x->substmt->accept(this);
+   popenv();
+}
+
 
 void SemanticAnalyzer::visit_callexpr_getfunc(CallExpr *x) {
    x->func->accept(this);
