@@ -576,6 +576,7 @@ void Interpreter::visit_iterstmt(IterStmt *x) {
    }
    while (true) {
       x->cond->accept(this);
+      _curr = Reference::deref(_curr);
       if (!_curr.is<Bool>()) {
          if (!call_operator("bool")) {      
             _error(_T("La condición de un '%s' debe ser un valor de tipo bool.",
