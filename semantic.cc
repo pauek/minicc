@@ -506,9 +506,7 @@ void SemanticAnalyzer::visit_arraydecl(ArrayDecl *x) {
    vector<int> sizes;
    for (int i = 0; i < x->sizes.size(); i++) {
       x->sizes[i]->accept(this);
-      if (_curr.is<Reference>()) {
-         _curr = Reference::deref(_curr);
-      }
+      _curr = Reference::deref(_curr);
       if (!_curr.is<Int>()) {
          x->add_error(_T("El tamaño de una tabla debe ser un entero"));
          return;
@@ -615,6 +613,7 @@ void SemanticAnalyzer::visit_exprstmt(ExprStmt* x) {
 
 void SemanticAnalyzer::visit_ifstmt(IfStmt *x) {
    x->cond->accept(this);
+   _curr = Reference::deref(_curr);
    if (!_curr.is<Bool>()) {
       // TODO: if (!call_operator("bool")) { ... }
       x->cond->add_error(_T("An if's condition needs to be a bool value"));
@@ -914,9 +913,7 @@ void SemanticAnalyzer::visit_typedefdecl(TypedefDecl *x) {
 void SemanticAnalyzer::visit_derefexpr(DerefExpr *x) {
    // TODO: deal with pointers
    x->expr->accept(this);
-   if (_curr.is<Reference>()) {
-      _curr = Reference::deref(_curr);
-   }
+   _curr = Reference::deref(_curr);
    /*
    if (!call_operator("*")) {
       _error(_T("El tipo '%s' no tiene 'operator*'", 
