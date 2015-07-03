@@ -31,7 +31,7 @@ body {
 .cm-invisible { opacity: .25; }
 
 .current { 
-  background: rgb(153, 205, 255); 
+  background: rgb(202, 230, 255); 
 }
 .error {
   background: rgb(255, 100, 100);
@@ -39,6 +39,24 @@ body {
 
 header {
   border-bottom: 1px solid #ccc;
+}
+
+header .pure-menu-list {
+  width: 10%;
+}
+
+#controls {
+  width: 90%;
+  display: inline-block;
+  vertical-align: bottom;
+}
+
+.pure-menu-children  i.fa {
+  padding-right: 0.7em;
+}
+
+.pure-menu-children {
+  z-index: 10; /* code-mirror gutter es 4 */
 }
 
 .splitter_panel .hsplitter {
@@ -68,7 +86,7 @@ header {
 }
 
 #env {
-  padding: 13px;
+  padding: .6em;
   position: relative;
 }
 
@@ -186,12 +204,12 @@ header {
 #controls {
   position: relative;
   padding-top: 1px;
-  height: 4.2em;
-  box-shadow: #ccc 0px 1px 10px;
+  height: 2.7em;
+  /* box-shadow: #ccc 0px 1px 10px; */
 }
 #slider {
   position: relative;
-  top: 1.8em;
+  top:   .3em;
   right: 0;
   height: 2.1em;
   padding: .9em 1.5em .9em 11em;
@@ -225,16 +243,22 @@ header {
 }
 #buttons {
   position: absolute;
-  top: 1.8em;
+  top:  .3em;
   left: .4em;
   z-index: 1;
 }
 #status {
   position: absolute;
-  top: .3em;
-  left: .5em;
+}
+#status .text {
   font-family: sans-serif;
   font-size: 95%;
+  padding: .3em .5em;
+  z-index: 100;
+  margin: -1.6em .8em;
+  background-color: rgb(153, 205, 255);
+  border-color: rgb(153, 205, 255);
+  border-radius: .3em;
 }
 
 #env table.struct {

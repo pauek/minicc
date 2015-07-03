@@ -78,7 +78,7 @@ function compile() {
    saveProgram();
    var code = editor.getValue();
    var errjson = Module.compile(code);
-   if (errjson == "") {
+   if (errjson == "[]") {
       setCompilado(true);
    }
    var errlist = JSON.parse(errjson);
@@ -177,6 +177,10 @@ var stepper = {
       var item = stepper._history[k];
       this.setMark(item.span);
       showstate(item);
+      var status = $('#status').get()[0];
+      var line = editor.getLine(item.span.fin.line);
+      console.log(line);
+      editor.addWidget({line: item.span.fin.line, ch: line.length}, status);
    }
 };
 
@@ -469,7 +473,7 @@ function draw_arrow(coords, through) {
 function showstate(S) {
    var links = [];
    $('#env').empty();
-   $('#status').text('');
+   $('#status .text').text('');
    svg = Snap('#refs');
    svg.clear();
    if (S === null) {
@@ -506,7 +510,7 @@ function showstate(S) {
    }
    html += '</tr></table>';
    $('#env').append(html);
-   $('#status').text(S.status);
+   $('#status .text').text(S.status);
 
    // pintar flechas de referencias, punteros y iteradores.
    var origin = $('#env').offset();
