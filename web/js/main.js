@@ -82,7 +82,6 @@ function compile() {
       setCompilado(true);
    }
    var errlist = JSON.parse(errjson);
-   console.log(errlist);
    for (var i = 0; i < errlist.length; i++) {
       var err = errlist[i];
       var ini = {line: err.ini.lin-1, ch: err.ini.col};
@@ -179,7 +178,6 @@ var stepper = {
       showstate(item);
       var status = $('#status').get()[0];
       var line = editor.getLine(item.span.fin.line);
-      console.log(line);
       editor.addWidget({line: item.span.fin.line, ch: line.length}, status);
    }
 };
@@ -473,7 +471,7 @@ function draw_arrow(coords, through) {
 function showstate(S) {
    var links = [];
    $('#env').empty();
-   $('#status .text').text('');
+   $('#status').hide();
    svg = Snap('#refs');
    svg.clear();
    if (S === null) {
@@ -511,6 +509,7 @@ function showstate(S) {
    html += '</tr></table>';
    $('#env').append(html);
    $('#status .text').text(S.status);
+   $('#status').show();
 
    // pintar flechas de referencias, punteros y iteradores.
    var origin = $('#env').offset();
@@ -553,7 +552,7 @@ function setupEvents() {
    $('#slider .knob').mousedown(function (ev) { 
       var track = $('#slider .track');
       dragging = { 
-         orig:  track.position().left,
+         orig:  track.offset().left,
          width: track.width(),
       };
       return false;

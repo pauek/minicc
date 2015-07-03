@@ -42,13 +42,16 @@ header {
 }
 
 header .pure-menu-list {
-  width: 10%;
+  width: 8em;
 }
 
 #controls {
-  width: 90%;
+  width: 100%;
   display: inline-block;
   vertical-align: bottom;
+}
+#controls .pure-button {
+  padding: .4em .7em;
 }
 
 .pure-menu-children  i.fa {
@@ -204,15 +207,15 @@ header .pure-menu-list {
 #controls {
   position: relative;
   padding-top: 1px;
-  height: 2.7em;
+  height: 2.4em;
   /* box-shadow: #ccc 0px 1px 10px; */
 }
 #slider {
   position: relative;
-  top:   .3em;
+  top:   .1em;
   right: 0;
   height: 2.1em;
-  padding: .9em 1.5em .9em 11em;
+  padding: .9em 1.5em .9em 9em;
   box-sizing: border-box;
   width: 100%;
 }
@@ -232,19 +235,18 @@ header .pure-menu-list {
   background-color: #54b1ff;
   opacity: .6;
   position: absolute;
-  margin-top: -.9em;
-  width: 1.5em;
-  height: 1.5em;
+  margin-top: -0.8em;
+  width: 1.3em;
+  height: 1.3em;
   border-radius: 1em;
-  margin-left: -.75em;
+  margin-left: -.55em;
 }
 #slider .knob.disabled {
   background-color: #ccc;
 }
 #buttons {
   position: absolute;
-  top:  .3em;
-  left: .4em;
+  top:  .25em;
   z-index: 1;
 }
 #status {
