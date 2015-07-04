@@ -473,7 +473,7 @@ void SemanticAnalyzer::visit_block(Block *x) {
 }
 
 void SemanticAnalyzer::visit_vardecl(VarDecl *x) {
-   Value prev, init = _curr;
+   Value prev, init = Reference::deref(_curr);
    if (getenv(x->name, prev)) {
       if (has_flag(x->name, Param)) {
          x->add_error(_T("Ya existe un parámetro con nombre '%s'.", x->name.c_str()));
@@ -491,6 +491,7 @@ void SemanticAnalyzer::visit_vardecl(VarDecl *x) {
    if (init.is_null()) {
       init = type->create_abstract();
    } else {
+      
       string Ta = type->typestr(), Tb = init.type()->typestr();
       if (Ta != Tb) {
          x->add_error(_T("El tipo del valor inicial ('%s') no se corresponde "
@@ -693,7 +694,14 @@ bool SemanticAnalyzer::visit_type_conversion(CallExpr *x, const vector<Value>& a
    return false;
 }
 
-void SemanticAnalyzer::check_arguments(const Function *func_type, const vector<Value>& args) {
+void SemanticAnalyzer::check_arguments(CallExpr *x, const Function *func_type, 
+                                       const vector<Value>& args) 
+{
+   if (func_type->num_params() != args.size()) {
+      x->add_error(_T("Número de argumentos erróneo (son %d y deberían ser %d).",
+                      args.size(), func_type->num_params()));
+      return;
+   }
    for (int i = 0; i < args.size(); i++) {
       Type *param_type = func_type->param(i);
       if (param_type == Any) {
@@ -714,19 +722,6 @@ void SemanticAnalyzer::check_arguments(const Function *func_type, const vector<V
    }
 }
 
-void SemanticAnalyzer::visit_callexpr_call(Value func, const vector<Value>& args) {
-   // TODO: Find operator() (method or function)
-   if (func.is<Overloaded>()) {
-      func = func.as<Overloaded>().resolve(args);
-      assert(func.is<Callable>());
-   }
-   Binding& fn = func.as<Callable>();
-   const Function *func_type = fn.func.type()->as<Function>();
-   check_arguments(func_type, args);
-   _ret = func_type->return_type()->create_abstract();
-   _curr = _ret;
-}
-
 void SemanticAnalyzer::visit_callexpr(CallExpr *x) {
    // eval arguments
    vector<Value> argvals;
@@ -739,8 +734,23 @@ void SemanticAnalyzer::visit_callexpr(CallExpr *x) {
    }
    visit_callexpr_getfunc(x);
    if (_curr.is<Callable>()) {
-      visit_callexpr_call(_curr, argvals);
-   } else {
+      // TODO: Find operator() (method or function)
+      Value func = _curr;
+      if (func.is<Overloaded>()) {
+         func = func.as<Overloaded>().resolve(argvals);
+         assert(func.is<Callable>());
+      }
+      Binding& fn = func.as<Callable>();
+      const Function *func_type = fn.func.type()->as<Function>();
+      check_arguments(x, func_type, argvals);
+      Type *return_type = func_type->return_type();
+      if (return_type != 0) {
+         _curr = _ret = return_type->create_abstract();
+      } else {
+         _curr = _ret = Value::null;
+      }
+   } 
+   else {
       ostringstream oss;
       oss << "CallExpr(" << x << ")";
       Type *rettype = new UnknownType(oss.str());

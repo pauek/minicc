@@ -325,7 +325,8 @@ public:
       return this; 
    }
 
-   Type *param(int i)      const { return _param_types[i]; }
+    int num_params()       const { return _param_types.size(); }
+   Type *param(int i)      const { return (i < _param_types.size() ? _param_types[i] : 0); }
    Type *return_type()     const { return _return_type; }
    bool is_void()          const { return _return_type == 0; }
     int check_signature(const std::vector<Value>& args) const;
