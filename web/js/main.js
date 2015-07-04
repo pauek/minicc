@@ -161,7 +161,9 @@ var stepper = {
    },
    step: function () {
       var json = this._stepper.state();
+      console.log(json);
       var obj  = JSON.parse(json);
+      console.log(obj);
       this._history.push(obj);
       if (!this._stepper.step()) {
          alert(this._stepper.error());
@@ -254,6 +256,17 @@ var to_html = function (val, _extras) {
          links: []
       };
    }
+}
+
+to_html['char'] = function(val, extras) {
+   var links = [];
+   var ch = val.data['char'];
+   console.log("'" + ch + "'");
+   return {
+      html: render_elem('div', val.box, "'" + ch + "'", 
+                        extras.add('value')),
+      links: links,
+   };
 }
 
 to_html.array = function (val, extras) {

@@ -88,19 +88,12 @@ header .pure-menu-list {
 }
 
 #env .fenv {
-  border: 1px solid #bbb;
+  border: 1px solid #bec9e4;
   padding: 0;
   float: left;
   min-width: 100px;
   box-shadow: #ddd 2px 2px 7px;
   margin-bottom: 1em;
-}
-#env .fenv .wrapper {
-  padding-left: .4em;
-  padding-right: .4em;
-}
-
-#env .fenv {
   font-size: .85rem;
   font-family: "Source Code Pro", "Consolas", monospace;
   padding-bottom: 6px;
@@ -109,23 +102,29 @@ header .pure-menu-list {
   margin-right: 15px;
   vertical-align: top;
   border-radius: 3px;
+  opacity: .6;
+}
+#env .fenv .wrapper {
+  padding-left: .4em;
+  padding-right: .4em;
 }
 
 #env .fenv h5 {
   margin: 0;
   padding: 5px 8px;
-  background-color: rgba(0, 0, 0, .2);
+  background-color: rgba(0, 0, 0, .1);
   font-size: 0.9rem;
   font-weight: normal;
   margin-bottom: .4em;
 }
 
 #env .fenv.active h5 {
-  background-color: rgba(150, 150, 0, 0.3);
+  background-color: rgba(0, 80, 150, 0.1);
 }
 
 #env .fenv.active {
-  background-color: rgb(255, 255, 160);
+  background-color: #e1f0ff;
+  opacity: 1;
 }
 #env .struct {
   background-color: white;
