@@ -17,8 +17,7 @@ struct EvalError : public Error {
 class Interpreter : 
    public AstVisitor, public ReadWriter, WithEnvironment 
 {
-                              Value _curr, _ret;
-           std::vector<std::string> _env_names;
+    Value _curr, _ret;
 
     void   _error(std::string msg) {
        throw new EvalError(msg);
