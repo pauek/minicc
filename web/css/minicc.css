@@ -38,18 +38,71 @@ body {
 }
 
 header {
+  position: relative;
   border-bottom: 1px solid #ccc;
+  width: 100%;
+  height: 2.4em;
 }
 
 header .pure-menu-list {
   width: 8em;
 }
 
-#controls {
-  width: 100%;
-  display: inline-block;
-  vertical-align: bottom;
+#menu {
+  position: absolute;
+  left: 0;
+  float: left;
+  width: 7.5em;
+  height: 100%;
+  padding: .2em;
 }
+#slider {
+  position: absolute;
+  left: 17em;
+  right: 0;
+  height: 100%;
+  padding: 1em;
+  box-sizing: border-box;
+}
+#slider .track {
+  background-color: #dfdfdf;
+  height: 5px;
+  border-radius: 3px;
+}
+#slider .hl-track {
+  background-color: #54b1ff;
+  margin-top: -5px;
+  height: 5px;
+  border-radius: 3px;
+  width: 10%;
+}
+#slider .knob {
+  background-color: #54b1ff;
+  opacity: .6;
+  position: absolute;
+  margin-top: -0.8em;
+  width: 1.3em;
+  height: 1.3em;
+  border-radius: 1em;
+  margin-left: -.55em;
+}
+#slider .knob.disabled {
+  background-color: #ccc;
+}
+#buttons {
+  position: absolute;
+  height: 100%;
+  left: 7.5em;
+  padding-top: 0.1em;
+}
+.clear {
+  clear: both; 
+  height: 1px; 
+  overflow: hidden; 
+  font-size: 0pt; 
+  margin-top: -1px;
+}
+
 #controls .pure-button {
   padding: .4em .7em;
 }
@@ -198,51 +251,6 @@ header .pure-menu-list {
   text-align: right;
 }
 
-#controls {
-  position: relative;
-  padding-top: 1px;
-  height: 2.4em;
-  /* box-shadow: #ccc 0px 1px 10px; */
-}
-#slider {
-  position: relative;
-  top:   .1em;
-  right: 0;
-  height: 2.1em;
-  padding: .9em 1.5em .9em 9em;
-  box-sizing: border-box;
-  width: 100%;
-}
-#slider .track {
-  background-color: #dfdfdf;
-  height: 5px;
-  border-radius: 3px;
-}
-#slider .hl-track {
-  background-color: #54b1ff;
-  margin-top: -5px;
-  height: 5px;
-  border-radius: 3px;
-  width: 10%;
-}
-#slider .knob {
-  background-color: #54b1ff;
-  opacity: .6;
-  position: absolute;
-  margin-top: -0.8em;
-  width: 1.3em;
-  height: 1.3em;
-  border-radius: 1em;
-  margin-left: -.55em;
-}
-#slider .knob.disabled {
-  background-color: #ccc;
-}
-#buttons {
-  position: absolute;
-  top:  .25em;
-  z-index: 1;
-}
 #status {
   position: absolute;
 }
@@ -286,6 +294,8 @@ header .pure-menu-list {
 }
 #refs {
   z-index: 2;
+  width: auto;
+  height: auto;
   position: absolute;
   top: 0;
   left: 0;
