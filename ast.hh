@@ -288,6 +288,7 @@ struct Literal : public Expr {
       bool       as_bool;
       int        as_int;
       double     as_double;
+      char       as_char;
       StringData as_string;
    };
    Type type;

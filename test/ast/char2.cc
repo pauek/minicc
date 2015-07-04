@@ -1,11 +1,11 @@
 string f() {
-   main('bla', ' ', 'r');
+   main('Z', ' ', 'r');
 }
 [[out]]--------------------------------------------------
 Program{
    FuncDecl(id:'f', Type(id:'string'), Params = {}, {
       Block({
-         ExprStmt(CallExpr(id:'main', Args = {Char<bla>, Char< >, Char<r>}))
+         ExprStmt(CallExpr(id:'main', Args = {Char<Z>, Char< >, Char<r>}))
       })
    })
 }

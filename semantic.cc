@@ -153,8 +153,7 @@ void SemanticAnalyzer::visit_literal(Literal *x) {
    case Literal::Int:    _curr = Value(x->val.as_int);       break;
    case Literal::Double: _curr = Value(x->val.as_double);    break;
    case Literal::Bool:   _curr = Value(x->val.as_bool);      break;
-   case Literal::Char:   _curr = Value((*x->val.as_string.s)[0] /* FIXME */);
-      break;
+   case Literal::Char:   _curr = Value(x->val.as_char);      break;
    default:
       x->add_error(_T("SemanticAnalyzer::visit_literal: UNIMPLEMENTED"));
    }

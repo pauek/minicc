@@ -496,7 +496,7 @@ Expr *Parser::parse_primary_expr(AstNode *parent) {
    case Token::CharLiteral: {
       Literal* lit = new Literal(Literal::Char);
       lit->parent = parent;
-      lit->val.as_string.s = new string(tok.str);
+      lit->val.as_char = tok.str[0];
       lit->ini = ini;
       lit->fin = _in.pos();
       _skip(lit);
