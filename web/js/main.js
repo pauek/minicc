@@ -215,8 +215,13 @@ function resize() {
    slider._refreshKnob();
 }
 
-function render_elem(elem, box, content, extra) {
+function render_elem(elem, val, content, extra) {
+   var box = val.box;
+   var just_touched = (val['<just_touched>'] == true);
    var html = '<' + elem + ' id="box-' + box + '" class="var ';
+   if (just_touched) {
+      html += 'just_touched ';
+   }
    if (extra && extra.classes) {
       for (var i = 0; i < extra.classes.length; i++) {
          html += ' ' + extra.classes[i];
@@ -250,11 +255,11 @@ function new_extras(classes, insert) {
 }
 
 var to_html = function (val, _extras) {
+   console.log("to_html", val, _extras);
    var extras = _extras || new_extras();
    if (val.data === null) {
       return {
-         html:  render_elem('div', val.box, '?', 
-                            extras.add('unknown')),
+         html:  render_elem('div', val, '?', extras.add('unknown')),
          links: []
       };
    } 
@@ -270,8 +275,7 @@ var to_html = function (val, _extras) {
          data = '"' + data + '"';
       }
       return {
-         html: render_elem('div', val.box, data, 
-                           extras.add('value')),
+         html: render_elem('div', val, data, extras.add('value')),
          links: []
       };
    }
@@ -282,7 +286,7 @@ to_html['char'] = function(val, extras) {
    var ch = val.data['char'];
    console.log("'" + ch + "'");
    return {
-      html: render_elem('div', val.box, "'" + ch + "'", 
+      html: render_elem('div', val, "'" + ch + "'", 
                         extras.add('value')),
       links: links,
    };
@@ -293,7 +297,7 @@ to_html.array = function (val, extras) {
    var html = '<tr>';
    if (val.data.length == 0) {
       return {
-         html: render_elem('div', val.box, '', 
+         html: render_elem('div', val, '', 
                            extras.add('value empty')),
          links: links,
       };
@@ -312,7 +316,7 @@ to_html.array = function (val, extras) {
    } 
    html += '</tr>';
    return {
-      html: render_elem('table', val.box, html, 
+      html: render_elem('table', val, html, 
                         extras.add('array')),
       links: links,
    }
@@ -321,7 +325,7 @@ to_html.array = function (val, extras) {
 to_html.ref = function (val, extras) {
    extras.classes.push('ref');
    return  {
-      html: render_elem('div', val.box, '', extras),
+      html: render_elem('div', val, '', extras),
       links: [{from: val.box, to: val.data['ref']}]
    };
 }
@@ -331,7 +335,7 @@ to_html.list = function (val, extras) {
    var elems = val.data['<elements>'];
    if (elems.length == 0) {
       return {
-         html: render_elem('div', val.box, '', 
+         html: render_elem('div', val, '', 
                            extras.add('value empty')),
          links: links,
       };
@@ -350,7 +354,7 @@ to_html.list = function (val, extras) {
    } 
    html += '</tr>';
    return {
-      html: render_elem('table', val.box, html, 
+      html: render_elem('table', val, html, 
                         extras.add('list')),
       links: links,
    }
@@ -374,7 +378,7 @@ to_html.struct = function (val, extras) {
    html += '</table>';
 
    return {
-      html: render_elem('div', val.box, html, extras),
+      html: render_elem('div', val, html, extras),
       links: links,
    };
 }
@@ -523,8 +527,16 @@ function showstate(S) {
          if (name == "<active>") {
             continue;
          }
-         html += '<tr><td><div class="name">' + name + '</div></td><td>';
-         var res = to_html(table[name]);
+         var extras = new_extras();
+         var display_name = name;
+         if (name[name.length-1] == "*") { // hacky...
+            console.log("JUST TOUCHED: " + name);
+            extras = extras.add('just_touched');
+            console.log(extras);
+            display_name = name.substr(0, name.length-1);
+         }
+         html += '<tr><td><div class="name">' + display_name + '</div></td><td>';
+         var res = to_html(table[name], extras);
          push.apply(env[i].links, res.links);
          html += res.html;
          html += '</td></tr>';
@@ -728,18 +740,18 @@ $(document).ready(function () {
    $("#forwards").addClass("pure-button-disabled");
    $("#backwards").addClass("pure-button-disabled");
 
-   $("#execute").click(execute);     Mousetrap.bind("f9", execute);
    $("#reformat").click(reformat);   Mousetrap.bind("f3", reformat);
    $("#download").click(download);   Mousetrap.bind("f4", download);
+   $("#execute").click(execute);     Mousetrap.bind("f9", execute);
    $("#forwards").click(forwards);   Mousetrap.bind("right", forwards);
    $("#backwards").click(backwards); Mousetrap.bind("left", backwards);
    Mousetrap.bind("ctrl+right", toend);
    Mousetrap.bind("ctrl+left", tobegin);
 
    editor.setOption("extraKeys", {
-      "F9": execute,
       "F3": reformat,
-      "F4": download
+      "F4": download,
+      "F9": execute,
    });
 
    $(window).resize(resize);

@@ -187,6 +187,9 @@ header .pure-menu-list {
   display: inline-block;
   margin: .1em 0;
 }
+#env .var.just_touched {
+  background-color: yellow;
+}
 #env .list .var {
   margin-left: .3em;
   position: relative;
