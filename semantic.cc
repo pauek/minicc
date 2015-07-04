@@ -532,9 +532,16 @@ void SemanticAnalyzer::visit_arraydecl(ArrayDecl *x) {
    }
    // FIXME: don't create new Array type every time?
    Type *arraytype = Array::mkarray(celltype, sizes);
-   setenv(x->name, (init.is_null() 
-                    ? arraytype->create()
-                    : arraytype->convert(init)));
+   if (init.is_null()) {
+      init = arraytype->create();
+   } else {
+      try {
+         init = arraytype->convert(init);
+      } catch (TypeError& e) {
+         x->add_error(e.msg);
+      }
+   }
+   setenv(x->name, init);
 }
    
 void SemanticAnalyzer::visit_objdecl(ObjDecl *x) {

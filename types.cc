@@ -1280,11 +1280,11 @@ Value Array::create() {
 Value Array::convert(Value init) const {
    assert(!init.is_null());
    if (!init.is<VectorValue>()) {
-      _error("Inicializas una tabla con algo que no es una lista de valores");
+      _error("Inicializas una tabla con algo que no es una lista de valores.");
    }
    vector<Value>& elist = init.as<VectorValue>();
    if (elist.size() > _sz) {
-      _error("Demasiados valores al inicializar la tabla");
+      _error("Demasiados valores al inicializar la tabla.");
    }
    vector<Value> *array = new vector<Value>(_sz);
    for (int i = 0; i < elist.size(); i++) {
