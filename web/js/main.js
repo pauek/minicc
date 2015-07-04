@@ -179,7 +179,6 @@ var stepper = {
       var json = this._stepper.state();
       console.log(json);
       var obj  = JSON.parse(json);
-      console.log(obj);
       this._history.push(obj);
       if (!this._stepper.step()) {
          alert(this._stepper.error());
@@ -255,7 +254,6 @@ function new_extras(classes, insert) {
 }
 
 var to_html = function (val, _extras) {
-   console.log("to_html", val, _extras);
    var extras = _extras || new_extras();
    if (val.data === null) {
       return {
@@ -284,7 +282,6 @@ var to_html = function (val, _extras) {
 to_html['char'] = function(val, extras) {
    var links = [];
    var ch = val.data['char'];
-   console.log("'" + ch + "'");
    return {
       html: render_elem('div', val, "'" + ch + "'", 
                         extras.add('value')),
@@ -530,9 +527,7 @@ function showstate(S) {
          var extras = new_extras();
          var display_name = name;
          if (name[name.length-1] == "*") { // hacky...
-            console.log("JUST TOUCHED: " + name);
             extras = extras.add('just_touched');
-            console.log(extras);
             display_name = name.substr(0, name.length-1);
          }
          html += '<tr><td><div class="name">' + display_name + '</div></td><td>';
@@ -641,16 +636,10 @@ var slider = {
    },
    incr: function() {
       this._knob += 1;
-      if (this._knob > this._max * 0.95) {
-         this._max += this._max / 2;
+      if (this._knob >= this._max) {
+         this._knob = this._max-1;
       }
       this._refreshKnob();
-      if (this._knob > this._curr) {
-         this._curr = this._knob;
-         this._refreshTrack();
-         return true;
-      }
-      return false;
    },
    decr: function() {
       this._knob -= 1;
@@ -661,7 +650,6 @@ var slider = {
    },
    _refreshTrack: function () {
       var ratio = this._curr / this._max;
-      console.log(ratio);
       if (ratio > 1.0) {
          ratio = 1.0;
       } else if (ratio < 0.0) {
@@ -709,12 +697,7 @@ var slider = {
 };
 
 function forwards() {
-   if (slider.top() && stepper.finished()) {
-      return;
-   }
-   if (slider.incr()) {
-      stepper.step();
-   }
+   slider.incr();
    stepper.show(slider.knob());
 }
 
