@@ -37,6 +37,8 @@ string String::to_json(void *data) const {
    return string("\"") + *(string*)data + "\"";
 }
 
+map<string, const Type*> Type::reference_types;
+
 // Methods
 
 Type *TypeMap::instantiate_template(const vector<TypeSpec*>& subtypespecs, 
@@ -106,11 +108,14 @@ void TypeMap::clear() {
    _typecache.clear();
 }
 
-Type *Type::mkref(Type *t) {
-   if (t->reference_type == 0) {
-      t->reference_type = new Reference(t);
+const Type *Type::mkref(const Type *t) {
+   const string typestr = t->typestr();
+   auto it = reference_types.find(typestr);
+   if (it == reference_types.end()) {
+      auto res = reference_types.insert(make_pair(typestr, new Reference(t)));
+      it = res.first;
    }
-   return t->reference_type;
+   return it->second;
 }
 
 
@@ -137,7 +142,7 @@ void Reference::destroy(void *data) const {
    }
 }
 
-Value Reference::convert(Value x) {
+Value Reference::convert(Value x) const {
    assert(x.is<Reference>());
    Value::Box *b = (Value::Box*)x._box->data;
    b->count++;
@@ -152,6 +157,11 @@ Value Reference::mkref(Value& v) {
    Value::Box *b = v._box;
    v._box->count++;
    return Value(Type::mkref(v._box->type), (void*)b);
+}
+
+Value Reference::create_abstract() const {
+   Value v = _subtype->create_abstract();
+   return mkref(v);
 }
 
 Value Reference::deref(const Value& v) {
@@ -179,7 +189,7 @@ bool BaseType<T>::accepts(const Type *t) const {
 }
 
 // Initializations
-Value Int::convert(Value x) {
+Value Int::convert(Value x) const {
    x = Reference::deref(x);
    if (x.is_abstract()) {
       if (x.is<Int>() or x.is<Float>() or x.is<Double>() or x.is<Char>() or x.is<Bool>()) {
@@ -207,7 +217,7 @@ bool Int::accepts(const Type *t) const {
       t->is<Float>() or t->is<Double>() or t->is<Char>() or t->is<Bool>();
 }
 
-Value Float::convert(Value x) {
+Value Float::convert(Value x) const {
    x = Reference::deref(x);
    if (x.is_abstract()) {
       if (x.is<Float>() or x.is<Double>() or x.is<Int>()) {
@@ -231,7 +241,7 @@ bool Float::accepts(const Type *t) const {
       t->is<Int>() or t->is<Double>() or t->is<Char>() or t->is<Bool>();
 }
 
-Value Double::convert(Value x) {
+Value Double::convert(Value x) const {
    x = Reference::deref(x);
    if (x.is_abstract()) {
       if (x.is<Double>() or x.is<Int>() or x.is<Float>()) {
@@ -255,7 +265,7 @@ bool Double::accepts(const Type *t) const {
       t->is<Int>() or t->is<Float>() or t->is<Char>() or t->is<Bool>();
 }
 
-Value Char::convert(Value x) {
+Value Char::convert(Value x) const {
    x = Reference::deref(x);
    if (x.is_abstract()) {
       if (x.is<Char>() or x.is<Int>()) {
@@ -283,7 +293,7 @@ string Char::to_json(void *data) const {
    return json.str();
 }
 
-Value Bool::convert(Value x) {
+Value Bool::convert(Value x) const {
    x = Reference::deref(x);
    if (x.is_abstract()) {
       if (x.is<Bool>() or x.is<Int>()) {
@@ -543,7 +553,7 @@ string Vector::typestr() const {
    return name() + "<" + subtype + ">";
 }
 
-Value Vector::convert(Value x) {
+Value Vector::convert(Value x) const {
    //
    // To support C++11-style initialization of vectors, this method should
    // be like Array::convert...
@@ -908,7 +918,7 @@ string List::typestr() const {
    return name() + "<" + subtype + ">";
 }
 
-Value List::convert(Value x) {
+Value List::convert(Value x) const {
    //
    // To support C++11-style initialization of vectors, this method should
    // be like Array::convert...
@@ -1000,7 +1010,7 @@ int Pair::get_field(Value self, std::string name, std::vector<Value>& result) co
    return Base::get_field(self, name, result);
 }
 
-Value Pair::convert(Value x) {
+Value Pair::convert(Value x) const {
    x = Reference::deref(x);
    if (x.is<Pair>()) {
       return x.clone();
@@ -1267,7 +1277,7 @@ Value Array::create() {
    return Value(this, array);
 }
 
-Value Array::convert(Value init) {
+Value Array::convert(Value init) const {
    assert(!init.is_null());
    if (!init.is<VectorValue>()) {
       _error("Inicializas una tabla con algo que no es una lista de valores");
@@ -1304,7 +1314,16 @@ Value Struct::create() {
    return Value(this, tab);
 }
 
-Value Struct::convert(Value init) {
+Value Struct::create_abstract() const {
+   SimpleTable<Value> *tab = new SimpleTable<Value>();
+   for (int i = 0; i < _fields.size(); i++) {
+      pair<std::string, Type *> f = _fields[i];
+      tab->set(f.first, f.second->create_abstract());
+   }
+   return Value(this, tab);
+}
+
+Value Struct::convert(Value init) const {
    if (init.has_type(this)) {
       return init.clone();
    }
@@ -1767,7 +1786,7 @@ Value OverloadedValue::resolve(const std::vector<Value>& args) {
    vector<Value> results;
    list<pair<int, int>> scores;
    for (int i = 0; i < _candidates.size(); i++) {
-      Function *ftype = _candidates[i].type()->as<Function>();
+      const Function *ftype = _candidates[i].type()->as<Function>();
       assert(ftype != 0);
       int score = ftype->check_signature(args);
       if (score != -1) {

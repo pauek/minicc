@@ -62,24 +62,18 @@ header .pure-menu-list {
   z-index: 10; /* code-mirror gutter es 4 */
 }
 
-.splitter_panel .hsplitter {
-  background-color: #f9faef;
-  border-top: 1px solid #e1e3d4;
-  height: 4px;
-}
-
 .splitter_panel .vsplitter {
-  background-color: #eceff4;
-  border-left: 1px solid #ccd6e8;
+  background-color: #f4f5eb;
+  border-left: 1px solid #e1e3d4;
   width: 6px;
 }
 
 #right {
-  background-color: #eceff4;
+  background-color: #f9faef;
 }
 
 #bottom {
-  background-color: #f9faef;
+  background-color: #eceff4;
   padding: 0;
   overflow: hidden;
 }
@@ -99,6 +93,7 @@ header .pure-menu-list {
   float: left;
   min-width: 100px;
   box-shadow: #ddd 2px 2px 7px;
+  margin-bottom: 1em;
 }
 #env .fenv .wrapper {
   padding-left: .4em;
@@ -253,6 +248,8 @@ header .pure-menu-list {
   position: absolute;
 }
 #status .text {
+  width: 15em;
+  position: absolute;
   font-family: sans-serif;
   font-size: 95%;
   padding: .3em .5em;

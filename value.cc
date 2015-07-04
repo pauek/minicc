@@ -24,7 +24,7 @@ void Value::_detach(Box *b) {
    }
 }
 
-Value::Value(Type *t, void *d) {
+Value::Value(const Type *t, void *d) {
    assert(t != 0);
    _attach(new Box(t, d));
 }

@@ -491,12 +491,16 @@ void SemanticAnalyzer::visit_vardecl(VarDecl *x) {
    if (init.is_null()) {
       init = type->create_abstract();
    } else {
-      
-      string Ta = type->typestr(), Tb = init.type()->typestr();
-      if (Ta != Tb) {
-         x->add_error(_T("El tipo del valor inicial ('%s') no se corresponde "
-                         "con el tipo de la variable ('%s').", 
-                         Tb.c_str(), Ta.c_str()));
+      try {
+         Value init2 = type->convert(init);
+         if (init2.is_null()) {
+            x->add_error(_T("El tipo del valor inicial ('%s') no se "
+                            "corresponde con el tipo de la variable ('%s').",
+                            init.type()->typestr().c_str(),
+                            type->typestr().c_str()));
+         }
+      } catch (TypeError *e) {
+         x->add_error(e->msg);
       }
    }
    setenv(x->name, init);
@@ -799,13 +803,11 @@ void SemanticAnalyzer::visit_fieldexpr(FieldExpr *x) {
    }
    Value obj = _curr;
    if (obj.is<Struct>()) {
-      assert(false);
-
-      // TODO: Move this to 'get_field' in 'Struct' class???
+      // FIXME: Move this to 'get_field' in 'Struct' class???
       SimpleTable<Value>& fields = obj.as<Struct>();
       Value v;
       if (!fields.get(x->field->name, v)) {
-         // _error(_T("No existe el campo '%s'", x->field->name.c_str()));
+         x->add_error(_T("No existe el campo '%s'", x->field->name.c_str()));
       }
       _curr = Reference::mkref(v);
       return;

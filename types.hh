@@ -24,10 +24,10 @@ struct Func {
 
 class Type {
    std::string _name;
-   Type *reference_type;
+   static std::map<string, const Type *> reference_types;
 
 public:
-   Type(std::string name) : _name(name), reference_type(0) {}
+   Type(std::string name) : _name(name) {}
 
    //        void *alloc(T x) = a different method for every Type
    virtual   void  destroy(void *data) const                 { assert(false); }
@@ -39,9 +39,9 @@ public:
    virtual   void *read(std::istream& i, void *data)   const { assert(false); }
    virtual string  to_json(void *data)                 const { assert(false); }
 
-   Type() : reference_type(0) {}
+   Type() {}
 
-   static Type *mkref(Type *t);
+   static const Type *mkref(const Type *t);
    
    enum Property {
       Unknown     =  1,
@@ -62,11 +62,10 @@ public:
    virtual        bool  get_static(std::string, Value& v)         const { return false; }
    virtual        Type *get_inner_class(std::string)                    { return 0; }
    virtual       Value  create()                                        { assert(false); }
+   virtual       Value  create_abstract()                         const { return Value(this, 0); }
    virtual        bool  accepts(const Type *t)                    const { return this == t; }
-   virtual       Value  convert(Value init)                             { assert(false); }
+   virtual       Value  convert(Value init)                       const { assert(false); }
    virtual        Type *instantiate(std::vector<Type*>& subtypes) const { assert(false); } // for templates
-
-                  Value create_abstract() { return Value(this, 0); }
 
    template<typename T>
    bool is() const { return dynamic_cast<const T*>(this) != 0; }
@@ -152,7 +151,7 @@ public:
    Value create() { 
       return Value(this, new T()); 
    }
-   Value convert(Value init) {
+   Value convert(Value init) const {
       if (init.has_type(this)) {
          return init.clone();
       }
@@ -200,6 +199,8 @@ class Reference : public Type {
 public:
    Reference(const Type *subtype) : Type("<reference>"), _subtype(subtype) {}
 
+         Value  create_abstract()   const;
+
     const Type *subtype()           const { return _subtype; }
    std::string  typestr()           const { return _subtype->typestr() + "&"; }
            int  properties()        const { return Basic; }
@@ -207,7 +208,7 @@ public:
           void *alloc(Value& x)     const;
           void  destroy(void *data) const;
    
-         Value  convert(Value init);
+         Value  convert(Value init) const;
 
   static Value  mkref(Value& v);  // create a reference to a value
   static Value  deref(const Value& v);  // obtain the referenced value
@@ -220,7 +221,7 @@ public:
 class Int : public BasicType<int> {
 public:
    Int() : BasicType("int") {}
-   Value convert(Value init); 
+   Value convert(Value init)    const; 
     bool accepts(const Type *t) const;
   static Int *self;
 };
@@ -228,7 +229,7 @@ public:
 class Float : public BasicType<float> {
 public:
    Float() : BasicType("float") {}
-   Value convert(Value init);
+   Value convert(Value init)    const;
     bool accepts(const Type *t) const;
    static Float *self;
 };
@@ -236,7 +237,7 @@ public:
 class Double : public BasicType<double> {
 public:
    Double() : BasicType("double") {}
-   Value convert(Value init);
+   Value convert(Value init)    const;
     bool accepts(const Type *t) const;
    static Double *self;
 };
@@ -245,9 +246,9 @@ class Char : public BasicType<char> {
    bool _destroy; // reference to a char within a string
 public:
    Char(bool destroy = true) : _destroy(destroy), BasicType("char") {}
-   Value convert(Value init); 
-    bool accepts(const Type *t) const;
-    void destroy(void *data) const;
+   Value convert(Value init)       const; 
+    bool accepts(const Type *t)    const;
+    void destroy(void *data)       const;
    std::string to_json(void *data) const;
    static Char *self;
    static Char *self_ref;
@@ -256,7 +257,7 @@ public:
 class Bool : public BasicType<bool> {
 public:
    Bool() : BasicType("bool") {}
-   Value convert(Value init);
+   Value convert(Value init)    const;
     bool accepts(const Type *t) const; 
   static Bool *self;
    std::string to_json(void *data) const {
@@ -385,7 +386,7 @@ struct OverloadedValue {
 class Overloaded : public BaseType<OverloadedValue> {
 public:
               Overloaded() : BaseType<OverloadedValue>("<unresolved-function>") {}
-       Value  convert(Value init) { assert(false); }
+       Value  convert(Value init) const { assert(false); }
        Value  mkvalue(Value self, const std::vector<Value>& candidates);
 
    static  Overloaded *self;
@@ -400,8 +401,9 @@ public:
    bool has_field(std::string field_name)    const { return _fields.exists(field_name); }
 
    Value create();
-   Value convert(Value init);
-   void *clone(void *data) const;
+   Value convert(Value init) const;
+   Value create_abstract()   const;
+   void *clone(void *data)   const;
 
    std::string to_json(void *data) const;
 
@@ -424,7 +426,7 @@ public:
            int  properties() const { return Basic; }
    std::string  typestr()    const { return _celltype->typestr() + "[]"; }
          Value  create();
-         Value  convert(Value init);
+         Value  convert(Value init) const;
    std::string  to_json(void *) const;
 };
 
@@ -437,7 +439,7 @@ public:
    Vector(Type *t);
 
    int   properties() const { return Template | Emulated | Type::Class; }
-   Value convert(Value init);
+   Value convert(Value init) const;
    Type *instantiate(std::vector<Type*>& args) const;
    Type *celltype() const { return _celltype; }
 
@@ -460,7 +462,7 @@ public:
    List(Type *t);
 
    int   properties() const { return Template | Emulated; }
-   Value convert(Value init);
+   Value convert(Value init) const;
    Type *instantiate(std::vector<Type*>& args) const;
    Type *celltype() const { return _celltype; }
 
@@ -484,7 +486,7 @@ public:
    Pair(Type *_1, Type *_2);
 
    int   properties() const { return Template | Emulated; }
-   Value convert(Value init);
+   Value convert(Value init) const;
    Type *instantiate(std::vector<Type*>& args) const;
    Type *first()  const { return _first; }
    Type *second() const { return _second; }
@@ -626,7 +628,7 @@ public:
 
 template<typename T>
 bool Value::is() const {
-   return !is_null() and dynamic_cast<T*>(_box->type) != 0;
+   return !is_null() and dynamic_cast<const T*>(_box->type) != 0;
 }
 
 template<typename T>

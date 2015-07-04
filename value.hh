@@ -21,11 +21,11 @@ struct Type;
 class Value { // new value
    struct Box {
       int   count;
-      Type *type;
+      const Type *type;
       void *data;
 
       Box() : count(0), type(0), data(0) {}
-      Box(Type *t, void *d) : count(0), type(t), data(d) {}
+      Box(const Type *t, void *d) : count(0), type(t), data(d) {}
    };
    Box *_box;
 
@@ -36,7 +36,7 @@ class Value { // new value
 
 public:
    explicit Value() : _box(0) {}
-   explicit Value(Type *t, void *d = 0); // with data = 0 creates an 'abstract' Value
+   explicit Value(const Type *t, void *d = 0); // with data = 0 creates an 'abstract' Value
    Value(const Value& v);
 
    explicit Value(int x);
@@ -51,7 +51,7 @@ public:
 
    ~Value();
 
-   Type *type()  const { return (_box == 0 ? 0 : _box->type); }
+   const Type *type()  const { return (_box == 0 ? 0 : _box->type); }
    void *data()  const { return (_box == 0 ? 0 : _box->data); }
 
    template<typename T> bool is() const;

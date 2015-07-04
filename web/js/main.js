@@ -194,12 +194,6 @@ function resize() {
    slider._refreshKnob();
 }
 
-function bottomPartition() {
-   var total = $('#bottom').height();
-   var controls = $('#controls').height();
-   $('#bottom .scroll').height((total - controls) + 'px');
-}
-
 function render_elem(elem, box, content, extra) {
    var html = '<' + elem + ' id="box-' + box + '" class="var ';
    if (extra && extra.classes) {
@@ -483,10 +477,10 @@ function showstate(S) {
    if (env === null) {
       return;
    }
-   var html = '<table><tr>';
+   var html = '<table>';
    for (var i = env.length-1; i >= 0; i--) {
       env[i].links = [];
-      html += '<td><div id="env-' + env[i].name + '" class="fenv';
+      html += '<tr><td><div id="env-' + env[i].name + '" class="fenv';
       if (env[i].tab["<active>"]) {
          html += " active";
       }
@@ -504,9 +498,9 @@ function showstate(S) {
          html += '</td></tr>';
       }
       html += '</table></div>';
-      html += '</div></td>';
+      html += '</div></td></tr>';
    }
-   html += '</tr></table>';
+   html += '</table>';
    $('#env').append(html);
    $('#status .text').text(S.status);
    $('#status').show();
@@ -706,19 +700,13 @@ $(document).ready(function () {
    $(window).resize();
 
    $('#content').split({
-      orientation: 'horizontal',
-      limit: 70,
-   });
-   $('#top').split({
       orientation: 'vertical',
-      limit: 350,
+      limit: 150,
    });
    $(window).bind('splitter.resize', function () {
       editor.refresh();
-      bottomPartition();
    });
    editor.refresh();
-   bottomPartition();
 
    $(window).bind('beforeunload', function () {
       saveProgram();
