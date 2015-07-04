@@ -653,7 +653,7 @@ var slider = {
    click: function (ev) {
       var track = $('#slider .track');
       var w = track.width();
-      var left = track.position().left;
+      var left = track.offset().left;
       var ratio = (ev.clientX - left) / w;
       if (ratio < -0.02 || ratio > 1.02) {
          return;
