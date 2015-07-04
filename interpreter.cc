@@ -830,8 +830,10 @@ void Interpreter::visit_increxpr(IncrExpr *x) {
    if (after.is<Int>()) {
       if (x->kind == IncrExpr::Positive) {
          after.as<Int>()++;
+         after.touch();
       } else {
          after.as<Int>()--;
+         after.touch();
       }
    } else {
       _curr = after;

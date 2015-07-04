@@ -93,12 +93,30 @@ bool Value::assign(const Value& v) {
    if (v._box->data == 0) {
       _box->type->destroy(_box->data);
       _box->data = 0;
+      _box->just_touched = true;
       return true;
    } else if (_box->data == 0) {
       _box->data = v._box->type->clone(v._box->data);
+      _box->just_touched = true;
       return true;
    } else {
-      return _box->type->assign(_box->data, v._box->data);
+      _box->just_touched = _box->type->assign(_box->data, v._box->data);
+      return _box->just_touched;
+   }
+}
+
+void Value::clear_just_touched() {
+   if (_box != 0) {
+      _box->just_touched = false;
+      if (_box->data != 0) {
+         _box->type->clear_just_touched(_box->data);
+      }
+   }
+}
+
+void Value::touch() {
+   if (_box != 0) {
+      _box->just_touched = true;
    }
 }
 
@@ -110,6 +128,7 @@ void Value::write(ostream& o) const {
 void Value::read(istream& i) {
    assert(!is_null());
    _box->data = _box->type->read(i, _box->data);
+   _box->just_touched = true;
 }
 
 bool Value::equals(const Value& v) const {
@@ -143,7 +162,11 @@ string Value::type_name() const {
 
 string Value::to_json() const {
    ostringstream json;
-   json << "{\"box\":\"" << (void*)_box << "\",\"data\":";
+   json << "{\"box\":\"" << (void*)_box << "\"";
+   if (_box->just_touched) {
+      json << ",\"<just_touched>\":true";
+   }
+   json << ",\"data\":";
    json << (is_null() ? "\"?\"" : _box->type->to_json(_box->data));
    json << "}";
    return json.str();

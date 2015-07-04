@@ -9,6 +9,7 @@ using namespace std;
 
 bool Stepper::step() {
    _err = 0;
+   I.clear_just_touched();
    try {
       Todo t = Next;
       while (!finished() and t == Next) {

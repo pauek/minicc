@@ -6,17 +6,17 @@ enum Flag { Hidden = 1, Param = 2 };
 template<typename T>
 struct SimpleTable {
    struct Item {
-      std::pair<std::string, T> _data; // name + data
+      std::pair<std::string, T> _value; // name + value
       unsigned short int        _flags;
 
-      Item(std::string n, T d, int flags = 0) : _data(n, d), _flags(flags) {}
+      Item(std::string n, T d, int flags = 0) : _value(n, d), _flags(flags) {}
 
       bool operator==(const Item& i) const {
-         return _data == i._data and _flags == i._flags; // hidden?
+         return _value == i._value and _flags == i._flags; // hidden?
       }
 
-      std::string name()     const { return _data.first; }
-                T data()     const { return _data.second; }
+      std::string name()     const { return _value.first; }
+                T value()    const { return _value.second; }
              bool has_flag(Flag f) const { return _flags & f; }
    };
 
@@ -25,16 +25,20 @@ struct SimpleTable {
    const Item *_get(std::string name) const;
    
    int size() const { return tab.size(); }
+
+   std::pair<std::string, T>& operator[](int i) { 
+      return tab[i]._value; 
+   }
    const std::pair<std::string, T>& operator[](int i) const { 
-      return tab[i]._data; 
+      return tab[i]._value; 
    }
 
-   void set(std::string name, T data, int flags = 0) {
+   void set(std::string name, T value, int flags = 0) {
       Item *i = _get(name);
       if (i == 0) {
-         tab.push_back(Item(name, data, flags));
+         tab.push_back(Item(name, value, flags));
       } else {
-         i->_data.second = data;
+         i->_value.second = value;
          i->_flags = flags;
       }
    }
@@ -47,7 +51,7 @@ struct SimpleTable {
    bool get(std::string name, T& res) {
       Item *i = _get(name);
       if (i) {
-         res = i->_data.second;
+         res = i->_value.second;
       }
       return i != 0;
    }
@@ -57,6 +61,13 @@ struct SimpleTable {
       return (i != 0 and i->has_flag(f));
    }
 
+   void set_flag(std::string name, Flag f);
+   void remove_flag(std::string name, Flag f);
+   void remove_flag_all(Flag f);
+
+   template<class UnaryFunction>
+   void for_each(UnaryFunction f);
+
    bool operator==(const SimpleTable& other) const {
       return tab == other.tab;
    }
@@ -65,7 +76,7 @@ struct SimpleTable {
 template<typename T>
 typename SimpleTable<T>::Item *SimpleTable<T>::_get(std::string name) {
    for (int i = 0; i < tab.size(); i++) {
-      if (tab[i]._data.first == name) {
+      if (tab[i]._value.first == name) {
          return &tab[i];
       }
    }
@@ -75,11 +86,42 @@ typename SimpleTable<T>::Item *SimpleTable<T>::_get(std::string name) {
 template<typename T>
 const typename SimpleTable<T>::Item *SimpleTable<T>::_get(std::string name) const {
    for (int i = 0; i < tab.size(); i++) {
-      if (tab[i]._data.first == name) {
+      if (tab[i]._value.first == name) {
          return &tab[i];
       }
    }
    return 0;
+}
+
+template<typename T>
+void SimpleTable<T>::remove_flag_all(Flag f) {
+   for (int i = 0; i < tab.size(); i++) {
+      tab[i]._flags &= ~f;
+   }
+}
+
+template<typename T>
+void SimpleTable<T>::set_flag(std::string name, Flag f) {
+   const Item *i = _get(name);
+   if (i != 0) {
+      i->_flags |= f;
+   }
+}
+
+template<typename T>
+void SimpleTable<T>::remove_flag(std::string name, Flag f) {
+   const Item *i = _get(name);
+   if (i != 0) {
+      i->_flags &= ~f;
+   }
+}
+
+template<typename T>
+template<class UnaryFunction>
+void SimpleTable<T>::for_each(UnaryFunction f) {
+   for (int i = 0; i < tab.size(); i++) {
+      f(tab[i]._value.second);
+   }
 }
 
 #endif

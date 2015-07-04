@@ -38,6 +38,7 @@ public:
    virtual   void  write(std::ostream& o, void *data)  const { assert(false); }
    virtual   void *read(std::istream& i, void *data)   const { assert(false); }
    virtual string  to_json(void *data)                 const { assert(false); }
+   virtual   void  clear_just_touched(void *data)      const { assert(false); }
 
    Type() {}
 
@@ -157,6 +158,7 @@ public:
       }
       return Value::null;
    }
+   void clear_just_touched(void *data) const {} // nothing to do
    bool accepts(const Type *t) const;
 };
 
@@ -213,7 +215,9 @@ public:
   static Value  mkref(Value& v);  // create a reference to a value
   static Value  deref(const Value& v);  // obtain the referenced value
 
-   std::string to_json(void *data) const;
+          void  clear_just_touched(void *data) const;
+
+   std::string  to_json(void *data) const;
 
    static Reference *self;
 };
@@ -404,6 +408,7 @@ public:
    Value convert(Value init) const;
    Value create_abstract()   const;
    void *clone(void *data)   const;
+   void clear_just_touched(void *data) const;
 
    std::string to_json(void *data) const;
 
@@ -427,6 +432,8 @@ public:
    std::string  typestr()    const { return _celltype->typestr() + "[]"; }
          Value  create();
          Value  convert(Value init) const;
+          void  clear_just_touched(void *data) const;
+
    std::string  to_json(void *) const;
 };
 
@@ -644,7 +651,7 @@ typename T::cpp_type& Value::as() const {
 }
 
 class Environment {
-              std::string  _name;
+             std::string  _name;
                     bool  _hidden;
              Environment *_parent;
       SimpleTable<Value>  _tab;
@@ -671,6 +678,13 @@ Environment *pop();
 
        void  set(std::string name, Value data, int flags = 0) {
           _tab.set(name, data, flags);
+       }
+
+       void clear_just_touched() {
+          _tab.for_each([](Value &v) { v.clear_just_touched(); });
+          if (_parent) {
+             _parent->clear_just_touched();
+          }
        }
 
        bool  has_flag(std::string name, Flag f) const {
@@ -710,6 +724,8 @@ public:
    bool  getenv(std::string id, Value& v);
    void  setenv(std::string id, Value v, int flags = 0);
    bool  has_flag(std::string id, Flag f) const;
+
+   void  clear_just_touched() { _env->clear_just_touched(); }
    
    Type *get_type(TypeSpec *spec);
    void  register_type(std::string name, Type *);

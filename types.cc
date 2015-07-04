@@ -173,6 +173,14 @@ Value Reference::deref(const Value& v) {
    }
 }
 
+void Reference::clear_just_touched(void *data) const {
+   Value::Box *b = (Value::Box*)data;
+   assert(b != 0);
+   if (b->data != 0) {
+      b->type->clear_just_touched(b->data);
+   }
+}
+
 string Reference::to_json(void *data) const {
    Value::Box *b = (Value::Box*)data;
    std::ostringstream O;
@@ -1269,6 +1277,13 @@ string Array::to_json(void *data) const {
    return json.str();
 }
 
+void Array::clear_just_touched(void *data) const {
+   vector<Value> *v = static_cast<vector<Value>*>(data);
+   for (int i = 0; i < v->size(); i++) {
+      (*v)[i].clear_just_touched();
+   }
+}
+
 Value Array::create() {
    vector<Value> *array = new vector<Value>(_sz);
    for (int i = 0; i < _sz; i++) {
@@ -1358,6 +1373,13 @@ void *Struct::clone(void *data) const {
       to->set(f.first, f.second.clone());
    }
    return to;
+}
+
+void Struct::clear_just_touched(void *data) const {
+   SimpleTable<Value> *_tab = static_cast<SimpleTable<Value>*>(data);
+   for (int i = 0; i < _tab->size(); i++) {
+      (*_tab)[i].second.clear_just_touched();
+   }
 }
 
 string Struct::to_json(void *data) const {
@@ -1715,8 +1737,9 @@ string Environment::to_json() const {
       if (_tab.tab[i].has_flag(Hidden)) {
          continue;
       }
-      json << ",\"" << _tab.tab[i].name() << "\":";
-      json << _tab.tab[i].data().to_json();
+      string name = _tab.tab[i].name();
+      json << ",\"" << name << "\":";
+      json << _tab.tab[i].value().to_json();
    }
    json << "}}";
    return json.str();

@@ -23,9 +23,13 @@ class Value { // new value
       int   count;
       const Type *type;
       void *data;
+      bool just_touched;
 
-      Box() : count(0), type(0), data(0) {}
-      Box(const Type *t, void *d) : count(0), type(t), data(d) {}
+      Box() 
+         : count(0), type(0), data(0), just_touched(false) {}
+
+      Box(const Type *t, void *d) 
+         : count(0), type(t), data(d), just_touched(d != 0) {}
    };
    Box *_box;
 
@@ -51,8 +55,11 @@ public:
 
    ~Value();
 
-   const Type *type()  const { return (_box == 0 ? 0 : _box->type); }
-   void *data()  const { return (_box == 0 ? 0 : _box->data); }
+   const Type *type()    const { return (_box == 0 ? 0 : _box->type); }
+         void *data()    const { return (_box == 0 ? 0 : _box->data); }
+         void  touch();
+
+   void clear_just_touched(); 
 
    template<typename T> bool is() const;
    template<typename T> typename T::cpp_type& as();
