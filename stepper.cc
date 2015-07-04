@@ -287,7 +287,8 @@ void Stepper::visit_assignment(BinaryExpr *e) {
    Value right = Reference::deref(I._curr);
    ostringstream oss;
    oss << right;
-   status(_T("La expresión ha dado %s.", oss.str().c_str()));
+   string escaped = Literal::escape(oss.str(), '"');
+   status(_T("La expresión ha dado %s.", escaped.c_str()));
    push(new AssignmentVisitState(e, right));
 }
 

@@ -34,7 +34,7 @@ OStringStream *OStringStream::self = new OStringStream();
 IStringStream *IStringStream::self = new IStringStream();
 
 string String::to_json(void *data) const {
-   return string("\"") + *(string*)data + "\"";
+   return string("\"") + Literal::escape(*(string*)data, '"') + "\"";
 }
 
 map<string, const Type*> Type::reference_types;
@@ -296,8 +296,9 @@ bool Char::accepts(const Type *t) const {
 
 string Char::to_json(void *data) const {
    ostringstream json;
+   string ch(1, *(char*)data);
    json << "{\"<type>\":\"char\",\"char\":\"" 
-        << *(char*)data << "\"}" << endl;
+        << Literal::escape(ch, '"') << "\"}" << endl;
    return json.str();
 }
 
