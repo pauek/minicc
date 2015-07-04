@@ -13,22 +13,22 @@ int main() {\n\
 
 var cambiado = false;
 var compilado = false;
+var ejecutado = false;
 
 function setCompilado(new_value) {
    compilado = new_value;
    if (compilado) {
       $("#compile").addClass("pure-button-disabled");
-      $("#execute").removeClass("pure-button-disabled");
       $("#forwards").removeClass("pure-button-disabled");
       $("#backwards").removeClass("pure-button-disabled");
       stepper.prepare();
    } else {
       $("#compile").removeClass("pure-button-disabled");
-      $("#execute").addClass("pure-button-disabled");
       $("#forwards").addClass("pure-button-disabled");
       $("#backwards").addClass("pure-button-disabled");
       stepper.resetHistory();
       stepper.clearMark();
+      ejecutado = false;
    }
    slider.reset();
    showstate(null);
@@ -92,19 +92,35 @@ function compile() {
    $('#errors').show();
 }
 
+function eval_program() {
+   var out = Module.execute("");
+   var re1 = new RegExp('\n', 'g');
+   out = out.replace(re1, '\u21a9\n');
+   var re2 = new RegExp(' ', 'g');
+   out = out.replace(re2, '\u2423');
+   out += '\u00a7';
+   $('#output').show();
+   output.setValue(out);
+}
+
 function execute() {
+   if (!compilado) {
+      compile();
+   } 
+   if (!ejecutado) {
+      while (!stepper.finished()) {
+         stepper.step();
+      }
+      ejecutado = true;
+   }
+   slider.fill(stepper.historySize());
+   tobegin();
+
+   /*
    $('#errors').hide();
    $("#output > pre").text("");
-   setTimeout(function () {
-      var out = Module.execute("");
-      var re1 = new RegExp('\n', 'g');
-      out = out.replace(re1, '\u21a9\n');
-      var re2 = new RegExp(' ', 'g');
-      out = out.replace(re2, '\u2423');
-      out += '\u00a7';
-      $('#output').show();
-      output.setValue(out);
-   }, 80);
+   setTimeout(eval_program, 80);
+   */
 }
 
 const MIME_TYPE = 'text/plain';
@@ -181,6 +197,9 @@ var stepper = {
       var status = $('#status').get()[0];
       var line = editor.getLine(item.span.fin.line);
       editor.addWidget({line: item.span.fin.line, ch: line.length}, status);
+   },
+   historySize: function () {
+      return this._history.length;
    }
 };
 
@@ -596,6 +615,13 @@ var slider = {
       this._refreshKnob();
       this._refreshTrack();
    },
+   fill: function (n) {
+      this._max = n;
+      this._curr = n;
+      this._knob = -1;
+      this._refreshKnob();
+      this._refreshTrack();
+   },
    init: function () {
       this._refreshTrack();
       this._refreshKnob();
@@ -623,6 +649,7 @@ var slider = {
    },
    _refreshTrack: function () {
       var ratio = this._curr / this._max;
+      console.log(ratio);
       if (ratio > 1.0) {
          ratio = 1.0;
       } else if (ratio < 0.0) {
@@ -679,32 +706,38 @@ function forwards() {
    stepper.show(slider.knob());
 }
 
+function toend() {
+   slider.setKnob(1);
+}
+
 function backwards() {
    slider.decr();
    stepper.show(slider.knob());
 }
 
-$(document).ready(function () {
+function tobegin() {
+   slider.setKnob(0);
+}
 
+$(document).ready(function () {
    if (localStorage["minicc:program"]) {
       initial_program = localStorage["minicc:program"];
    }
    setup(initial_program);
 
-   $("#execute").addClass("pure-button-disabled");
    $("#forwards").addClass("pure-button-disabled");
    $("#backwards").addClass("pure-button-disabled");
 
-   $("#compile").click(compile);     Mousetrap.bind("f9", compile);
-   $("#execute").click(execute);     Mousetrap.bind("f5", execute);
+   $("#execute").click(execute);     Mousetrap.bind("f9", execute);
    $("#reformat").click(reformat);   Mousetrap.bind("f3", reformat);
    $("#download").click(download);   Mousetrap.bind("f4", download);
    $("#forwards").click(forwards);   Mousetrap.bind("right", forwards);
    $("#backwards").click(backwards); Mousetrap.bind("left", backwards);
+   Mousetrap.bind("ctrl+right", toend);
+   Mousetrap.bind("ctrl+left", tobegin);
 
    editor.setOption("extraKeys", {
-      "F9": compile,
-      "F5": execute,
+      "F9": execute,
       "F3": reformat,
       "F4": download
    });
