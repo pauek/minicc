@@ -34,15 +34,27 @@ string print_errors(const vector<Error*>& errors) {
 string compile(string code) {
    istringstream S(code);
    Parser P(&S);
-   program = P.parse();
+   try {
+      program = P.parse();
+   } catch (ParseError& e) {
+      ostringstream E;
+      E << "[{";
+      E << "\"ini\": "; e.pos.to_json(E); E << ", ";
+      E << "\"fin\": "; e.pos.to_json(E); E << ", ";
+      E << "\"msg\": \"" << e.msg << "\"";
+      E << "}]";
+      return E.str();
+   }
 
    vector<Error*> errors;
 
+   /*
    // parse errors
    collect_errors(program, errors);
    if (!errors.empty()) {
       return print_errors(errors);
    }
+   */
 
    // semantic errors
    SemanticAnalyzer A;
