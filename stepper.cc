@@ -74,6 +74,10 @@ Range Stepper::ProgramVisitState::span() const {
 Todo Stepper::ProgramVisitState::step(Stepper *S) {
    switch (at) {
    case Begin: {
+      if (x->block->stmts.empty()) {
+         at = End;
+         return Next;
+      }
       x->block->accept(S);
       at = End;
       return Stop;
@@ -95,8 +99,10 @@ Todo Stepper::ProgramVisitState::step(Stepper *S) {
 }
 
 void Stepper::visit_block(Block *x) {
-   push(new BlockVisitState(x));
-   x->stmts[0]->accept(this);
+   if (!x->stmts.empty()) {
+      push(new BlockVisitState(x));
+      x->stmts[0]->accept(this);
+   }
 }
 
 Todo Stepper::BlockVisitState::step(Stepper *S) {
