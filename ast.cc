@@ -335,6 +335,10 @@ SimpleIdent *TypeSpec::get_potential_namespace_or_class() const {
    return id->get_potential_namespace_or_class();
 }
 
+bool TypeSpec::is(TypeSpec::Qualifiers q) const {
+   return find(qual.begin(), qual.end(), q) != qual.end();
+}
+
 string TypeSpec::typestr() const {
    string _id;
    int i = 0, numquals = 0;

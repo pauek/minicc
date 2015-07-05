@@ -441,6 +441,7 @@ struct TypeSpec : public AstNode {
    TypeSpec(FullIdent *_id) : id(_id), reference(false) {}
    void accept(AstVisitor *v);
    bool has_errors() const;
+   bool is(Qualifiers q) const;
    std::string typestr() const;
 
    bool is_template() const { return !id->subtypes.empty(); }

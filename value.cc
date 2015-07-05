@@ -24,18 +24,21 @@ void Value::_detach(Box *b) {
    }
 }
 
-Value::Value(const Type *t, void *d) {
+Value::Value(const Type *t, void *d, bool cnst) {
    assert(t != 0);
    _attach(new Box(t, d));
+   _const = cnst;
 }
 
-Value::Value(Box *box) { 
+Value::Value(Box *box, bool cnst) { 
+   _const = cnst;
    _attach(box); 
 }
 
 Value::~Value() {
    _detach(_box);
    _box = 0;
+   _const = false;
 }
 
 Value::Value(const Value& v) {
@@ -44,6 +47,7 @@ Value::Value(const Value& v) {
    } else {
       _attach(v._box);
    }
+   _const = v._const;
 }
 
 const Value& Value::operator=(const Value& v) {
@@ -53,6 +57,7 @@ const Value& Value::operator=(const Value& v) {
    } else {
       _attach(v._box);
    }
+   _const = v._const;
    return *this;
 }
 
@@ -78,10 +83,13 @@ Value Value::clone() const {
    if (_box->data != 0) {
       data = _box->type->clone(_box->data);
    }
-   return Value(_box->type, data);
+   return Value(_box->type, data, _const);
 }
 
 bool Value::assign(const Value& v) {
+   if (_const) {
+      return false;
+   }
    if (v.is_null()) {
       _detach(_box);
       _box = 0;
@@ -180,15 +188,15 @@ string Value::to_json() const {
    return json.str();
 }
 
-Value::Value(int x)         { _attach(new Box(Int::self,    Int::self->alloc(x))); }
-Value::Value(char x)        { _attach(new Box(Char::self,   Char::self->alloc(x))); }
-Value::Value(bool x)        { _attach(new Box(Bool::self,   Bool::self->alloc(x))); }
-Value::Value(float x)       { _attach(new Box(Float::self,  Float::self->alloc(x))); }
-Value::Value(double x)      { _attach(new Box(Double::self, Double::self->alloc(x))); }
-Value::Value(string x)      { _attach(new Box(String::self, String::self->alloc(x))); }
-Value::Value(ostream& o)    { _attach(new Box(OStream::self, &o)); }
-Value::Value(istream& i)    { _attach(new Box(IStream::self, &i)); }
-Value::Value(const char *x) { _attach(new Box(String::self, String::self->alloc(string(x)))); }
+Value::Value(int x)         : _const(false) { _attach(new Box(Int::self,    Int::self->alloc(x))); }
+Value::Value(char x)        : _const(false) { _attach(new Box(Char::self,   Char::self->alloc(x))); }
+Value::Value(bool x)        : _const(false) { _attach(new Box(Bool::self,   Bool::self->alloc(x))); }
+Value::Value(float x)       : _const(false) { _attach(new Box(Float::self,  Float::self->alloc(x))); }
+Value::Value(double x)      : _const(false) { _attach(new Box(Double::self, Double::self->alloc(x))); }
+Value::Value(string x)      : _const(false) { _attach(new Box(String::self, String::self->alloc(x))); }
+Value::Value(ostream& o)    : _const(false) { _attach(new Box(OStream::self, &o)); }
+Value::Value(istream& i)    : _const(false) { _attach(new Box(IStream::self, &i)); }
+Value::Value(const char *x) : _const(false) { _attach(new Box(String::self, String::self->alloc(string(x)))); }
 
 std::ostream& operator<<(std::ostream& o, const Value& v) {
    v.write(o);

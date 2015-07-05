@@ -156,7 +156,7 @@ Value Reference::mkref(Value& v) {
    assert(!v.is_null());
    Value::Box *b = v._box;
    v._box->count++;
-   return Value(Type::mkref(v._box->type), (void*)b);
+   return Value(Type::mkref(v._box->type), (void*)b, v._const);
 }
 
 Value Reference::create_abstract() const {
@@ -167,7 +167,7 @@ Value Reference::create_abstract() const {
 Value Reference::deref(const Value& v) {
    if (v.is<Reference>()) {
       Value::Box *b = (Value::Box*)v._box->data;
-      return Value(b);
+      return Value(b, v._const);
    } else {
       return v;
    }

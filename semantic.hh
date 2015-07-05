@@ -13,9 +13,10 @@
 class SemanticAnalyzer : 
    public AstVisitor, public WithEnvironment
 {
+     std::string _curr_varname;
      Value _curr, _ret;
 
-     void  visit_binaryexpr_assignment(Value left, Value right);
+     void  visit_binaryexpr_assignment(BinaryExpr *x, Value left, Value right);
      void  visit_binaryexpr_op_assignment(char, Value left, Value right);
      void  visit_callexpr_getfunc(CallExpr *x);
      bool  visit_type_conversion(CallExpr *x, const std::vector<Value>& args);

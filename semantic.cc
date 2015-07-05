@@ -133,6 +133,7 @@ void SemanticAnalyzer::visit_fullident(FullIdent *x) {
 
    // Try the environment
    if (getenv(x->name, v)) {
+      _curr_varname = x->name;
       goto found;
    } else {
       x->add_error(_T("No se ha declarado '%s'.", x->name.c_str()));
@@ -276,7 +277,7 @@ void SemanticAnalyzer::visit_binaryexpr(BinaryExpr *x) {
       return; // already evaluated
    }
    if (x->op == "=") {
-      visit_binaryexpr_assignment(left, right);
+      visit_binaryexpr_assignment(x, left, right);
       return;
    }
    if (x->op == "+=" || x->op == "-=" || x->op == "*=" || x->op == "/=" ||
@@ -405,28 +406,31 @@ inline bool assignment_types_ok(const Value& a, const Value& b) {
       (a.is<Double>() and b.is<Float>());
 }
 
-void SemanticAnalyzer::visit_binaryexpr_assignment(Value left, Value right) {
+void SemanticAnalyzer::visit_binaryexpr_assignment(BinaryExpr* x, Value left, Value right) {
    if (!left.is<Reference>()) {
-      // _error(_T("Intentas asignar sobre algo que no es una variable"));
+      x->add_error(_T("Intentas asignar sobre algo que no es una variable"));
+      return;
    }
    left = Reference::deref(left);
+   if (left.is_const()) {
+      x->add_error(_T("La variable '%s' no se puede modificar (es 'const').",
+                      _curr_varname.c_str()));
+      return;
+   }
    right = left.type()->convert(right);
    if (right == Value::null) {
-      // TODO: Find operator as method or function
-      /*
-      _error(_T("La asignación no se puede hacer porque los "
-                "tipos no son compatibles (%s) vs (%s)", 
-                left.type_name().c_str(), 
-                right.type_name().c_str()));
-      */
+      x->add_error(_T("La asignación no se puede hacer porque los "
+                      "tipos no son compatibles (%s) vs (%s)", 
+                      left.type_name().c_str(), 
+                      right.type_name().c_str()));
+      return;
    }
    if (!left.assign(right)) {
-      /*
-      _error(_T("La asignación no se puede hacer porque los "
-                "tipos no son compatibles (%s) vs (%s)", 
-                left.type_name().c_str(), 
-                right.type_name().c_str()));
-      */
+      x->add_error(_T("La asignación no se puede hacer porque los "
+                      "tipos no son compatibles (%s) vs (%s)", 
+                      left.type_name().c_str(), 
+                      right.type_name().c_str()));
+      return;
    }
    _curr = left;
 }
@@ -501,6 +505,9 @@ void SemanticAnalyzer::visit_vardecl(VarDecl *x) {
       } catch (TypeError *e) {
          x->add_error(e->msg);
       }
+   }
+   if (x->typespec->is(TypeSpec::Const)) {
+      init.set_const(true);
    }
    setenv(x->name, init);
 }

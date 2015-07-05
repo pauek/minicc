@@ -482,9 +482,13 @@ void Interpreter::visit_vardecl(VarDecl *x) {
       _error(_T("El tipo '%s' no existe.", type_name.c_str()));
    }
    try {
-      setenv(x->name, (_curr.is_null() 
-                       ? type->create() 
-                       : type->convert(_curr)));
+      Value init = (_curr.is_null() 
+                    ? type->create() 
+                    : type->convert(_curr));
+      if (x->typespec->is(TypeSpec::Const)) {
+         init.set_const(true);
+      }
+      setenv(x->name, init);
    } 
    catch (TypeError& e) {
       _error(e.msg);

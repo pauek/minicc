@@ -32,15 +32,17 @@ class Value { // new value
          : count(0), type(t), data(d), just_touched(d != 0) {}
    };
    Box *_box;
+   bool _const;
 
    void _detach(Box *b);
    void _attach(Box *b);
 
-   explicit Value(Box *box);
+   explicit Value(Box *box, bool cnst);
 
 public:
-   explicit Value() : _box(0) {}
-   explicit Value(const Type *t, void *d = 0); // with data = 0 creates an 'abstract' Value
+   explicit Value() : _box(0), _const(false) {}
+   explicit Value(const Type *t, void *d = 0, 
+                  bool cnst = false); // with data = 0 creates an 'abstract' Value
    Value(const Value& v);
 
    explicit Value(int x);
@@ -58,8 +60,9 @@ public:
    const Type *type()    const { return (_box == 0 ? 0 : _box->type); }
          void *data()    const { return (_box == 0 ? 0 : _box->data); }
          void  touch();
-
-   void clear_just_touched(); 
+         bool  is_const()           const { return _const; }
+         void  set_const(bool cnst)       { _const = cnst; }
+         void  clear_just_touched(); 
 
    template<typename T> bool is() const;
    template<typename T> typename T::cpp_type& as();

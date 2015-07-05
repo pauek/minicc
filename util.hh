@@ -1,7 +1,7 @@
 #ifndef UTIL_HH
 #define UTIL_HH
 
-enum Flag { Hidden = 1, Param = 2 };
+enum Flag { Hidden = 1, Param = 2, Const = 4 };
 
 template<typename T>
 struct SimpleTable {
