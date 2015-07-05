@@ -17,24 +17,38 @@ using namespace std;
 
 AstNode *program;
 
+string print_errors(const vector<Error*>& errors) {
+   ostringstream E;
+   E << "[";
+   bool first = true;
+   for (const Error *e : errors) {
+      if (!first) E << ", " << endl;
+      e->to_json(E);
+      first = false;
+      // delete e; // ??
+   }
+   E << "]";
+   return E.str();
+}
+
 string compile(string code) {
    istringstream S(code);
    Parser P(&S);
    program = P.parse();
+
+   vector<Error*> errors;
+
+   // parse errors
+   collect_errors(program, errors);
+   if (!errors.empty()) {
+      return print_errors(errors);
+   }
+
+   // semantic errors
    SemanticAnalyzer A;
    program->accept(&A);
-   ostringstream E;
-   vector<Error*> errors;
    collect_errors(program, errors);
-   E << "[";
-   bool first = true;
-   for (Error *e : errors) {
-      if (!first) E << ", " << endl;
-      e->to_json(E);
-      first = false;
-   }
-   E << "]";
-   return E.str();
+   return print_errors(errors);
 }
 
 string execute(string input) {
