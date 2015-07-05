@@ -143,7 +143,7 @@ function execute() {
       }
       ejecutado = true;
    }
-   slider.fill(stepper.historySize());
+   slider.fill(stepper.historySize()-1);
    tobegin();
 
    /*
@@ -666,8 +666,8 @@ var slider = {
    },
    incr: function() {
       this._knob += 1;
-      if (this._knob >= this._max) {
-         this._knob = this._max-1;
+      if (this._knob > this._max) {
+         this._knob = this._max;
       }
       this._refreshKnob();
    },
