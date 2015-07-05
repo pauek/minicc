@@ -1,3 +1,5 @@
+- Preparser: mira si las llaves/paréntesis/puntos-y-coma estan bien equilibrados
+  e intenta dar pistas sobre cómo arreglarlo.
 - Implementar instanciación de funciones de template (max, make_pair).
 - Implementar 'const_iterator' y 'reverse_iterator' para vector y list.
 - Introducir 'const'!!!!
