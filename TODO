@@ -1,9 +1,12 @@
 - Implementar instanciación de funciones de template (max, make_pair).
 - Implementar 'const_iterator' y 'reverse_iterator' para vector y list.
 - Introducir 'const'!!!!
+- Errores de ejecución: se muestran en el "timeline" con un botón rojo y se para el programa.
+  1) Utilizar valores 'unknown'.
+  2) Desreferenciar iteradores al 'end'.
+  3) ... (what else?).
 
 - Borrar el AST correctamente (quizás no haga falta, el AST está presente todo el rato).
 - Testear a fondo el stepper.
-- Empezar el Semantic Analyzer (-> mensajes de error)
 - Pintar matrices en 2D.
-- Pensar más Entrada/Salida.
+- Entrada/Salida interactiva + programada.
