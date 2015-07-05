@@ -124,6 +124,15 @@ int test_visitor(string filename, VisitorType vtype) {
    Parser P(&Scode, &Serr);
    AstNode *program;
    program = P.parse();
+   
+   vector<Error*> ve;
+   collect_errors(program, ve);
+   if (!ve.empty()) {
+      for (Error *e : ve) {
+         Serr << e->msg << endl;
+      }
+      goto compare;
+   }
 
    AstVisitor *v;
    switch (vtype) {
@@ -153,7 +162,6 @@ int test_visitor(string filename, VisitorType vtype) {
          }
       } else {
          program->accept(v);
-         vector<Error*> ve;
          collect_errors(program, ve);
          for (Error *e : ve) {
             Serr << e->msg << endl;
@@ -163,6 +171,8 @@ int test_visitor(string filename, VisitorType vtype) {
    catch (Error* e) {
       Serr << "Error de ejecución: " << e->msg << endl;
    }
+
+ compare:
    compare_result(filename, Sout.str(), Serr.str(), out, err);
    return 0;
 }
