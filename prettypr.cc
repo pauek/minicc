@@ -290,6 +290,7 @@ void PrettyPrinter::visit_literal(Literal *x) {
    switch (x->type) {
    case Literal::Bool:   out() << (x->val.as_bool ? "true" : "false"); break;
    case Literal::Int:    out() << x->val.as_int; break;
+   case Literal::Double: out() << x->val.as_double; break;
    case Literal::String: out() << '"' << Literal::escape(*x->val.as_string.s, '"') << '"'; break;
    case Literal::Char:   {
       string ch(1, x->val.as_char);
