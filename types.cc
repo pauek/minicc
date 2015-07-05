@@ -325,6 +325,25 @@ bool Bool::accepts(const Type *t) const {
 
 // Vector ////////////////////////////////////////////////////////////
 
+// Valor por defecto para cada tipo según constructores de
+// vector, list y map en la STL...
+//
+Value default_value_for(Type *t) {
+   if (t->is<Int>()) {
+      return Value(0);
+   } else if (t->is<Bool>()) {
+      return Value(false);
+   } else if (t->is<Float>()) {
+      return Value(0.0f);
+   } else if (t->is<Double>()) {
+      return Value(0.0);
+   } else if (t->is<Char>()) {
+      return Value('\0');
+   } else {
+      return t->create();
+   }
+}
+
 Vector::Vector(Type *celltype) 
    : Class("vector"), _celltype(celltype) 
 {
@@ -572,23 +591,6 @@ Value Vector::convert(Value x) const {
       return x.clone();
    }
    return Value::null;
-}
-
-Value Vector::default_value_for(Type *t) {
-   // Valor por defecto para cada tipo controlado por vector!
-   if (t->is<Int>()) {
-      return Value(0);
-   } else if (t->is<Bool>()) {
-      return Value(false);
-   } else if (t->is<Float>()) {
-      return Value(0.0f);
-   } else if (t->is<Double>()) {
-      return Value(0.0);
-   } else if (t->is<Char>()) {
-      return Value('\0');
-   } else {
-      return t->create();
-   }
 }
 
 string Vector::to_json(void *data) const {
@@ -939,23 +941,6 @@ Value List::convert(Value x) const {
    return Value::null;
 }
 
-Value List::default_value_for(Type *t) {
-   // Valor por defecto para cada tipo controlado por vector!
-   if (t->is<Int>()) {
-      return Value(0);
-   } else if (t->is<Bool>()) {
-      return Value(false);
-   } else if (t->is<Float>()) {
-      return Value(0.0f);
-   } else if (t->is<Double>()) {
-      return Value(0.0);
-   } else if (t->is<Char>()) {
-      return Value('\0');
-   } else {
-      return t->create();
-   }
-}
-
 string List::to_json(void *data) const {
    ostringstream json;
    json << "{\"<type>\":\"list\",\"<elements>\":[";
@@ -1208,7 +1193,7 @@ Map::Map(Type *k, Type *v)
          Value key = Reference::deref(args[0]).clone(); // clone the key and use the clone
          Value& val = the_map[key];
          if (val == Value::null) {
-            val = value_type->create();
+            val = default_value_for(value_type);
          }
          return Reference::mkref(val);
       }

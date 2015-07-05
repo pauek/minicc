@@ -150,7 +150,7 @@ public:
       return new T(*static_cast<T*>(data));
    }
    Value create() { 
-      return Value(this, new T()); 
+      return Value(this, 0); 
    }
    Value convert(Value init) const {
       if (init.has_type(this)) {
@@ -449,8 +449,6 @@ public:
 
 class Vector : public Class<BaseType<std::vector<Value>>> {
    Type *_celltype; // celltype == 0 means it's the template
-
-   static Value default_value_for(Type *t);
 public:
    Vector()        : Class("vector"), _celltype(0) {}
    Vector(Type *t);
@@ -459,6 +457,10 @@ public:
    Value convert(Value init) const;
    Type *instantiate(std::vector<Type*>& args) const;
    Type *celltype() const { return _celltype; }
+
+   Value create() { 
+      return Value(this, new std::vector<Value>()); 
+   }
 
    std::string typestr() const;
    std::string to_json(void *data) const;
@@ -472,11 +474,13 @@ public:
 
 class List : public Class<BaseType<std::list<Value>>> {
    Type *_celltype; // celltype == 0 means it's the template
-
-   static Value default_value_for(Type *t);
 public:
    List()        : Class("list"), _celltype(0) {}
    List(Type *t);
+
+   Value create() { 
+      return Value(this, new std::list<Value>()); 
+   }
 
    int   properties() const { return Template | Emulated; }
    Value convert(Value init) const;
@@ -501,6 +505,10 @@ class Pair : public Class<BaseType<std::pair<Value, Value>>> {
 public:
    Pair() : Class("pair"), _first(0), _second(0) {}
    Pair(Type *_1, Type *_2);
+
+   Value create() { 
+      return Value(this, new std::pair<Value, Value>()); 
+   }
 
    int   properties() const { return Template | Emulated; }
    Value convert(Value init) const;
@@ -528,6 +536,10 @@ class Map : public Class<BaseType<std::map<Value, Value>>> {
 public:
    Map() : Class("map"), _key(0), _value(0), _pair_type(0) {}
    Map(Type *k, Type *v);
+
+   Value create() { 
+      return Value(this, new std::map<Value, Value>()); 
+   }
 
    int   properties() const { return Template | Emulated; }
    Type *instantiate(std::vector<Type*>& args) const;

@@ -264,6 +264,34 @@ void Interpreter::visit_binaryexpr(BinaryExpr *x) {
       left = Reference::deref(left);
    }
 
+   // Handle booleans first, since they might not need to evaluate the
+   // second part
+   // 
+   if (x->op == "&&" or x->op == "and" or x->op == "||" or x->op == "or")  {
+      if (left.is<Bool>() /* and right.is<Bool>() // FIXME: Check in SemanticAnalyzer!! */) {
+         // do not evaluate right hand side if already enough with left
+         if (x->op == "&&" or x->op == "and") {
+            if (!left.as<Bool>()) {
+               _curr = Value(false);
+               return;
+            }
+         } else {
+            if (left.as<Bool>()) {
+               _curr = Value(true);
+               return;
+            }
+         }
+         x->right->accept(this);
+         Value right = _curr;
+         right = Reference::deref(right);
+         _curr = Value(x->op == "&&" or x->op == "and" 
+                       ? left.as<Bool>() and right.as<Bool>()
+                       : left.as<Bool>() or  right.as<Bool>());
+         return;
+      }
+      _error(_T("Los operandos de '%s' no son de tipo 'bool'", x->op.c_str()));
+   }
+
    x->right->accept(this);
    Value right = _curr;
    right = Reference::deref(right);
@@ -337,15 +365,6 @@ void Interpreter::visit_binaryexpr(BinaryExpr *x) {
          return;
       }
       _error(_T("Los operandos de '%s' son incompatibles", "%="));
-   }
-   else if (x->op == "&&" or x->op == "and" || x->op == "||" || x->op == "or")  {
-      if (left.is<Bool>() and right.is<Bool>()) {
-         _curr = Value(x->op == "&&" or x->op == "and" 
-                       ? left.as<Bool>() and right.as<Bool>()
-                       : left.as<Bool>() or  right.as<Bool>());
-         return;
-      }
-      _error(_T("Los operandos de '%s' no son de tipo 'bool'", x->op.c_str()));
    }
    else if (x->op == "==" || x->op == "!=") {
       if (left.same_type_as(right)) {
@@ -463,8 +482,11 @@ void Interpreter::visit_vardecl(VarDecl *x) {
       _error(_T("El tipo '%s' no existe.", type_name.c_str()));
    }
    try {
-      setenv(x->name, (_curr.is_null() ? type->create() : type->convert(_curr)));
-   } catch (TypeError& e) {
+      setenv(x->name, (_curr.is_null() 
+                       ? type->create() 
+                       : type->convert(_curr)));
+   } 
+   catch (TypeError& e) {
       _error(e.msg);
    }
 }
