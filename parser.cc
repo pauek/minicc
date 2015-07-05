@@ -26,6 +26,11 @@ void Parser::error(AstNode *n, string msg) {
    n->errors.push_back(err);
 }
 
+void Parser::error(AstNode *n, Pos ini, Pos fin, string msg) {
+   Error *err = new Error(ini, fin, msg);
+   n->errors.push_back(err);
+}
+
 template<class Node>
 typename Node::Error *Parser::error(string msg) {
    typename Node::Error *s = new typename Node::Error();
@@ -113,7 +118,7 @@ AstNode* Parser::parse_macro(AstNode *parent) {
       Macro *m = new Macro(_in.substr(macro_ini, macro_fin));
       m->ini = ini;
       m->fin = macro_fin;
-      error(m, _T("Macro '#%s' unknown.", macro_name.c_str()));
+      error(m, macro_ini, macro_fin, _T("Macro '#%s' unknown.", macro_name.c_str()));
       return m;
    }
    Include* inc = new Include();

@@ -25,6 +25,7 @@ class Parser {
    }
    
    void error(AstNode *n, std::string msg);
+   void error(AstNode *n, Pos ini, Pos fin, std::string msg);
 
    template<class Node>
    typename Node::Error *error(std::string msg);
