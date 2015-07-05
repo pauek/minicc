@@ -107,6 +107,7 @@ function compile() {
    }
    errlist.innerHTML = '';
    var errors = JSON.parse(errjson);
+   console.log(errors);
    for (var i = 0; i < errors.length; i++) {
       var err = errors[i];
       var ini = {line: err.ini.lin-1, ch: err.ini.col};
@@ -207,7 +208,6 @@ var stepper = {
    },
    step: function () {
       var json = this._stepper.state();
-      console.log(json);
       var obj  = JSON.parse(json);
       this._history.push(obj);
       if (!this._stepper.step()) {

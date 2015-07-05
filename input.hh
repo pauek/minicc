@@ -16,6 +16,8 @@ struct Pos {
    void sl(int x) { lin = x; }
    void sc(int x) { col = x; }
 
+    Pos next() const { return Pos(lin, col+1); }
+
    void to_json(std::ostream& o) const;
 };
 

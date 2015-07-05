@@ -136,15 +136,17 @@ AstNode* Parser::parse_macro(AstNode *parent) {
    _in.next();
    while (_in.curr() != close) {
       if (_in.curr() == '\n') {
-         inc->fin = _in.pos();
-         error(inc, _T("'#include' missing closing '%c'.", close));
+         Pos fin = _in.pos();
+         inc->fin = fin;
+         error(inc, fin, fin.next(), 
+               _T("'#include' missing closing '%c'.", close));
          break;
       }
       filename += _in.curr();
       Pos p = _in.pos();
       _in.next();
       if (_in.end()) {
-         error(inc, p.str() + ": " + _T("'#include' missing closing '%c'", close));
+         error(inc, p, p.next(), _T("'#include' missing closing '%c'", close));
          break;
       }
    }
