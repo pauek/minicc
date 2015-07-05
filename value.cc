@@ -162,13 +162,21 @@ string Value::type_name() const {
 
 string Value::to_json() const {
    ostringstream json;
-   json << "{\"box\":\"" << (void*)_box << "\"";
-   if (_box->just_touched) {
-      json << ",\"<just_touched>\":true";
+   if (is_null()) {
+      json << "null";
+   } else {
+      json << "{\"box\":\"" << (void*)_box << "\"";
+      if (_box->just_touched) {
+         json << ",\"<just_touched>\":true";
+      }
+      json << ",\"data\":";
+      if (_box->data == 0) {
+         json << "null";
+      } else {
+         json << _box->type->to_json(_box->data);
+      }
+      json << "}";
    }
-   json << ",\"data\":";
-   json << (is_null() ? "\"?\"" : _box->type->to_json(_box->data));
-   json << "}";
    return json.str();
 }
 

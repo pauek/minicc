@@ -246,10 +246,12 @@ header .pure-menu-list {
   height: 1.2em;
 }
 #env .var.unknown {
-  color: #aaa;
+  color: #bbb;
+  background-color: #f5f5f5;
 }
 #env table.var.array {
   padding-bottom: 0;
+  padding-left: .2em;
 }
 #env td {
   vertical-align: top;
