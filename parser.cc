@@ -39,6 +39,9 @@ typename Node::Error *Parser::error(string msg) {
    return s;
 }
 
+void Parser::fatal_error(Pos pos, string msg) {
+   throw ParseError(pos, msg);
+}
 
 AstNode* Parser::parse() {
    Program *prog = new Program();
@@ -118,7 +121,7 @@ AstNode* Parser::parse_macro(AstNode *parent) {
       Macro *m = new Macro(_in.substr(macro_ini, macro_fin));
       m->ini = ini;
       m->fin = macro_fin;
-      error(m, macro_ini, macro_fin, _T("Macro '#%s' unknown.", macro_name.c_str()));
+      fatal_error(macro_fin, _T("Macro '#%s' unknown.", macro_name.c_str()));
       return m;
    }
    Include* inc = new Include();
@@ -138,8 +141,7 @@ AstNode* Parser::parse_macro(AstNode *parent) {
       if (_in.curr() == '\n') {
          Pos fin = _in.pos();
          inc->fin = fin;
-         error(inc, fin, fin.next(), 
-               _T("'#include' missing closing '%c'.", close));
+         fatal_error(fin, _T("'#include' missing closing '%c'.", close));
          break;
       }
       filename += _in.curr();

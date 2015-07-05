@@ -123,8 +123,16 @@ int test_visitor(string filename, VisitorType vtype) {
    istringstream Scode(code), Sin(in);
    Parser P(&Scode, &Serr);
    AstNode *program;
-   program = P.parse();
-   
+   try {
+      program = P.parse();
+   }
+   catch (ParseError& e) {
+      Serr << filename << "[" << e.pos << "]: " << e.msg << endl;
+      goto compare;
+   }
+
+   /*
+   // parse errors
    vector<Error*> ve;
    collect_errors(program, ve);
    if (!ve.empty()) {
@@ -134,6 +142,7 @@ int test_visitor(string filename, VisitorType vtype) {
       }
       goto compare;
    }
+   */
 
    AstVisitor *v;
    switch (vtype) {
@@ -162,6 +171,7 @@ int test_visitor(string filename, VisitorType vtype) {
             }
          }
       } else {
+         vector<Error*> ve;
          program->accept(v);
          collect_errors(program, ve);
          for (Error *e : ve) {

@@ -5,7 +5,12 @@
 #include "ast.hh"
 #include "input.hh"
 
-struct ParseError {};
+struct ParseError {
+   Pos pos;
+   std::string msg;
+
+   ParseError(Pos p, std::string m) : pos(p), msg(m) {}
+};
 
 class Parser {
    Input _in;
@@ -23,9 +28,10 @@ class Parser {
    void _skip(X *n, std::string stopset = "\n\t ") {
       n->comments.push_back(_in.skip(stopset));
    }
-   
+
    void error(AstNode *n, std::string msg);
    void error(AstNode *n, Pos ini, Pos fin, std::string msg);
+   void fatal_error(Pos p, std::string msg);
 
    template<class Node>
    typename Node::Error *error(std::string msg);
