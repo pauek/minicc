@@ -293,7 +293,7 @@ header .pure-menu-list {
   border: none;
 }
 #env table.array > tbody > tr > td > div.var {
-  padding: 0 .1em .3em 0;
+  padding: 0 .3em .2em .3em;
   margin-left: -1px;
   position: relative;
 }
