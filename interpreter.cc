@@ -182,14 +182,17 @@ bool Interpreter::visit_op_assignment(Value left, Value _right) {
    Value right = left.type()->convert(_right);
    if (left.is<Int>() and right.is<Int>()) {
       Op::eval(left.as<Int>(), right.as<Int>());
+      left.touch();
       return true;
    } 
    if (left.is<Float>() and right.is<Float>()) {
       Op::eval(left.as<Float>(), right.as<Float>());
+      left.touch();
       return true;
    }
    if (left.is<Double>() and right.is<Double>()) {
       Op::eval(left.as<Double>(), right.as<Double>());
+      left.touch();
       return true;
    }
    return false;
@@ -200,6 +203,7 @@ bool Interpreter::visit_bitop_assignment(Value left, Value _right) {
    Value right = left.type()->convert(_right);
    if (left.is<Int>() and right.is<Int>()) {
       Op::eval(left.as<Int>(), right.as<Int>());
+      left.touch();
       return true;
    } 
    return false;
