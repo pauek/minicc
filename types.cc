@@ -1632,7 +1632,7 @@ String::String() : Class("string") {
             throw Error("Acceso fuera de rango"); // FIXME
          }
          Value the_char(Char::self_ref, (void*)(&the_string[k]));
-         return Reference::mkref(the_char); // TODO: Devolver una referencia al caracter!!!
+         return Reference::mkref(the_char);
       }
    };
    _add_method((new Function(this))->add_params(Int::self),
