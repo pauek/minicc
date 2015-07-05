@@ -258,6 +258,16 @@ public:
    static Char *self_ref;
 };
 
+/*
+
+TODO: CharRef, un tipo que permite obtener una referencia a un
+caracter individual de un string pero que cuando es modificado, marca
+el "just_touched" del string entero. Esto hace que sea necesario tener
+una referencia al string entero y un índice, y que no se pueda hacer
+como la clase "Reference".
+
+ */
+
 class Bool : public BasicType<bool> {
 public:
    Bool() : BasicType("bool") {}
