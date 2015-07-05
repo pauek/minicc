@@ -26,7 +26,22 @@ body {
 #errors {
   display: none;
 }
-#errors h4 { margin: 0; }
+#errors h4 { 
+  margin: 0; 
+  padding: .5em;
+  padding-bottom: .2em;
+}
+#errlist {
+  padding: .3em;
+}
+#errlist p {
+  font-size: 90%;
+  margin: 0;
+  margin-bottom: .3em;
+  padding: .3em .55em;
+  background-color: rgb(255, 200, 200);
+  border-radius: .3em;
+}
 
 .cm-invisible { opacity: .25; }
 

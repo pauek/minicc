@@ -35,7 +35,23 @@ function setCompilado(new_value) {
 }
 
 var editor;
-var output, errors;
+var output;
+var errors, io, stack;
+var errlist;
+
+function show(what) {
+   errors.style.display = 'none';
+   io.style.display = 'none';
+   stack.style.display = 'none';
+   if (what == 'errors') {
+      errors.style.display = 'block';
+   } else if (what == 'io') {
+      io.style.display = 'block';
+   } else if (what == 'stack') {
+      stack.style.display = 'block';
+   }
+}
+
 
 function setup(init) {
    editor = CodeMirror.fromTextArea(document.getElementById("editor"), {
@@ -50,16 +66,22 @@ function setup(init) {
    });
    editor.setValue(init);
 
-   output = CodeMirror.fromTextArea($('#output > textarea')[0], {
-      mode: 'text/x-show-inv',
-      readOnly: true,
-   });
-
    editor.on("change", function () {
       setCompilado(false);
       cambiado = true;
       borraErrores();
       $('#output').hide();
+   });
+
+   errors  = document.getElementById('errors');
+   errlist = document.getElementById('errlist');
+   io      = document.getElementById('io');
+   stack   = document.getElementById('stack');
+
+   var textarea = io.querySelectorAll('textarea')[0];
+   output = CodeMirror.fromTextArea(textarea, {
+      mode: 'text/x-show-inv',
+      readOnly: true,
    });
 }
 
@@ -80,16 +102,22 @@ function compile() {
    var errjson = Module.compile(code);
    if (errjson == "[]") {
       setCompilado(true);
+      show('stack');
+      return true;
    }
-   var errlist = JSON.parse(errjson);
-   for (var i = 0; i < errlist.length; i++) {
-      var err = errlist[i];
+   errlist.innerHTML = '';
+   var errors = JSON.parse(errjson);
+   for (var i = 0; i < errors.length; i++) {
+      var err = errors[i];
       var ini = {line: err.ini.lin-1, ch: err.ini.col};
       var fin = {line: err.fin.lin-1, ch: err.fin.col};
       editor.markText(ini, fin, {className: "error"});
+      var elem = document.createElement('p');
+      elem.innerHTML = err.msg;
+      errlist.appendChild(elem);
    }
-   $('#errlist').html(errjson);
-   $('#errors').show();
+   show('errors');
+   return false;
 }
 
 function eval_program() {
@@ -105,7 +133,9 @@ function eval_program() {
 
 function execute() {
    if (!compilado) {
-      compile();
+      if (!compile()) {
+         return;
+      }
    } 
    if (!ejecutado) {
       while (!stepper.finished()) {
