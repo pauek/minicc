@@ -20,10 +20,10 @@ environments for static analysis).
 struct Type;
 class Value { // new value
    struct Box {
-      int   count;
+            int   count;
       const Type *type;
-      void *data;
-      bool just_touched;
+            void *data;
+            bool  just_touched;
 
       Box() 
          : count(0), type(0), data(0), just_touched(false) {}
