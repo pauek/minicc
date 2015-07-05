@@ -70,13 +70,13 @@ const char* Translator::_translations[1000][Translator::NUM_LANGS] = { /*
       "No esperaba '%s' aquí.",
       "No esperava '%s' aquí."
    }, {
-      "ignoring macro '%s'",
-      "ignorando la macro '%s'",
-      "ignorant la macro '%s'"
+      "Macro '#%s' unknown.",
+      "Macro '#%s' desconocida.",
+      "Macro '#%s' desconeguda."
    }, {
-      "'#include' missing closing '%c'",
-      "Al '#include' le falta el '%c' de cerrar",
-      "A l'#include li falta el '%c' de tancar"
+      "'#include' missing closing '%c'.",
+      "Al '#include' le falta el '%c' de cerrar.",
+      "A l'#include li falta el '%c' de tancar."
    }, {
       "Expected '%s' here.",
       "Esperaba un '%s' aquí.",

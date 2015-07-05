@@ -129,7 +129,8 @@ int test_visitor(string filename, VisitorType vtype) {
    collect_errors(program, ve);
    if (!ve.empty()) {
       for (Error *e : ve) {
-         Serr << e->msg << endl;
+         Serr << filename << "[" << e->ini << "-" << e->fin << "]: " 
+              << e->msg << endl;
       }
       goto compare;
    }

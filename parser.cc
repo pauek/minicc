@@ -22,7 +22,7 @@ bool Parser::_is_type(string s) {
 }
 
 void Parser::error(AstNode *n, string msg) {
-   Error *err = new Error(_in.pos(), msg);
+   Error *err = new Error(n->ini, n->fin, msg);
    n->errors.push_back(err);
 }
 
@@ -111,10 +111,13 @@ AstNode* Parser::parse_macro(AstNode *parent) {
       Pos macro_fin = _in.pos();
       _in.next();
       Macro *m = new Macro(_in.substr(macro_ini, macro_fin));
-      error(m, ini.str() + ": " + _T("ignoring macro '%s'", macro_name.c_str()));
+      m->ini = ini;
+      m->fin = macro_fin;
+      error(m, _T("Macro '#%s' unknown.", macro_name.c_str()));
       return m;
    }
    Include* inc = new Include();
+   inc->ini = ini;
    _skip(inc);
    char open = _in.curr();
    if (open != '"' && open != '<') {
@@ -128,8 +131,8 @@ AstNode* Parser::parse_macro(AstNode *parent) {
    _in.next();
    while (_in.curr() != close) {
       if (_in.curr() == '\n') {
-         error(inc, _in.pos().str() + ": " 
-               + _T("'#include' missing closing '%c'", close));
+         inc->fin = _in.pos();
+         error(inc, _T("'#include' missing closing '%c'.", close));
          break;
       }
       filename += _in.curr();

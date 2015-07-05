@@ -1,3 +1,3 @@
 #inclu
 [[err]]---------------------------------------------
-1:0: ignorando la macro 'inclu'
+interpreter/errors/include_truncated.cc[1:0-1:6]: Macro '#inclu' desconocida.
