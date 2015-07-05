@@ -1,2 +1,2 @@
 #/bin/bash
-rsync -av . svn:/var/www/minicc/
+rsync -av . droplet:/var/www/minicc/
