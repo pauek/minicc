@@ -64,7 +64,7 @@ public:
    virtual        bool  get_static(std::string, Value& v)         const { return false; }
    virtual        Type *get_inner_class(std::string)                    { return 0; }
    virtual       Value  create()                                        { assert(false); }
-   virtual       Value  create_abstract()                         const { return Value(this, 0); }
+   virtual       Value  create_abstract()                         const { return Value(this, Value::abstract); }
    virtual        bool  accepts(const Type *t)                    const { return this == t; }
    virtual       Value  convert(Value init)                       const { assert(false); }
    virtual        Type *instantiate(std::vector<Type*>& subtypes) const { assert(false); } // for templates

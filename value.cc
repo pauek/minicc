@@ -9,6 +9,9 @@ using namespace std;
 #include "value.hh"
 #include "types.hh"
 
+void *Value::abstract = (void*)0; // DANGER: this are not 'const'...
+void *Value::unknown  = (void*)1;
+
 Value Value::null;
 
 void Value::_attach(Box *b) {
@@ -98,16 +101,18 @@ bool Value::assign(const Value& v) {
    if (!same_type_as(v)) {
       return false;
    }
-   if (v._box->data == 0) {
+   if (v.is_unknown() or v.is_abstract()) {
       _box->type->destroy(_box->data);
-      _box->data = 0;
+      _box->data = (v.is_unknown() ? unknown : abstract);
       _box->touched = true;
       return true;
-   } else if (_box->data == 0) {
+   } 
+   else if (is_abstract() or is_unknown()) {
       _box->data = v._box->type->clone(v._box->data);
       _box->touched = true;
       return true;
-   } else {
+   }
+   else {
       _box->touched = _box->type->assign(_box->data, v._box->data);
       return _box->touched;
    }

@@ -40,6 +40,8 @@ class Value { // new value
    explicit Value(Box *box, bool cnst);
 
 public:
+   static void *abstract, *unknown;
+
    explicit Value() : _box(0), _const(false) {}
    explicit Value(const Type *t, void *d = 0, 
                   bool cnst = false); // with data = 0 creates an 'abstract' Value
@@ -71,7 +73,8 @@ public:
 
    static Value null;
    bool is_null()     const { return _box == 0; }
-   bool is_abstract() const { return _box != 0 and _box->data == 0; }
+   bool is_abstract() const { return _box != 0 and _box->data == abstract; }
+   bool is_unknown()  const { return _box != 0 and _box->data == unknown; }
 
    std::string type_name() const;
 
