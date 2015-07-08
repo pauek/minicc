@@ -800,16 +800,28 @@ void SemanticAnalyzer::visit_indexexpr(IndexExpr *x) {
    x->index->accept(this);
    Value index = Reference::deref(_curr);
    if (base.is<Array>()) {
+      int i;
+      vector<Value>& array = base.as<Array>();
       if (!index.is<Int>()) {
          x->add_error(_T("El índice en un acceso a tabla debe ser un entero"));
       }
-      vector<Value>& vals = base.as<Array>();
-      const int i = index.as<Int>();
-      if (i < 0 || i >= vals.size()) {
-         // TODO: Producir error de ejecución
-         // _error(_T("La casilla %d no existe", i));
+      if (!index.is_abstract()) {
+         i = index.as<Int>();
+         if (i < 0 || i >= array.size()) {
+            x->add_error(_T("El índice está fuera de los límites de la tabla (entre 0 y %d).", 
+                            array.size()-1));
+            i = -1;
+         }
       }
-      _curr = Reference::mkref(vals[i]);
+      if (base.is_abstract()) {
+         _curr = Reference::mkref(array[0]); // abstract arrays have exactly one abstract element
+      } else {
+         if (i < 0 || i >= array.size()) {
+            _curr = static_cast<const Array*>(base.type())->celltype()->create_abstract();
+         } else {
+            _curr = Reference::mkref(array[i]);
+         }
+      }
       return;
    }
    _curr = base;

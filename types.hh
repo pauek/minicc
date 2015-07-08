@@ -440,7 +440,9 @@ public:
    static Type *mkarray(Type *celltype, const std::vector<int>& sizes); // use this as constructor for 2D and up...
            int  properties() const { return Basic; }
    std::string  typestr()    const { return _celltype->typestr() + "[]"; }
+          Type *celltype()   const { return _celltype; }
          Value  create();
+         Value  create_abstract()   const;
          Value  convert(Value init) const;
           void  clear_just_touched(void *data) const;
 

@@ -1278,6 +1278,12 @@ Value Array::create() {
    return Value(this, array);
 }
 
+Value Array::create_abstract() const {
+   vector<Value> *array = new vector<Value>(1);
+   (*array)[0] = _celltype->create_abstract();
+   return Value(this, array);
+}
+
 Value Array::convert(Value init) const {
    assert(!init.is_null());
    if (!init.is<VectorValue>()) {
