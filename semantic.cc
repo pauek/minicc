@@ -942,10 +942,12 @@ void SemanticAnalyzer::visit_increxpr(IncrExpr *x) {
    Value after  = Reference::deref(_curr);
    Value before = after.clone();
    if (after.is<Int>()) {
-      if (x->kind == IncrExpr::Positive) {
-         after.as<Int>()++;
-      } else {
-         after.as<Int>()--;
+      if (!after.is_abstract()) {
+         if (x->kind == IncrExpr::Positive) {
+            after.as<Int>()++;
+         } else {
+            after.as<Int>()--;
+         }
       }
    } else {
       _curr = after;

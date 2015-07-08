@@ -1,0 +1,11 @@
+struct X {
+   int a, b, c;
+   Bleh x;
+};
+
+struct Bleh {
+   char c;
+};
+[[err]]--------------------------------------------------
+semantic/struct/struct5.cc[3:3-3:9]: El tipo 'Bleh' no existe.
+Poner algo de que hay que declarar 'Bleh' más arriba...
