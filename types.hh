@@ -20,6 +20,7 @@ struct Func {
    Func(std::string n) : name(n) {}
    virtual ~Func() {}
    virtual Value call(Interpreter *I, Value self, const std::vector<Value>& args) = 0;
+   virtual bool  call_abstract(AstNode *x, Value self, const std::vector<Value>& args) { return false; }
 };
 
 class Type {
@@ -368,6 +369,9 @@ struct Binding {
 
    Value call(Interpreter *I, const std::vector<Value>& args) {
       return func.as<Function>().ptr->call(I, self, args);
+   }
+   bool call_abstract(AstNode *x, const std::vector<Value>& args) {
+      return func.as<Function>().ptr->call_abstract(x, self, args);
    }
    bool operator==(const Binding& x) const {
       return self == x.self and func == x.func;

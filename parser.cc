@@ -722,9 +722,14 @@ Expr *Parser::parse_indexexpr(Expr *x) {
    e->ini = x->ini;
    e->base = x;
    _in.consume('[');
-   e->index = parse_expr(e);
-   if (!_in.expect("]")) {
-      error(e, _in.pos().str() + ": " + _T("Expected '%s' here.", "]"));
+   if (_in.curr() != ']') {
+      e->index = parse_expr(e);
+      if (!_in.expect("]")) {
+         error(e, _in.pos().str() + ": " + _T("Expected '%s' here.", "]"));
+      }
+   } else {
+      fatal_error(_in.pos(), _T("Debe haber una expresión entre los corchetes."));
+      _in.consume(']');
    }
    e->fin = _in.pos();
    _skip(e);

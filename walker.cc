@@ -139,7 +139,9 @@ void Walker::visit_callexpr(CallExpr *x) {
 void Walker::visit_indexexpr(IndexExpr *x) {
    walk(x);
    x->base->accept(this);
-   x->index->accept(this);
+   if (x->index) {
+      x->index->accept(this);
+   }
 }
 
 void Walker::visit_fieldexpr(FieldExpr *x) {

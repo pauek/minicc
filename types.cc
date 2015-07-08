@@ -565,6 +565,13 @@ Vector::Vector(Type *celltype)
          }
          return Reference::mkref(the_vector[k]);
       }
+      bool call_abstract(AstNode *x, Value self, const vector<Value>& args) {
+         Value the_index = Reference::deref(args[0]);
+         if (!the_index.is<Int>()) {
+            x->add_error(_T("El índice a una casilla de un vector debe ser un 'int'."));
+         }
+         return true;
+      }
    };
    _add_method((new Function(Type::mkref(celltype)))->add_params(Int::self),
                new IndexedAccessOperator());
@@ -849,9 +856,7 @@ List::List(Type *celltype)
             vector<Value> args = {a, b};
             Binding& fn = the_function.as<Callable>();
             const Function *func_type = fn.func.type()->as<Function>();
-            // I->check_arguments(func_type, args);
             Value ret = fn.call(I, args);
-            // I->check_result(fn, func_type)
             return ret.as<Bool>();
          });
          return Value::null;

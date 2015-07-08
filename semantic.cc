@@ -799,7 +799,9 @@ void SemanticAnalyzer::visit_indexexpr(IndexExpr *x) {
    _curr_node = x;
    x->base->accept(this);
    Value base = Reference::deref(_curr);
-   x->index->accept(this);
+   if (x->index) {
+      x->index->accept(this);
+   }
    Value index = Reference::deref(_curr);
    if (base.is<Array>()) {
       int i = -1;
@@ -1009,7 +1011,9 @@ bool SemanticAnalyzer::call_operator(string op, const vector<Value>& args) {
    }
    Binding& opfun = _curr.as<Callable>();
    const Function *func_type = opfun.func.type()->as<Function>();
-   check_arguments(func_type, args);
+   if (!opfun.call_abstract(_curr_node, args)) {
+      check_arguments(func_type, args);
+   }
    _curr = func_type->return_type()->create_abstract();
    return true;
 }

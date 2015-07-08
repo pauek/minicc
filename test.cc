@@ -196,16 +196,21 @@ int test_semantic(string filename) {
    istringstream Scode(code), Sin(in);
    Parser P(&Scode, &Serr);
    AstNode *program;
-   program = P.parse();
-
-   SemanticAnalyzer A;
-   program->accept(&A);
-   vector<Error*> ve;
-   collect_errors(program, ve);
-   for (Error *e : ve) {
-      Serr << filename << "[" << e->ini << "-" << e->fin << "]: " 
-           << e->msg << endl;
+   try {
+      program = P.parse();
+      SemanticAnalyzer A;
+      program->accept(&A);
+      vector<Error*> ve;
+      collect_errors(program, ve);
+      for (Error *e : ve) {
+         Serr << filename << "[" << e->ini << "-" << e->fin << "]: " 
+              << e->msg << endl;
+      }
    }
+   catch (ParseError& e) {
+      Serr << filename << "[" << e.pos << "]: " << e.msg << endl;
+   }
+
    compare_result(filename, Sout.str(), Serr.str(), out, err);
    return 0;
 }
