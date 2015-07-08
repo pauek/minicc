@@ -222,10 +222,12 @@ template<class Op>
 bool SemanticAnalyzer::visit_sumprod(Value left, Value _right) {
    Value right = left.type()->convert(_right);
    if (left.is<Int>()) {
-      if (left.is_abstract() or right.is_abstract()) {
-         _curr = Int::self->create_abstract();
-      } else {
+      if (left.is_concrete() and right.is_concrete()) {
          _curr = Value(Op::eval(left.as<Int>(), right.as<Int>()));
+      } else if (left.is_unknown() or right.is_unknown()) {
+         _curr = Int::self->create(); // will be unknown
+      } else {
+         _curr = Int::self->create_abstract(); // will be unknown
       }
       return true;
    }
@@ -272,6 +274,7 @@ bool SemanticAnalyzer::visit_comparison(Value left, Value right) {
 
 void SemanticAnalyzer::visit_binaryexpr(BinaryExpr *x) {
    _curr_node = x;
+
    x->left->accept(this);
    Value left = _curr;
    if (x->kind != Expr::Assignment) {
@@ -281,6 +284,11 @@ void SemanticAnalyzer::visit_binaryexpr(BinaryExpr *x) {
    x->right->accept(this);
    Value right = _curr;
    right = Reference::deref(right);
+
+   if (x->left->has_errors() or x->right->has_errors()) {
+      return; // avoid more errors
+   }
+
    if (x->op == ",") {
       return; // already evaluated
    }
@@ -401,12 +409,11 @@ void SemanticAnalyzer::visit_binaryexpr(BinaryExpr *x) {
       // _error(_T("Los operandos de '%s' no son compatibles", x->op.c_str()));
    }
    _curr = left;
-   /*
-   if (call_operator(x->op, vector<Value>(1, right))) {
-      return;
+   
+   if (!call_operator(x->op, vector<Value>(1, right))) {
+      x->add_error(_T("No existe el operador '%s' para el tipo '%s'.", 
+                      x->op.c_str(), left.type()->typestr().c_str()));
    }
-   */
-   // _error(_T("SemanticAnalyzer::visit_binaryexpr: UNIMPLEMENTED (%s)", x->op.c_str()));
 }
 
 inline bool assignment_types_ok(const Value& a, const Value& b) {
@@ -503,7 +510,7 @@ void SemanticAnalyzer::visit_vardecl(VarDecl *x) {
    } 
    
    if (init.is_null()) {
-      init = type->create_abstract();
+      init = type->create();
    } else {
       try {
          Value init2 = type->convert(init);
@@ -881,7 +888,7 @@ void SemanticAnalyzer::visit_condexpr(CondExpr *x) {
    if (!cond.is<Bool>()) {
       x->cond->add_error(_T("Debe haber un 'bool' antes del interrogante."));
    } else {
-      if (!cond.is_abstract()) {
+      if (!cond.is_abstract() and !cond.is_unknown()) {
          x->add_error(_T("La condición siempre es '%s'.", 
                          (cond.as<Bool>() ? "true" : "false")));
       }
@@ -942,7 +949,10 @@ void SemanticAnalyzer::visit_increxpr(IncrExpr *x) {
    Value after  = Reference::deref(_curr);
    Value before = after.clone();
    if (after.is<Int>()) {
-      if (!after.is_abstract()) {
+      if (after.is_unknown()) {
+         x->add_error(_T("Incrementas la variable '%s' sin haberla inicializado.",
+                         _curr_varname.c_str()));
+      } else if (!after.is_abstract()) {
          if (x->kind == IncrExpr::Positive) {
             after.as<Int>()++;
          } else {

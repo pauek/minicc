@@ -1891,6 +1891,13 @@ void IStream::_add_istream_methods() {
          in >> holder;
          return self; 
       }
+      bool call_abstract(AstNode *x, Value self, const vector<Value>& args) {
+         Value holder = args[0];
+         if (holder.is_unknown()) {
+            holder.to_abstract();
+         }
+         return true;
+      }
    };
    Func *input_op = new InputOperator();
    static vector<Type*> BasicTypes = {

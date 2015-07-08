@@ -106,8 +106,10 @@ public:
 
    int properties() const { return Type::Unknown; }
 
+   Value create() { return Value(this, Value::unknown); }
+
    void destroy(void *data) const {
-      assert(data == 0); // should only be used in abstract values.
+      assert(data == Value::unknown or data == Value::abstract); // should only be used in abstract/unknown values.
    }
    
    static UnknownType *self;
@@ -136,7 +138,8 @@ public:
       delete static_cast<T*>(data); 
    }
    bool equals(void *a, void *b) const {
-      if (a == 0 or b == 0) {
+      if (a == Value::unknown or a == Value::abstract or 
+          b == Value::unknown or b == Value::abstract) {
          return false;
       }
       return (*static_cast<T*>(a)) == (*static_cast<T*>(b));
@@ -146,8 +149,8 @@ public:
       return true;
    }
    void *clone(void *data) const {
-      if (data == 0) {
-         return 0;
+      if (data == Value::unknown or data == Value::abstract) {
+         return data;
       }
       return new T(*static_cast<T*>(data));
    }
@@ -167,7 +170,7 @@ public:
 template<typename T>
 class BasicType : public BaseType<T> {
    std::string to_json(void *data) const {
-      if (data == 0) {
+      if (data == Value::unknown or data == Value::abstract) {
          return "\"?\"";
       }
       std::ostringstream o;
@@ -179,7 +182,7 @@ public:
    BasicType(std::string name) : BaseType<T>(name) {}
    int properties()      const { return Type::Basic; }
    bool less_than(void *a, void *b) const {
-      assert(a != 0 and b != 0);
+      assert(a != Value::abstract and b != Value::abstract);
       return (*static_cast<T*>(a)) < (*static_cast<T*>(b));
    }
    void *read(std::istream& i, void *data) const {
