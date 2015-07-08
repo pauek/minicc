@@ -883,9 +883,14 @@ void SemanticAnalyzer::visit_fieldexpr(FieldExpr *x) {
 void SemanticAnalyzer::visit_condexpr(CondExpr *x) {
    _curr_node = x;
    x->cond->accept(this);
-   _curr = Reference::deref(_curr);
-   if (!_curr.is<Bool>()) {
+   Value cond = Reference::deref(_curr);
+   if (!cond.is<Bool>()) {
       x->cond->add_error(_T("Debe haber un 'bool' antes del interrogante."));
+   } else {
+      if (!cond.is_abstract()) {
+         x->add_error(_T("La condición siempre es '%s'.", 
+                         (cond.as<Bool>() ? "true" : "false")));
+      }
    }
    if (x->then) {
       x->then->accept(this);
