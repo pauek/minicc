@@ -39,7 +39,7 @@ public:
    virtual   void  write(std::ostream& o, void *data)  const { assert(false); }
    virtual   void *read(std::istream& i, void *data)   const { assert(false); }
    virtual string  to_json(void *data)                 const { assert(false); }
-   virtual   void  clear_just_touched(void *data)      const { assert(false); }
+   virtual   void  clear_touched(void *data)      const { assert(false); }
 
    Type() {}
 
@@ -159,7 +159,7 @@ public:
       }
       return Value::null;
    }
-   void clear_just_touched(void *data) const {} // nothing to do
+   void clear_touched(void *data) const {} // nothing to do
    bool accepts(const Type *t) const;
 };
 
@@ -216,7 +216,7 @@ public:
   static Value  mkref(Value& v);  // create a reference to a value
   static Value  deref(const Value& v);  // obtain the referenced value
 
-          void  clear_just_touched(void *data) const;
+          void  clear_touched(void *data) const;
 
    std::string  to_json(void *data) const;
 
@@ -263,7 +263,7 @@ public:
 
 TODO: CharRef, un tipo que permite obtener una referencia a un
 caracter individual de un string pero que cuando es modificado, marca
-el "just_touched" del string entero. Esto hace que sea necesario tener
+el "touched" del string entero. Esto hace que sea necesario tener
 una referencia al string entero y un índice, y que no se pueda hacer
 como la clase "Reference".
 
@@ -422,7 +422,7 @@ public:
    Value convert(Value init) const;
    Value create_abstract()   const;
    void *clone(void *data)   const;
-   void clear_just_touched(void *data) const;
+   void clear_touched(void *data) const;
 
    std::string to_json(void *data) const;
 
@@ -448,7 +448,7 @@ public:
          Value  create();
          Value  create_abstract()   const;
          Value  convert(Value init) const;
-          void  clear_just_touched(void *data) const;
+          void  clear_touched(void *data) const;
 
    std::string  to_json(void *) const;
 };
@@ -708,10 +708,10 @@ Environment *pop();
           _tab.set(name, data, flags);
        }
 
-       void clear_just_touched() {
-          _tab.for_each([](Value &v) { v.clear_just_touched(); });
+       void clear_touched() {
+          _tab.for_each([](Value &v) { v.clear_touched(); });
           if (_parent) {
-             _parent->clear_just_touched();
+             _parent->clear_touched();
           }
        }
 
@@ -753,7 +753,7 @@ public:
    void  setenv(std::string id, Value v, int flags = 0);
    bool  has_flag(std::string id, Flag f) const;
 
-   void  clear_just_touched() { _env->clear_just_touched(); }
+   void  clear_touched() { _env->clear_touched(); }
    
    Type *get_type(TypeSpec *spec);
    void  register_type(std::string name, Type *);

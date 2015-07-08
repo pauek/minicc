@@ -173,11 +173,11 @@ Value Reference::deref(const Value& v) {
    }
 }
 
-void Reference::clear_just_touched(void *data) const {
+void Reference::clear_touched(void *data) const {
    Value::Box *b = (Value::Box*)data;
    assert(b != 0);
    if (b->data != 0) {
-      b->type->clear_just_touched(b->data);
+      b->type->clear_touched(b->data);
    }
 }
 
@@ -1268,10 +1268,10 @@ string Array::to_json(void *data) const {
    return json.str();
 }
 
-void Array::clear_just_touched(void *data) const {
+void Array::clear_touched(void *data) const {
    vector<Value> *v = static_cast<vector<Value>*>(data);
    for (int i = 0; i < v->size(); i++) {
-      (*v)[i].clear_just_touched();
+      (*v)[i].clear_touched();
    }
 }
 
@@ -1372,10 +1372,10 @@ void *Struct::clone(void *data) const {
    return to;
 }
 
-void Struct::clear_just_touched(void *data) const {
+void Struct::clear_touched(void *data) const {
    SimpleTable<Value> *_tab = static_cast<SimpleTable<Value>*>(data);
    for (int i = 0; i < _tab->size(); i++) {
-      (*_tab)[i].second.clear_just_touched();
+      (*_tab)[i].second.clear_touched();
    }
 }
 
