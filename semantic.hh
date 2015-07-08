@@ -23,7 +23,7 @@ class SemanticAnalyzer :
      bool  visit_type_conversion(CallExpr *x, const std::vector<Value>& args);
      void  check_arguments(const Function *func_type, const std::vector<Value>& args);
      bool  bind_field(Value obj, string method_name);
-     bool  call_operator(string op, const std::vector<Value>& args);
+     bool  call_operator(string op, const std::vector<Value>& args = std::vector<Value>());
 
    template<class Op>
      bool  visit_op_assignment(Value left, Value right);

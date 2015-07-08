@@ -841,13 +841,10 @@ void SemanticAnalyzer::visit_fieldexpr(FieldExpr *x) {
    x->base->accept(this);
    _curr = Reference::deref(_curr);
    if (x->pointer) {
-      assert(false);
-      /*
       if (!call_operator("*")) {
-         _error(_T("El tipo '%s' no tiene 'operator*'", 
-                   _curr.type()->typestr().c_str()));
+         x->add_error(_T("El tipo '%s' no tiene 'operator*'", 
+                         _curr.type()->typestr().c_str()));
       }
-      */
       _curr = Reference::deref(_curr);
    }
    Value obj = _curr;
@@ -887,17 +884,13 @@ void SemanticAnalyzer::visit_condexpr(CondExpr *x) {
    _curr_node = x;
    x->cond->accept(this);
    if (!_curr.is<Bool>()) {
-      /*
-      _error(_T("Una expresión condicional debe tener valor "
-                "de tipo 'bool' antes del interrogante"));
-      */
+      x->cond->add_error(_T("Debe haber un 'bool' antes del interrogante."));
    }
-   if (_curr.as<Bool>()) {
+   if (x->then) {
       x->then->accept(this);
-   } else {
-      if (x->els != 0) {
-         x->els->accept(this);
-      }
+   }
+   if (x->els) {
+      x->els->accept(this);
    }
 }
 
