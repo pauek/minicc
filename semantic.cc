@@ -285,7 +285,9 @@ void SemanticAnalyzer::visit_binaryexpr(BinaryExpr *x) {
       return; // already evaluated
    }
    if (x->op == "=") {
-      visit_binaryexpr_assignment(x, left, right);
+      if (!x->left->has_errors()) {
+         visit_binaryexpr_assignment(x, left, right);
+      }
       return;
    }
    if (x->op == "+=" || x->op == "-=" || x->op == "*=" || x->op == "/=" ||
@@ -828,7 +830,7 @@ void SemanticAnalyzer::visit_indexexpr(IndexExpr *x) {
    }
    _curr = base;
    if (!call_operator("[]", vector<Value>(1, index))) {
-      x->add_error(_T("Las expresiones de índice deben usarse sobre tablas o vectores"));
+      x->add_error(_T("Los corchetes deben usarse sobre tablas o vectores."));
    }
 }
 
