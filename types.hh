@@ -323,10 +323,10 @@ struct FuncPtr {
 };
 
 class Function : public BaseType<FuncPtr> {
-   Type *_return_type;
+   const Type *_return_type;
    std::vector<Type*> _param_types;
 public:
-   Function(Type *t) : BaseType<FuncPtr>("<function>"), _return_type(t) {}
+   Function(const Type *t) : BaseType<FuncPtr>("<function>"), _return_type(t) {}
    Function *add_params(Type *t)  { _param_types.push_back(t); return this; }
    Function *add_params(Type *t1, Type *t2)  { 
       _param_types.push_back(t1);
@@ -342,7 +342,7 @@ public:
 
     int num_params()       const { return _param_types.size(); }
    Type *param(int i)      const { return (i < _param_types.size() ? _param_types[i] : 0); }
-   Type *return_type()     const { return _return_type; }
+const Type *return_type()     const { return _return_type; }
    bool is_void()          const { return _return_type == 0; }
     int check_signature(const std::vector<Value>& args) const;
 

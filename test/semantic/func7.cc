@@ -17,9 +17,9 @@ void g(X& x) {
 void f(int& x) {
    X a = { '3', false };
    int b = 7, c;
-   cout << a << endl;
+   cout << a.c << endl;
    g(a);
-   cout << a << endl;
+   cout << a.b << endl;
 }
 
 int main() {

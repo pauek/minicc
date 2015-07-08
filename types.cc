@@ -566,7 +566,7 @@ Vector::Vector(Type *celltype)
          return Reference::mkref(the_vector[k]);
       }
    };
-   _add_method((new Function(this))->add_params(Int::self),
+   _add_method((new Function(Type::mkref(celltype)))->add_params(Int::self),
                new IndexedAccessOperator());
 }
 

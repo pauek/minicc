@@ -688,7 +688,7 @@ void Interpreter::eval_arguments(const std::vector<Expr*>& exprs, std::vector<Va
 void Interpreter::check_result(Binding& fn, const Function *func_type) {
    if (_ret == Value::null && !func_type->is_void()) {
       string name = fn.func.as<Function>().ptr->name;
-      Type *return_type = func_type->return_type();
+      const Type *return_type = func_type->return_type();
       _error(_T("La función '%s' debería devolver un '%s'", 
                 name.c_str(),
                 return_type->typestr().c_str()));

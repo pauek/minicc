@@ -5,6 +5,7 @@
 using namespace std;
 
 void SemanticAnalyzer::visit_program(Program* x) {
+   _curr_node = x;
    prepare_global_environment();
    for (AstNode *n : x->nodes) {
       n->accept(this);
@@ -15,18 +16,21 @@ void SemanticAnalyzer::visit_comment(CommentSeq* cn) {}
 void SemanticAnalyzer::visit_macro(Macro* x) {}
 
 void SemanticAnalyzer::visit_using(Using* x) {
+   _curr_node = x;
    if (!using_namespace(x->namespc)) {
       x->add_error(_T("El \"namespace\" '%s' no existe.", x->namespc.c_str()));
    }
 }
 
 void SemanticAnalyzer::visit_include(Include* x) {
+   _curr_node = x;
    if (!include_header_file(x->filename)) {
       x->add_error(_T("El fichero de cabecera '%s' no existe.", x->filename.c_str()));
    }
 }
 
 void SemanticAnalyzer::visit_funcdecl(FuncDecl *x) {
+   _curr_node = x;
    string funcname = x->funcname();
    Type *return_type = get_type(x->return_typespec);  // return_type == 0 means 'void'
    Function *functype = new Function(return_type);
@@ -64,6 +68,7 @@ void SemanticAnalyzer::visit_funcdecl(FuncDecl *x) {
 }
 
 void SemanticAnalyzer::visit_structdecl(StructDecl *x) {
+   _curr_node = x;
    // Create a new Struct type now
    Struct *type = new Struct(x->struct_name());
    for (int i = 0; i < x->decls.size(); i++) {
@@ -103,6 +108,7 @@ void SemanticAnalyzer::visit_structdecl(StructDecl *x) {
 }
 
 void SemanticAnalyzer::visit_fullident(FullIdent *x) {
+   _curr_node = x;
    Value v;
    
    // Try a namespace
@@ -149,6 +155,7 @@ void SemanticAnalyzer::visit_fullident(FullIdent *x) {
 }
 
 void SemanticAnalyzer::visit_literal(Literal *x) {
+   _curr_node = x;
    switch (x->type) {
    case Literal::String: _curr = Value(*x->val.as_string.s); break;
    case Literal::Int:    _curr = Value(x->val.as_int);       break;
@@ -264,6 +271,7 @@ bool SemanticAnalyzer::visit_comparison(Value left, Value right) {
 }
 
 void SemanticAnalyzer::visit_binaryexpr(BinaryExpr *x) {
+   _curr_node = x;
    x->left->accept(this);
    Value left = _curr;
    if (x->kind != Expr::Assignment) {
@@ -417,19 +425,18 @@ void SemanticAnalyzer::visit_binaryexpr_assignment(BinaryExpr* x, Value left, Va
                       _curr_varname.c_str()));
       return;
    }
-   right = left.type()->convert(right);
-   if (right == Value::null) {
-      x->add_error(_T("La asignación no se puede hacer porque los "
-                      "tipos no son compatibles (%s) vs (%s)", 
-                      left.type_name().c_str(), 
-                      right.type_name().c_str()));
+   Value right2 = left.type()->convert(right);
+   if (right2 == Value::null) {
+      x->add_error(_T("No se puede asignar un '%s' a una variable de tipo '%s'.",
+                      right.type_name().c_str(), 
+                      left.type_name().c_str()));
       return;
    }
+   right = right2;
    if (!left.assign(right)) {
-      x->add_error(_T("La asignación no se puede hacer porque los "
-                      "tipos no son compatibles (%s) vs (%s)", 
-                      left.type_name().c_str(), 
-                      right.type_name().c_str()));
+      x->add_error(_T("No se puede asignar un '%s' a una variable de tipo '%s'.",
+                      right.type_name().c_str(), 
+                      left.type_name().c_str()));
       return;
    }
    _curr = left;
@@ -470,12 +477,14 @@ void SemanticAnalyzer::visit_binaryexpr_op_assignment(char op, Value left, Value
 }
 
 void SemanticAnalyzer::visit_block(Block *x) {
+   _curr_node = x;
    for (Stmt *stmt : x->stmts) {
       stmt->accept(this);
    }
 }
 
 void SemanticAnalyzer::visit_vardecl(VarDecl *x) {
+   _curr_node = x;
    Value prev, init = Reference::deref(_curr);
    if (getenv(x->name, prev)) {
       if (has_flag(x->name, Param)) {
@@ -501,6 +510,8 @@ void SemanticAnalyzer::visit_vardecl(VarDecl *x) {
                             "corresponde con el tipo de la variable ('%s').",
                             init.type()->typestr().c_str(),
                             type->typestr().c_str()));
+         } else {
+            init = init2;
          }
       } catch (TypeError *e) {
          x->add_error(e->msg);
@@ -513,6 +524,7 @@ void SemanticAnalyzer::visit_vardecl(VarDecl *x) {
 }
 
 void SemanticAnalyzer::visit_arraydecl(ArrayDecl *x) {
+   _curr_node = x;
    Value init = _curr;
    vector<int> sizes;
    for (int i = 0; i < x->sizes.size(); i++) {
@@ -551,37 +563,36 @@ void SemanticAnalyzer::visit_arraydecl(ArrayDecl *x) {
 }
    
 void SemanticAnalyzer::visit_objdecl(ObjDecl *x) {
+   _curr_node = x;
    Type *type = get_type(x->typespec);
    if (type != 0) {
-      vector<Value> args;
-      // eval_arguments(x->args, args);
-      
-      string constructor_name = type->name();
-      Value new_obj = type->create();
-      /*
-      if (!bind_field(new_obj, constructor_name)) {
-         _error(_T("El tipo '%s' no tiene constructor", type->typestr().c_str()));
+      vector<Value> argvals;
+      for (int i = 0; i < x->args.size(); i++) {
+         x->args[i]->accept(this);
+         argvals.push_back(_curr);
       }
-      */
+      string constructor_name = type->name();
+      Value new_obj = type->create_abstract();
+      if (!bind_field(new_obj, constructor_name)) {
+         x->add_error(_T("El tipo '%s' no tiene constructor", type->typestr().c_str()));
+      }
       if (_curr.is<Overloaded>()) {
-         _curr = _curr.as<Overloaded>().resolve(args);
+         _curr = _curr.as<Overloaded>().resolve(argvals);
          assert(_curr.is<Callable>());
       }
       Binding& constructor = _curr.as<Callable>();
       const Function *func_type = constructor.func.type()->as<Function>();
-      // check_arguments(func_type, args);
+      check_arguments(func_type, argvals);
       // constructor.call(this, args); // <-- Invoke!
-      
       setenv(x->name, new_obj);
       return;
    }
-   /*
-   _error(_T("The type '%s' is not implemented in MiniCC", 
-             x->typespec->typestr().c_str()));
-   */
+   x->add_error(_T("The type '%s' is not implemented in MiniCC", 
+                   x->typespec->typestr().c_str()));
 }
 
 void SemanticAnalyzer::visit_declstmt(DeclStmt* x) {
+   _curr_node = x;
    Type *type = get_type(x->typespec);
    if (type == 0) {
       string typestr = x->typespec->typestr();
@@ -598,6 +609,7 @@ void SemanticAnalyzer::visit_declstmt(DeclStmt* x) {
 }
 
 void SemanticAnalyzer::visit_exprstmt(ExprStmt* x) {
+   _curr_node = x;
    if (x->expr) {
       x->expr->accept(this);
    }
@@ -630,6 +642,7 @@ void SemanticAnalyzer::visit_exprstmt(ExprStmt* x) {
 }
 
 void SemanticAnalyzer::visit_ifstmt(IfStmt *x) {
+   _curr_node = x;
    x->cond->accept(this);
    _curr = Reference::deref(_curr);
    if (!_curr.is<Bool>()) {
@@ -643,6 +656,7 @@ void SemanticAnalyzer::visit_ifstmt(IfStmt *x) {
 }
 
 void SemanticAnalyzer::visit_forstmt(ForStmt *x) {
+   _curr_node = x;
    pushenv("");
    if (x->init) {
       x->init->accept(this);
@@ -664,6 +678,7 @@ void SemanticAnalyzer::visit_forstmt(ForStmt *x) {
 }
 
 void SemanticAnalyzer::visit_whilestmt(WhileStmt *x) {
+   _curr_node = x;
    pushenv("");
    x->cond->accept(this);
    if (!_curr.is<Bool>()) {
@@ -680,6 +695,7 @@ void SemanticAnalyzer::visit_whilestmt(WhileStmt *x) {
 
 
 void SemanticAnalyzer::visit_callexpr_getfunc(CallExpr *x) {
+   _curr_node = x;
    x->func->accept(this);
    if (_curr.is<UnknownType>()) {
       return;
@@ -692,6 +708,7 @@ void SemanticAnalyzer::visit_callexpr_getfunc(CallExpr *x) {
 }
 
 bool SemanticAnalyzer::visit_type_conversion(CallExpr *x, const vector<Value>& args) {
+   _curr_node = x;
    FullIdent *id = x->func->as<FullIdent>();
    if (id != 0) {
       TypeSpec spec(id);
@@ -711,12 +728,11 @@ bool SemanticAnalyzer::visit_type_conversion(CallExpr *x, const vector<Value>& a
    return false;
 }
 
-void SemanticAnalyzer::check_arguments(CallExpr *x, const Function *func_type, 
-                                       const vector<Value>& args) 
+void SemanticAnalyzer::check_arguments(const Function *func_type, const vector<Value>& args) 
 {
    if (func_type->num_params() != args.size()) {
-      x->add_error(_T("Número de argumentos erróneo (son %d y deberían ser %d).",
-                      args.size(), func_type->num_params()));
+      _curr_node->add_error(_T("Número de argumentos erróneo (son %d y deberían ser %d).",
+                               args.size(), func_type->num_params()));
       return;
    }
    for (int i = 0; i < args.size(); i++) {
@@ -729,17 +745,18 @@ void SemanticAnalyzer::check_arguments(CallExpr *x, const Function *func_type,
       if (!func_type->param(i)->is<Reference>()) {
          arg_i = Reference::deref(arg_i);
       } else if (!arg_i.type()->is<Reference>()) {
-         // _error(_T("En el parámetro %d se requiere una variable.", i+1));
+         _curr_node->add_error(_T("En el parámetro %d se requiere una variable.", i+1));
       }
       string t2 = arg_i.type()->typestr();
       if (t1 != t2) {
-         //_error(_T("El argumento %d no es compatible con el tipo del parámetro "
-         //          "(%s vs %s)", i+1, t1.c_str(), t2.c_str()));
+         _curr_node->add_error(_T("El argumento %d no es compatible con el tipo del parámetro "
+                                  "(%s vs %s)", i+1, t1.c_str(), t2.c_str()));
       }
    }
 }
 
 void SemanticAnalyzer::visit_callexpr(CallExpr *x) {
+   _curr_node = x;
    // eval arguments
    vector<Value> argvals;
    for (int i = 0; i < x->args.size(); i++) {
@@ -759,8 +776,9 @@ void SemanticAnalyzer::visit_callexpr(CallExpr *x) {
       }
       Binding& fn = func.as<Callable>();
       const Function *func_type = fn.func.type()->as<Function>();
-      check_arguments(x, func_type, argvals);
-      Type *return_type = func_type->return_type();
+      _curr_node = x; // ugly
+      check_arguments(func_type, argvals);
+      const Type *return_type = func_type->return_type();
       if (return_type != 0) {
          _curr = _ret = return_type->create_abstract();
       } else {
@@ -776,13 +794,14 @@ void SemanticAnalyzer::visit_callexpr(CallExpr *x) {
 }
 
 void SemanticAnalyzer::visit_indexexpr(IndexExpr *x) {
+   _curr_node = x;
    x->base->accept(this);
    Value base = Reference::deref(_curr);
    x->index->accept(this);
    Value index = Reference::deref(_curr);
    if (base.is<Array>()) {
       if (!index.is<Int>()) {
-         // _error(_T("El índice en un acceso a tabla debe ser un entero"));
+         x->add_error(_T("El índice en un acceso a tabla debe ser un entero"));
       }
       vector<Value>& vals = base.as<Array>();
       const int i = index.as<Int>();
@@ -794,14 +813,13 @@ void SemanticAnalyzer::visit_indexexpr(IndexExpr *x) {
       return;
    }
    _curr = base;
-   /*
    if (!call_operator("[]", vector<Value>(1, index))) {
-      _error(_T("Las expresiones de índice deben usarse sobre tablas o vectores"));
+      x->add_error(_T("Las expresiones de índice deben usarse sobre tablas o vectores"));
    }
-   */
 }
 
 void SemanticAnalyzer::visit_fieldexpr(FieldExpr *x) {
+   _curr_node = x;
    x->base->accept(this);
    _curr = Reference::deref(_curr);
    if (x->pointer) {
@@ -848,6 +866,7 @@ void SemanticAnalyzer::visit_fieldexpr(FieldExpr *x) {
 }
 
 void SemanticAnalyzer::visit_condexpr(CondExpr *x) {
+   _curr_node = x;
    x->cond->accept(this);
    if (!_curr.is<Bool>()) {
       /*
@@ -865,6 +884,7 @@ void SemanticAnalyzer::visit_condexpr(CondExpr *x) {
 }
 
 void SemanticAnalyzer::visit_exprlist(ExprList *x) {
+   _curr_node = x;
    Value v = VectorValue::make();
    vector<Value>& vals = v.as<VectorValue>();
    for (Expr *e : x->exprs) {
@@ -875,6 +895,7 @@ void SemanticAnalyzer::visit_exprlist(ExprList *x) {
 }
 
 void SemanticAnalyzer::visit_signexpr(SignExpr *x) {
+   _curr_node = x;
    x->expr->accept(this);
    if (x->kind == SignExpr::Positive) {
       return;
@@ -895,6 +916,7 @@ void SemanticAnalyzer::visit_signexpr(SignExpr *x) {
 }
 
 void SemanticAnalyzer::visit_increxpr(IncrExpr *x) {
+   _curr_node = x;
    x->expr->accept(this);
    if (!_curr.is<Reference>()) {
       // _error(_T("Hay que incrementar una variable, no un valor"));
@@ -921,6 +943,7 @@ void SemanticAnalyzer::visit_increxpr(IncrExpr *x) {
 }
 
 void SemanticAnalyzer::visit_negexpr(NegExpr *x) {
+   _curr_node = x;
    x->expr->accept(this);
    if (!_curr.is<Bool>()) {
       // _error(_T("Para negar una expresión ésta debe ser de tipo 'bool'"));
@@ -929,6 +952,7 @@ void SemanticAnalyzer::visit_negexpr(NegExpr *x) {
 }
 
 void SemanticAnalyzer::visit_typedefdecl(TypedefDecl *x) {
+   _curr_node = x;
    string name = x->decl->name;
    Type *type = get_type(x->decl->typespec);
    assert(type != 0);
@@ -939,7 +963,7 @@ void SemanticAnalyzer::visit_typedefdecl(TypedefDecl *x) {
       const ArrayDecl *array = x->decl->as<ArrayDecl>();
       array->sizes[0]->accept(this);
       if (!_curr.is<Int>()) {
-         // _error(_T("El tamaño de un array debería ser un entero"));
+         x->add_error(_T("El tamaño de un array debería ser un entero"));
       }
       const int size = _curr.as<Int>();
       register_type(array->name, new Array(type, size));
@@ -947,6 +971,7 @@ void SemanticAnalyzer::visit_typedefdecl(TypedefDecl *x) {
 }
 
 void SemanticAnalyzer::visit_derefexpr(DerefExpr *x) {
+   _curr_node = x;
    // TODO: deal with pointers
    x->expr->accept(this);
    _curr = Reference::deref(_curr);
@@ -956,6 +981,21 @@ void SemanticAnalyzer::visit_derefexpr(DerefExpr *x) {
                 _curr.type()->typestr().c_str()));
    }
    */
+}
+
+bool SemanticAnalyzer::call_operator(string op, const vector<Value>& args) {
+   if (!bind_field(_curr, op)) {
+      return false;
+   }
+   if (_curr.is<Overloaded>()) {
+      _curr = _curr.as<Overloaded>().resolve(args);
+      assert(_curr.is<Callable>());
+   }
+   Binding& opfun = _curr.as<Callable>();
+   const Function *func_type = opfun.func.type()->as<Function>();
+   check_arguments(func_type, args);
+   _curr = func_type->return_type()->create_abstract();
+   return true;
 }
 
 bool SemanticAnalyzer::bind_field(Value obj, string method_name) {
