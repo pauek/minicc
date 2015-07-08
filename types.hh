@@ -129,7 +129,8 @@ public:
       return new T(x); 
    }
    void destroy(void *data) const {
-      if (data == 0) {
+      if (data == Value::abstract or 
+          data == Value::unknown) {
          return;
       }
       delete static_cast<T*>(data); 
@@ -151,7 +152,7 @@ public:
       return new T(*static_cast<T*>(data));
    }
    Value create() { 
-      return Value(this, 0); 
+      return Value(this, Value::unknown); 
    }
    Value convert(Value init) const {
       if (init.has_type(this)) {
@@ -182,14 +183,14 @@ public:
       return (*static_cast<T*>(a)) < (*static_cast<T*>(b));
    }
    void *read(std::istream& i, void *data) const {
-      if (data == 0) {
+      if (data == Value::unknown) {
          data = new T;
       }
       i >> (*static_cast<T*>(data));
       return data;
    }
    void write(std::ostream& o, void *data) const {
-      if (data == 0) {
+      if (data == Value::unknown) {
          o << "?";
       } else {
          o << (*static_cast<T*>(data));
