@@ -809,6 +809,7 @@ void Interpreter::visit_fieldexpr(FieldExpr *x) {
 
 void Interpreter::visit_condexpr(CondExpr *x) {
    x->cond->accept(this);
+   _curr = Reference::deref(_curr);
    if (!_curr.is<Bool>()) {
       _error(_T("Una expresión condicional debe tener valor "
                 "de tipo 'bool' antes del interrogante"));

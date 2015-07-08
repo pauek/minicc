@@ -883,14 +883,22 @@ void SemanticAnalyzer::visit_fieldexpr(FieldExpr *x) {
 void SemanticAnalyzer::visit_condexpr(CondExpr *x) {
    _curr_node = x;
    x->cond->accept(this);
+   _curr = Reference::deref(_curr);
    if (!_curr.is<Bool>()) {
       x->cond->add_error(_T("Debe haber un 'bool' antes del interrogante."));
    }
    if (x->then) {
       x->then->accept(this);
    }
+   Value _then = _curr;
    if (x->els) {
       x->els->accept(this);
+   }
+   Value _els = _curr;
+   if (!_then.same_type_as(_els)) {
+      x->add_error(_T("Los tipos de las dos expresiones alternativas deben coincidir (son '%s' y '%s').",
+                      _then.type()->typestr().c_str(),
+                      _els.type()->typestr().c_str()));
    }
 }
 
