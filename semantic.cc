@@ -800,24 +800,26 @@ void SemanticAnalyzer::visit_indexexpr(IndexExpr *x) {
    x->index->accept(this);
    Value index = Reference::deref(_curr);
    if (base.is<Array>()) {
-      int i;
+      int i = -1;
       vector<Value>& array = base.as<Array>();
-      if (!index.is<Int>()) {
-         x->add_error(_T("El índice en un acceso a tabla debe ser un entero"));
-      }
-      if (!index.is_abstract()) {
-         i = index.as<Int>();
-         if (i < 0 || i >= array.size()) {
-            x->add_error(_T("El índice está fuera de los límites de la tabla (entre 0 y %d).", 
-                            array.size()-1));
-            i = -1;
+      if (index.is<Int>()) {
+         if (!index.is_abstract()) {
+            i = index.as<Int>();
+            if (i < 0 || i >= array.size()) {
+               x->add_error(_T("El índice está fuera de los límites de la tabla (entre 0 y %d).", 
+                               array.size()-1));
+               i = -1;
+            }
          }
+      } else {
+         x->add_error(_T("El índice debe ser un entero."));
       }
       if (base.is_abstract()) {
          _curr = Reference::mkref(array[0]); // abstract arrays have exactly one abstract element
       } else {
          if (i < 0 || i >= array.size()) {
-            _curr = static_cast<const Array*>(base.type())->celltype()->create_abstract();
+            Type *celltype = static_cast<const Array*>(base.type())->celltype();
+            _curr = Type::mkref(celltype)->create_abstract();
          } else {
             _curr = Reference::mkref(array[i]);
          }
