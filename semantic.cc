@@ -650,6 +650,11 @@ void SemanticAnalyzer::visit_ifstmt(IfStmt *x) {
    if (!_curr.is<Bool>()) {
       // TODO: if (!call_operator("bool")) { ... }
       x->cond->add_error(_T("An if's condition needs to be a bool value"));
+   } else {
+      if (!_curr.is_abstract()) {
+         x->cond->add_error(_T("La condición siempre vale '%s'.", 
+                               (_curr.as<Bool>() ? "true" : "false")));
+      }
    }
    x->then->accept(this);
    if (x->els) {
