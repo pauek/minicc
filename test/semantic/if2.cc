@@ -8,4 +8,4 @@ void f() {
 }
 
 [[err]]----------------------------------------------------
-semantic/if2.cc[5:7-5:15]: La condición de un 'if' debe ser de tipo 'bool'
+semantic/if2.cc[5:7-5:15]: La condición de un 'if' debe ser de tipo 'bool'.

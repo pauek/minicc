@@ -643,19 +643,25 @@ void SemanticAnalyzer::visit_exprstmt(ExprStmt* x) {
    }
 }
 
-void SemanticAnalyzer::visit_ifstmt(IfStmt *x) {
-   _curr_node = x;
-   x->cond->accept(this);
+void SemanticAnalyzer::check_condition(Expr *cond, string who) {
+   cond->accept(this);
    _curr = Reference::deref(_curr);
    if (!_curr.is<Bool>()) {
-      // TODO: if (!call_operator("bool")) { ... }
-      x->cond->add_error(_T("An if's condition needs to be a bool value"));
+      if (!call_operator("bool")) {
+         cond->add_error(_T("La condición de un '%s' debe ser de tipo 'bool'.",
+                            who.c_str()));
+      }
    } else {
-      if (!_curr.is_abstract()) {
-         x->cond->add_error(_T("La condición siempre vale '%s'.", 
-                               (_curr.as<Bool>() ? "true" : "false")));
+      if (who == "if" and !_curr.is_abstract()) {
+         cond->add_error(_T("La condición siempre vale '%s'.", 
+                            (_curr.as<Bool>() ? "true" : "false")));
       }
    }
+}
+
+void SemanticAnalyzer::visit_ifstmt(IfStmt *x) {
+   _curr_node = x;
+   check_condition(x->cond, "if");
    x->then->accept(this);
    if (x->els) {
       x->els->accept(this);
@@ -668,15 +674,7 @@ void SemanticAnalyzer::visit_forstmt(ForStmt *x) {
    if (x->init) {
       x->init->accept(this);
    }
-   x->cond->accept(this);
-   if (!_curr.is<Bool>()) {
-      /*
-        if (!call_operator("bool")) {      
-        _error(_T("La condición de un '%s' debe ser un valor de tipo bool.",
-        (x->is_for() ? "for" : "while")));
-        }
-      */
-   }
+   check_condition(x->cond, "for");
    x->substmt->accept(this);
    if (x->post) {
       x->post->accept(this);
@@ -687,19 +685,10 @@ void SemanticAnalyzer::visit_forstmt(ForStmt *x) {
 void SemanticAnalyzer::visit_whilestmt(WhileStmt *x) {
    _curr_node = x;
    pushenv("");
-   x->cond->accept(this);
-   if (!_curr.is<Bool>()) {
-      /*
-        if (!call_operator("bool")) {      
-        _error(_T("La condición de un '%s' debe ser un valor de tipo bool.",
-        (x->is_for() ? "for" : "while")));
-        }
-      */
-   }
+   check_condition(x->cond, "while");
    x->substmt->accept(this);
    popenv();
 }
-
 
 void SemanticAnalyzer::visit_callexpr_getfunc(CallExpr *x) {
    _curr_node = x;
