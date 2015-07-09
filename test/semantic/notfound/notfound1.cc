@@ -1,6 +1,6 @@
 #include <iostream>
 int main() {
-   int x;
+   int x = 1;
    std::cout << x + 1 << std::end1;
 }
 [[err]]----------------------------------------------------

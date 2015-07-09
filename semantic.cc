@@ -227,7 +227,7 @@ bool SemanticAnalyzer::visit_sumprod(Value left, Value _right) {
       } else if (left.is_unknown() or right.is_unknown()) {
          _curr = Int::self->create(); // will be unknown
       } else {
-         _curr = Int::self->create_abstract(); // will be unknown
+         _curr = Int::self->create_abstract();
       }
       return true;
    }
@@ -272,23 +272,37 @@ bool SemanticAnalyzer::visit_comparison(Value left, Value right) {
    return false;
 }
 
+void SemanticAnalyzer::check_unknown(Value v, AstNode *x, string varname) {
+   if (v.is_unknown()) {
+      x->add_error(_T("Utilizas la variable '%s' sin haberla inicializado.", 
+                      varname.c_str()));
+   }
+}
+
 void SemanticAnalyzer::visit_binaryexpr(BinaryExpr *x) {
    _curr_node = x;
 
+   // left
    x->left->accept(this);
    Value left = _curr;
    if (x->kind != Expr::Assignment) {
       left = Reference::deref(left);
+      check_unknown(left, x->left, _curr_varname);
    }
+   string left_varname = _curr_varname;
 
+   // right
    x->right->accept(this);
    Value right = _curr;
    right = Reference::deref(right);
+   string right_varname = _curr_varname;
 
    if (x->left->has_errors() or x->right->has_errors()) {
       return; // avoid more errors
    }
+   
 
+   // operate
    if (x->op == ",") {
       return; // already evaluated
    }
@@ -300,10 +314,12 @@ void SemanticAnalyzer::visit_binaryexpr(BinaryExpr *x) {
    }
    if (x->op == "+=" || x->op == "-=" || x->op == "*=" || x->op == "/=" ||
        x->op == "&=" || x->op == "|=" || x->op == "^=") {
+      check_unknown(right, x->right, right_varname);
       visit_binaryexpr_op_assignment(x->op[0], left, right);
       return;
    } 
    else if (x->op == "&" || x->op == "|" || x->op == "^") {
+      check_unknown(right, x->right, right_varname);
       bool ret = false;
       switch (x->op[0]) {
       case '&': ret = visit_bitop<_And>(left, right); break;
@@ -316,6 +332,7 @@ void SemanticAnalyzer::visit_binaryexpr(BinaryExpr *x) {
       // _error(_T("Los operandos de '%s' son incompatibles", x->op.c_str()));
    }
    else if (x->op == "+" || x->op == "*" || x->op == "-" || x->op == "/") {
+      check_unknown(right, x->right, right_varname);
       bool ret = false;
       if (left.type()->is(Type::Basic) and right.type()->is(Type::Basic)) {
          switch (x->op[0]) {
@@ -333,12 +350,11 @@ void SemanticAnalyzer::visit_binaryexpr(BinaryExpr *x) {
          }
       } else {
          _curr = left;
-         /*
          if (!call_operator(x->op, vector<Value>(1, right))) {
-            _error(_T("El tipo '%s' no tiene 'operator%s'", 
-                      _curr.type()->typestr().c_str(), x->op.c_str()));
+            x->add_error(_T("El tipo '%s' no tiene 'operator%s'", 
+                            _curr.type()->typestr().c_str(), 
+                            x->op.c_str()));
          }
-         */
          ret = true;
       }
       if (ret) {
@@ -413,6 +429,13 @@ void SemanticAnalyzer::visit_binaryexpr(BinaryExpr *x) {
    if (!call_operator(x->op, vector<Value>(1, right))) {
       x->add_error(_T("No existe el operador '%s' para el tipo '%s'.", 
                       x->op.c_str(), left.type()->typestr().c_str()));
+   }
+
+   if (_curr.is_unknown()) { // an unknown value gave another one
+      if (right.is_unknown()) {
+         x->add_error(_T("Utilizas la variable '%s' sin haberla inicializado", 
+                         _curr_varname.c_str()));
+      }
    }
 }
 
@@ -712,6 +735,7 @@ void SemanticAnalyzer::visit_callexpr_getfunc(CallExpr *x) {
 
 bool SemanticAnalyzer::visit_type_conversion(CallExpr *x, const vector<Value>& args) {
    _curr_node = x;
+   _curr_varname = "";
    FullIdent *id = x->func->as<FullIdent>();
    if (id != 0) {
       TypeSpec spec(id);

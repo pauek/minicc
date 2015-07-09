@@ -25,6 +25,7 @@ class SemanticAnalyzer :
      bool  bind_field(Value obj, string method_name);
      bool  call_operator(string op, const std::vector<Value>& args = std::vector<Value>());
      void  check_condition(Expr *cond, std::string who);
+     void  check_unknown(Value v, AstNode *x, string varname);
 
    template<class Op>
      bool  visit_op_assignment(Value left, Value right);
