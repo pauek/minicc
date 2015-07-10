@@ -586,6 +586,7 @@ Expr *Parser::parse_unary_expr(AstNode *parent) {
       _in.next();
       _skip(ne);
       ne->expr = parse_unary_expr(ne);
+      ne->fin = _in.pos();
       e = ne;
       break;
    }
