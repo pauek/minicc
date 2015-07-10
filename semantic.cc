@@ -787,12 +787,16 @@ bool SemanticAnalyzer::visit_type_conversion(CallExpr *x, const vector<Value>& a
       Type *type = get_type(&spec);
       if (type != 0) {
          if (args.size() != 1) {
-            x->add_error(_T("La conversión de tipo recibe un solo argumento"));
+            x->add_error(_T("La conversión de tipo recibe un solo argumento."));
          }
          _curr = type->convert(args[0]);
          if (_curr == Value::null) {
             _curr = args[0];
-            // call_operator(id->typestr());
+            if (!call_operator(id->typestr())) {
+               x->add_error(_T("No se puede convertir un '%s' en un '%s'.",
+                               args[0].type()->typestr().c_str(),
+                               type->typestr().c_str()));
+            }
          }
          return true;
       }
