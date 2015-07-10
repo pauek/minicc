@@ -320,6 +320,7 @@ void SemanticAnalyzer::visit_binaryexpr(BinaryExpr *x) {
    if (x->op == "+=" || x->op == "-=" || x->op == "*=" || x->op == "/=" ||
        x->op == "&=" || x->op == "|=" || x->op == "^=") {
       check_unknown(right, x->right, right_varname);
+      _curr_node = x; // ugly
       visit_binaryexpr_op_assignment(x->op[0], left, right);
       return;
    } 
@@ -478,7 +479,9 @@ void SemanticAnalyzer::visit_binaryexpr_assignment(BinaryExpr* x, Value left, Va
 
 void SemanticAnalyzer::visit_binaryexpr_op_assignment(char op, Value left, Value right) {
    if (!left.is<Reference>()) {
-      // _error(_T("Para usar '%s=' se debe poner una variable a la izquierda", op));
+      _curr_node->add_error(_T("En el operador '%c=' la parte izquierda debe ser una variable.", 
+                               op));
+      return;
    }
    left = Reference::deref(left);
    bool ok = false;
