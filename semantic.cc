@@ -450,7 +450,7 @@ inline bool assignment_types_ok(const Value& a, const Value& b) {
 
 void SemanticAnalyzer::visit_binaryexpr_assignment(BinaryExpr* x, Value left, Value right) {
    if (!left.is<Reference>()) {
-      x->add_error(_T("Intentas asignar sobre algo que no es una variable"));
+      x->add_error(_T("Intentas asignar sobre algo que no es una variable."));
       return;
    }
    left = Reference::deref(left);
