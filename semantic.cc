@@ -1034,12 +1034,10 @@ void SemanticAnalyzer::visit_increxpr(IncrExpr *x) {
    } else {
       _curr = after;
       string op = (x->kind == IncrExpr::Positive ? "++" : "--");
-      /*
       if (!call_operator(op)) {
-         _error(_T("El tipo '%s' no tiene 'operator%s'", 
-                   _curr.type()->typestr().c_str(), op.c_str()));
+         x->add_error(_T("El tipo '%s' no tiene operador '%s'.", 
+                         _curr.type()->typestr().c_str(), op.c_str()));
       }
-      */
    }
    _curr = (x->preincr ? before : after);
 }
