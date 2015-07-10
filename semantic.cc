@@ -927,9 +927,10 @@ void SemanticAnalyzer::visit_fieldexpr(FieldExpr *x) {
       SimpleTable<Value>& fields = obj.as<Struct>();
       Value v;
       if (!fields.get(x->field->name, v)) {
-         x->add_error(_T("No existe el campo '%s'", x->field->name.c_str()));
+         x->add_error(_T("El campo '%s' no existe.", x->field->name.c_str()));
+      } else {
+         _curr = Reference::mkref(v);
       }
-      _curr = Reference::mkref(v);
       return;
    }
    
