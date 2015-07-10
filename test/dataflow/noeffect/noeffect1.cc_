@@ -1,0 +1,6 @@
+void f() {
+   int a = 1;
+   a;
+}
+[[err]]---------------------------------------------------
+semantic/noeffect/noeffect1.cc[3:3-3:5]: La instrucción no tiene ningún efecto.

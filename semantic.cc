@@ -301,6 +301,11 @@ void SemanticAnalyzer::visit_binaryexpr(BinaryExpr *x) {
       return; // avoid more errors
    }
    
+   // Try operator first
+   _curr = left;
+   if (call_operator(x->op, vector<Value>(1, right))) {
+      return;
+   }
 
    // operate
    if (x->op == ",") {
@@ -320,16 +325,27 @@ void SemanticAnalyzer::visit_binaryexpr(BinaryExpr *x) {
    } 
    else if (x->op == "&" || x->op == "|" || x->op == "^") {
       check_unknown(right, x->right, right_varname);
-      bool ret = false;
+      bool ok = false;
       switch (x->op[0]) {
-      case '&': ret = visit_bitop<_And>(left, right); break;
-      case '|': ret = visit_bitop<_Or >(left, right); break;
-      case '^': ret = visit_bitop<_Xor>(left, right); break;
+      case '&': ok = visit_bitop<_And>(left, right); break;
+      case '|': ok = visit_bitop<_Or >(left, right); break;
+      case '^': ok = visit_bitop<_Xor>(left, right); break;
       }
-      if (ret) {
+      if (ok) {
          return;
       }
-      // _error(_T("Los operandos de '%s' son incompatibles", x->op.c_str()));
+      if (call_operator(x->op, vector<Value>(1, right))) {
+         return;
+      }
+      if (!left.is<Int>()) {
+         x->left->add_error(_T("La parte izquierda del '%s' no es un 'int'.", 
+                               x->op.c_str()));
+      }
+      if (!right.is<Int>()) {
+         x->left->add_error(_T("La parte derecha del '%s' no es un 'int'.", 
+                               x->op.c_str()));
+      }
+      return;
    }
    else if (x->op == "+" || x->op == "*" || x->op == "-" || x->op == "/") {
       check_unknown(right, x->right, right_varname);
@@ -360,14 +376,16 @@ void SemanticAnalyzer::visit_binaryexpr(BinaryExpr *x) {
       if (ret) {
          return;
       }
-      // _error(_T("Los operandos de '%s' son incompatibles", x->op.c_str()));
+      x->add_error(_T("Los operandos de '%s' son incompatibles", x->op.c_str()));
+      return;
    }
    else if (x->op == "%") {
       if (left.is<Int>() and right.is<Int>()) {
          _curr = Value(left.as<Int>() % right.as<Int>());
          return;
       }
-      // _error(_T("Los operandos de '%s' son incompatibles", "%"));
+      x->add_error(_T("Los operandos de '%s' son incompatibles", "%"));
+      return;
    }
    else if (x->op == "%=") {
       if (!left.is<Reference>()) {
@@ -378,7 +396,8 @@ void SemanticAnalyzer::visit_binaryexpr(BinaryExpr *x) {
          left.as<Int>() %= right.as<Int>();
          return;
       }
-      // _error(_T("Los operandos de '%s' son incompatibles", "%="));
+      x->add_error(_T("Los operandos de '%s' son incompatibles", "%="));
+      return;
    }
    else if (x->op == "&&" or x->op == "and" || x->op == "||" || x->op == "or")  {
       if (left.is<Bool>() and right.is<Bool>()) {
@@ -387,14 +406,16 @@ void SemanticAnalyzer::visit_binaryexpr(BinaryExpr *x) {
                        : left.as<Bool>() or  right.as<Bool>());
          return;
       }
-      // _error(_T("Los operandos de '%s' no son de tipo 'bool'", x->op.c_str()));
+      x->add_error(_T("Los operandos de '%s' no son de tipo 'bool'", x->op.c_str()));
+      return;
    }
    else if (x->op == "==" || x->op == "!=") {
       if (left.same_type_as(right)) {
          _curr = Value(x->op == "==" ? left.equals(right) : !left.equals(right));
          return;
       }
-      // _error(_T("Los operandos de '%s' no son del mismo tipo", x->op.c_str()));
+      x->add_error(_T("Los operandos de '%s' no son del mismo tipo", x->op.c_str()));
+      return;
    }
    else if (x->op == "<" || x->op == ">" || x->op == "<=" || x->op == ">=") {
       bool ret = false;
@@ -408,35 +429,16 @@ void SemanticAnalyzer::visit_binaryexpr(BinaryExpr *x) {
                    ? visit_comparison<_Gt>(left, right)
                    : visit_comparison<_Ge>(left, right));
          }
-      } else {
-         _curr = left;
-         /*
-         if (!call_operator(x->op, vector<Value>(1, right))) {
-            _error(_T("El tipo '%s' no tiene 'operator%s'", 
-                      _curr.type()->typestr().c_str(), x->op.c_str()));
-         }
-         */
-         ret = true;
       }
       if (ret) {
          return;
       }
-      // TODO: Find operator as method or function
-      // _error(_T("Los operandos de '%s' no son compatibles", x->op.c_str()));
-   }
-   _curr = left;
-   
-   if (!call_operator(x->op, vector<Value>(1, right))) {
-      x->add_error(_T("No existe el operador '%s' para el tipo '%s'.", 
-                      x->op.c_str(), left.type()->typestr().c_str()));
+      x->add_error(_T("Los operandos de '%s' no son compatibles", x->op.c_str()));
+      return;
    }
 
-   if (_curr.is_unknown()) { // an unknown value gave another one
-      if (right.is_unknown()) {
-         x->add_error(_T("Utilizas la variable '%s' sin haberla inicializado", 
-                         _curr_varname.c_str()));
-      }
-   }
+   x->add_error(_T("No existe el operador '%s' para el tipo '%s'.", 
+                   x->op.c_str(), left.type()->typestr().c_str()));
 }
 
 inline bool assignment_types_ok(const Value& a, const Value& b) {
