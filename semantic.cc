@@ -1007,10 +1007,8 @@ void SemanticAnalyzer::visit_signexpr(SignExpr *x) {
    } else if (_curr.is<Double>()) {
       _curr.as<Double>() = -_curr.as<Double>();
    } else {
-      /*
-      _error(_T("El cambio de signo para '%s' no tiene sentido",
-                _curr.type_name().c_str()));
-      */
+      x->add_error(_T("El cambio de signo para '%s' no tiene sentido.",
+                      _curr.type_name().c_str()));
    }
 }
 
