@@ -485,6 +485,7 @@ void SemanticAnalyzer::visit_binaryexpr_op_assignment(char op, Value left, Value
    }
    left = Reference::deref(left);
    bool ok = false;
+   string textual = "";
    switch (op) {
    case '+': {
       // FIXME: use 'string::operator+='
@@ -497,19 +498,58 @@ void SemanticAnalyzer::visit_binaryexpr_op_assignment(char op, Value left, Value
       } else {
          ok = visit_op_assignment<_AAdd>(left, right);
       }
+      textual = _T("Intentas sumar un '%s' y un '%s'.",
+                   left.type()->typestr().c_str(),
+                   right.type()->typestr().c_str());
       break;
    }
-   case '-': ok = visit_op_assignment<_ASub>(left, right); break;
-   case '*': ok = visit_op_assignment<_AMul>(left, right); break;
-   case '/': ok = visit_op_assignment<_ADiv>(left, right); break;
-   case '&': ok = visit_bitop_assignment<_AAnd>(left, right); break;
-   case '|': ok = visit_bitop_assignment<_AOr >(left, right); break;
-   case '^': ok = visit_bitop_assignment<_AXor>(left, right); break;
+   case '-': {
+      ok = visit_op_assignment<_ASub>(left, right);
+      textual = _T("Intentas restar un '%s' y un '%s'.",
+                   left.type()->typestr().c_str(),
+                   right.type()->typestr().c_str());
+      break;
+   }
+   case '*': {
+      ok = visit_op_assignment<_AMul>(left, right); 
+      textual = _T("Intentas multiplicar un '%s' por un '%s'.",
+                   left.type()->typestr().c_str(),
+                   right.type()->typestr().c_str());
+      break;
+   }
+   case '/': {
+      ok = visit_op_assignment<_ADiv>(left, right); 
+      textual = _T("Intentas dividir un '%s' por un '%s'.",
+                   left.type()->typestr().c_str(),
+                   right.type()->typestr().c_str());
+      break;
+   }
+   case '&': {
+      ok = visit_bitop_assignment<_AAnd>(left, right); 
+      textual = _T("Intentas hacer un AND de un '%s' con un '%s'.",
+                   left.type()->typestr().c_str(),
+                   right.type()->typestr().c_str());
+      break;
+   }
+   case '|': {
+      ok = visit_bitop_assignment<_AOr >(left, right); 
+      textual = _T("Intentas hacer un OR de un '%s' con un '%s'.",
+                   left.type()->typestr().c_str(),
+                   right.type()->typestr().c_str());
+      break;
+   }
+   case '^': {
+      ok = visit_bitop_assignment<_AXor>(left, right); 
+      textual = _T("Intentas hacer un XOR de un '%s' con un '%s'.",
+                   left.type()->typestr().c_str(),
+                   right.type()->typestr().c_str());
+      break;
+   }
    }
    if (!ok) {
       string _op = "?=";
       _op[0] = op;
-      // _error(_T("Los operandos de '%s' no son compatibles", _op.c_str()));
+      _curr_node->add_error(textual);
    }
 }
 

@@ -1621,6 +1621,8 @@ String::String() : Class("string") {
    _add_method((new Function(this))->add_params(this),
                new PlusOperator());
 
+   // TODO: +=
+
    // []
    struct IndexedAccessOperator : public Func {
       IndexedAccessOperator() : Func("[]") {}
