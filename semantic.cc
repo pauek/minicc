@@ -660,7 +660,7 @@ void SemanticAnalyzer::visit_objdecl(ObjDecl *x) {
       Binding& constructor = _curr.as<Callable>();
       const Function *func_type = constructor.func.type()->as<Function>();
       check_arguments(func_type, argvals);
-      // constructor.call(this, args); // <-- Invoke!
+      constructor.call_abstract(x, argvals);
       setenv(x->name, new_obj);
       return;
    }
