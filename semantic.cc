@@ -1016,7 +1016,7 @@ void SemanticAnalyzer::visit_increxpr(IncrExpr *x) {
    _curr_node = x;
    x->expr->accept(this);
    if (!_curr.is<Reference>()) {
-      // _error(_T("Hay que incrementar una variable, no un valor"));
+      x->add_error(_T("Hay que incrementar una variable, no un valor."));
    }
    Value after  = Reference::deref(_curr);
    Value before = after.clone();
