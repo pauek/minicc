@@ -107,6 +107,7 @@ public:
    int properties() const { return Type::Unknown; }
 
    Value create() { return Value(this, Value::unknown); }
+   Value convert(Value v) const;
 
    void destroy(void *data) const {
       assert(data == Value::unknown or data == Value::abstract); // should only be used in abstract/unknown values.

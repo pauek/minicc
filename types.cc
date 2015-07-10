@@ -118,6 +118,10 @@ const Type *Type::mkref(const Type *t) {
    return it->second;
 }
 
+Value UnknownType::convert(Value v) const {
+   // disregard v completely (to not produce further errors)
+   return Value(this, Value::unknown);
+}
 
 void Char::destroy(void *data) const {
    if (_destroy) {
