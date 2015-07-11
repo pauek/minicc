@@ -602,10 +602,10 @@ void SemanticAnalyzer::visit_arraydecl(ArrayDecl *x) {
       x->sizes[i]->accept(this);
       _curr = Reference::deref(_curr);
       if (!_curr.is<Int>()) {
-         x->add_error(_T("El tamaño de una tabla debe ser un entero"));
+         x->add_error(_T("El tamaño de una tabla debe ser un entero."));
          return;
       } else if (_curr.as<Int>() <= 0) {
-         x->add_error(_T("El tamaño de una tabla debe ser un entero positivo"));
+         x->add_error(_T("El tamaño de una tabla debe ser un entero positivo."));
          return;
       } else {
          const int sz = _curr.as<Int>();
