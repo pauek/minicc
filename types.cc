@@ -215,8 +215,6 @@ Value Int::convert(Value x) const {
       return Value(int(x.as<Double>()));
    } else if (x.is<Char>()) {
       return Value(int(x.as<Char>()));
-   } else if (x.is<Bool>()) {
-      return Value(int(x.as<Bool>()));
    }
    return Value::null;
 }
@@ -314,8 +312,6 @@ Value Bool::convert(Value x) const {
       }
    } else if (x.is<Bool>()) {
       return x.clone();
-   } else if (x.is<Int>()) {
-      return Value(x.as<Int>() > 0);
    }
    return Value::null;
 }

@@ -1047,6 +1047,7 @@ void SemanticAnalyzer::visit_negexpr(NegExpr *x) {
    x->expr->accept(this);
    if (!_curr.is<Bool>()) {
       x->add_error(_T("Sólo se puede negar una expresión de tipo 'bool'."));
+      _curr = Bool::self->create_abstract(); // avoid errors downstream
       return;
    }
    _curr.as<Bool>() = !_curr.as<Bool>();
