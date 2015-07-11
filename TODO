@@ -1,3 +1,35 @@
+MiniC++ v1
+----------
+
+- Testar bien el SemanticAnalyzer para expresiones complicadas.
+
+- Implementar el 'switch'.
+
+- Pintar matrices en 2D.
+
+- Acabar el 'const'!!!!
+
+- Entrada/Salida:
+  1) interactiva: en el navegador puedo ejecutar el programa igual que lo hago en el terminal.
+  2) programada: en el navegador puedo introducir la entrada entera y el programa se ejecuta sin intervención.
+  3) test cases: se pueden poner varios casos de prueba para verificar si el programa funciona como se espera.
+     (cada caso es la entrada y la salida que se debe producir).
+
+  Más ideas sobre esto:
+  a) Colocar el cursor de ejecución en el punto donde la salida del programa discrepa de la salida del 'test case'.
+  b) Cuando clicas la salida, colocar el cursor de ejecución en el punto que produjo esa salida.
+
+- Implementar 'const_iterator' y 'reverse_iterator' para vector y list.
+
+- Implementar instanciación de funciones de template (max, make_pair).
+
+- Explicitar qué implementa MiniC++ y qué no:
+  1) Qué ficheros de cabecera y qué métodos.
+  2) Qué cambios (es más estricto con ciertas cosas como la conversión entre 'int' y 'bool').
+  3) Avisar en los errores sobre esto:
+     a) Si se incluye un cierto fichero de cabecera estándar que no se implementa, avisar.
+     b) Si se usa cierto método que no está implementado, avisar también.
+
 - Preparser: mira si las llaves/paréntesis/puntos-y-coma estan bien equilibrados
   e intenta dar pistas sobre cómo arreglarlo.
 
@@ -7,23 +39,22 @@
   3) instrucciones sin efecto.
   4) funciones sin efecto (inútiles).
 
-- Explicitar qué implementa MiniC++ y qué no:
-  1) Qué ficheros de cabecera y qué métodos.
-  2) Qué cambios (es más estricto con ciertas cosas como la conversión entre 'int' y 'bool').
-  3) Avisar en los errores sobre esto:
-     a) Si se incluye un cierto fichero de cabecera estándar que no se implementa, avisar.
-     b) Si se usa cierto método que no está implementado, avisar también.
-
-- Implementar el 'switch'.
-- Implementar instanciación de funciones de template (max, make_pair).
-- Implementar 'const_iterator' y 'reverse_iterator' para vector y list.
-- Introducir 'const'!!!!
 - Errores de ejecución: se muestran en el "timeline" con un botón rojo y se para el programa.
   1) Utilizar valores 'unknown'.
   2) Desreferenciar iteradores al 'end'.
-  3) ... (what else?).
+  3) Acceder a posiciones fuera de los límites de las tablas.
+  4) Divisiones por cero.
+  5) ... (what else?).
 
 - Borrar el AST correctamente (quizás no haga falta, el AST está presente todo el rato).
+
 - Testear a fondo el stepper.
-- Pintar matrices en 2D.
-- Entrada/Salida interactiva + programada.
+
+Futuro
+------
+
+- Clases: para hacer esto hace falta el parser, el ast, 
+  pero el tema de tipos está bastante preparado.
+
+
+
