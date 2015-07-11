@@ -34,7 +34,7 @@ class SemanticAnalyzer :
      bool  visit_bitop_assignment(Value left, Value right);
 
    template<class Op>
-     bool  visit_sumprod(Value left, Value right);
+     bool  visit_sumprod(Value left, Value right, std::string what);
 
    template<class Op>
      bool  visit_bitop(Value left, Value right);

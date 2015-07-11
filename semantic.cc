@@ -220,8 +220,16 @@ bool SemanticAnalyzer::visit_bitop_assignment(Value left, Value _right) {
 }
 
 template<class Op>
-bool SemanticAnalyzer::visit_sumprod(Value left, Value _right) {
+bool SemanticAnalyzer::visit_sumprod(Value left, Value _right, string what) {
    Value right = left.type()->convert(_right);
+   if (right.is_null()) {
+      _curr_node->add_error(_T("No se puede %s un '%s' con un '%s'.",
+                               what.c_str(),
+                               left.type()->typestr().c_str(),
+                               _right.type()->typestr().c_str()));
+      _curr = left.type()->create_abstract();
+      return true; // assume the type of the left operand for the rest...
+   }
    if (left.is<Int>()) {
       if (left.is_concrete() and right.is_concrete()) {
          _curr = Value(Op::eval(left.as<Int>(), right.as<Int>()));
@@ -352,6 +360,7 @@ void SemanticAnalyzer::visit_binaryexpr(BinaryExpr *x) {
    else if (x->op == "+" || x->op == "*" || x->op == "-" || x->op == "/") {
       check_unknown(right, x->right, right_varname);
       bool ret = false;
+      _curr_node = x;
       if (left.type()->is(Type::Basic) and right.type()->is(Type::Basic)) {
          switch (x->op[0]) {
          case '+': {
@@ -359,12 +368,12 @@ void SemanticAnalyzer::visit_binaryexpr(BinaryExpr *x) {
                _curr = Value(char(left.as<Char>() + right.as<Int>()));
                return;
             } else {
-               ret = visit_sumprod<_Add>(left, right); break;
+               ret = visit_sumprod<_Add>(left, right, "sumar"); break;
             }
          }
-         case '*': ret = visit_sumprod<_Mul>(left, right); break;
-         case '-': ret = visit_sumprod<_Sub>(left, right); break;
-         case '/': ret = visit_sumprod<_Div>(left, right); break;
+         case '*': ret = visit_sumprod<_Mul>(left, right, "multiplicar"); break;
+         case '-': ret = visit_sumprod<_Sub>(left, right, "restar"); break;
+         case '/': ret = visit_sumprod<_Div>(left, right, "dividir"); break;
          }
       } else {
          _curr = left;
