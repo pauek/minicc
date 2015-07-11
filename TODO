@@ -1,5 +1,11 @@
 - Preparser: mira si las llaves/paréntesis/puntos-y-coma estan bien equilibrados
   e intenta dar pistas sobre cómo arreglarlo.
+- Data-flow: 
+  1) variables que no se usan (error como en Go).
+  2) variables que se usan sin inicializar.
+  3) instrucciones sin efecto.
+  4) funciones sin efecto (inútiles).
+
 - Implementar el 'switch'.
 - Implementar instanciación de funciones de template (max, make_pair).
 - Implementar 'const_iterator' y 'reverse_iterator' para vector y list.
