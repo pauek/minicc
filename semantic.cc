@@ -443,13 +443,6 @@ void SemanticAnalyzer::visit_binaryexpr(BinaryExpr *x) {
                    x->op.c_str(), left.type()->typestr().c_str()));
 }
 
-inline bool assignment_types_ok(const Value& a, const Value& b) {
-   return 
-      (a.same_type_as(b)) or
-      (a.is<Float>() and b.is<Double>()) or
-      (a.is<Double>() and b.is<Float>());
-}
-
 void SemanticAnalyzer::visit_binaryexpr_assignment(BinaryExpr* x, Value left, Value right) {
    if (!left.is<Reference>()) {
       x->add_error(_T("Intentas asignar sobre algo que no es una variable."));
