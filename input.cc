@@ -501,7 +501,14 @@ Token Input::read_real_literal(Token t) {
       t.str += curr();
       next();
    }
+   bool isfloat = false;
+   if (curr() == 'f') {
+      isfloat = true;
+      next();
+   }
    t.fin = _curr;
-   t.kind = Token::RealLiteral;
+   t.kind = (isfloat 
+             ? Token::FloatLiteral 
+             : Token::DoubleLiteral);
    return t;
 }

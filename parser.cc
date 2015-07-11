@@ -516,8 +516,13 @@ Expr *Parser::parse_primary_expr(AstNode *parent) {
       break;
    }
    case Token::Dot:
-   case Token::RealLiteral: {
-      Literal* lit = new Literal(Literal::Double);
+   case Token::FloatLiteral:
+   case Token::DoubleLiteral: {
+      Literal::Type typ = Literal::Double;
+      if (tok.kind == Token::FloatLiteral) {
+         typ = Literal::Float;
+      }
+      Literal* lit = new Literal(typ);
       istringstream S(tok.str);
       S >> lit->val.as_double;
       lit->parent = parent;

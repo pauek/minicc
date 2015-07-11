@@ -14,6 +14,9 @@ void fac() {
    s = true;
    MadeUp blah;
    blah = 1;
+   float f;
+   f = 1;
+   f = 0.02f;
 }
 [[err]]--------------------------------------------------
 semantic/assign/assign2.cc[5:3-5:15]: No se puede asignar un 'string' a una variable de tipo 'double'.

@@ -160,6 +160,7 @@ void SemanticAnalyzer::visit_literal(Literal *x) {
    case Literal::String: _curr = Value(*x->val.as_string.s); break;
    case Literal::Int:    _curr = Value(x->val.as_int);       break;
    case Literal::Double: _curr = Value(x->val.as_double);    break;
+   case Literal::Float:  _curr = Value(x->val.as_double);    break;
    case Literal::Bool:   _curr = Value(x->val.as_bool);      break;
    case Literal::Char:   _curr = Value(x->val.as_char);      break;
    default:
