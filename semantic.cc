@@ -369,7 +369,7 @@ void SemanticAnalyzer::visit_binaryexpr(BinaryExpr *x) {
       } else {
          _curr = left;
          if (!call_operator(x->op, vector<Value>(1, right))) {
-            x->add_error(_T("El tipo '%s' no tiene 'operator%s'", 
+            x->add_error(_T("El tipo '%s' no tiene operador '%s'.", 
                             _curr.type()->typestr().c_str(), 
                             x->op.c_str()));
          }
