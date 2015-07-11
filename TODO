@@ -1,10 +1,18 @@
 - Preparser: mira si las llaves/paréntesis/puntos-y-coma estan bien equilibrados
   e intenta dar pistas sobre cómo arreglarlo.
+
 - Data-flow: 
   1) variables que no se usan (error como en Go).
   2) variables que se usan sin inicializar.
   3) instrucciones sin efecto.
   4) funciones sin efecto (inútiles).
+
+- Explicitar qué implementa MiniC++ y qué no:
+  1) Qué ficheros de cabecera y qué métodos.
+  2) Qué cambios (es más estricto con ciertas cosas como la conversión entre 'int' y 'bool').
+  3) Avisar en los errores sobre esto:
+     a) Si se incluye un cierto fichero de cabecera estándar que no se implementa, avisar.
+     b) Si se usa cierto método que no está implementado, avisar también.
 
 - Implementar el 'switch'.
 - Implementar instanciación de funciones de template (max, make_pair).
