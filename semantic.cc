@@ -395,7 +395,7 @@ void SemanticAnalyzer::visit_binaryexpr(BinaryExpr *x) {
          _curr = Value(left.as<Int>() % right.as<Int>());
          return;
       }
-      x->add_error(_T("Los operandos de '%s' son incompatibles", "%"));
+      x->add_error(_T("El módulo '%' debe usarse con dos 'int's."));
       return;
    }
    else if (x->op == "%=") {
@@ -581,6 +581,9 @@ void SemanticAnalyzer::visit_vardecl(VarDecl *x) {
    } 
    
    if (init.is_null()) {
+      if (x->typespec->is(TypeSpec::Const)) {
+         x->add_error(_T("Las constantes deben tener un valor inicial."));
+      }
       init = type->create();
    } else {
       try {
