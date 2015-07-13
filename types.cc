@@ -1319,6 +1319,20 @@ Value Array::convert(Value init) const {
    return Value(this, array);
 }
 
+bool Struct::contains_unknowns(void *data) const {
+   SimpleTable<Value> *tab = static_cast<SimpleTable<Value>*>(data);
+   for (int i = 0; i < _fields.size(); i++) {
+      pair<std::string, Type *> f = _fields[i];
+      Value v;
+      if (!tab->get(f.first, v)) {
+         return true;
+      } else if (v.is_unknown() or v.contains_unknowns()) {
+         return true;
+      }
+   }
+   return false;
+}
+
 Value Struct::create() {
    SimpleTable<Value> *tab = new SimpleTable<Value>();
    for (int i = 0; i < _fields.size(); i++) {

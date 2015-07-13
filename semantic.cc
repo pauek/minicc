@@ -599,6 +599,11 @@ void SemanticAnalyzer::visit_vardecl(VarDecl *x) {
       } catch (TypeError *e) {
          x->add_error(e->msg);
       }
+      if (x->typespec->is(TypeSpec::Const) and
+          type->is<Struct>() and
+          init.contains_unknowns()) {
+         x->add_error(_T("En una tupla constante hay que inicializar todas las casillas."));
+      }
    }
    if (x->typespec->is(TypeSpec::Const)) {
       init.set_const(true);
@@ -646,7 +651,6 @@ void SemanticAnalyzer::visit_arraydecl(ArrayDecl *x) {
          init = arraytype->create();
       }
       if (x->typespec->is(TypeSpec::Const)) {
-         // mirar si no se han inicializado todos los valores.
          if (init.contains_unknowns()) {
             x->add_error(_T("En una tabla constante hay que inicializar todas las casillas."));
          }

@@ -413,14 +413,16 @@ class Struct : public BaseType<SimpleTable<Value>> {
    SimpleTable<Type*> _fields;
 public:
    Struct(std::string name) : BaseType<SimpleTable<Value>>(name) {}
-   void add_field(std::string field_name, Type *t) { _fields.set(field_name, t); }
-   bool has_field(std::string field_name)    const { return _fields.exists(field_name); }
+   void  add_field(std::string field_name, Type *t) { _fields.set(field_name, t); }
+   bool  has_field(std::string field_name)    const { return _fields.exists(field_name); }
+   bool  contains_unknowns(void *data) const;
 
-   Value create();
-   Value convert(Value init) const;
-   Value create_abstract()   const;
-   void *clone(void *data)   const;
-   void clear_touched(void *data) const;
+    int  properties()              const { return Type::UserDefined | Type::Composite; }
+  Value  create();
+  Value  convert(Value init)       const;
+  Value  create_abstract()         const;
+   void *clone(void *data)         const;
+   void  clear_touched(void *data) const;
 
    std::string to_json(void *data) const;
 
