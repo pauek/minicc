@@ -634,12 +634,22 @@ void SemanticAnalyzer::visit_arraydecl(ArrayDecl *x) {
    // FIXME: don't create new Array type every time?
    Type *arraytype = Array::mkarray(celltype, sizes);
    if (init.is_null()) {
+      if (x->typespec->is(TypeSpec::Const)) {
+         x->add_error(_T("Las tablas constantes deben tener un valor inicial."));
+      }
       init = arraytype->create();
    } else {
       try {
          init = arraytype->convert(init);
       } catch (TypeError& e) {
          x->add_error(e.msg);
+         init = arraytype->create();
+      }
+      if (x->typespec->is(TypeSpec::Const)) {
+         // mirar si no se han inicializado todos los valores.
+         if (init.contains_unknowns()) {
+            x->add_error(_T("En una tabla constante hay que inicializar todas las casillas."));
+         }
       }
    }
    setenv(x->name, init);

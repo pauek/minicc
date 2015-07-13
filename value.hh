@@ -72,11 +72,12 @@ public:
    bool has_type(const Type *t) const { return _box->type == t; }
 
    static Value null;
-   bool is_null()     const { return _box == 0; }
-   bool is_abstract() const { return _box != 0 and _box->data == abstract; }
-   bool is_unknown()  const { return _box != 0 and _box->data == unknown; }
-   bool is_concrete() const { return _box != 0 and (_box->data != unknown and _box->data != abstract); }
-   void to_abstract() const { assert(_box != 0); _box->data = abstract; }
+   bool is_null()           const { return _box == 0; }
+   bool is_abstract()       const { return _box != 0 and _box->data == abstract; }
+   bool is_unknown()        const { return _box != 0 and _box->data == unknown; }
+   bool is_concrete()       const { return _box != 0 and (_box->data != unknown and _box->data != abstract); }
+   void to_abstract()       const { assert(_box != 0); _box->data = abstract; }
+   bool contains_unknowns() const;
 
    std::string type_name() const;
 

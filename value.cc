@@ -173,6 +173,13 @@ string Value::type_name() const {
    return _box->type->typestr();
 }
 
+bool Value::contains_unknowns() const {
+   if (_box != 0 and _box->type->is(Type::Composite)) {
+      return _box->type->contains_unknowns(_box->data);
+   }
+   return false;
+}
+
 string Value::to_json() const {
    ostringstream json;
    if (is_null()) {

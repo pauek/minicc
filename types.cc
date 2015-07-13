@@ -1275,6 +1275,17 @@ void Array::clear_touched(void *data) const {
    }
 }
 
+bool Array::contains_unknowns(void *data) const {
+   vector<Value> *v = static_cast<vector<Value>*>(data);
+   for (int i = 0; i < v->size(); i++) {
+      if ((*v)[i].is_unknown() or
+          (*v)[i].contains_unknowns()) {
+         return true;
+      }
+   }
+   return false;
+}
+
 Value Array::create() {
    vector<Value> *array = new vector<Value>(_sz);
    for (int i = 0; i < _sz; i++) {
@@ -1292,7 +1303,7 @@ Value Array::create_abstract() const {
 Value Array::convert(Value init) const {
    assert(!init.is_null());
    if (!init.is<VectorValue>()) {
-      _error("Inicializas una tabla con algo que no es una lista de valores.");
+      _error("Debes inicializar con una lista de valores entre '{' y '}'.");
    }
    vector<Value>& elist = init.as<VectorValue>();
    if (elist.size() > _sz) {
@@ -1301,15 +1312,6 @@ Value Array::convert(Value init) const {
    vector<Value> *array = new vector<Value>(_sz);
    for (int i = 0; i < elist.size(); i++) {
       (*array)[i] = _celltype->convert(elist[i]);
-      /*
-      if (elist[i].has_type(_celltype)) {
-         ostringstream S;
-         S << "La inicialización de la casilla " << i 
-           << " tiene tipo '" << elist[i].type_name() << "'" 
-           << " cuando debería ser '" << _celltype->name() << "'";
-         _error(S.str());
-      }
-      */
    }
    for (int i = elist.size(); i < array->size(); i++) {
       (*array)[i] = _celltype->create();

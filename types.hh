@@ -28,57 +28,50 @@ class Type {
    static std::map<string, const Type *> reference_types;
 
 public:
-   Type(std::string name) : _name(name) {}
-
-   //        void *alloc(T x) = a different method for every Type
-   virtual   void  destroy(void *data) const                 { assert(false); }
-   virtual   bool  equals(void *a, void *b)            const { assert(false); }
-   virtual   bool  less_than(void *a, void *b)         const { assert(false); }
-   virtual   bool  assign(void *a, void *b)            const { assert(false); }
-   virtual   void *clone(void *data)                   const { assert(false); }
-   virtual   void  write(std::ostream& o, void *data)  const { assert(false); }
-   virtual   void *read(std::istream& i, void *data)   const { assert(false); }
-   virtual string  to_json(void *data)                 const { assert(false); }
-   virtual   void  clear_touched(void *data)      const { assert(false); }
-
    Type() {}
+   Type(std::string name) : _name(name) {}
 
    static const Type *mkref(const Type *t);
    
    enum Property {
-      Unknown     =  1,
-      Basic       =  2,  
-      Emulated    =  4, 
-      UserDefined =  8,  
-      Template    = 16,
-      Internal    = 32,
-      Class       = 64
+      Unknown     =  1, Basic       =   2,  
+      Emulated    =  4, UserDefined =   8,  
+      Template    = 16, Internal    =  32,
+      Class       = 64, Composite   = 128,
    };
 
-   virtual std::string  name()    const { return _name; }
-   virtual std::string  typestr() const { return _name; }
-   virtual         int  properties() const = 0;
+   //             void *alloc(T x) = a different method for every Type
+   virtual        void  destroy(void *data)                const { assert(false); }
+   virtual        bool  equals(void *a, void *b)           const { assert(false); }
+   virtual        bool  less_than(void *a, void *b)        const { assert(false); }
+   virtual        bool  assign(void *a, void *b)           const { assert(false); }
+   virtual        void *clone(void *data)                  const { assert(false); }
+   virtual        void  write(std::ostream& o, void *data) const { assert(false); }
+   virtual        void *read(std::istream& i, void *data)  const { assert(false); }
+   virtual      string  to_json(void *data)                const { assert(false); }
+   virtual        void  clear_touched(void *data)          const { assert(false); }
+   virtual        bool  contains_unknowns(void *data)      const { return false; }
+
+   virtual std::string  name()                             const { return _name; }
+   virtual std::string  typestr()                          const { return _name; }
+   virtual         int  properties()                       const = 0;
    virtual         int  get_field(Value self,
                                   std::string, 
-                                  std::vector<Value>& M)          const { return false; }
-   virtual        bool  get_static(std::string, Value& v)         const { return false; }
-   virtual        Type *get_inner_class(std::string)                    { return 0; }
-   virtual       Value  create()                                        { assert(false); }
-   virtual       Value  create_abstract()                         const { return Value(this, Value::abstract); }
-   virtual        bool  accepts(const Type *t)                    const { return this == t; }
-   virtual       Value  convert(Value init)                       const { assert(false); }
-   virtual        Type *instantiate(std::vector<Type*>& subtypes) const { assert(false); } // for templates
+                                  std::vector<Value>& M)   const { return false; }
+   virtual        bool  get_static(std::string, Value& v)  const { return false; }
+   virtual        Type *get_inner_class(std::string)             { return 0; }
+   virtual        Type *instantiate(std::vector<Type*>& s) const { assert(false); } // for templates
+                                    //     subtypes ----^
+   virtual       Value  create()                                 { assert(false); }
+   virtual       Value  create_abstract()                  const { return Value(this, Value::abstract); }
+   virtual       Value  convert(Value init)                const { assert(false); }
+   virtual        bool  accepts(const Type *t)             const { return this == t; }
 
-   template<typename T>
-   bool is() const { return dynamic_cast<const T*>(this) != 0; }
+   template<typename T>    bool  is() const { return dynamic_cast<const T*>(this) != 0; }
+   template<typename T> const T *as() const { return dynamic_cast<const T*>(this); }
+   template<typename T>       T *as()       { return dynamic_cast<T*>(this); }
 
    bool is(Property prop) const { return properties() & prop; }
-
-   template<typename T>
-   const T *as() const { return dynamic_cast<const T*>(this); }
-
-   template<typename T>
-   T *as() { return dynamic_cast<T*>(this); }
 
    friend class Value;
    friend class Reference;
@@ -301,7 +294,7 @@ protected:
 public:
    Class(std::string name) : Base(name) {}
 
-   int properties() const { return Type::Class; }
+   int properties() const { return Type::Class | Type::Composite; }
 
    bool  get_static(std::string name, Value& result) const;
     int  get_field(Value self, std::string name, std::vector<Value>& result) const;
@@ -447,13 +440,14 @@ public:
                 Array(Type *celltype, int sz) 
                    : BaseType<std::vector<Value>>("<array>"), _celltype(celltype), _sz(sz) {}
    static Type *mkarray(Type *celltype, const std::vector<int>& sizes); // use this as constructor for 2D and up...
-           int  properties() const { return Basic; }
+           int  properties() const { return Basic | Composite; }
    std::string  typestr()    const { return _celltype->typestr() + "[]"; }
           Type *celltype()   const { return _celltype; }
          Value  create();
          Value  create_abstract()   const;
          Value  convert(Value init) const;
           void  clear_touched(void *data) const;
+          bool  contains_unknowns(void *data) const;
 
    std::string  to_json(void *) const;
 };
