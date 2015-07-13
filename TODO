@@ -3,7 +3,7 @@ MiniC++ v1
 
 - Testar bien el SemanticAnalyzer para expresiones complicadas.
 
-- Implementar el 'switch'.
+- Implementar el 'switch' (+ break + goto?).
 
 - Pintar matrices en 2D.
 
@@ -46,7 +46,7 @@ MiniC++ v1
   4) Divisiones por cero.
   5) ... (what else?).
 
-- Borrar el AST correctamente (quizás no haga falta, el AST está presente todo el rato).
+- Borrar el AST correctamente, para la web, que va compilando una y otra vez...
 
 - Testear a fondo el stepper.
 
