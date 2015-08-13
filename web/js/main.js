@@ -246,10 +246,10 @@ function resize() {
 
 function render_elem(elem, val, content, extra) {
    var box = val.box;
-   var just_touched = (val['<just_touched>'] == true);
+   var just_touched = (val['<touched>'] == true);
    var html = '<' + elem + ' id="box-' + box + '" class="var ';
    if (just_touched) {
-      html += 'just_touched ';
+      html += 'touched ';
    }
    if (extra && extra.classes) {
       for (var i = 0; i < extra.classes.length; i++) {
