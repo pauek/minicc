@@ -6,8 +6,7 @@ void f(int x) {
 }
 
 int main() {
-   int a = 2, b;
-   b = f(a);
+   f(A);
 }
 [[err]]--------------------------------------------------
-semantic/func/func9.cc[10:3-10:11]: No se puede asignar un 'void' a una variable de tipo 'int'.
+semantic/func/func10.cc[9:5-9:6]: No se ha declarado 'A'.

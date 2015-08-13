@@ -1820,7 +1820,7 @@ Environment *Environment::pop() {
    return parent;
 }
 
-Value OverloadedValue::resolve(const std::vector<Value>& args) {
+Value OverloadedValue::resolve(const vector<Value>& args) {
    vector<Value> results;
    list<pair<int, int>> scores;
    for (int i = 0; i < _candidates.size(); i++) {

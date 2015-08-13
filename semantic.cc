@@ -684,10 +684,8 @@ void SemanticAnalyzer::visit_objdecl(ObjDecl *x) {
    Type *type = get_type(x->typespec);
    if (type != 0) {
       vector<Value> argvals;
-      for (int i = 0; i < x->args.size(); i++) {
-         x->args[i]->accept(this);
-         argvals.push_back(_curr);
-      }
+      vector<bool> argerrs;
+      eval_arguments(x->args, argvals, argerrs);
       string constructor_name = type->name();
       Value new_obj = type->create_abstract();
       if (!bind_field(new_obj, constructor_name)) {
@@ -699,7 +697,7 @@ void SemanticAnalyzer::visit_objdecl(ObjDecl *x) {
       }
       Binding& constructor = _curr.as<Callable>();
       const Function *func_type = constructor.func.type()->as<Function>();
-      check_arguments(func_type, argvals);
+      check_arguments(func_type, argvals, &argerrs);
       constructor.call_abstract(x, argvals);
       setenv(x->name, new_obj);
       return;
@@ -844,20 +842,23 @@ bool SemanticAnalyzer::visit_type_conversion(CallExpr *x, const vector<Value>& a
    return false;
 }
 
-void SemanticAnalyzer::check_arguments(const Function *func_type, const vector<Value>& args) 
+void SemanticAnalyzer::check_arguments(const Function *func_type,
+                                       const vector<Value>& argvals,
+                                       vector<bool>* argerrs)
 {
-   if (func_type->num_params() != args.size()) {
+   if (func_type->num_params() != argvals.size()) {
       _curr_node->add_error(_T("Número de argumentos erróneo (son %d y deberían ser %d).",
-                               args.size(), func_type->num_params()));
+                               argvals.size(), func_type->num_params()));
       return;
    }
-   for (int i = 0; i < args.size(); i++) {
+   for (int i = 0; i < argvals.size(); i++) {
       Type *param_type = func_type->param(i);
-      if (param_type == Any) {
+      if ((argerrs != 0 and (*argerrs)[i]) or
+          param_type == Any) {
          continue;
       }
       string t1 = param_type->typestr();
-      Value arg_i = args[i];
+      Value arg_i = argvals[i];
       if (!func_type->param(i)->is<Reference>()) {
          arg_i = Reference::deref(arg_i);
       } else if (!arg_i.type()->is<Reference>()) {
@@ -871,14 +872,21 @@ void SemanticAnalyzer::check_arguments(const Function *func_type, const vector<V
    }
 }
 
+void SemanticAnalyzer::eval_arguments(const vector<Expr *>& args,
+                                      vector<Value>& argvals,
+                                      vector<bool>& have_errors) {
+   for (int i = 0; i < args.size(); i++) {
+      args[i]->accept(this);
+      argvals.push_back(_curr);
+      have_errors.push_back(args[i]->has_errors());
+   }
+}
+
 void SemanticAnalyzer::visit_callexpr(CallExpr *x) {
    _curr_node = x;
-   // eval arguments
    vector<Value> argvals;
-   for (int i = 0; i < x->args.size(); i++) {
-      x->args[i]->accept(this);
-      argvals.push_back(_curr);
-   }
+   vector<bool> argerrs;
+   eval_arguments(x->args, argvals, argerrs);
    if (visit_type_conversion(x, argvals)) {
       return;
    }
@@ -893,7 +901,7 @@ void SemanticAnalyzer::visit_callexpr(CallExpr *x) {
       Binding& fn = func.as<Callable>();
       const Function *func_type = fn.func.type()->as<Function>();
       _curr_node = x; // ugly
-      check_arguments(func_type, argvals);
+      check_arguments(func_type, argvals, &argerrs);
       const Type *return_type = func_type->return_type();
       if (return_type != 0) {
          _curr = _ret = return_type->create_abstract();
