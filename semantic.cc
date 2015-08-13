@@ -190,20 +190,41 @@ struct _Le { template<typename T> static bool eval(const T& a, const T& b) { ret
 struct _Gt { template<typename T> static bool eval(const T& a, const T& b) { return a >  b; } };
 struct _Ge { template<typename T> static bool eval(const T& a, const T& b) { return a >= b; } };
 
+template<class Op, class Type>
+Value checked_op(Value left, Value right) {
+   if (left.is_concrete() and right.is_concrete()) {
+      return Value(Op::eval(left.as<Type>(), right.as<Type>()));
+   } else if (left.is_unknown() or right.is_unknown()) {
+      return Type::self->create(); // will be unknown
+   } else {
+      return Type::self->create_abstract();
+   }
+}
+
+template<class Op, class Type>
+void checked_op_assign(Value& left, Value right) {
+   if (left.is_concrete() and right.is_concrete()) {
+      Op::eval(left.as<Type>(), right.as<Type>());
+   } else if (left.is_unknown() or right.is_unknown()) {
+      left = Type::self->create(); // will be unknown
+   } else {
+      left = Type::self->create_abstract();
+   }
+}
 
 template<class Op>
 bool SemanticAnalyzer::visit_op_assignment(Value left, Value _right) {
    Value right = left.type()->convert(_right);
    if (left.is<Int>() and right.is<Int>()) {
-      Op::eval(left.as<Int>(), right.as<Int>());
+      checked_op_assign<Op, Int>(left, right);
       return true;
    } 
    if (left.is<Float>() and right.is<Float>()) {
-      Op::eval(left.as<Float>(), right.as<Float>());
+      checked_op_assign<Op, Float>(left, right);
       return true;
    }
    if (left.is<Double>() and right.is<Double>()) {
-      Op::eval(left.as<Double>(), right.as<Double>());
+      checked_op_assign<Op, Double>(left, right);
       return true;
    }
    return false;
@@ -219,6 +240,7 @@ bool SemanticAnalyzer::visit_bitop_assignment(Value left, Value _right) {
    return false;
 }
 
+
 template<class Op>
 bool SemanticAnalyzer::visit_sumprod(Value left, Value _right, string what) {
    Value right = left.type()->convert(_right);
@@ -231,21 +253,15 @@ bool SemanticAnalyzer::visit_sumprod(Value left, Value _right, string what) {
       return true; // assume the type of the left operand for the rest...
    }
    if (left.is<Int>()) {
-      if (left.is_concrete() and right.is_concrete()) {
-         _curr = Value(Op::eval(left.as<Int>(), right.as<Int>()));
-      } else if (left.is_unknown() or right.is_unknown()) {
-         _curr = Int::self->create(); // will be unknown
-      } else {
-         _curr = Int::self->create_abstract();
-      }
+      _curr = checked_op<Op, Int>(left, right);
       return true;
    }
    if (left.is<Float>()) {
-      _curr = Value(Op::eval(left.as<Float>(), right.as<Float>()));
+      _curr = checked_op<Op, Float>(left, right);
       return true;
    }
    if (left.is<Double>()) {
-      _curr = Value(Op::eval(left.as<Double>(), right.as<Double>()));
+      _curr = checked_op<Op, Double>(left, right);
       return true;
    }
    return false;
@@ -465,8 +481,12 @@ void SemanticAnalyzer::visit_binaryexpr_assignment(BinaryExpr* x, Value left, Va
    }
    Value right2 = left.type()->convert(right);
    if (right2 == Value::null) {
+      string right_type_name = "void";
+      if (!right.is_null()) {
+         right_type_name = right.type_name();
+      }
       x->add_error(_T("No se puede asignar un '%s' a una variable de tipo '%s'.",
-                      right.type_name().c_str(), 
+                      right_type_name.c_str(), 
                       left.type_name().c_str()));
       return;
    }
