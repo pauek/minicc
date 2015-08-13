@@ -7,6 +7,9 @@
 #include <cstdarg>
 #include <iostream>
 
+const int MAX_NUMERAL = 9;
+extern const char *numeral[MAX_NUMERAL+1];
+
 class Translator {
    int language;
    std::map<std::string, int> _index;

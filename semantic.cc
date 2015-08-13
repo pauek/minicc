@@ -684,8 +684,8 @@ void SemanticAnalyzer::visit_objdecl(ObjDecl *x) {
    Type *type = get_type(x->typespec);
    if (type != 0) {
       vector<Value> argvals;
-      vector<bool> argerrs;
-      eval_arguments(x->args, argvals, argerrs);
+      vector<Expr*> args;
+      eval_arguments(x->args, argvals);
       string constructor_name = type->name();
       Value new_obj = type->create_abstract();
       if (!bind_field(new_obj, constructor_name)) {
@@ -697,7 +697,7 @@ void SemanticAnalyzer::visit_objdecl(ObjDecl *x) {
       }
       Binding& constructor = _curr.as<Callable>();
       const Function *func_type = constructor.func.type()->as<Function>();
-      check_arguments(func_type, argvals, &argerrs);
+      check_arguments(func_type, argvals, &x->args);
       constructor.call_abstract(x, argvals);
       setenv(x->name, new_obj);
       return;
@@ -844,7 +844,7 @@ bool SemanticAnalyzer::visit_type_conversion(CallExpr *x, const vector<Value>& a
 
 void SemanticAnalyzer::check_arguments(const Function *func_type,
                                        const vector<Value>& argvals,
-                                       vector<bool>* argerrs)
+                                       vector<Expr*> *args)
 {
    if (func_type->num_params() != argvals.size()) {
       _curr_node->add_error(_T("Número de argumentos erróneo (son %d y deberían ser %d).",
@@ -853,7 +853,7 @@ void SemanticAnalyzer::check_arguments(const Function *func_type,
    }
    for (int i = 0; i < argvals.size(); i++) {
       Type *param_type = func_type->param(i);
-      if ((argerrs != 0 and (*argerrs)[i]) or
+      if ((args != 0 and (*args)[i]->has_errors()) or
           param_type == Any) {
          continue;
       }
@@ -862,10 +862,12 @@ void SemanticAnalyzer::check_arguments(const Function *func_type,
       if (!func_type->param(i)->is<Reference>()) {
          arg_i = Reference::deref(arg_i);
       } else if (!arg_i.type()->is<Reference>()) {
-         _curr_node->add_error(_T("En el parámetro %d se requiere una variable.", i+1));
+         string cual = _T(numeral[i+1]);
+         assert(args != 0);
+         (*args)[i]->add_error(_T("En el %s parámetro se requiere una variable.", cual.c_str()));
       }
       string t2 = arg_i.type()->typestr();
-      if (t1 != t2) {
+      if (t1 != t2 and !(*args)[i]->has_errors()) {
          _curr_node->add_error(_T("El argumento %d no es compatible con el tipo del parámetro "
                                   "(%s vs %s)", i+1, t1.c_str(), t2.c_str()));
       }
@@ -873,20 +875,17 @@ void SemanticAnalyzer::check_arguments(const Function *func_type,
 }
 
 void SemanticAnalyzer::eval_arguments(const vector<Expr *>& args,
-                                      vector<Value>& argvals,
-                                      vector<bool>& have_errors) {
+                                      vector<Value>& argvals) {
    for (int i = 0; i < args.size(); i++) {
       args[i]->accept(this);
       argvals.push_back(_curr);
-      have_errors.push_back(args[i]->has_errors());
    }
 }
 
 void SemanticAnalyzer::visit_callexpr(CallExpr *x) {
    _curr_node = x;
    vector<Value> argvals;
-   vector<bool> argerrs;
-   eval_arguments(x->args, argvals, argerrs);
+   eval_arguments(x->args, argvals);
    if (visit_type_conversion(x, argvals)) {
       return;
    }
@@ -901,7 +900,7 @@ void SemanticAnalyzer::visit_callexpr(CallExpr *x) {
       Binding& fn = func.as<Callable>();
       const Function *func_type = fn.func.type()->as<Function>();
       _curr_node = x; // ugly
-      check_arguments(func_type, argvals, &argerrs);
+      check_arguments(func_type, argvals, &x->args);
       const Type *return_type = func_type->return_type();
       if (return_type != 0) {
          _curr = _ret = return_type->create_abstract();

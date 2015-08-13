@@ -7,6 +7,10 @@ using namespace std;
 
 Translator Translator::translator;
 
+const char *numeral[MAX_NUMERAL+1] = {
+   "zeroth", "first", "second", "third", "fourth", "fifth", "sixth", "seventh", "eight", "nineth"
+};
+
 const char* Translator::_translations[1000][Translator::NUM_LANGS] = { /* 
    { 
       English, 

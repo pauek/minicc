@@ -21,14 +21,13 @@ class SemanticAnalyzer :
      void  visit_binaryexpr_op_assignment(char, Value left, Value right);
      void  visit_callexpr_getfunc(CallExpr *x);
      bool  visit_type_conversion(CallExpr *x, const std::vector<Value>& args);
-     void  check_arguments(const Function *func_type, const std::vector<Value>& argvals, std::vector<bool>* argerrs = 0);
+     void  check_arguments(const Function *func_type, const std::vector<Value>& argvals, std::vector<Expr*> *args = 0);
      bool  bind_field(Value obj, string method_name);
      bool  call_operator(string op, const std::vector<Value>& args = std::vector<Value>());
      void  check_condition(Expr *cond, std::string who);
      void  check_unknown(Value v, AstNode *x, string varname);
      void  eval_arguments(const std::vector<Expr *>& args,
-                          std::vector<Value>& argvals,
-                          std::vector<bool>& args_have_errors);
+                          std::vector<Value>& argvals);
    
    template<class Op>
      bool  visit_op_assignment(Value left, Value right);

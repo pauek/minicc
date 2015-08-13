@@ -348,10 +348,6 @@ void Stepper::visit_callexpr(CallExpr *x) {
    push(s);
 }
 
-const char *numeral[] = {
-   "first", "second", "third", "fourth", "fifth", "sixth", "seventh"
-};
-
 const int Stepper::CallExprVisitState::Block  = -1;
 const int Stepper::CallExprVisitState::Return = -2;
 
@@ -378,7 +374,7 @@ Todo Stepper::CallExprVisitState::step(Stepper *S) {
       return Stop;
    } else if (curr < size) {
       if (curr < 7) {
-         S->status(_T("We evaluate the %s parameter.", _T(numeral[curr]).c_str()));
+         S->status(_T("We evaluate the %s parameter.", _T(numeral[curr+1]).c_str()));
       } else {
          S->status(_T("We evaluate parameter number %d.", curr));
       }
