@@ -2,9 +2,11 @@ ifndef CXX
 	CXX=clang++ # TODO: Fix bug compiling with G++!!
 endif
 
-OBJECTS=main.o test.o input.o parser.o ast.o token.o value.o \
-	prettypr.o astpr.o interpreter.o stepper.o walker.o translator.o semantic.o \
-	types.o
+OBJECTS=main.o test.o input.o parser.o ast.o token.o value.o types.o \
+	prettypr.o astpr.o \
+	interpreter.o stepper.o walker.o translator.o semantic.o
+
+HEADERS=$(wildcard *.hh)
 
 SRCS=$(OBJECTS:.o=.cc)
 
@@ -14,7 +16,7 @@ all: minicc
 
 depend: .depend
 
-.depend: $(SRCS)
+.depend: $(SRCS) $(HEADERS)
 	@rm -f ./.depend
 	@echo "Computing dependencies..."
 	@$(CC) $(CFLAGS) -MM $^>>./.depend;

@@ -6,13 +6,15 @@ BCFILES=web.bc input.bc parser.bc semantic.bc ast.bc token.bc value.bc \
 
 SRCS=$(BCFILES:.bc=.cc)
 
+HEADERS=$(wildcard *.hh)
+
 CXXFLAGS=-std=c++11
 
 all: debug
 
 depend: .dependweb
 
-.dependweb: $(SRCS)
+.dependweb: $(SRCS) $(HEADERS)
 	@rm -f ./.dependweb
 	@echo "Computing dependencies..."
 	@$(CC) $(CFLAGS) -MM $^>>./.dependweb;
