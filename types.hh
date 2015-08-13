@@ -165,7 +165,7 @@ template<typename T>
 class BasicType : public BaseType<T> {
    std::string to_json(void *data) const {
       if (data == Value::unknown or data == Value::abstract) {
-         return "\"?\"";
+         return "null";
       }
       std::ostringstream o;
       o << *static_cast<const T*>(data);
