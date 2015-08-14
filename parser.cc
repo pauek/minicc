@@ -31,6 +31,18 @@ void Parser::error(AstNode *n, Pos ini, Pos fin, string msg) {
    n->errors.push_back(err);
 }
 
+void Parser::stopper_error(AstNode *n, string msg) {
+   Error *err = new Error(n->ini, n->fin, msg);
+   err->stopper = true;
+   n->errors.push_back(err);
+}
+
+void Parser::stopper_error(AstNode *n, Pos ini, Pos fin, string msg) {
+   Error *err = new Error(ini, fin, msg);
+   err->stopper = true;
+   n->errors.push_back(err);
+}
+
 template<class Node>
 typename Node::Error *Parser::error(string msg) {
    typename Node::Error *s = new typename Node::Error();
@@ -404,15 +416,21 @@ Stmt* Parser::parse_stmt(AstNode *parent) {
 
 Stmt *Parser::parse_decl_or_expr_stmt(AstNode *parent) {
    _in.save();
-   DeclStmt *decl = parse_declstmt(parent);
-   if (decl->has_errors()) {
-      _in.restore(); // backtracking
-      delete decl;
-      return parse_exprstmt(parent);
-   } else {
+   DeclStmt *declstmt;
+   declstmt = parse_declstmt(parent);
+   if (!declstmt->has_errors()) {
       _in.discard();
-      return decl;
+      return declstmt;
    }
+   _in.restore();
+   ExprStmt *exprstmt = parse_exprstmt(parent);
+   if (!exprstmt->has_errors()) {
+      delete declstmt;
+      return exprstmt;
+   }
+   // both have errors: return first (?)
+   delete exprstmt;
+   return declstmt;
 }
 
 Stmt *Parser::parse_jumpstmt(AstNode *parent) {
@@ -946,8 +964,9 @@ DeclStmt *Parser::parse_declstmt(AstNode *parent, bool is_typedef) {
    stmt->parent = parent;
    stmt->ini = _in.pos();
    TypeSpec *typespec = parse_typespec(stmt);
-   _skip(stmt); // before identifier
    stmt->typespec = typespec;
+   _skip(stmt); // before identifier
+   Pos after_comma = _in.pos();
    while (true) {
       Pos item_ini = _in.pos();
       Token id = _in.next_token();
@@ -960,7 +979,8 @@ DeclStmt *Parser::parse_declstmt(AstNode *parent, bool is_typedef) {
          name = id.str;
       }
       if (id.group != Token::Ident) {
-         error(stmt, _T("Expected an identifier here."));
+         stopper_error(stmt, after_comma, after_comma+1,
+                       _T("Expected a variable name here."));
       }
       DeclStmt::Item item;
       CommentSeq *comm = _in.skip("\n\t ");
@@ -986,6 +1006,7 @@ DeclStmt *Parser::parse_declstmt(AstNode *parent, bool is_typedef) {
          break;
       }
       _in.consume(",");
+      after_comma = _in.pos();
       _skip(stmt); // before identifier
    }
    stmt->fin = _in.pos();

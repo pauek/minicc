@@ -90,6 +90,10 @@ const char* Translator::_translations[1000][Translator::NUM_LANGS] = { /*
       "Esperaba un identificador aquí.",
       "Esparaba un identificador aquí."
    }, {
+      "Expected a variable name here.",
+      "Esperaba un nombre de variable aquí.",
+      "Esparaba un nom de variable aquí."
+   }, {
       "Basic types are not templates",
       "Los tipos básicos no son plantillas",
       "Els tipus bàsics no són plantilles"

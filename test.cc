@@ -188,7 +188,7 @@ int test_visitor(string filename, VisitorType vtype) {
    return 0;
 }
 
-int test_semantic(string filename) {
+int _test_parser_and_semantic(string filename, bool do_semantic) {
    string code, in, out, err;
    parse_test_file(filename, code, in, out, err);
 
@@ -198,8 +198,10 @@ int test_semantic(string filename) {
    AstNode *program;
    try {
       program = P.parse();
-      SemanticAnalyzer A;
-      program->accept(&A);
+      if (do_semantic) {
+         SemanticAnalyzer A;
+         program->accept(&A);
+      }
       vector<Error*> ve;
       collect_errors(program, ve);
       for (Error *e : ve) {
@@ -210,9 +212,16 @@ int test_semantic(string filename) {
    catch (ParseError& e) {
       Serr << filename << "[" << e.pos << "]: " << e.msg << endl;
    }
-
    compare_result(filename, Sout.str(), Serr.str(), out, err);
    return 0;
+}
+
+int test_semantic(string filename) {
+   return _test_parser_and_semantic(filename, true);
+}
+
+int test_parser(string filename) {
+   return _test_parser_and_semantic(filename, false);
 }
 
 int test_ast(string filename)   { return test_visitor(filename, ast_printer); }

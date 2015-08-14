@@ -131,6 +131,7 @@ map<string, CmdFunc> funcs = {
    {"step",             step},
    {"eval",             interpret},
 
+   {"test-parser",      test_parser},
    {"test-ast",         test_ast},
    {"test-print",       test_print},
    {"test-semantic",    test_semantic},

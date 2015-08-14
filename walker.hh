@@ -67,6 +67,12 @@ inline void collect_errors(AstNode *x, std::vector<Error*>& v) {
    if (x != 0) {
       ErrorCollector e(v);
       x->accept(&e);
+      for (int i = 0; i < v.size(); i++) {
+         if (v[i]->stopper) {
+            v.resize(i+1);
+            break;
+         }
+      }
    }
 }
 

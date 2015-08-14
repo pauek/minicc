@@ -46,9 +46,12 @@ struct AstNode {
 struct Error {
    Pos ini, fin;
    std::string msg;
-   Error(std::string m)               : msg(m) {}
-   Error(Pos p, std::string m)        : ini(p), msg(m) {}
-   Error(Pos i, Pos f, std::string m) : ini(i), fin(f), msg(m) {}
+   bool stopper;     // this error should eclipse the following errors
+                     // (probably an avalanche of parsing errors)
+   
+   Error(std::string m)               : stopper(false), msg(m) {}
+   Error(Pos p, std::string m)        : stopper(false), ini(p), msg(m) {}
+   Error(Pos i, Pos f, std::string m) : stopper(false), ini(i), fin(f), msg(m) {}
 
    void to_json(std::ostream& o) const;
 };

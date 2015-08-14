@@ -9,7 +9,10 @@ struct ParseError {
    Pos pos;
    std::string msg;
 
+   ParseError() : pos(-1, 0) {}
    ParseError(Pos p, std::string m) : pos(p), msg(m) {}
+
+   bool empty() const { return pos.l() == -1; }
 };
 
 class Parser {
@@ -31,6 +34,8 @@ class Parser {
 
    void error(AstNode *n, std::string msg);
    void error(AstNode *n, Pos ini, Pos fin, std::string msg);
+   void stopper_error(AstNode *n, std::string msg);
+   void stopper_error(AstNode *n, Pos ini, Pos fin, std::string msg);
    void fatal_error(Pos p, std::string msg);
 
    template<class Node>
