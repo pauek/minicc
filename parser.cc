@@ -966,7 +966,7 @@ DeclStmt *Parser::parse_declstmt(AstNode *parent, bool is_typedef) {
    TypeSpec *typespec = parse_typespec(stmt);
    stmt->typespec = typespec;
    _skip(stmt); // before identifier
-   Pos after_comma = _in.pos();
+   Pos after_comma = _in.pos(), after_id = _in.pos();
    while (true) {
       Pos item_ini = _in.pos();
       Token id = _in.next_token();
@@ -982,6 +982,7 @@ DeclStmt *Parser::parse_declstmt(AstNode *parent, bool is_typedef) {
          stopper_error(stmt, after_comma, after_comma+1,
                        _T("Expected a variable name here."));
       }
+      after_id = _in.pos();
       DeclStmt::Item item;
       CommentSeq *comm = _in.skip("\n\t ");
       if (_in.curr() == '(' and !is_typedef) {
@@ -1011,7 +1012,7 @@ DeclStmt *Parser::parse_declstmt(AstNode *parent, bool is_typedef) {
    }
    stmt->fin = _in.pos();
    if (!_in.expect(";")) {
-      error(stmt, _in.pos().str() + ": " + _T("Expected '%s' here.", ";"));
+      stopper_error(stmt, after_id, after_id + 1, _T("Expected '%s' here.", ";"));
    }
    return stmt;
 }
