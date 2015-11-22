@@ -410,7 +410,11 @@ Stmt* Parser::parse_stmt(AstNode *parent) {
       if (tok1.group == Token::Operator) {
          return parse_exprstmt(parent);
       }
-      return parse_decl_or_expr_stmt(parent);
+      Stmt *stmt = parse_decl_or_expr_stmt(parent);
+      if (stmt == 0) {
+         _in.skip_to(";");
+      }
+      return stmt;
    }
 }
 
@@ -423,14 +427,17 @@ Stmt *Parser::parse_decl_or_expr_stmt(AstNode *parent) {
       return declstmt;
    }
    _in.restore();
+   _in.save();
    ExprStmt *exprstmt = parse_exprstmt(parent);
    if (!exprstmt->has_errors()) {
       delete declstmt;
+      _in.discard();
       return exprstmt;
    }
-   // both have errors: return first (?)
+   _in.restore();
+   // both have errors, return 0
    delete exprstmt;
-   return declstmt;
+   return 0;
 }
 
 Stmt *Parser::parse_jumpstmt(AstNode *parent) {
@@ -783,6 +790,15 @@ Expr *Parser::parse_increxpr(Expr *x, Token tok) {
    return e;
 }
 
+bool wrong_for_with_commas(string code) {
+   vector<int> commas, colons;
+   for (int i = 0; i < code.size(); i++) {
+      if (code[i] == ',') commas.push_back(i);
+      else if (code[i] == ';') colons.push_back(i);
+   }
+   return commas.size() == 2 and colons.size() == 0;
+}
+
 Stmt *Parser::parse_for(AstNode *parent) {
    ForStmt *stmt = new ForStmt();
    stmt->parent = parent;
@@ -798,6 +814,17 @@ Stmt *Parser::parse_for(AstNode *parent) {
       stmt->init = 0;
    } else {
       stmt->init = parse_decl_or_expr_stmt(stmt);
+      if (stmt->init == 0) {
+         stmt->ini = _in.pos();
+         string wrong_code = _in.skip_to(")");
+         stmt->fin = _in.pos();
+         if (wrong_for_with_commas(wrong_code)) {
+            error(stmt, _T("El 'for' debe tener como separador el caracter ';' (y no ',')."));
+         } else {
+            error(stmt, _T("'for' erróneo."));
+         }
+         goto finish_for;
+      }
    }
    _skip(stmt);
    if (_in.curr() == ';') {
@@ -815,6 +842,7 @@ Stmt *Parser::parse_for(AstNode *parent) {
    } else {
       stmt->post = parse_expr(stmt);
    }
+ finish_for:
    if (!_in.expect(")")) {
       error(stmt, _in.pos().str() + ": " + _T("Expected '%s' here.", ")"));
    }
