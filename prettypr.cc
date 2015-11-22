@@ -6,6 +6,22 @@ using namespace std;
 
 // Comment helpers //////////////////////////////////////////////////
 
+/** 
+
+    BIG WARNING: 
+
+    g++ here optimizes in such a way that changes order of instructions!!!
+
+    In every instruction like:
+
+        out() << _cmt << ... << cmt_ 
+
+    where there is more than one call to the 'cmt' methods, the CommentPrinter
+    is stateful but g++ changes the order of the calls, so it breaks the code!!!
+
+**/
+
+
 class CommentPrinter {
    AstNode *x;
    int i;
@@ -32,7 +48,7 @@ public:
    string _cmt_()  { return CMT(1, 1, 0, 0); }
    string  cmt_()  { return CMT(0, 1, 0, 0); }
    string  cmt ()  { return CMT(0, 0, 0, 0); }
-   string _cmtl () { return CMT(1, 0, 1, 0); }
+   string _cmtl()  { return CMT(1, 0, 1, 0); }
 };
 
 ostream& print_comment_seq(ostream& o, CommentSeq* C, string indentation) {
@@ -127,8 +143,10 @@ void PrettyPrinter::visit_macro(Macro* x) {
 
 void PrettyPrinter::visit_using(Using* x) {
    CommentPrinter cp(x, this);
-   out() << "using " << cp.cmt_() << "namespace " << cp.cmt_()
-         << x->namespc << cp._cmt() << ";" << cp.cmt();
+   out() << "using " << cp.cmt_();
+   out() << "namespace " << cp.cmt_();
+   out() << x->namespc << cp._cmt() << ";";
+   out() << cp.cmt();
 }
 
 void PrettyPrinter::visit_typespec(TypeSpec *x) {
@@ -145,8 +163,11 @@ void PrettyPrinter::visit_typespec(TypeSpec *x) {
 
 void PrettyPrinter::visit_enumdecl(EnumDecl *x) {
    CommentPrinter cp(x, this);
-   out() << "enum " << cp.cmt_() << x->name << cp._cmt() 
-         << " { " << cp.cmt_();
+
+   out() << "enum " << cp.cmt_() << x->name;
+   out() << cp._cmt();
+   out() << " { " << cp.cmt_();
+   
    int cn = 3;
    for (int i = 0; i < x->values.size(); i++) {
       if (i > 0) {
@@ -154,8 +175,8 @@ void PrettyPrinter::visit_enumdecl(EnumDecl *x) {
       }
       out() << x->values[i].id << cp._cmt();
       if (x->values[i].has_val) {
-         out() << " = " << cp.cmt_() 
-               << x->values[i].val << cp._cmt();
+         out() << " = " << cp.cmt_();
+         out() << x->values[i].val << cp._cmt();
       }
    }
    out() << " };";
@@ -261,7 +282,8 @@ void PrettyPrinter::visit_templateident(TemplateIdent *x) {
    CommentPrinter cp(x, this);
    out() << x->name;
    if (!x->subtypes.empty()) {
-      out() << cp._cmt_() << "<" << cp.cmt_();
+      out() << cp._cmt_() << "<";
+      out() << cp.cmt_();
       for (int i = 0; i < x->subtypes.size(); i++) {
          if (i > 0) {
             out() << ", " << cp.cmt_();
@@ -277,7 +299,8 @@ void PrettyPrinter::visit_fullident(FullIdent *x) {
    CommentPrinter cp(x, this);
    for (TemplateIdent *pre : x->prefix) {
       pre->accept(this);
-      out() << cp._cmt_() << "::" << cp._cmt_();
+      out() << cp._cmt_() << "::";
+      out() << cp._cmt_();
    }
    visit_templateident(x);
 }
@@ -406,7 +429,8 @@ void PrettyPrinter::visit_exprstmt(ExprStmt* x) {
 
 void PrettyPrinter::visit_ifstmt(IfStmt *x) {
    CommentPrinter cp(x, this);
-   out() << "if " << cp.cmt_() << "(" << cp.cmt_();
+   out() << "if " << cp.cmt_();
+   out() << "(" << cp.cmt_();
    x->cond->accept(this);
    out() << ") " << cp.cmt_();
    x->then->accept(this);
@@ -447,7 +471,8 @@ void PrettyPrinter::visit_forstmt(ForStmt *x) {
 
 void PrettyPrinter::visit_whilestmt(WhileStmt *x) {
    CommentPrinter cp(x, this);
-   out() << "while " << cp.cmt_() << "(" << cp.cmt_();
+   out() << "while " << cp.cmt_();
+   out() << "(" << cp.cmt_();
    x->cond->accept(this);
    out() << cp._cmt() << ")";
    out() << cp._cmt();
@@ -465,7 +490,8 @@ void PrettyPrinter::visit_jumpstmt(JumpStmt *x) {
    string keyword[3] = { "break", "continue", "goto" };
    out() << keyword[x->kind] << cp._cmt();
    if (x->kind == JumpStmt::Goto) {
-      out() << " " << x->label << cp._cmt() << ";" << cp._cmt();
+      out() << " " << x->label << cp._cmt();
+      out() << ";" << cp._cmt();
    } else {
       out() << ";" << cp._cmt();
    }
@@ -525,9 +551,19 @@ void PrettyPrinter::visit_condexpr(CondExpr *x) {
       out() << "(";
    }
    x->cond->accept(this);
-   out() << cp._cmt() << " ? " << cp.cmt_();
+
+   // WARNING: g++ here optimizes in such a way that changes order of instructions!!!
+   out() << cp._cmt();
+   out() << " ? ";
+   out() << cp.cmt_();
+   
    x->then->accept(this);
-   out() << cp._cmt() << " : " << cp.cmt_();
+
+   // WARNING: g++ here optimizes in such a way that changes order of instructions!!!
+   out() << cp._cmt();
+   out() << " : ";
+   out() << cp.cmt_();
+   
    x->els->accept(this);
    if (x->paren) {
       out() << ")";
