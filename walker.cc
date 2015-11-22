@@ -75,7 +75,9 @@ void Walker::visit_funcdecl(FuncDecl *x) {
 void Walker::visit_block(Block *x) {
    walk(x);
    for (Stmt *s : x->stmts) {
-      s->accept(this);
+      if (s) {
+         s->accept(this);
+      }
    }
 }
 
