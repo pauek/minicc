@@ -40,17 +40,23 @@ void Walker::visit_program(Program* x) {
 
 void Walker::visit_typespec(TypeSpec *x) {
    walk(x);
-   x->id->accept(this);
+   if (x->id) {
+      x->id->accept(this);
+   }
 }
 
 void Walker::visit_typedefdecl(TypedefDecl *x) {
    walk(x);
-   x->decl->accept(this);
+   if (x->decl) {
+      x->decl->accept(this);
+   }
 }
 
 void Walker::visit_structdecl(StructDecl *x) {
    walk(x);
-   x->id->accept(this);
+   if (x->id) {
+      x->id->accept(this);
+   }
    for (auto decl : x->decls) {
       decl->accept(this);
    }
@@ -58,7 +64,9 @@ void Walker::visit_structdecl(StructDecl *x) {
 
 void Walker::visit_funcdecl(FuncDecl *x) {
    walk(x);
-   x->return_typespec->accept(this);
+   if (x->return_typespec) {
+      x->return_typespec->accept(this);
+   }
    if (x->block) {
       x->block->accept(this);
    }
@@ -83,7 +91,9 @@ void Walker::visit_binaryexpr(BinaryExpr *x) {
 
 void Walker::visit_declstmt(DeclStmt* x) {
    walk(x);
-   x->typespec->accept(this);
+   if (x->typespec) {
+      x->typespec->accept(this);
+   }
    for (DeclStmt::Item item : x->items) {
       item.decl->accept(this);
       if (item.init) {
@@ -101,8 +111,12 @@ void Walker::visit_exprstmt(ExprStmt* x) {
 
 void Walker::visit_ifstmt(IfStmt *x) {
    walk(x);
-   x->cond->accept(this);
-   x->then->accept(this);
+   if (x->cond) {
+      x->cond->accept(this);
+   }
+   if (x->then) {
+      x->then->accept(this);
+   }
    if (x->els) {
       x->els->accept(this);
    }
@@ -110,8 +124,12 @@ void Walker::visit_ifstmt(IfStmt *x) {
 
 void Walker::visit_whilestmt(WhileStmt *x) {
    walk(x);
-   x->cond->accept(this);
-   x->substmt->accept(this);
+   if (x->cond) {
+      x->cond->accept(this);
+   }
+   if (x->substmt) {
+      x->substmt->accept(this);
+   }
 }
 
 void Walker::visit_forstmt(ForStmt *x) {
@@ -125,12 +143,16 @@ void Walker::visit_forstmt(ForStmt *x) {
    if (x->post) {
       x->post->accept(this);
    }
-   x->substmt->accept(this);
+   if (x->substmt) {
+      x->substmt->accept(this);
+   }
 }
 
 void Walker::visit_callexpr(CallExpr *x) {
    walk(x);
-   x->func->accept(this);
+   if (x->func) {
+      x->func->accept(this);
+   }
    for (int i = 0; i < x->args.size(); i++) {
       x->args[i]->accept(this);
    }
@@ -138,7 +160,9 @@ void Walker::visit_callexpr(CallExpr *x) {
 
 void Walker::visit_indexexpr(IndexExpr *x) {
    walk(x);
-   x->base->accept(this);
+   if (x->base) {
+      x->base->accept(this);
+   }
    if (x->index) {
       x->index->accept(this);
    }
@@ -146,45 +170,67 @@ void Walker::visit_indexexpr(IndexExpr *x) {
 
 void Walker::visit_fieldexpr(FieldExpr *x) {
    walk(x);
-   x->base->accept(this);
-   x->field->accept(this);
+   if (x->base) {
+      x->base->accept(this);
+   }
+   if (x->field) {
+      x->field->accept(this);
+   }
 }
 
 void Walker::visit_condexpr(CondExpr *x) {
    walk(x);
-   x->cond->accept(this);
-   x->then->accept(this);
-   x->els->accept(this);
+   if (x->cond) {
+      x->cond->accept(this);
+   }
+   if (x->then) {
+      x->then->accept(this);
+   }
+   if (x->els) {
+      x->els->accept(this);
+   }
 }
 
 void Walker::visit_exprlist(ExprList *x) {
    walk(x);
    for (Expr *e : x->exprs) {
-      e->accept(this);
+      if (e) {
+         e->accept(this);
+      }
    }
 }
 
 void Walker::visit_signexpr(SignExpr *x) {
    walk(x);
-   x->expr->accept(this);
+   if (x->expr) {
+      x->expr->accept(this);
+   }
 }
 
 void Walker::visit_increxpr(IncrExpr *x) {
    walk(x);
-   x->expr->accept(this);
+   if (x->expr) {
+      x->expr->accept(this);
+   }
 }
 
 void Walker::visit_negexpr(NegExpr *x) {
    walk(x);
-   x->expr->accept(this);
+   if (x->expr) {
+      x->expr->accept(this);
+   }
 }
 
 void Walker::visit_addrexpr(AddrExpr *x) {
    walk(x);
-   x->expr->accept(this);
+   if (x->expr) {
+      x->expr->accept(this);
+   }
 }
 
 void Walker::visit_derefexpr(DerefExpr *x) {
    walk(x);
-   x->expr->accept(this);
+   if (x->expr) {
+      x->expr->accept(this);
+   }
 }
