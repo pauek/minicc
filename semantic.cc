@@ -1126,8 +1126,8 @@ void SemanticAnalyzer::visit_derefexpr(DerefExpr *x) {
    _curr = Reference::deref(_curr);
    /*
    if (!call_operator("*")) {
-      _error(_T("El tipo '%s' no tiene 'operator*'", 
-                _curr.type()->typestr().c_str()));
+      x->add_error(_T("El tipo '%s' no tiene 'operator*'", 
+                      _curr.type()->typestr().c_str()));
    }
    */
 }

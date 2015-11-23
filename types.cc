@@ -1673,7 +1673,7 @@ Iterator<C>::Iterator(C *type)
          return Reference::mkref(v);
       }
    };
-   _Class::_add_method(new Function(this),
+   _Class::_add_method(new Function(type->celltype()),
                        new DerefOperator(type));
 }
 

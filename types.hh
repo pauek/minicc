@@ -550,8 +550,9 @@ public:
 
    int   properties() const { return Template | Emulated; }
    Type *instantiate(std::vector<Type*>& args) const;
-   Type *key()   const { return _key; }
-   Type *value() const { return _value; }
+   Type *key()      const { return _key; }
+   Type *value()    const { return _value; }
+   Type *celltype() const { return _pair_type; }
 
    std::string typestr() const;
    std::string to_json(void *data) const;
