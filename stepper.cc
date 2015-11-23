@@ -333,6 +333,10 @@ void Stepper::visit_callexpr(CallExpr *x) {
    }
 
    I.visit_callexpr_getfunc(x);
+   if (I._curr.is<Overloaded>()) {
+      I._curr = I._curr.as<Overloaded>().resolve(args);
+      assert(I._curr.is<Callable>());
+   }
    Func *fptr = I._curr.as<Callable>().func.as<Function>().ptr;
    const UserFunc *userfunc = dynamic_cast<const UserFunc*>(fptr);
    if (userfunc == 0) {
