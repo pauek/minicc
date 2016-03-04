@@ -491,6 +491,8 @@ public:
       return Value(this, new std::list<Value>()); 
    }
 
+   void  clear_touched(void *data) const;
+
    int   properties() const { return Template | Emulated; }
    Value convert(Value init) const;
    Type *instantiate(std::vector<Type*>& args) const;

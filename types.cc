@@ -623,7 +623,6 @@ void Vector::clear_touched(void *data) const {
    }
 }
 
-
 // List //////////////////////////////////////////////////////////////
 
 List::List(Type *celltype) 
@@ -970,6 +969,13 @@ string List::to_json(void *data) const {
    }
    json << "]}";
    return json.str();
+}
+
+void List::clear_touched(void *data) const {
+   list<Value>& lst = *(list<Value>*)data;
+   for (auto it = lst.begin(); it != lst.end(); it++) {
+      it->clear_touched();
+   }
 }
 
 // Pair //////////////////////////////////////////////////////////////
