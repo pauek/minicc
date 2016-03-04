@@ -159,7 +159,6 @@ const MIME_TYPE = 'text/plain';
 function download_file(filename, text) {
    // http://stackoverflow.com/a/18197511/540869
    // http://html5-demos.appspot.com/static/a.download.html
-   window.URL = window.webkitURL || window.URL;
    var blob = new Blob([text], {type: MIME_TYPE});
    var a = document.createElement('a');
    a.download = filename;
