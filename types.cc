@@ -457,7 +457,9 @@ Vector::Vector(Type *celltype)
          return Value::null;
       }
    };
-   _add_method((new Function(Void))->add_params(Int::self, celltype),
+   _add_method((new Function(Void))->add_params(Int::self, celltype), // literals!!
+               new Resize2Method());
+   _add_method((new Function(Void))->add_params(Int::self, new Reference(celltype)),
                new Resize2Method());
    
    // front
@@ -769,7 +771,9 @@ List::List(Type *celltype)
          return Value::null;
       }
    };
-   _add_method((new Function(Void))->add_params(Int::self, celltype),
+   _add_method((new Function(Void))->add_params(Int::self, celltype), // literals!
+               new Resize2Method());
+   _add_method((new Function(Void))->add_params(Int::self, new Reference(celltype)),
                new Resize2Method());
    
    // front
