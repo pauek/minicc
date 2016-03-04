@@ -616,6 +616,14 @@ string Vector::to_json(void *data) const {
    return o.str();
 }
 
+void Vector::clear_touched(void *data) const {
+   vector<Value>& vec = *(vector<Value>*)data;
+   for (int i = 0; i < vec.size(); i++) {
+      vec[i].clear_touched();
+   }
+}
+
+
 // List //////////////////////////////////////////////////////////////
 
 List::List(Type *celltype) 

@@ -469,6 +469,8 @@ public:
       return Value(this, new std::vector<Value>()); 
    }
 
+   void  clear_touched(void *data) const;
+   
    std::string typestr() const;
    std::string to_json(void *data) const;
 
