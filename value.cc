@@ -82,10 +82,10 @@ Value Value::clone() const {
    if (is_null()) {
       return Value();
    }
-   void *data = 0;
-   if (_box->data != 0) {
-      data = _box->type->clone(_box->data);
+   if (is_abstract() or is_unknown()) {
+      return Value(_box->type, _box->data, _const);
    }
+   void *data = _box->type->clone(_box->data);
    return Value(_box->type, data, _const);
 }
 
