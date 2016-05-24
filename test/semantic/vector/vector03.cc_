@@ -1,0 +1,10 @@
+#include <vector>
+using namespace std;
+
+int main() {
+   vector<int> v(3, -1);
+   vector<int>::iterator it = v.begin();
+   it++;
+   *it = "hola";
+}
+[[err]]--------------------------------------------------
