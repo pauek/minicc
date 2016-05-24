@@ -570,7 +570,8 @@ Vector::Vector(Type *celltype)
       bool call_abstract(AstNode *x, Value self, const vector<Value>& args) {
          Value the_index = Reference::deref(args[0]);
          if (!the_index.is<Int>()) {
-            x->add_error(_T("El índice a una casilla de un vector debe ser un 'int'."));
+            x->add_error(_T("El índice a una casilla de un vector debe ser un 'int' (no '%s').",
+                            the_index.type()->name().c_str()));
          }
          return true;
       }
