@@ -1,0 +1,951 @@
+{
+	"auto_complete":
+	{
+		"selected_items":
+		[
+			[
+				"In",
+				"INTEGER"
+			],
+			[
+				"CONT",
+				"PARSER_CONTEXT_POP"
+			],
+			[
+				"PARSER_",
+				"PARSER_CONTEXT_POP"
+			],
+			[
+				"MAX_",
+				"MAX_PARSER_STATES"
+			],
+			[
+				"STATE_",
+				"STATE_CHANGE"
+			],
+			[
+				"sTATE_",
+				"STATE_POP"
+			],
+			[
+				"algo_m",
+				"algo_macro_stack_push_list"
+			],
+			[
+				"algo_mat",
+				"algo_match_enter_obj"
+			],
+			[
+				"_ex",
+				"_expand_obj"
+			],
+			[
+				"_print",
+				"_print_container"
+			],
+			[
+				"co",
+				"CopyBindings"
+			],
+			[
+				"Macro",
+				"MacroexpandStack"
+			],
+			[
+				"Parse",
+				"ParseObjWithTags"
+			],
+			[
+				"T",
+				"TYPE_LIST"
+			],
+			[
+				"con",
+				"container"
+			],
+			[
+				"Close",
+				"CloseObject"
+			],
+			[
+				"Read",
+				"ReadOp"
+			]
+		]
+	},
+	"buffers":
+	[
+	],
+	"build_system": "",
+	"build_system_choices":
+	[
+	],
+	"build_varint": "",
+	"command_palette":
+	{
+		"height": 37.0,
+		"last_filter": "",
+		"selected_items":
+		[
+			[
+				"push",
+				"Git: Push"
+			],
+			[
+				"commit",
+				"Git: Commit"
+			],
+			[
+				"add",
+				"Git: Add All"
+			],
+			[
+				"git diff",
+				"Git: Diff All Files"
+			],
+			[
+				"diff",
+				"Git: Diff Current File"
+			],
+			[
+				"add cur",
+				"Git: Add Current File"
+			],
+			[
+				"side",
+				"View: Toggle Side Bar"
+			],
+			[
+				"status",
+				"Git: Status"
+			],
+			[
+				"git status",
+				"Git: Status"
+			],
+			[
+				"obj",
+				"Set Syntax: Objective-C++"
+			],
+			[
+				"git add",
+				"Git: Add All"
+			],
+			[
+				"algo",
+				"Set Syntax: LaTeX Log"
+			],
+			[
+				"comm",
+				"Git: Commit"
+			],
+			[
+				"pull",
+				"Git: Pull"
+			],
+			[
+				"git pull",
+				"Git: Pull"
+			],
+			[
+				"git add all",
+				"Git: Add All"
+			],
+			[
+				"git push",
+				"Git: Push"
+			],
+			[
+				"proje edit",
+				"Project: Edit Project"
+			],
+			[
+				"settings",
+				"Preferences: Settings"
+			],
+			[
+				"test",
+				"Set Syntax: reStructuredText"
+			],
+			[
+				"git add ",
+				"Git: Add All"
+			],
+			[
+				"sid",
+				"View: Toggle Side Bar"
+			],
+			[
+				"rvs",
+				"PackageResourceViewer: Open Resource"
+			],
+			[
+				"install package",
+				"Package Control: Install Package"
+			],
+			[
+				"install",
+				"Package Control: Install Package"
+			],
+			[
+				"bar",
+				"View: Toggle Side Bar"
+			],
+			[
+				"stat",
+				"Git: Status"
+			],
+			[
+				"git commit",
+				"Git: Commit"
+			],
+			[
+				"status bar",
+				"View: Toggle Status Bar"
+			],
+			[
+				"git log",
+				"Git: Log Current File"
+			],
+			[
+				"menu",
+				"View: Toggle Menu"
+			],
+			[
+				"side bar",
+				"View: Toggle Side Bar"
+			],
+			[
+				"git",
+				"Package Control: Install Package"
+			]
+		],
+		"width": 400.0
+	},
+	"console":
+	{
+		"height": 146.0,
+		"history":
+		[
+			"print tab_size",
+			"help"
+		]
+	},
+	"distraction_free":
+	{
+		"menu_visible": false,
+		"show_minimap": true,
+		"show_open_files": false,
+		"show_tabs": false,
+		"side_bar_visible": false,
+		"status_bar_visible": false
+	},
+	"expanded_folders":
+	[
+		"/P/code/minicc"
+	],
+	"file_history":
+	[
+		"/P/code/8cc/parse.c",
+		"/P/code/puppeteer/Ideas/cbased3.cc",
+		"/C/Users/pauek/AppData/Roaming/Sublime Text 3/Packages/User/pp.sublime-syntax",
+		"/P/code/puppeteer/Ideas/new_lang.pp",
+		"/P/code/puppeteer/Ideas/example_tree.txt",
+		"/P/code/puppeteer/Ideas/cbased2.cc",
+		"/P/code/puppeteer/Ideas/cbased.cc",
+		"/P/code/puppeteer/rule.cc",
+		"/P/code/puppeteer/pp.cc",
+		"/P/code/puppeteer/algo.cc",
+		"/P/code/puppeteer/Test/10.pp",
+		"/P/code/puppeteer/parser.cc",
+		"/P/code/puppeteer/puppeteer.sublime-project",
+		"/P/code/puppeteer/Test/09.pp",
+		"/P/code/puppeteer/Test/09_new.pp",
+		"/P/code/puppeteer/mem.cc",
+		"/P/code/puppeteer/Test/08.pp",
+		"/P/code/puppeteer/new.pp",
+		"/P/code/puppeteer/debug.pp",
+		"/P/code/puppeteer/obj.cc",
+		"/P/code/puppeteer/pp.h",
+		"/P/code/puppeteer/Test/01.pp",
+		"/P/code/puppeteer/parser2.cc",
+		"/P/code/puppeteer/lexer.cc",
+		"/P/code/puppeteer/test.pp",
+		"/p/code/puppeteer/vars.cc",
+		"/p/code/puppeteer/algo.cc",
+		"/p/code/puppeteer/parser.cc",
+		"/P/code/puppeteer/vars.cc",
+		"/p/code/puppeteer/pp.cc",
+		"/P/code/puppeteer/Test/05.pp",
+		"/P/code/puppeteer/Test/07.pp",
+		"/P/code/puppeteer/Test/06.pp",
+		"/P/code/puppeteer/Test/04.pp",
+		"/P/code/puppeteer/Test/03.pp",
+		"/P/code/puppeteer/Test/02.pp",
+		"/P/code/puppeteer/tokens.inc",
+		"/p/code/puppeteer/tag.cc",
+		"/p/code/puppeteer/obj.cc",
+		"/p/code/puppeteer/rule.cc",
+		"/P/code/puppeteer/tag.cc",
+		"/P/code/puppeteer/Test/08_new.pp",
+		"/P/code/puppeteer/Test/natlang1.pp",
+		"/P/code/puppeteer/match.pp",
+		"/P/code/puppeteer/        p:/code/puppeteer/obj.cc",
+		"/P/code/puppeteer/equals.pp",
+		"/p/code/puppeteer/mem.cc",
+		"/P/code/puppeteer/file.cc",
+		"/p/code/puppeteer/        p:/code/puppeteer/obj.cc",
+		"/P/code/puppeteer/build.bat",
+		"/p/code/pp.cc",
+		"/P/code/puppeteer/        p:/code/puppeteer/pp.h",
+		"/p/code/puppeteer/tokens.inc",
+		"/p/code/puppeteer/lexer.cc",
+		"/P/code/pp.cc",
+		"/C/Users/pauek/AppData/Roaming/Sublime Text 3/Packages/Color Scheme - Default/Twilight.tmTheme",
+		"/P/code/pp/parser.cc",
+		"/P/code/puppeteer/tokens",
+		"/P/code/puppeteer/err.cc",
+		"/P/code/puppeteer/_lexer.cc",
+		"/P/code/puppeteer/_new.pp",
+		"/C/Users/pauek/Documents/GitHub/android-architecture/todoapp/captures/com.example.android.architecture.blueprints.todomvp.mock_2016.11.07_22.26.trace",
+		"/P/bin/NohBoard/keyboards/Basic/azerty_basic/keyboard.json",
+		"/P/code/puppeteer/memory.cc",
+		"/P/code/puppeteer/pp.sublime-syntax",
+		"/C/Program Files (x86)/Windows Kits/8.1/include/um/winbase.h",
+		"/C/Program Files (x86)/Windows Kits/8.1/include/um/processthreadsapi.h",
+		"/W/handmade/code/win32_handmade.cpp",
+		"/p/code/puppeteer/memory.cc",
+		"/P/code/puppeteer/error.cc",
+		"/p",
+		"/P/code/puppeteer/.gitignore",
+		"/C/Users/pauek/AppData/Roaming/Sublime Text 3/Packages/User/BuildBat.sublime-settings",
+		"/C/Users/pauek/AppData/Roaming/Sublime Text 3/Packages/User/BuildBat.sublime-build",
+		"/P/bin/sublime.bat",
+		"/P/?",
+		"/C/Users/pauek/Downloads/C++/C.sublime-syntax",
+		"/P/code/puppeteer/pp1/lexer.cc",
+		"/C/Users/pauek/Downloads/C++/C++.sublime-syntax",
+		"/C/Users/pauek/Downloads/C++/C++.sublime-settings",
+		"/C/Program Files/Sublime Text 3/Packages/C++.sublime-package",
+		"/P/code/puppeteer/types.pp",
+		"/P/code/puppeteer/build.sh",
+		"/P/code/puppeteer/clean.sh"
+	],
+	"find":
+	{
+		"height": 28.0
+	},
+	"find_in_files":
+	{
+		"height": 90.0,
+		"where_history":
+		[
+			""
+		]
+	},
+	"find_state":
+	{
+		"case_sensitive": true,
+		"find_history":
+		[
+			"hideset",
+			"set_add",
+			"Set",
+			"make_static_label",
+			"ast_static_lvar",
+			"make_ast",
+			"ast_string",
+			"string",
+			"localenv",
+			"make_map",
+			"key =",
+			"parent",
+			"STDOUT",
+			"StdOut",
+			"Type",
+			"STREAM",
+			"malloc",
+			"sizeof Node",
+			"sizeof ",
+			"has_category",
+			"categs",
+			"categories",
+			"List",
+			"Space",
+			"Required Space",
+			"subprogram",
+			"function",
+			"Typename",
+			"Header",
+			"Typename",
+			"program",
+			"operator",
+			"List",
+			"Additive",
+			"Equals",
+			"<op>",
+			"operator",
+			"<token>, ",
+			"<oper>",
+			"Punct",
+			"Token",
+			"Oper",
+			"Token",
+			"Type",
+			"Computation",
+			"eval( ",
+			"eval(",
+			"eval( ",
+			"emit(",
+			"Opt",
+			"Optional",
+			"Opt",
+			"Space",
+			"for",
+			"for(",
+			"Assignment",
+			"assignment",
+			"Assign",
+			"DASHGT",
+			"Name",
+			"Assign",
+			"From(",
+			"Content",
+			"Type",
+			"Right",
+			"(",
+			"Left",
+			"Unary",
+			"Named",
+			" / ",
+			" . ",
+			"+>",
+			"=>",
+			"|",
+			"Named",
+			"rule_print",
+			"algo_find",
+			"macroexpand_log",
+			"macroexpand",
+			"trace",
+			"Body",
+			"obj_sort",
+			"obj_clone",
+			"obj_sort",
+			"rules",
+			"algo_macro",
+			"PRINT",
+			"rule_add",
+			"CLONE",
+			"curr_ctx",
+			"curr_context",
+			"curr_state",
+			"states",
+			"PARSER_STATE",
+			"parser_state",
+			"PARSER_STATE",
+			"ParserState",
+			"IN_PRINT",
+			"RPAREN",
+			"AT_ANTECEDENT",
+			"Expect",
+			"full",
+			"algo_match_stack",
+			"ITem",
+			"SubstStackItem",
+			"obj_map_parts",
+			"in_obj",
+			"in_map",
+			"map_body",
+			"simplify",
+			"obj_map_parts",
+			"SubstStack",
+			"start",
+			"merge",
+			"TAGOBJ",
+			"IN_RULE, AT_BEGIN",
+			"in_rule",
+			"ptr_diff",
+			"obj_size",
+			"STATE_PUSH",
+			" = ",
+			"=",
+			"BOTTOM",
+			"BO¨TTOM",
+			"CONSEQU",
+			"STATE_PUSH",
+			"consume",
+			"IN_LIST"
+		],
+		"highlight": true,
+		"in_selection": false,
+		"preserve_case": true,
+		"regex": false,
+		"replace_history":
+		[
+			"eval(",
+			"eval( ",
+			" | ",
+			" / ",
+			"->",
+			".",
+			"]",
+			"[",
+			"]",
+			"[",
+			"BRACKET",
+			"mem_new_pool",
+			"AcabadoEn(",
+			"+>",
+			"=>",
+			"+>",
+			"=>",
+			"+>",
+			"=>",
+			"+>",
+			"=>",
+			"+>",
+			"=>",
+			"+>",
+			"=>",
+			"+>",
+			"=>",
+			"+>",
+			"PP_VARTAG",
+			"PP_VAROBJ",
+			"PP_TAGOBJ",
+			"Obj",
+			"PPObj",
+			"Obj",
+			"\\1",
+			"prefix ",
+			"Named(",
+			"->",
+			"=> _;",
+			"=>",
+			"Type(type)",
+			"TypeDeclarations",
+			"TypeOf",
+			"<list<\\1>>",
+			"TypeOf",
+			"location | value",
+			"location, value",
+			"set(\\1)",
+			"<location>",
+			"<value>",
+			"Typename",
+			"list(\\1)",
+			"bool",
+			"int",
+			"string",
+			"list",
+			"List<",
+			"def ",
+			"",
+			"pp"
+		],
+		"reverse": false,
+		"show_context": true,
+		"use_buffer2": true,
+		"whole_word": false,
+		"wrap": true
+	},
+	"groups":
+	[
+		{
+			"sheets":
+			[
+			]
+		}
+	],
+	"incremental_find":
+	{
+		"height": 28.0
+	},
+	"input":
+	{
+		"height": 34.0
+	},
+	"layout":
+	{
+		"cells":
+		[
+			[
+				0,
+				0,
+				1,
+				1
+			]
+		],
+		"cols":
+		[
+			0.0,
+			1.0
+		],
+		"rows":
+		[
+			0.0,
+			1.0
+		]
+	},
+	"menu_visible": true,
+	"output.exec":
+	{
+		"height": 458.0
+	},
+	"output.find_results":
+	{
+		"height": 0.0
+	},
+	"output.git":
+	{
+		"height": 326.0
+	},
+	"pinned_build_system": "build.bat",
+	"project": "minicc.sublime-project",
+	"replace":
+	{
+		"height": 52.0
+	},
+	"save_all_on_build": true,
+	"select_file":
+	{
+		"height": 0.0,
+		"last_filter": "",
+		"selected_items":
+		[
+			[
+				"tree",
+				"Ideas\\example_tree.txt"
+			],
+			[
+				"parser",
+				"parser.cc"
+			],
+			[
+				"10",
+				"Test\\10.pp"
+			],
+			[
+				"09",
+				"Test\\09_new.pp"
+			],
+			[
+				"new",
+				"Test\\09_new.pp"
+			],
+			[
+				"algo",
+				"algo.cc"
+			],
+			[
+				"rule",
+				"rule.cc"
+			],
+			[
+				"pp.cc",
+				"pp.cc"
+			],
+			[
+				"deb",
+				"debug.pp"
+			],
+			[
+				"08",
+				"Test\\08.pp"
+			],
+			[
+				"de",
+				"debug.pp"
+			],
+			[
+				"mem",
+				"mem.cc"
+			],
+			[
+				"debug",
+				"debug.pp"
+			],
+			[
+				"pp.h",
+				"pp.h"
+			],
+			[
+				"obj",
+				"obj.cc"
+			],
+			[
+				"01",
+				"Test\\01.pp"
+			],
+			[
+				"pph",
+				"pp.h"
+			],
+			[
+				"lexer",
+				"lexer.cc"
+			],
+			[
+				"parse2",
+				"parser2.cc"
+			],
+			[
+				"obj.cc",
+				"obj.cc"
+			],
+			[
+				"parser2",
+				"parser2.cc"
+			],
+			[
+				"parser2.cc",
+				"parser2.cc"
+			],
+			[
+				"ppcc",
+				"pp.cc"
+			],
+			[
+				"",
+				"new.pp"
+			],
+			[
+				"test",
+				"test.pp"
+			],
+			[
+				"rule.cc",
+				"rule.cc"
+			],
+			[
+				"parser.cc",
+				"parser.cc"
+			],
+			[
+				"mem.cc",
+				"mem.cc"
+			],
+			[
+				"par",
+				"parser.cc"
+			],
+			[
+				"07",
+				"Test\\07.pp"
+			],
+			[
+				"06",
+				"Test\\06.pp"
+			],
+			[
+				"05",
+				"Test\\05.pp"
+			],
+			[
+				"04",
+				"Test\\04.pp"
+			],
+			[
+				"03",
+				"Test\\03.pp"
+			],
+			[
+				"02",
+				"Test\\02.pp"
+			],
+			[
+				"toke",
+				"tokens.inc"
+			],
+			[
+				"test/08",
+				"Test\\08.pp"
+			],
+			[
+				"algo.cc",
+				"algo.cc"
+			],
+			[
+				"3",
+				"Test\\03.pp"
+			],
+			[
+				"nat",
+				"Test\\natlang1.pp"
+			],
+			[
+				"tag",
+				"tag.cc"
+			],
+			[
+				"1",
+				"Test\\01.pp"
+			],
+			[
+				"lexer.cc",
+				"lexer.cc"
+			],
+			[
+				"tok",
+				"tokens.inc"
+			],
+			[
+				"lex",
+				"lexer.cc"
+			],
+			[
+				"ppc",
+				"pp.cc"
+			],
+			[
+				"pp",
+				"pp.cc"
+			],
+			[
+				"lang",
+				"Test\\natlang1.pp"
+			],
+			[
+				"lan",
+				"Test\\natlang1.pp"
+			],
+			[
+				"4",
+				"Test\\04.pp"
+			],
+			[
+				"pp.c",
+				"pp.cc"
+			],
+			[
+				"alog",
+				"algo.cc"
+			],
+			[
+				"test/01",
+				"Test\\01.pp"
+			],
+			[
+				"debu",
+				"debug.pp"
+			],
+			[
+				"mat",
+				"match.pp"
+			],
+			[
+				"mem.",
+				"mem.cc"
+			],
+			[
+				"mm",
+				"mem.cc"
+			],
+			[
+				"ph",
+				"pp.h"
+			],
+			[
+				"le",
+				"lexer.cc"
+			],
+			[
+				"match",
+				"match.pp"
+			],
+			[
+				"debug.pp",
+				"debug.pp"
+			],
+			[
+				"equ",
+				"equals.pp"
+			],
+			[
+				"parse",
+				"parser.cc"
+			],
+			[
+				"t",
+				"Test\\01.pp"
+			],
+			[
+				"pars",
+				"parser.cc"
+			],
+			[
+				"test.pp",
+				"test.pp"
+			],
+			[
+				"file",
+				"file.cc"
+			],
+			[
+				"pph.",
+				"pp.h"
+			],
+			[
+				"ob",
+				"obj.cc"
+			],
+			[
+				"tokens",
+				"tokens"
+			],
+			[
+				"err",
+				"err.cc"
+			],
+			[
+				"p.h",
+				"pp.h"
+			],
+			[
+				"pp.",
+				"pp.cc"
+			],
+			[
+				".git",
+				".gitignore"
+			],
+			[
+				"new.",
+				"new.pp"
+			]
+		],
+		"width": 0.0
+	},
+	"select_project":
+	{
+		"height": 0.0,
+		"last_filter": "",
+		"selected_items":
+		[
+		],
+		"width": 0.0
+	},
+	"select_symbol":
+	{
+		"height": 0.0,
+		"last_filter": "",
+		"selected_items":
+		[
+		],
+		"width": 0.0
+	},
+	"selected_group": 0,
+	"settings":
+	{
+	},
+	"show_minimap": true,
+	"show_open_files": false,
+	"show_tabs": true,
+	"side_bar_visible": true,
+	"side_bar_width": 160.0,
+	"status_bar_visible": true,
+	"template_settings":
+	{
+	}
+}
