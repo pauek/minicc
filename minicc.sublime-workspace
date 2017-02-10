@@ -348,6 +348,11 @@
 		"case_sensitive": true,
 		"find_history":
 		[
+			"group &",
+			"Token::Ident",
+			"Token::None",
+			"Token::Literal",
+			"Literal",
 			"hideset",
 			"set_add",
 			"Set",
@@ -470,12 +475,7 @@
 			"STATE_PUSH",
 			" = ",
 			"=",
-			"BOTTOM",
-			"BO¨TTOM",
-			"CONSEQU",
-			"STATE_PUSH",
-			"consume",
-			"IN_LIST"
+			"BOTTOM"
 		],
 		"highlight": true,
 		"in_selection": false,
@@ -943,7 +943,7 @@
 	"show_open_files": false,
 	"show_tabs": true,
 	"side_bar_visible": true,
-	"side_bar_width": 160.0,
+	"side_bar_width": 193.0,
 	"status_bar_visible": true,
 	"template_settings":
 	{
