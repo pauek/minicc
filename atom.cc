@@ -2,9 +2,10 @@
 #include <stdint.h>
 #include <string.h>
 #include <stdlib.h>
+#include <stdio.h>
 #include "minicc.hh"
 
-#define NUM_NODES (1<<11) // 2048 -- This has to be a power of two!
+#define NUM_NODES (1<<12) // 4096 -- This has to be a power of two!
 
 struct Node {
 	Atom  atom;
