@@ -1,6 +1,5 @@
 
-#include <stdio.h>
-#include <stdlib.h>
+#include "minicc.hh"
 
 char *read_whole_file(char const *filename) {
    FILE *F = fopen(filename, "r");

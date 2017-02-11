@@ -1,10 +1,15 @@
 IF NOT EXIST build mkdir build
 pushd build
 
-set pp_disabled_warnings=%comment_for_cleanup% /wd4820 /wd4201 /wd4996 /wd4127 /wd4061 /wd4514 /wd4189 /wd4100 /wd4668
-set pp_compiler_flags=/Od /Zi /Wall /nologo
-set pp_linker_flags=/INCREMENTAL:NO
+set disabled_warnings=%comment_for_cleanup% /wd4820 /wd4201 /wd4996 /wd4127 /wd4061 /wd4514 /wd4189 /wd4100 /wd4668
+set compiler_flags=/Od /Zi /Wall /nologo
+set linker_flags=/INCREMENTAL:NO
+set debug=/DDEBUG
 
-cl %pp_compiler_flags% %pp_disabled_warnings% %pp_linker_flags% p:\code\minicc\main.cc p:\code\minicc\atom.cc p:\code\minicc\lexer.cc
+cl %compiler_flags% %disabled_warnings% %linker_flags% %debug%^
+   p:\code\minicc\main.cc^
+   p:\code\minicc\atom.cc^
+   p:\code\minicc\lexer.cc^
+   p:\code\minicc\file.cc
 
 popd build

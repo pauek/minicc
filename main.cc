@@ -4,7 +4,7 @@
 #include "minicc.hh"
 
 void init() {
-	lexer_init();
+	atom_init();
 }
 
 int main(int argc, char *argv[]) {
@@ -19,9 +19,12 @@ int main(int argc, char *argv[]) {
 	lexer_start(buffer);
 	loop {
 		Token tok = lexer_get();
-		if (tok.atom == tok_eof) {
+		if (tok.kind == TOK_EOF) {
 			break;
 		}
-		printf("%d:%d: %.*s\n", tok.pos.lin, tok.pos.col, (int)tok.atom->len, tok.atom->str);
+		printf("%d:%d: %s, %.*s\n", 
+			    tok.pos.lin, tok.pos.col, 
+			    lexer_token_kind(tok.kind), 
+			    (int)tok.atom->len, tok.atom->str);
 	}
 }

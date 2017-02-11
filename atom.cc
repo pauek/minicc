@@ -24,6 +24,18 @@ static uint32_t hash(const char *p, size_t len) {
     return r;
 }
 
+// Token atoms
+#define TOKEN(idx, name, str, len) Atom *atom_##name;
+#include "tokens.inc"
+#undef TOKEN
+
+// Register an atom for each token
+void atom_init() {
+#define TOKEN(idx, name, str, len) atom_##name = atom_get(str, len);
+#include "tokens.inc"
+#undef TOKEN
+}
+
 Atom *atom_get(const char *str, size_t len) {
 	uint32_t mask = NUM_NODES-1;
 	uint32_t idx  = hash(str, len) & mask;

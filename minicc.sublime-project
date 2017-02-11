@@ -5,6 +5,14 @@
 			"path": "."
 		}
 	],
+	"settings": 
+	[
+		{	
+			"tab_size": 3,
+			"word_wrap": false,
+			"translate_tabs_to_spaces": true,
+		}
+	],
 	"build_systems":
    [
       {
