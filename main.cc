@@ -9,9 +9,4 @@ int main() {
 	Atom *a3 = atom_get("hola", 4);
 	Atom *a4 = atom_get("jiji", 4);
 	Atom *a5 = atom_get("jiji", 4);
-	printf("%p\n", a1);
-	printf("%p\n", a2);
-	printf("%p\n", a3);
-	printf("%p\n", a4);
-	printf("%p\n", a5);
 }
