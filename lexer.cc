@@ -10,7 +10,7 @@ struct LexerState {
 static const char *at = 0;
 static        Pos  pos = {1, 1};
 static const char *lexer_buffer = 0;
-static LexerState  lexer_states[LEXER_MAX_STATES] = {};
+static LexerState  lexer_states[LEXER_MAX_SAVED_STATES] = {};
 static        int  lexer_curr_state = -1;
 
 CommentSeq comment_seq;
@@ -44,7 +44,7 @@ void lexer_init(const char *buffer) {
 
 void lexer_push() {
 	lexer_curr_state++;
-	assert(lexer_curr_state < LEXER_MAX_STATES);
+	assert(lexer_curr_state < LEXER_MAX_SAVED_STATES);
 	lexer_states[lexer_curr_state].at  = at;
 	lexer_states[lexer_curr_state].pos = pos;
 }
@@ -80,7 +80,7 @@ void lexer_skip_comment(int type) {
 	}
 	c->len = (size_t)(at - c->str);
 	comment_seq.ncomments++;
-	assert(comment_seq.ncomments < LEXER_MAX_COMMENTS);
+	assert(comment_seq.ncomments < LEXER_MAX_COMMENTS_BETWEEN_TOKENS);
 }
 
 static bool lexer_skip_space() {

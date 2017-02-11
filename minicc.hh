@@ -1,8 +1,9 @@
 
 #include <stdint.h>
+#include <stddef.h>
 
-#define LEXER_MAX_COMMENTS 10
-#define LEXER_MAX_STATES   10
+#define LEXER_MAX_COMMENTS_BETWEEN_TOKENS 10
+#define LEXER_MAX_SAVED_STATES 10
 
 #define loop while(1)
 
@@ -30,7 +31,7 @@ struct Comment {
 };
 
 struct CommentSeq {
-	Comment comments[LEXER_MAX_COMMENTS];
+	Comment comments[LEXER_MAX_COMMENTS_BETWEEN_TOKENS];
 	int    ncomments;
 };
 
