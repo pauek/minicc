@@ -177,53 +177,6 @@ static Token lexer_read_include_filename() {
 	return { TOK_FILENAME, tokpos, a };
 }
 
-struct AtomKind {
-	Atom    **id;
-	TokenKind kind;
-};
-
-static AtomKind kind_tab[] = {
-	{ &atom_if,        TOK_CONTROL },
-	{ &atom_else,      TOK_CONTROL },
-	{ &atom_while,     TOK_CONTROL },
-	{ &atom_for,       TOK_CONTROL },
-	{ &atom_switch,    TOK_CONTROL },
-	{ &atom_break,     TOK_CONTROL },
-	{ &atom_continue,  TOK_CONTROL },
-	{ &atom_goto,      TOK_CONTROL },
-	{ &atom_return,    TOK_CONTROL },
-
-	{ &atom_using,     TOK_USING },
-	{ &atom_namespace, TOK_USING },
-
-	{ &atom_struct,    TOK_TYPEDEF },
-	{ &atom_class,     TOK_TYPEDEF },
-	{ &atom_typedef,   TOK_TYPEDEF },
-	{ &atom_enum,      TOK_TYPEDEF },
-
-	{ &atom_void,      TOK_TYPE },
-   { &atom_int,       TOK_TYPE },
-   { &atom_bool,      TOK_TYPE },
-   { &atom_char,      TOK_TYPE },
-   { &atom_float,     TOK_TYPE },
-   { &atom_double,    TOK_TYPE },
-   { &atom_string,    TOK_TYPE },
-
-   { &atom_short,     TOK_MODIFIER },
-   { &atom_long,      TOK_MODIFIER },
-   { &atom_const,     TOK_MODIFIER },
-   { &atom_inline,    TOK_MODIFIER },
-   { &atom_virtual,   TOK_MODIFIER },
-   { &atom_explicit,  TOK_MODIFIER },
-
-	{ &atom_true,      TOK_BOOL },
-	{ &atom_false,     TOK_BOOL },
-
-	{ &atom_include,   TOK_DIRECTIVE },
-
-	{ 0,               TOK_EOF },
-};
-
 static Token lexer_read_identifier() {
 	const char *id_begin = at;
 	Pos tokpos = pos;
