@@ -41,3 +41,14 @@ Atom *atom_get(const char *str, size_t len) {
 	return &n->atom;
 }
 
+void print_all_atoms() {
+	for (int i = 0; i < NUM_NODES; i++) {
+		if (nodes[i]) {
+			printf("%d:", i);
+			for (Node *n = nodes[i]; n; n = n->prev) {
+				printf(" %s", n->atom.str);
+			}
+			printf("\n");
+		}
+	}
+}
