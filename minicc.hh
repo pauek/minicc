@@ -8,6 +8,7 @@
 #include <assert.h>
 #include <stdint.h>
 
+#define ATOM_NUM_NODES (1<<12) // 4096 -- This has to be a power of two!
 #define LEXER_MAX_COMMENTS_BETWEEN_TOKENS 10
 #define LEXER_MAX_SAVED_STATES 10
 
@@ -20,6 +21,13 @@ struct Atom {
 	const char *str;
 	size_t      len;
 };
+
+struct Node {
+	Atom  atom;
+	Node *prev;
+};
+
+extern Node *nodes[ATOM_NUM_NODES];
 
 #define TOKEN(name, str, len) extern Atom *atom_##name;
 #include "tokens.inc"
