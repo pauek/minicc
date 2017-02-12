@@ -1,4 +1,6 @@
 
+#include <stdlib.h>
+#include <stdio.h>
 #include "minicc.hh"
 
 char *read_whole_file(char const *filename) {

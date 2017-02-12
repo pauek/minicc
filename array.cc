@@ -1,4 +1,7 @@
 
+#include <string.h>
+#include <stdint.h>
+#include <stdlib.h>
 #include "minicc.hh"
 
 Array *array_new(size_t len, size_t size) {

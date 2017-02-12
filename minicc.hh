@@ -1,17 +1,12 @@
 
 #if defined(_MSC_VER)
 #define WINDOWS
-#include <windows.h>
 #else
 #define LINUX
-#include <unistd.h>
-#include <sys/mman.h>
 #endif
 
 #include <assert.h>
 #include <stdint.h>
-#include <stddef.h>
-#include <stdio.h>
 
 #define LEXER_MAX_COMMENTS_BETWEEN_TOKENS 10
 #define LEXER_MAX_SAVED_STATES 10
@@ -30,12 +25,8 @@ struct Atom {
 #include "tokens.inc"
 #undef TOKEN
 
-    void  atom_init();
-    Atom *atom_get(const char *str, size_t len);
-
-#if defined(DEBUG)
-    void  print_all_atoms();
-#endif
+             void  atom_init();
+             Atom *atom_get(const char *str, size_t len);
 
 //
 // array
@@ -128,6 +119,11 @@ extern CommentSeq  lexer_comment_seq;
             Token  lexer_get();         // Llama a 'lexer_skip_space' antes.
             Token  lexer_peek();        // Devuelve el próximo token, sin avanzar.
 
+// 
+// debug
+//
 #if defined(DEBUG)
              char *lexer_token_kind(TokenKind kind);
+             void  print_all_atoms();
 #endif
+

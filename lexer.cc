@@ -1,6 +1,5 @@
 
-#include <assert.h>
-#include <string.h>
+#include <stdio.h>
 #include "minicc.hh"
 
 struct LexerState {
