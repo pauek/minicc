@@ -108,15 +108,15 @@ inline size_t array_size(Array *array) { assert(array); return array->size; }
      char *read_whole_file(const char *filename);
 
 // lexer
-extern CommentSeq comment_seq;
-     void  lexer_start(const char *buffer);
-     void  lexer_push();
-     void  lexer_pop();
-     void  lexer_discard();
-     bool  lexer_skip_space();  // Devuelve 'true' si ha encontrado espacios. Deja comentarios en 'comment_seq'
-    Token  lexer_get();         // Llama a 'lexer_skip_space' antes.
-    Token  lexer_peek();        // Devuelve el próximo token, sin avanzar.
+extern CommentSeq lexer_comment_seq;
+        void  lexer_start(const char *buffer);
+        void  lexer_push();
+        void  lexer_pop();
+        void  lexer_discard();
+        bool  lexer_skip_space();  // Devuelve 'true' si ha encontrado espacios. Deja comentarios en 'comment_seq'
+       Token  lexer_get();         // Llama a 'lexer_skip_space' antes.
+       Token  lexer_peek();        // Devuelve el próximo token, sin avanzar.
 
 #if defined(DEBUG)
-     char *lexer_token_kind(TokenKind kind);
+        char *lexer_token_kind(TokenKind kind);
 #endif

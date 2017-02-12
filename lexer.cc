@@ -16,7 +16,7 @@ static        int  top = -1;
 static       bool  at_directive = false;
 static       bool  at_include_filename = false;
 
-CommentSeq comment_seq;
+CommentSeq lexer_comment_seq;
 
 #define AT(a)     (at[0] == (a))
 #define AT2(a, b) (at[0] == (a) && at[1] == (b))
@@ -61,7 +61,7 @@ void lexer_start(const char *buf) {
 	top = -1;
 	pos = { 1, 1 };
 	at = buffer;
-	comment_seq.ncomments = 0;
+	lexer_comment_seq.ncomments = 0;
 	at_directive = false;
 	at_include_filename = false;
 }
@@ -89,7 +89,7 @@ void lexer_discard() {
 
 void lexer_skip_comment(int type) {
 	ADVANCE(2);
-	Comment *c = &comment_seq.comments[comment_seq.ncomments - 1];
+	Comment *c = &lexer_comment_seq.comments[lexer_comment_seq.ncomments - 1];
 	c->type = type;
 	c->str = at;
 	loop {
@@ -109,13 +109,13 @@ void lexer_skip_comment(int type) {
 		ADVANCE(1);
 	}
 	c->len = (size_t)(at - c->str);
-	comment_seq.ncomments++;
-	assert(comment_seq.ncomments < LEXER_MAX_COMMENTS_BETWEEN_TOKENS);
+	lexer_comment_seq.ncomments++;
+	assert(lexer_comment_seq.ncomments < LEXER_MAX_COMMENTS_BETWEEN_TOKENS);
 }
 
 bool lexer_skip_space() {
 	const char *start = at;
-	comment_seq.ncomments = 0;
+	lexer_comment_seq.ncomments = 0;
 	loop {
 		if (AT_EOF) {
 			return at > start;
@@ -276,7 +276,7 @@ Token lexer_read_literal_char_or_string() {
 /*
 
 El lexer devuelve un token, el que encuentre primero, saltando los espacios
-pero deja en comment_seq todos los comentarios que se ha encontrado entremedio.
+pero deja en lexer_comment_seq todos los comentarios que se ha encontrado entremedio.
 La secuencia de comentarios es una variable global y se resetea cada vez.
 Esto permite luego recuperarlos (si es necesario), porque si quieres imprimir
 el código original desde el AST debes respetar los comentarios del usuario y deben, 
