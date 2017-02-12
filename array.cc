@@ -68,3 +68,4 @@ void array_push(Array *array, void *elem) {
    array_resize(array, array->len + 1);
    array_put(array, (int)array->len - 1, elem);
 }
+
