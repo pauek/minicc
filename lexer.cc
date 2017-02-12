@@ -70,13 +70,13 @@ void lexer_start(const char *buffer) {
 
 void lexer_push() {
 	lexer_curr_state++;
-	assert(lexer_curr_state < LEXER_MAX_SAVED_STATES);
+	assert(lexer_curr_state >= 0 && lexer_curr_state < LEXER_MAX_SAVED_STATES);
 	lexer_states[lexer_curr_state].at  = at;
 	lexer_states[lexer_curr_state].pos = pos;
 }
 
 void lexer_pop() {
-	assert(lexer_curr_state >= 0);
+	assert(lexer_curr_state >= 0 && lexer_curr_state < LEXER_MAX_SAVED_STATES);
 	at  = lexer_states[lexer_curr_state].at;
 	pos = lexer_states[lexer_curr_state].pos;
 	lexer_curr_state--;
@@ -96,23 +96,19 @@ void lexer_skip_comment(int type) {
 	c->str = at;
 	loop {
 		if (AT_EOF) break;
-		if (type == COMMENT_SINGLELINE && AT('\n')) {
+		if (AT('\n')) {
 			at++;
 			pos.lin++;
 			pos.col = 1;
-			break;
+			if (type == COMMENT_SINGLELINE) {
+				break;
+			}
 		}
 		if (type == COMMENT_MULTILINE && AT2('*','/')) {
 			ADVANCE(2);
 			break;
 		}
-		if (at[0] == '\n') {
-			at++;
-			pos.lin++;
-			pos.col = 1;
-		} else {
-			ADVANCE(1);
-		}
+		ADVANCE(1);
 	}
 	c->len = (size_t)(at - c->str);
 	comment_seq.ncomments++;
