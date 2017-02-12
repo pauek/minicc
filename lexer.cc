@@ -10,9 +10,9 @@ struct LexerState {
 
 static const char *at = 0;
 static        Pos  pos = {1, 1};
-static const char *lexer_buffer = 0;
-static LexerState  lexer_states[LEXER_MAX_SAVED_STATES] = {};
-static        int  lexer_curr_state = -1;
+static const char *buffer = 0;
+static LexerState  states[LEXER_MAX_SAVED_STATES] = {};
+static        int  top = -1;
 static       bool  at_directive = false;
 static       bool  at_include_filename = false;
 
@@ -56,35 +56,33 @@ char *lexer_token_kind(TokenKind kind) {
 }
 #endif
 
-void lexer_start(const char *buffer) {
-	lexer_buffer = buffer;
-	lexer_curr_state = 0;
+void lexer_start(const char *buf) {
+	buffer = buf;
+	top = -1;
+	pos = { 1, 1 };
 	at = buffer;
-	pos.lin = 1;
-	pos.col = 1;
 	comment_seq.ncomments = 0;
-	lexer_curr_state = -1;
 	at_directive = false;
 	at_include_filename = false;
 }
 
 void lexer_push() {
-	lexer_curr_state++;
-	assert(lexer_curr_state >= 0 && lexer_curr_state < LEXER_MAX_SAVED_STATES);
-	lexer_states[lexer_curr_state].at  = at;
-	lexer_states[lexer_curr_state].pos = pos;
+	top++;
+	assert(top >= 0 && top < LEXER_MAX_SAVED_STATES);
+	states[top].at  = at;
+	states[top].pos = pos;
 }
 
 void lexer_pop() {
-	assert(lexer_curr_state >= 0 && lexer_curr_state < LEXER_MAX_SAVED_STATES);
-	at  = lexer_states[lexer_curr_state].at;
-	pos = lexer_states[lexer_curr_state].pos;
-	lexer_curr_state--;
+	assert(top >= 0 && top < LEXER_MAX_SAVED_STATES);
+	at  = states[top].at;
+	pos = states[top].pos;
+	top--;
 }
 
 void lexer_discard() {
-	assert(lexer_curr_state >= 0);
-	lexer_curr_state--;
+	assert(top >= 0);
+	top--;
 }
 
 #define ADVANCE(n) { at += (n); pos.col += (n); }
