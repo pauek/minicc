@@ -549,3 +549,12 @@ Token lexer_get() {
       RESULT(TOK_ERROR, 1, error);
 	}
 }
+
+Token lexer_peek() {
+	const char *_at  = at;
+	Pos   _pos = pos;	
+	Token tok = lexer_get();
+	at  = _at;
+	pos = _pos;
+	return tok;
+}

@@ -10,6 +10,7 @@ cl %compiler_flags% %disabled_warnings% %linker_flags% %debug%^
    p:\code\minicc\main.cc^
    p:\code\minicc\atom.cc^
    p:\code\minicc\lexer.cc^
-   p:\code\minicc\file.cc
+   p:\code\minicc\file.cc^
+   p:\code\minicc\array.cc
 
 popd build

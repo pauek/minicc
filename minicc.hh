@@ -8,6 +8,7 @@
 #include <sys/mman.h>
 #endif
 
+#include <assert.h>
 #include <stdint.h>
 #include <stddef.h>
 #include <stdio.h>
@@ -80,22 +81,42 @@ struct CommentSeq {
 #include "tokens.inc"
 #undef TOKEN
 
-void atom_init();
-Atom *atom_get(const char *str, size_t len);
-void print_all_atoms();
+    void  atom_init();
+    Atom *atom_get(const char *str, size_t len);
+
+#if defined(DEBUG)
+    void  print_all_atoms();
+#endif
+
+// array
+struct Array {
+   size_t   len;
+   size_t   size;
+   uint8_t *data;
+};
+
+       Array *array_new(size_t len, size_t size);
+        void  array_free(Array *array);
+        void *array_get(Array *array, int i);
+        void *array_put(Array *array, int i, void *elem);
+        void  array_resize(Array *array, size_t len);
+       Array *array_copy(Array *array, size_t len);
+inline size_t array_len(Array *array)  { assert(array); return array->len; }
+inline size_t array_size(Array *array) { assert(array); return array->size; }
 
 // file
-char *read_whole_file(const char *filename);
+     char *read_whole_file(const char *filename);
 
 // lexer
 extern CommentSeq comment_seq;
-#if defined(DEBUG)
-char *lexer_token_kind(TokenKind kind);
-#endif
-void  lexer_start(const char *buffer);
-void  lexer_push();
-void  lexer_pop();
-void  lexer_discard();
-bool  lexer_skip_space();  // Devuelve 'true' si ha encontrado espacios. Deja comentarios en 'comment_seq'
-Token lexer_get();         // Llama a 'lexer_skip_space' antes.
+     void  lexer_start(const char *buffer);
+     void  lexer_push();
+     void  lexer_pop();
+     void  lexer_discard();
+     bool  lexer_skip_space();  // Devuelve 'true' si ha encontrado espacios. Deja comentarios en 'comment_seq'
+    Token  lexer_get();         // Llama a 'lexer_skip_space' antes.
+    Token  lexer_peek();        // Devuelve el próximo token, sin avanzar.
 
+#if defined(DEBUG)
+     char *lexer_token_kind(TokenKind kind);
+#endif
