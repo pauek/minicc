@@ -25,13 +25,13 @@ static uint32_t hash(const char *p, size_t len) {
 }
 
 // Token atoms
-#define TOKEN(idx, name, str, len) Atom *atom_##name;
+#define TOKEN(name, str, len) Atom *atom_##name;
 #include "tokens.inc"
 #undef TOKEN
 
 // Register an atom for each token
 void atom_init() {
-#define TOKEN(idx, name, str, len) atom_##name = atom_get(str, len);
+#define TOKEN(name, str, len) atom_##name = atom_get(str, len);
 #include "tokens.inc"
 #undef TOKEN
 }

@@ -27,20 +27,30 @@ struct Atom {
 enum TokenKind {
 	TOK_EOF,
 	TOK_ERROR,
-	TOK_OPERATOR,
-	TOK_PUNCT,
-	TOK_CONTROL,
-	TOK_IDENT,
+
+	TOK_BACKSLASH,
+	TOK_DIRECTIVE,
 	TOK_FILENAME,
-	TOK_STRING,
-	TOK_INT,
-	TOK_FLOAT,
+	TOK_USING,
+
+	TOK_PUNCT,
+	TOK_DELIM,
+
+	TOK_OPERATOR,
+
+	TOK_IDENT,
+	TOK_CONTROL,
 	TOK_TYPEDEF,
+
 	TOK_MODIFIER,
 	TOK_TYPE,
-	TOK_DIRECTIVE,
-	TOK_BOOL,
-	TOK_USING,
+
+	TOK_LIT_BOOL,
+	TOK_LIT_INT,
+	TOK_LIT_FLOAT,
+	TOK_LIT_DOUBLE,
+	TOK_LIT_CHAR,
+	TOK_LIT_STRING,
 };
 
 struct Token {
@@ -66,7 +76,7 @@ struct CommentSeq {
 };
 
 // atom
-#define TOKEN(idx, name, str, len) extern Atom *atom_##name;
+#define TOKEN(name, str, len) extern Atom *atom_##name;
 #include "tokens.inc"
 #undef TOKEN
 

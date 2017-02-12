@@ -20,30 +20,37 @@ CommentSeq comment_seq;
 
 #define AT(a)     (at[0] == (a))
 #define AT2(a, b) (at[0] == (a) && at[1] == (b))
-#define AT_SPACE  (at[0] == ' ' || at[0] == '\t' || at[0] == '\f' || at[0] == '\v')
-#define AT_ENDL   (at[0] == '\n') // endls en windows y linux?
 #define AT_EOF    (at[0] == 0)
+#define ENDL(c)   ((c) == '\n') // endls en windows y linux?
+#define SPACE(c)  ((c) == ' ' || (c) == '\t' || (c) == '\f' || (c) == '\v')
+#define DIGIT(c)  ((c) >= '0' && (c) <= '9')
+#define LOWER(c)  ((c) >= 'a' && (c) <= 'z')
+#define UPPER(c)  ((c) >= 'A' && (c) <= 'Z')
 
 #if defined(DEBUG) 
 char *lexer_token_kind(TokenKind kind) {
 	static char buffer[32];
 	switch (kind) {
-	case TOK_EOF:      sprintf(buffer, "EOF"); break;
-	case TOK_ERROR:    sprintf(buffer, "ERROR"); break;
-	case TOK_OPERATOR: sprintf(buffer, "OPERATOR"); break;
-	case TOK_PUNCT:    sprintf(buffer, "PUNCT"); break;
-	case TOK_IDENT:    sprintf(buffer, "IDENT"); break;
-	case TOK_FILENAME: sprintf(buffer, "FILENAME"); break;
-	case TOK_STRING:   sprintf(buffer, "STRING"); break;
-	case TOK_INT:      sprintf(buffer, "INT"); break;
-	case TOK_FLOAT:    sprintf(buffer, "FLOAT"); break;
-	case TOK_CONTROL:  sprintf(buffer, "CONTROL"); break;
-	case TOK_BOOL:     sprintf(buffer, "BOOL"); break;
-	case TOK_DIRECTIVE:sprintf(buffer, "DIRECTIVE"); break;
-	case TOK_TYPE:     sprintf(buffer, "TYPE"); break;
-	case TOK_TYPEDEF:  sprintf(buffer, "TYPEDEF"); break;
-	case TOK_MODIFIER: sprintf(buffer, "MODIFIER"); break;
-	case TOK_USING:    sprintf(buffer, "USING"); break;
+	case TOK_EOF:        sprintf(buffer, "EOF"); break;
+	case TOK_ERROR:      sprintf(buffer, "ERROR"); break;
+	case TOK_OPERATOR:   sprintf(buffer, "OPERATOR"); break;
+	case TOK_PUNCT:      sprintf(buffer, "PUNCT"); break;
+	case TOK_DELIM:      sprintf(buffer, "DELIM"); break;
+	case TOK_IDENT:      sprintf(buffer, "IDENT"); break;
+	case TOK_FILENAME:   sprintf(buffer, "FILENAME"); break;
+	case TOK_CONTROL:    sprintf(buffer, "CONTROL"); break;
+	case TOK_DIRECTIVE:  sprintf(buffer, "DIRECTIVE"); break;
+	case TOK_TYPE:       sprintf(buffer, "TYPE"); break;
+	case TOK_TYPEDEF:    sprintf(buffer, "TYPEDEF"); break;
+	case TOK_MODIFIER:   sprintf(buffer, "MODIFIER"); break;
+	case TOK_USING:      sprintf(buffer, "USING"); break;
+	case TOK_LIT_INT:    sprintf(buffer, "LIT_INT"); break;
+	case TOK_LIT_FLOAT:  sprintf(buffer, "LIT_FLOAT"); break;
+	case TOK_LIT_DOUBLE: sprintf(buffer, "LIT_DOUBLE"); break;
+	case TOK_LIT_BOOL:   sprintf(buffer, "LIT_BOOL"); break;
+	case TOK_LIT_STRING: sprintf(buffer, "LIT_STRING"); break;
+   case TOK_LIT_CHAR:   sprintf(buffer, "LIT_CHAR"); break;
+   case TOK_BACKSLASH:  sprintf(buffer, "BACKSLASH"); break;
 	}
 	return buffer;
 }
@@ -90,7 +97,9 @@ void lexer_skip_comment(int type) {
 	loop {
 		if (AT_EOF) break;
 		if (type == COMMENT_SINGLELINE && AT('\n')) {
-			ADVANCE(1);
+			at++;
+			pos.lin++;
+			pos.col = 1;
 			break;
 		}
 		if (type == COMMENT_MULTILINE && AT2('*','/')) {
@@ -116,9 +125,9 @@ bool lexer_skip_space() {
 	loop {
 		if (AT_EOF) {
 			return at > start;
-		} else if (AT_SPACE) {
+		} else if (SPACE(at[0])) {
 			ADVANCE(1);
-		} else if (AT_ENDL) {
+		} else if (ENDL(at[0])) {
 			at++;
 			pos.lin++;
 			pos.col = 1;
@@ -182,13 +191,8 @@ static Token lexer_read_identifier() {
 	Pos tokpos = pos;
 	ADVANCE(1);
 	loop {
-		if (AT_EOF) {
-			break;
-		}
-		if ((at[0] >= 'a' && at[0] <= 'z') ||
-			 (at[0] >= 'A' && at[0] <= 'Z') ||
-			 (at[0] >= '0' && at[0] <= '9') ||
-			 at[0] == '_') {
+		if (AT_EOF) break;
+		if (LOWER(at[0]) || UPPER(at[0]) || DIGIT(at[0]) || at[0] == '_') {
 			ADVANCE(1);
 			continue;
 		}
@@ -196,11 +200,83 @@ static Token lexer_read_identifier() {
 	}
 	Atom *id = atom_get(id_begin, (size_t)(at - id_begin));
 	TokenKind kind = TOK_IDENT;
-
-	// maybe set at_include_directive to lex filenames correctly
-	
-
 	return { TOK_IDENT, tokpos, id };
+}
+
+static Token lexer_read_number() {
+	const char *id_begin = at;
+	const char *id_end;
+	Pos tokpos = pos;
+	bool real_number = false;
+	if (at[0] == '-') {
+		ADVANCE(1);
+	}
+	loop {
+		if (AT_EOF) break;
+		else if (DIGIT(at[0])) {
+			ADVANCE(1);
+			continue;
+		} else if (at[0] == '.') {
+			if (!real_number) {
+				real_number = true;
+				ADVANCE(1);
+				continue;
+			} else {
+				break;
+			}
+		}
+		break;
+	}
+	id_end = at;                 // do not put 'f' into the atom
+	TokenKind kind = TOK_LIT_INT;
+	if (real_number) {
+		kind = TOK_LIT_DOUBLE;
+		if (at[0] == 'f') { 
+			ADVANCE(1);
+			kind = TOK_LIT_FLOAT;
+		}
+	}
+	Atom *atom = atom_get(id_begin, (size_t)(id_end - id_begin));
+	return { kind, tokpos, atom };
+}
+
+Token lexer_read_literal_char_or_string() {
+	char delimiter = at[0];
+	TokenKind kind = (delimiter == '\'' ? TOK_LIT_CHAR : TOK_LIT_STRING);
+	ADVANCE(1);
+	bool slash_error = false;
+	int nchars = 0;
+	const char *tok_begin = at;
+	Pos tokpos = pos;
+	loop {
+		if (at[0] == delimiter) {
+			break;
+		}
+		if (ENDL(at[0])) {
+			return { TOK_ERROR, pos, NULL };
+		}
+		if (at[0] == '\\') {
+			ADVANCE(1);
+			switch (at[0]) {
+			case 'a': case 'b': case 'f': case 'n': case 'r':
+			case 't': case 'v': case '\'': case '\"': 
+			case '\?': case '\\': 
+				break;
+         default:
+         	slash_error = true; // how to handle this??
+			}
+		}
+		ADVANCE(1);
+		nchars++;
+	}
+	size_t len = (size_t)(at - tok_begin);
+	ADVANCE(1); // consume delimiter
+	if (slash_error) {
+		return { TOK_ERROR, tokpos, NULL };
+	} else {
+		Atom *atom = atom_get(tok_begin, len);
+		return { kind, tokpos, atom };
+	}
 }
 
 /*
@@ -233,63 +309,74 @@ Token lexer_get() {
 		at_directive = false;
 		return lexer_read_include_filename();
 	}
+	Token tok;
 	Pos tokpos = pos;
 	switch (at[0]) 
 	{
-	case '(': RESULT(TOK_PUNCT, 1, lparen)
-	case ')': RESULT(TOK_PUNCT, 1, rparen)
-	case '[': RESULT(TOK_PUNCT, 1, lbracket)
-	case ']': RESULT(TOK_PUNCT, 1, rbracket)
-	case '{': RESULT(TOK_PUNCT, 1, lbrace)
-	case '}': RESULT(TOK_PUNCT, 1, rbrace)
+	case '(': RESULT(TOK_DELIM, 1, lparen)
+	case ')': RESULT(TOK_DELIM, 1, rparen)
+	case '[': RESULT(TOK_DELIM, 1, lbracket)
+	case ']': RESULT(TOK_DELIM, 1, rbracket)
+	case '{': RESULT(TOK_DELIM, 1, lbrace)
+	case '}': RESULT(TOK_DELIM, 1, rbrace)
 
 	case ';': RESULT(TOK_PUNCT, 1, semicolon)
-	case ':': RESULT(TOK_PUNCT, 1, colon)
 	case '?': RESULT(TOK_PUNCT, 1, qmark)
 	case ',': RESULT(TOK_PUNCT, 1, comma)
-	case '.': RESULT(TOK_PUNCT, 1, dot)
+
+	case '.': 
+		if (DIGIT(at[1]))
+			return lexer_read_number();
+		else
+			RESULT(TOK_PUNCT, 1, dot)
+
+	case ':': 
+		if (at[1] == ':')      RESULT(TOK_PUNCT, 2, coloncolon)
+		else                   RESULT(TOK_PUNCT, 1, colon)
 
 	case '+':
 		if (at[1] == '+')      RESULT(TOK_OPERATOR, 2, plusplus)
 		else if (at[1] == '=') RESULT(TOK_OPERATOR, 2, pluseq)
 		else                   RESULT(TOK_OPERATOR, 1, plus)
-		break;
 
 	case '-':
-		if (at[1] == '-')      RESULT(TOK_OPERATOR, 2, minusminus)
-		else if (at[1] == '=') RESULT(TOK_OPERATOR, 2, minuseq)
-		else                   RESULT(TOK_OPERATOR, 1, minus)
-		break;
+		if (at[1] == '-')
+			RESULT(TOK_OPERATOR, 2, minusminus)
+		else if (at[1] == '=')
+			RESULT(TOK_OPERATOR, 2, minuseq)
+		else if (at[1] == '>')
+			RESULT(TOK_OPERATOR, 2, arrow)
+		else if (at[1] == '>')
+			RESULT(TOK_OPERATOR, 2, arrow)
+		else if (DIGIT(at[1]))
+			return lexer_read_number();
+		else
+			RESULT(TOK_OPERATOR, 1, minus)
 
 	case '*':
 		if (at[1] == '=') RESULT(TOK_OPERATOR, 2, stareq)
 		else              RESULT(TOK_OPERATOR, 1, star)
-		break;
 
 	case '/':
 		if (at[1] == '=') RESULT(TOK_OPERATOR, 2, slasheq)
 		else              RESULT(TOK_OPERATOR, 1, slash)
-		break;
 
 	case '^': 
 		if (at[1] == '=') RESULT(TOK_OPERATOR, 2, xoreq)
 		else              RESULT(TOK_OPERATOR, 1, xor)
-		break;
 
 	case '|':
-		if (at[1] == '=') RESULT(TOK_OPERATOR, 2, bareq)
-		else              RESULT(TOK_OPERATOR, 1, bar)
-		break;
+		if (at[1] == '|')      RESULT(TOK_OPERATOR, 2, barbar)
+		else if (at[1] == '=') RESULT(TOK_OPERATOR, 2, bareq)
+		else                   RESULT(TOK_OPERATOR, 1, bar)
 
 	case '&':
 		if (at[1] == '=') RESULT(TOK_OPERATOR, 2, ampeq)
 		else              RESULT(TOK_OPERATOR, 1, amp)
-		break;
 
 	case '%':
 		if (at[1] == '=') RESULT(TOK_OPERATOR, 2, modeq)
 		else              RESULT(TOK_OPERATOR, 1, mod)
-		break;
 
 	case '<':
 		if (at[1] == '=')  	RESULT(TOK_OPERATOR, 2, leq)
@@ -298,7 +385,6 @@ Token lexer_get() {
 			else              RESULT(TOK_OPERATOR, 2, lshift)
 		} 
 	   else                 RESULT(TOK_OPERATOR, 1, lt)
-		break;
 
 	case '>':
 		if (at[1] == '=')  	RESULT(TOK_OPERATOR, 2, geq)
@@ -307,142 +393,165 @@ Token lexer_get() {
 			else              RESULT(TOK_OPERATOR, 2, rshift)
 		} 
 	   else                 RESULT(TOK_OPERATOR, 1, gt)
-		break;
 
 	case '!': 
 		if (at[1] == '=') RESULT(TOK_OPERATOR, 2, noteq)
 		else              RESULT(TOK_OPERATOR, 1, not)
-		break;
 
 	case '=':
 		if (at[1] == '=') RESULT(TOK_OPERATOR, 2, eqeq)
 		else              RESULT(TOK_OPERATOR, 1, eq)
-		break;
 
 	case '#': 
 		if (pos.col == 1) at_directive = true;
 		RESULT(TOK_PUNCT, 1, sharp);
 
+	case '0': case '1': case '2': case '3':
+	case '4': case '5': case '6': case '7':
+	case '8': case '9':
+		return lexer_read_number();
+
 	case 'a':
-		IF_ID_RESULT(TOK_MODIFIER, 4, auto)
-		IF_ID_RESULT(TOK_OPERATOR, 3, and)
-		return lexer_read_identifier();
+		tok = lexer_read_identifier();
+		if      (tok.atom == atom_auto) tok.kind = TOK_MODIFIER;
+		else if (tok.atom == atom_and)  tok.kind = TOK_OPERATOR;
+		return tok;
 
 	case 'b':
-		IF_ID_RESULT(TOK_CONTROL, 5, break)
-		IF_ID_RESULT(TOK_TYPE, 4, bool)
-		return lexer_read_identifier();
+		tok = lexer_read_identifier();
+		if      (tok.atom == atom_break) tok.kind = TOK_CONTROL;
+		else if (tok.atom == atom_bool)  tok.kind = TOK_TYPE;
+		return tok;
 
 	case 'c':
-		IF_ID_RESULT(TOK_CONTROL, 8, continue)
-		IF_ID_RESULT(TOK_MODIFIER, 5, const)
-		IF_ID_RESULT(TOK_TYPEDEF, 5, class)
-		IF_ID_RESULT(TOK_TYPE, 4, char)
-		IF_ID_RESULT(TOK_CONTROL, 4, case)
-		return lexer_read_identifier();
+		tok = lexer_read_identifier();
+		if      (tok.atom == atom_continue) tok.kind = TOK_CONTROL;
+		else if (tok.atom == atom_const)    tok.kind = TOK_MODIFIER;
+		else if (tok.atom == atom_class)    tok.kind = TOK_TYPEDEF;
+		else if (tok.atom == atom_char)     tok.kind = TOK_TYPE;
+		else if (tok.atom == atom_case)     tok.kind = TOK_CONTROL;
+		return tok;
 
 	case 'd':
-		IF_ID_RESULT(TOK_TYPE, 6, double)
-		return lexer_read_identifier();
+		tok = lexer_read_identifier();
+		if (tok.atom == atom_double) tok.kind = TOK_TYPE;
+		return tok;		
 
 	case 'e':
-		IF_ID_RESULT(TOK_CONTROL, 4, else)
-		IF_ID_RESULT(TOK_TYPEDEF, 4, enum)
-		IF_ID_RESULT(TOK_MODIFIER, 6, extern)
-		IF_ID_RESULT(TOK_MODIFIER, 8, explicit)
-		return lexer_read_identifier();
+		tok = lexer_read_identifier();
+		if      (tok.atom == atom_else)     tok.kind = TOK_CONTROL;
+		else if (tok.atom == atom_enum)     tok.kind = TOK_TYPEDEF;
+		else if (tok.atom == atom_extern)   tok.kind = TOK_MODIFIER;
+		else if (tok.atom == atom_explicit) tok.kind = TOK_MODIFIER;
+		return tok;
 
 	case 'f':
-		IF_ID_RESULT(TOK_CONTROL, 3, for)
-		IF_ID_RESULT(TOK_TYPE, 5, float)
-		IF_ID_RESULT(TOK_BOOL, 5, false)
-		return lexer_read_identifier();
+		tok = lexer_read_identifier();
+		if      (tok.atom == atom_for)   tok.kind = TOK_CONTROL;
+		else if (tok.atom == atom_float) tok.kind = TOK_TYPE;
+		else if (tok.atom == atom_false) tok.kind = TOK_LIT_BOOL;
+		return tok;
 
 	case 'g':
-		IF_ID_RESULT(TOK_CONTROL, 4, goto)
-		return lexer_read_identifier();		
+		tok = lexer_read_identifier();
+		if (tok.atom == atom_goto) tok.kind = TOK_CONTROL;
+		return tok;		
 
 	case 'h':
 		return lexer_read_identifier();		
 
 	case 'i':
-		IF_ID_RESULT(TOK_CONTROL, 2, if)
-		IF_ID_RESULT(TOK_TYPE, 3, int)
-		IF_ID_RESULT(TOK_MODIFIER, 6, inline)
-		if (!strncmp("include", at, 7)) {
+		tok = lexer_read_identifier();
+		if      (tok.atom == atom_if)     tok.kind = TOK_CONTROL;
+		else if (tok.atom == atom_int)    tok.kind = TOK_TYPE;
+		else if (tok.atom == atom_inline) tok.kind = TOK_MODIFIER;
+		else if (tok.atom == atom_include) {
 			if (at_directive) {
 				at_include_filename = true;
 			}
-			RESULT(TOK_DIRECTIVE, 7, include)
+			tok.kind = TOK_DIRECTIVE;
 		}
-		return lexer_read_identifier();		
+		return tok;
 
-	case 'j':
-	case 'k':
+	case 'j': case 'k':
 		return lexer_read_identifier();		
 
 	case 'l':
-		IF_ID_RESULT(TOK_MODIFIER, 4, long)
-		return lexer_read_identifier();		
+		tok = lexer_read_identifier();
+		if (tok.atom == atom_long) tok.kind = TOK_MODIFIER;
+		return tok;		
 
 	case 'm':
-		IF_ID_RESULT(TOK_MODIFIER, 7, mutable)
-		return lexer_read_identifier();		
+		tok = lexer_read_identifier();
+		if (tok.atom == atom_mutable) tok.kind = TOK_MODIFIER;
+		return tok;		
 
 	case 'n':
-		IF_ID_RESULT(TOK_USING, 9, namespace)
-		return lexer_read_identifier();		
+		tok = lexer_read_identifier();
+		if (tok.atom == atom_using) tok.kind = TOK_USING;
+		return tok;		
 
 	case 'o':
-		IF_ID_RESULT(TOK_OPERATOR, 2, or)
-		return lexer_read_identifier();		
+		tok = lexer_read_identifier();
+		if (tok.atom == atom_or) tok.kind = TOK_OPERATOR;
+		return tok;		
 
-	case 'p':
-	case 'q':
+	case 'p': case 'q':
 		return lexer_read_identifier();		
 
 	case 'r':
-		IF_ID_RESULT(TOK_CONTROL, 6, return)
-		IF_ID_RESULT(TOK_MODIFIER, 8, register)
-		return lexer_read_identifier();		
+		tok = lexer_read_identifier();
+		if      (tok.atom == atom_return)   tok.kind = TOK_CONTROL;
+		else if (tok.atom == atom_register) tok.kind = TOK_MODIFIER;
+		return tok;
 
 	case 's':
-		IF_ID_RESULT(TOK_TYPE, 5, short)
-		IF_ID_RESULT(TOK_TYPE, 6, string)
-		IF_ID_RESULT(TOK_CONTROL, 6, switch)
-		IF_ID_RESULT(TOK_MODIFIER, 6, static)
-		IF_ID_RESULT(TOK_TYPEDEF, 6, struct)
-		return lexer_read_identifier();		
+		tok = lexer_read_identifier();
+		if      (tok.atom == atom_short)   tok.kind = TOK_CONTROL;
+		else if (tok.atom == atom_string)  tok.kind = TOK_TYPE;
+		else if (tok.atom == atom_switch)  tok.kind = TOK_CONTROL;
+		else if (tok.atom == atom_static)  tok.kind = TOK_MODIFIER;
+		else if (tok.atom == atom_struct)  tok.kind = TOK_TYPEDEF;
+		return tok;
 
 	case 't':
-		IF_ID_RESULT(TOK_CONTROL, 4, true)
-		IF_ID_RESULT(TOK_CONTROL, 7, typedef)
-		return lexer_read_identifier();		
+		tok = lexer_read_identifier();
+		if      (tok.atom == atom_true)    tok.kind = TOK_LIT_BOOL;
+		else if (tok.atom == atom_typedef) tok.kind = TOK_TYPEDEF;
+		return tok;
 
 	case 'u':
-		IF_ID_RESULT(TOK_CONTROL, 4, unsigned)
-		IF_ID_RESULT(TOK_USING, 7, using)
-		return lexer_read_identifier();		
+		tok = lexer_read_identifier();
+		if      (tok.atom == atom_unsigned) tok.kind = TOK_MODIFIER;
+		else if (tok.atom == atom_using)    tok.kind = TOK_USING;
+		return tok;
 
 	case 'v':
-		IF_ID_RESULT(TOK_TYPE, 4, void)
-		IF_ID_RESULT(TOK_MODIFIER, 8, volatile)
-		IF_ID_RESULT(TOK_MODIFIER, 7, virtual)
-		return lexer_read_identifier();		
+		tok = lexer_read_identifier();
+		if      (tok.atom == atom_void)     tok.kind = TOK_TYPE;
+		else if (tok.atom == atom_volatile) tok.kind = TOK_MODIFIER;
+		else if (tok.atom == atom_virtual)  tok.kind = TOK_MODIFIER;
+		return tok;
 
 	case 'w':
-		IF_ID_RESULT(TOK_CONTROL, 5, while)
-		return lexer_read_identifier();		
+		tok = lexer_read_identifier();
+		if (tok.atom == atom_while) tok.kind = TOK_CONTROL;
+		return tok;
 
-	case 'x':
-	case 'y':
-	case 'z':
+	case 'x': case 'y': case 'z':
 		return lexer_read_identifier();
 
+	case '\'': case '"':
+		return lexer_read_literal_char_or_string();
+
+	case '\\':
+		// Slash at the end of a line is meant for macros.
+		RESULT(TOK_BACKSLASH, 1, backslash)
+
 	default:
-		if ((at[0] >= 'A' && at[0] <= 'Z') || at[0] == '_') {
+		if (UPPER(at[0]) || at[0] == '_') {
 			return lexer_read_identifier();
-		}
-		RESULT(TOK_ERROR, 1, error);
+      }
+      RESULT(TOK_ERROR, 1, error);
 	}
 }
