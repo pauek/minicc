@@ -1,6 +1,81 @@
+/////////////////////////////////////////////////////////////////////////////////////////////
+#if defined(DECLARATION)
 
-#include <stdio.h>
-#include "minicc.hh"
+
+#include <assert.h>
+#include <stddef.h>
+
+
+struct Pos { 
+   int lin;
+   int col;
+};
+
+enum TokenKind {
+   TOK_EOF,
+   TOK_ERROR,
+
+   TOK_BACKSLASH,
+   TOK_DIRECTIVE,
+   TOK_FILENAME,
+   TOK_USING,
+
+   TOK_PUNCT,
+   TOK_DELIM,
+
+   TOK_OPERATOR,
+
+   TOK_IDENT,
+   TOK_CONTROL,
+   TOK_TYPEDEF,
+
+   TOK_MODIFIER,
+   TOK_TYPE,
+
+   TOK_LIT_BOOL,
+   TOK_LIT_INT,
+   TOK_LIT_FLOAT,
+   TOK_LIT_DOUBLE,
+   TOK_LIT_CHAR,
+   TOK_LIT_STRING,
+};
+
+struct Token {
+   TokenKind kind;
+   Pos       pos;
+   Atom     *atom;
+};
+
+enum {
+   COMMENT_MULTILINE,
+   COMMENT_SINGLELINE
+};
+
+struct Comment {
+   int         type;
+   const char *str;
+   size_t      len;
+};
+
+struct CommentSeq {
+   Comment comments[LEXER_MAX_COMMENTS_BETWEEN_TOKENS];
+   int    ncomments;
+};
+
+extern CommentSeq  lexer_comment_seq;
+             void  lexer_start(const char *buffer);
+             void  lexer_push();
+             void  lexer_pop();
+             void  lexer_discard();
+             bool  lexer_skip_space();  // Devuelve 'true' si ha encontrado espacios. Deja comentarios en 'comment_seq'
+            Token  lexer_get();         // Llama a 'lexer_skip_space' antes.
+            Token  lexer_peek();        // Devuelve el próximo token, sin avanzar.
+
+
+#endif // DECLARATION
+/////////////////////////////////////////////////////////////////////////////////////////////
+/////////////////////////////////////////////////////////////////////////////////////////////
+#if defined(IMPLEMENTATION)
 
 struct LexerState {
 	const char *at;
@@ -527,3 +602,7 @@ Token lexer_peek() {
 	pos = _pos;
 	return tok;
 }
+
+
+#endif // IMPLEMENTATION
+/////////////////////////////////////////////////////////////////////////////////////////////

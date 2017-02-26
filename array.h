@@ -1,8 +1,32 @@
+/////////////////////////////////////////////////////////////////////////////////////////////
+#if defined(DECLARATION)
 
-#include <string.h>
-#include <stdint.h>
-#include <stdlib.h>
-#include "minicc.hh"
+#include <assert.h> // assert
+#include <stdlib.h> // malloc, realloc
+#include <string.h> // memcpy
+#include <stdint.h> // uint8_t
+
+struct Array {
+   size_t   len;
+   size_t   size;
+   uint8_t *data;
+};
+
+        Array *array_new(size_t len, size_t size);
+         void  array_free(Array *array);
+         void *array_get(Array *array, int i);
+         void *array_put(Array *array, int i, void *elem);
+         void  array_resize(Array *array, size_t len);
+        Array *array_copy(Array *array, size_t len);
+inline size_t  array_len(Array *array)  { assert(array); return array->len; }
+inline size_t  array_size(Array *array) { assert(array); return array->size; }
+
+
+#endif // DECLARATION
+/////////////////////////////////////////////////////////////////////////////////////////////
+/////////////////////////////////////////////////////////////////////////////////////////////
+#if defined(IMPLEMENTATION)
+
 
 Array *array_new(size_t len, size_t size) {
    Array *array;
@@ -72,3 +96,6 @@ void array_push(Array *array, void *elem) {
    array_put(array, (int)array->len - 1, elem);
 }
 
+
+#endif // IMPLEMENTATION
+/////////////////////////////////////////////////////////////////////////////////////////////

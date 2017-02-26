@@ -1,7 +1,21 @@
 
-#include <stdlib.h>
-#include <stdio.h>
-#include "minicc.hh"
+#if defined(_MSC_VER)
+#define WINDOWS
+#else
+#define LINUX
+#endif
+
+#define LEXER_MAX_COMMENTS_BETWEEN_TOKENS 10
+#define LEXER_MAX_SAVED_STATES 10
+#define loop while(1)
+
+#define  DECLARATION
+#include "minicc.h"
+#undef   DECLARATION
+
+#define  IMPLEMENTATION
+#include "minicc.h"
+#undef   IMPLEMENTATION
 
 void init() {
 	atom_init();
