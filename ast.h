@@ -74,11 +74,11 @@ struct AST_PrintState {
 
 int indent_size = 3;
 
-char *ast__indent(AST_PrintState* state) {
+char *ast__indent(int level) {
    static char indent_str[MAX_INDENT] = {};
-   assert((state->level * indent_size) < MAX_INDENT);
+   assert((level * indent_size) < MAX_INDENT);
    char *curr = indent_str;
-   for (int i = 0; i < state->level; i++) {
+   for (int i = 0; i < level; i++) {
       for (int j = 0; j < indent_size; j++) {
          *curr++ = ' ';
       }
@@ -101,10 +101,10 @@ void ast__print(AST_PrintState* state, Buffer *B, AST_Node *node) {
    CASE(FloatLiteral)  buf_printf(B, "%f", it->val); END
    CASE(DoubleLiteral) buf_printf(B, "%e", it->val); END
    CASE(Label)
-      buf_printf(B, "%s:", it->atom->str);
+      buf_printf(B, "%s%s:\n", ast__indent(state->level-1), it->atom->str);
    END
    CASE(ForStmt)
-      buf_printf(B, "%sfor (", ast__indent(state));
+      buf_printf(B, "%sfor (", ast__indent(state->level));
       ast__print(state, B, it->before);
       buf_printf(B, "; ");
       ast__print(state, B, it->cond);
@@ -123,11 +123,11 @@ void ast__print(AST_PrintState* state, Buffer *B, AST_Node *node) {
          ast__print(state, B, *(AST_Node **)array_get(it->nodes, i));
       }
       state->level--;
-      buf_printf(B, "%s}\n", ast__indent(state));
+      buf_printf(B, "%s}\n", ast__indent(state->level));
    END
    CASE(BinOp)
       // @Incorrect: this should be done for expression statements not for binops
-      buf_printf(B, "%s", ast__indent(state));
+      buf_printf(B, "%s", ast__indent(state->level));
       ast__print(state, B, it->left);
       buf_printf(B, " %s ", op2str(it->op));
       ast__print(state, B, it->right);
