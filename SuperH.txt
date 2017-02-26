@@ -1,0 +1,83 @@
+
+SuperH Instructions
+------------------------------------------------------------------------------------------------------------------
+
+0000nnnniiii0000 iiiiiiiiiiiiiiii       movi20  #imm20, Rn             imm -> sign extension -> Rn
+0000nnnniiii0001 iiiiiiiiiiiiiiii       movi20s #imm20, Rn             imm << 8 -> sign extension -> Rn
+
+0000nnnn00000010                        stc     SR, Rn                 SR -> Rn
+0000nnnn00010010                        stc     GBR, Rn                GBR -> Rn
+0000nnnn00100010                        stc     VBR, Rn                VBR -> Rn
+0000nnnn00110010                        stc     SSR, Rn                SSR -> Rn
+0000nnnn01000010                        stc     SPC, Rn                SPC -> Rn
+0000nnnn01010010                        stc     MOD, Rn                MOD -> Rn
+0000nnnn01100010                        stc     RS, Rn                 RS -> Rn
+0000nnnn01110010                        stc     RE, Rn                 RE -> Rn
+0000nnnn1mmm0010                        stc     Rm_BANK, Rn            Rm_BANK -> Rn (m = 0-7)
+
+0000mmmm00000011                        bsrf    Rm                     PC + 4 -> PR, Rm + PC + 4 -> PC (Delayed branch)
+0000mmmm00100011                        braf    Rm                     Rm + PC + 4 -> PC (Delayed branch)
+
+0000nnnn01100011                        movli.l @Rm, R0                1 -> LDST; (Rm) -> R0; if (interrupt/exception occured) 0 -> LDST
+0000nnnn01110011                        movco.l R0, @Rn                LDST -> T; if (T==1) R0 -> Rn; 0 -> LDST
+
+0000nnnn10000011                        pref    @Rn                    (Rn) -> operand cache
+0000nnnn11010011                        prefi   @Rn                    Reads 32-byte instruction block into instruction cache
+
+0000nnnn10010011                        ocbi    @Rn                    Invalidate operand cache block
+0000nnnn10100011                        ocbp    @Rn                    Write back and invalidate operand cache block
+0000nnnn10110011                        ocbp    @Rn                    Write back operand cache block
+
+0000nnnn11000011                        movca.l R0, @Rn                R0 -> (Rn) (without fetching cache block)
+
+
+0000nnnnmmmm0100                        mov.b   Rm, @(R0, Rn)          Rm -> (R0 + Rn)
+0000nnnnmmmm0101                        mov.w   Rm, @(R0, Rn)          Rm -> (R0 + Rn)
+0000nnnnmmmm0110                        mov.l   Rm, @(R0, Rn)          Rm -> (R0 + Rn)
+0000nnnnmmmm0111                        mul.l   Rm, Rn                 Rn * Rm -> MACL (32*32 -> 32 bits)
+
+0000000000011001                        div0u                          0 -> M; 0 -> Q; 0 -> T
+
+0000nnnnmmmm1100                        mov.b   @(R0, Rm), Rn          (R0 + Rm) -> Rn
+0000nnnnmmmm1101                        mov.w   @(R0, Rm), Rn          (R0 + Rm) -> Rn
+0000nnnnmmmm1110                        mov.l   @(R0, Rm), Rn          (R0 + Rm) -> Rn
+0000nnnnmmmm1111                        mac.l   @Rm+, @Rn+             Signed, (Rn) * (Rm) + MAC -> MAC (32*32 + 64 -> 64 bits)
+
+-----------------------------------------------------------------------------------------------------------------
+
+0001nnnnmmmmdddd                        mov.l   Rm, @(disp, Rn)        Rm -> (disp*4 + Rn)
+
+-----------------------------------------------------------------------------------------------------------------
+
+0010nnnnmmmm0000                        mov.b   Rm, @Rn                Rm -> (Rn)
+0010nnnnmmmm0001                        mov.w   Rm, @Rn                Rm -> (Rn)
+0010nnnnmmmm0010                        mov.l   Rm, @Rn                Rm -> (Rn)
+
+0010nnnnmmmm0100                        mov.b   Rm, @-Rn               Rn-1 -> Rn; Rm -> (Rn)
+0010nnnnmmmm0101                        mov.w   Rm, @-Rn               Rn-2 -> Rn; Rm -> (Rn)
+0010nnnnmmmm0110                        mov.l   Rm, @-Rn               Rn-4 -> Rn; Rm -> (Rn)
+0010nnnnmmmm0111                        div0s   Rm, Rn                 MSB of Rn -> Q; MSB of Rm -> M; M^Q -> T
+
+-----------------------------------------------------------------------------------------------------------------
+
+0110nnnnmmmm0000                        mov.b   @Rm, Rn                (Rm) -> sign extension -> Rn
+0110nnnnmmmm0001                        mov.w   @Rm, Rn                (Rm) -> sign extension -> Rn
+0110nnnnmmmm0010                        mov.l   @Rm, Rn                (Rm) -> Rn
+0110nnnnmmmm0011                        mov     Rm, Rn                 Rm -> Rn
+0110nnnnmmmm0100                        mov.b   @Rm+, Rn               (Rm) -> sign extension -> Rn; Rm+1 ->Rm
+0110nnnnmmmm0101                        mov.w   @Rm+, Rn               (Rm) -> sign extension -> Rn; Rm+2 ->Rm
+0110nnnnmmmm0110                        mov.l   @Rm+, Rn               (Rm) -> Rn; Rm+4 ->Rm
+0110nnnnmmmm0111                        not     Rm, Rn                 ~Rm -> Rn
+0110nnnnmmmm1000                        swap.b  Rm, Rn                 Rm -> swap lower 2 bytes -> Rn
+0110nnnnmmmm1001                        swap.w  Rm, Rn                 Rm -> swap upper/lower 2 words -> Rn
+0110nnnnmmmm1010                        negc    Rm, Rn                 0 - Rm - T -> Rn, borrow -> T
+0110nnnnmmmm1011                        neg     Rm, Rn                 0 - Rm -> Rn
+0110nnnnmmmm1100                        extu.b  Rm, Rn                 Rm zero-extended from byte -> Rn
+0110nnnnmmmm1101                        extu.w  Rm, Rn                 Rm zero-extended from word -> Rn
+0110nnnnmmmm1110                        exts.b  Rm, Rn                 Rm sign-extended from byte -> Rn
+0110nnnnmmmm1111                        exts.w  Rm, Rn                 Rm sign-extended from word -> Rn
+
+------------------------------------------------------------------------------------------------------------------
+
+1110nnnniiiiiiii                        mov     #imm, Rn               imm -> sign extension -> Rn
+

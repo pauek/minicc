@@ -1,0 +1,108 @@
+
+Registers
+---------
+
+I - Instruction Pointer (32-bit)
+B - Frame Pointer       (32-bit)
+S - Stack Pointer       (32-bit)
+
+R - 16   General Purpose Integer 32-bit 
+F - 8/16 General Purpose Float   32/64-bit (?)
+
+Processor Instructions
+----------------------
+
+Load, Store and Move:
+   MOV   - Move r/r, r/m, m/r, r/i (with displacement)
+   PUSH  - Push to the stack
+   POP   - Pop from the stack
+   SWAP  - Exchange values
+
+Arithmetic:
+   Integer (8/16/32/64):
+      ADD   - Add
+      SUB   - Subtract
+      MUL   - Multiply
+      DIV   - Divide
+      EXT   - Sign-extend
+      CLIP  - "clamp" (signed/unsigned + 8/16)
+
+
+   Float (32/64):
+      FADD
+      FSUB
+      FMUL
+      FDIV
+      FABS
+      FNEG
+      FSQRT
+
+Bit manipulation (SuperH):
+   BAND
+   BNAND
+   BOR
+   BNOR
+   BXOR
+   BSET
+   BLD
+   BNLD
+   BCLR
+
+Logic:
+   AND - bitwise logical and
+   OR  - bitwise logical or
+   XOR - bitwise logical xor
+   NOT - bitwise not
+
+Shift and Rotate:
+   SHL - shift
+   ROT - rotate
+
+Control:
+   CMP #imm, R0 - ==          (set T)
+   CMP R1, R2   - ==, >=, <=  (set T)
+   CMP R        - > 0, >= 0   (set T)
+   TEST         - r1&r2 and see if 0.
+   NOTT         - !T -> T
+
+Branch:
+   BR 
+   JMP
+   CALL
+   RET
+
+
+System Control Instructions (??)
+---------------------------
+
+   SYS    - Call a system function:
+            Parameters.
+               - Module number.
+               - Function number.
+
+Debug:
+   BRK    - Breakpoint (temporary halt)
+   NFY    - Notify change of values (for visualization)
+            Parameters:
+               - Type of value (to be able to show it).
+               - Filename.
+               - Interval of text that is computed.
+
+Modulos:
+   En la VM hace falta algun mecanismo para poder llamar a funciones
+   de librería, porque todo es emulado. Esto no está muy claro aún...
+
+   1) Al poner "#include <XXXXX>" qué ocurre? Se hace referencia a una librería que la VM tiene 
+      integrada (un módulo de 'sistema').
+      Esto implica que no puedes poner tus includes?
+         Quizás se puede hacer que los includes con comillas dobles sean los que puede escribir el usuario.
+
+   2) Si dejas includes quiere decir que dejas proyectos con muchos ficheros (good),
+      pero implica que necesitas linker? Yes...
+
+
+IDEAS
+-----
+
+- Molaría preservar C++ pero "arreglar" algunas cositas... ;)
+  - El problema de esto es que entonces no es pedagógico porque C++ no va a cambiar.
