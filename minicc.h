@@ -3,3 +3,4 @@
 #include "file.h"
 #include "lexer.h"
 #include "debug.h"
+#include "ast.h"

@@ -9,23 +9,23 @@
 #define ATOM_NUM_NODES (1<<12) // 4096 -- This has to be a power of two!
 
 struct Atom {
-   const char *str;
    size_t      len;
+   const char *str;
 };
 
-struct Node {
-   Atom  atom;
-   Node *prev;
+struct Atom__Node {
+   Atom       atom;
+   Atom__Node *prev;
 };
 
-extern Node *nodes[ATOM_NUM_NODES];
+extern Atom__Node *nodes[ATOM_NUM_NODES];
 
 #define TOKEN(name, str, len) extern Atom *atom_##name;
 #include "tokens.inc"
 #undef TOKEN
 
-             void  atom_init();
-             Atom *atom_get(const char *str, size_t len);
+void  atom_init();
+Atom *atom_get(const char *str, size_t len);
 
 
 #endif // DECLARATION
@@ -34,7 +34,7 @@ extern Node *nodes[ATOM_NUM_NODES];
 #if defined(IMPLEMENTATION)
 
 
-Node *nodes[ATOM_NUM_NODES] = {}; // important to fill with zeros!
+Atom__Node *nodes[ATOM_NUM_NODES] = {}; // important to fill with zeros!
 
 static uint32_t hash(const char *p, size_t len) {
     // FNV hash
@@ -61,13 +61,13 @@ void atom_init() {
 Atom *atom_get(const char *str, size_t len) {
 	uint32_t mask = ATOM_NUM_NODES-1;
 	uint32_t idx  = hash(str, len) & mask;
-	Node *n;
+	Atom__Node *n;
 	for (n = nodes[idx]; n; n = n->prev) {
 		if (n->atom.len == len && 0 == strncmp(n->atom.str, str, len)) {
 			return &n->atom;
 		}
 	}
-	n = (Node *)malloc(sizeof(Node));
+	n = (Atom__Node *)malloc(sizeof(Atom__Node));
 	n->atom.str = str;
 	n->atom.len = len;
 	n->prev = nodes[idx];

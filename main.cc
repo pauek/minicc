@@ -21,6 +21,10 @@ void init() {
 	atom_init();
 }
 
+int main_test() {
+   ast_test();
+}
+
 int main(int argc, char *argv[]) {
 	init();
 
