@@ -21,11 +21,11 @@ void init() {
 	atom_init();
 }
 
-int main_test() {
+int main() {
    ast_test();
 }
 
-int main(int argc, char *argv[]) {
+int main_main(int argc, char *argv[]) {
 	init();
 
 	if (argc < 2) {
