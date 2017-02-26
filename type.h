@@ -1,3 +1,4 @@
+
 /////////////////////////////////////////////////////////////////////////////////////////////
 #if defined(DECLARATION)
 
@@ -40,27 +41,32 @@ struct Type {
    };
 };
 
+#define TYPE(name, tag, size, align, unsignd) \
+   extern Type *type_##name;
+#include "type.inc"
+#undef  TYPE
+
 #endif // DECLARATION
 /////////////////////////////////////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////////////////////////////////////
 #if defined(IMPLEMENTATION)
 
-Type *type_new(Type T) {
+Type *type_make(Type T) {
    Type *type = (Type *)malloc(sizeof(Type));
    *type = T;
    return type;
 }
 
-Type *type_void   = type_new((Type){Type_Void,   0, 0});
-Type *type_bool   = type_new((Type){Type_Bool,   1, 1});
-Type *type_char   = type_new((Type){Type_Char,   1, 1});
-Type *type_int    = type_new((Type){Type_Int,    4, 4});
-Type *type_uchar  = type_new((Type){Type_Char,   1, 1, true});
-Type *type_uint   = type_new((Type){Type_Int,    4, 4, true});
-Type *type_float  = type_new((Type){Type_Float,  4, 4});
-Type *type_double = type_new((Type){Type_Double, 8, 8});
-Type *type_enum   = type_new((Type){Type_Enum,   4, 4});
+Type *type_make_ptr(Type *ptr) {
+   Type *T = type_make((Type){Type_Ptr, 8, 8});
+   T->ptr = ptr;
+   return T;
+}
 
+#define TYPE(name, tag, size, align, unsignd) \
+   Type *type_##name = type_make((Type){tag, size, align, unsignd});
+#include "type.inc"
+#undef  TYPE
 
 #endif // IMPLEMENTATION
 /////////////////////////////////////////////////////////////////////////////////////////////
