@@ -18,6 +18,7 @@ struct Array {
          void *array_put(Array *array, int i, void *elem);
          void  array_resize(Array *array, size_t len);
         Array *array_copy(Array *array, size_t len);
+         void  array_push(Array *array, void *elem);
 inline size_t  array_len(Array *array)  { assert(array); return array->len; }
 inline size_t  array_size(Array *array) { assert(array); return array->size; }
 

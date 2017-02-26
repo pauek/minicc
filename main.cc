@@ -45,4 +45,5 @@ int main_main(int argc, char *argv[]) {
 			    lexer_token_kind(tok.kind), 
 			    (int)tok.atom->len, tok.atom->str);
 	}
+   return 0;
 }

@@ -45,9 +45,10 @@ struct AST_Node {
 #include "ast.inc"
 #undef  AST
 
-
-void ast_show(AST_Node *node);
+      void  ast_print(AST_Node *node);
 const char *op2str(OpType op);
+
+extern int indent_size;
 
 
 #endif // DECLARATION
@@ -55,29 +56,6 @@ const char *op2str(OpType op);
 /////////////////////////////////////////////////////////////////////////////////////////////
 #if defined(IMPLEMENTATION)
 
-
-void ast_test() {
-   AST_Node *f = ast_node((ForStmt){ 0, 0, 0, 0 });
-   AST_Node *i = ast_node((IntLiteral){ 5 });
-   AST_Node *label = ast_node((Label){ atom_get("blah", 4) });
-
-   Array *stmts = array_new(sizeof(AST_Node *), 0);
-   AST_Node *block = ast_node((Block){ stmts });
-
-   AST_Node *assign = ast_node((BinOp){ 
-      OP_ASSIGN, 
-      ast_node((LocalVar){ atom_get("a", 1), 0 }),
-      ast_node((BinOp){
-         OP_EQUALS,
-         ast_node((LocalVar){ atom_get("b", 1), 0 }),
-         ast_node((FloatLiteral){ 1.4f })
-      })
-   });
-
-   ast_show(assign);
-   ast_show(label);
-   ast_show(f);
-}
 
 const char *op2str(OpType op) {
    switch (op) {
@@ -88,9 +66,30 @@ const char *op2str(OpType op) {
    }
 }
 
-void ast_show(AST_Node *node) {
+struct AST_PrintState {
+   int level;
+};
+
+#define MAX_INDENT 1024
+
+int indent_size = 3;
+
+char *ast__indent(AST_PrintState* state) {
+   static char indent_str[MAX_INDENT] = {};
+   assert((state->level * indent_size) < MAX_INDENT);
+   char *curr = indent_str;
+   for (int i = 0; i < state->level; i++) {
+      for (int j = 0; j < indent_size; j++) {
+         *curr++ = ' ';
+      }
+   }
+   *curr = 0;
+   return indent_str;
+}
+
+void ast__print(AST_PrintState* state, Buffer *B, AST_Node *node) {
    if (node == 0) {
-      printf("<>");
+      buf_printf(B, "<>");
       return;
    }
 
@@ -98,40 +97,85 @@ void ast_show(AST_Node *node) {
 #define END     break; }
 
    switch (node->tag) {
-   CASE(IntLiteral)    printf("%d", it->val); END
-   CASE(FloatLiteral)  printf("%f", it->val); END
-   CASE(DoubleLiteral) printf("%e", it->val); END
+   CASE(IntLiteral)    buf_printf(B, "%d", it->val); END
+   CASE(FloatLiteral)  buf_printf(B, "%f", it->val); END
+   CASE(DoubleLiteral) buf_printf(B, "%e", it->val); END
    CASE(Label)
-      printf("%s:", it->atom->str);
+      buf_printf(B, "%s:", it->atom->str);
    END
    CASE(ForStmt)
-      printf("(for ");
-      ast_show(it->before);
-      printf(" ");
-      ast_show(it->cond);
-      printf(" ");
-      ast_show(it->after);
-      printf(" ");
-      ast_show(it->block);
-      printf(")");
+      buf_printf(B, "%sfor (", ast__indent(state));
+      ast__print(state, B, it->before);
+      buf_printf(B, "; ");
+      ast__print(state, B, it->cond);
+      buf_printf(B, "; ");
+      ast__print(state, B, it->after);
+      buf_printf(B, ") ");
+      ast__print(state, B, it->block);
    END
    CASE(LocalVar)
-      printf("%s", it->atom->str);
+      buf_printf(B, "%s", it->atom->str);
+   END
+   CASE(Block)
+      buf_printf(B, "{\n");
+      state->level++;
+      for (size_t i = 0; i < array_len(it->nodes); i++) {
+         ast__print(state, B, *(AST_Node **)array_get(it->nodes, i));
+      }
+      state->level--;
+      buf_printf(B, "%s}\n", ast__indent(state));
    END
    CASE(BinOp)
-      printf("(%s ", op2str(it->op));
-      ast_show(it->left);
-      printf(" ");
-      ast_show(it->right);
-      printf(")");
+      // @Incorrect: this should be done for expression statements not for binops
+      buf_printf(B, "%s", ast__indent(state));
+      ast__print(state, B, it->left);
+      buf_printf(B, " %s ", op2str(it->op));
+      ast__print(state, B, it->right);
+      buf_printf(B, ";\n");
    END
    default:
-      printf("<unknown>");
+      buf_printf(B, "<unknown>");
    }
 
 #undef CASE
 #undef END
 
+}
+
+void ast_print(Buffer *B, AST_Node *node) {
+   AST_PrintState state = { 0 };
+   ast__print(&state, B, node);
+}
+
+
+void ast_test() {
+   Array *stmts = array_new(0, sizeof(AST_Node *));
+   AST_Node *block = ast_node((Block){ stmts });
+
+   AST_Node *label = ast_node((Label){ atom_get("blah", 4) });
+   array_push(stmts, &label);
+   AST_Node *i = ast_node((IntLiteral){ 5 });
+   array_push(stmts, &i);
+
+   AST_Node *assign = ast_node((BinOp){ 
+      OP_ASSIGN, 
+      ast_node((LocalVar){ atom_get("a", 1), 0 }),
+      ast_node((BinOp){
+         OP_EQUALS,
+         ast_node((LocalVar){ atom_get("b", 1), 0 }),
+         ast_node((FloatLiteral){ 1.4f })
+      })
+   });
+   array_push(stmts, &assign);
+
+   Array *stmts2 = array_new(0, sizeof(AST_Node *)); 
+   AST_Node *f = ast_node((ForStmt){ 0, 0, 0, ast_node((Block){ stmts2 }) });
+   array_push(stmts, &f);
+
+   Buffer *b = buf_new();
+   ast_print(b, block);
+   printf("[%d, %d] %s", b->len, b->avail, b->str);
+   buf_free(b);
 }
 
 

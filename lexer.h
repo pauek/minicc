@@ -237,7 +237,6 @@ static Token lexer_read_identifier() {
 		break;
 	}
 	Atom *id = atom_get(id_begin, (size_t)(at - id_begin));
-	TokenKind kind = TOK_IDENT;
 	return { TOK_IDENT, tokpos, id };
 }
 
@@ -337,7 +336,6 @@ por tanto, estar guardados en el AST.
    if (!strncmp(#token, at, n)) { RESULT(kind, n, token); }
 
 Token lexer_get() {
-	bool space = lexer_skip_space();
 	if (AT_EOF) {
 		return { TOK_EOF, pos, NULL };
 	}
