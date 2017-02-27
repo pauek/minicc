@@ -24,29 +24,31 @@ struct Node {
    uint8_t data[];
 };
 
-#define AST_NEW(T, x) do {\
-   x = (Node *)malloc(sizeof(Node) + sizeof(t##T));  assert(x); \
-   x->tag = T; \
-} while(0)
-
 #define   AST(type, members) struct t##type members;
 #include "ast.inc"
 #undef    AST
 
-#define AST_CAST(T, node) ((t##T *)&node->data[0])
-#define AST_ACCESS(var, T, node) assert(node->tag == T); t##T *var = AST_CAST(T, node);
+#define AST_ACCESS(var, T, node) \
+   assert(node->tag == T); \
+   t##T *var = ((t##T *)node->data);
 
 #define AST(T, members) \
    Node *_node(t##T data) { \
-      Node *n; \
-      AST_NEW(T, n); \
-      *AST_CAST(T, n) = data; \
+      Node *n = (Node *)malloc(sizeof(Node) + sizeof(t##T)); \
+      assert(n); \
+      n->tag = T; \
+      *((t##T *)n->data) = data; \
       return n; \
    }
 #include "ast.inc"
 #undef  AST
 
-
+inline Node *_if_(Node *cond, Node *then, Node *els) {
+   return _node((tIfStmt){ cond, then, els });
+}
+inline Node *_while_(Node *cond, Node *block) {
+   return _node((tWhileStmt){ cond, block });
+}
 inline Node *_for_(Node *bef, Node *cond, Node *aft, Node *block) {
    return _node((tForStmt){ bef, cond, aft, block });
 }
