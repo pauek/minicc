@@ -14,6 +14,7 @@ enum Tag {
 enum OpType {
    OP_ASSIGN,
    OP_EQUALS,
+   OP_LESS
 };
 
 // sizeof(Node) is the size of 'tag' & 'type' + padding to
@@ -52,7 +53,7 @@ inline Node *_while_(Node *cond, Node *block) {
 inline Node *_for_(Node *bef, Node *cond, Node *aft, Node *block) {
    return _node((tForStmt){ bef, cond, aft, block });
 }
-inline Node *_binop_(OpType op, Node *left, Node *right) {
+inline Node *_binop_(Node *left, OpType op, Node *right) {
    return _node((tBinOp){ op, left, right });
 }
 inline Node *_globalvar_(Atom *atom, Node *init = 0) {
@@ -76,6 +77,36 @@ inline Node *_label_(Atom *atom) {
 inline Node *_block_(Array *stmts) {
    return _node((tBlock){ stmts });
 }
+inline Node *_block_() {
+   Array *stmts = array::make(0, sizeof(Node *));
+   return _node((tBlock){ stmts });
+}
+Node *_block_(Node *first, ...) {
+   // @Speed: we should count arguments first, and create an array with that size??
+   Array *stmts = array::make(0, sizeof(Node *));
+   va_list args;
+   va_start(args, first);
+   int i = 0;
+   array::push(stmts, &first);
+   loop {
+      Node *n = va_arg(args, Node *);
+      if (n == 0) {
+         break;
+      }
+      array::push(stmts, &n);
+      i++;
+   }
+   va_end(args);
+   return _node((tBlock){ stmts });
+}
+#define _block_BEGIN  _block_(
+#define _block_END    0)
+
+inline void push(Node *node, Node *child) {
+   AST_ACCESS(block, Block, node);
+   array::push(block->nodes, &child);
+}
+
 
       void  print(Node *node);
 const char *op2str(OpType op);
@@ -96,6 +127,7 @@ const char *op2str(OpType op) {
    switch (op) {
    case OP_ASSIGN: return "=";  break;
    case OP_EQUALS: return "=="; break;
+   case OP_LESS:   return "<";  break;
    default:
       return "<?>";
    }
@@ -146,7 +178,7 @@ static void _print(PrintState* state, Buffer *B, Node *node) {
    CASE(FloatLiteral)  printf(B, "%f", it->val); END
    CASE(DoubleLiteral) printf(B, "%e", it->val); END
    CASE(Label)
-      printf(B, "%s:\n", it->atom->str);
+      printf(B, "%s:", it->atom->str);
    END
    CASE(IfStmt)
       printf(B, "if (");
@@ -219,37 +251,33 @@ void print(Buffer *B, Node *node) {
 void test() {
    using atom::atom;
 
-   Array *stmts = array::make(0, sizeof(Node *));
-   Node *bl = _block_(stmts);
-
-   Node *lab = _label_(atom("blah"));
-   array::push(stmts, &lab);
-   Node *i = _int_(5);
-   array::push(stmts, &i);
-
    Node *a = _localvar_(atom("a"));
    Node *b = _localvar_(atom("b"));
+   Node *i = _localvar_(atom("i"));
 
-   Node *assign = _binop_(OP_ASSIGN, a, _binop_(OP_EQUALS, b, _float_(1.4f)));
-   array::push(stmts, &assign);
-
-   Array *stmts2 = array::make(0, sizeof(Node *)); 
-   Node *f = _for_(0, 0, 0, _block_(stmts2));
-   array::push(stmts, &f);
-
-   Array *stmts3 = array::make(0, sizeof(Node *));
-   Node *ii = _if_(
-      _binop_(OP_EQUALS, a, _int_(7)),
-      _block_(stmts3)
-   );
-
-   Node *assign2 = _binop_(OP_ASSIGN, a, _int_(10));
-   array::push(stmts3, &assign2);
-
-   array::push(stmts, &ii);
+   Node *B = 
+   _block_BEGIN
+      _label_(atom("blah")),
+      _int_(5),
+      _binop_(a, OP_ASSIGN, _binop_(b, OP_EQUALS, _float_(1.4f))),
+      _for_(_binop_(i, OP_ASSIGN, _int_(0)), 
+            _binop_(i, OP_LESS, _int_(10)), 
+            0, 
+         _block_BEGIN
+            _int_(3),
+         _block_END
+      ),
+      _if_(
+         _binop_(a, OP_EQUALS, _int_(7)),
+         _block_BEGIN
+            _binop_(a, OP_ASSIGN, _int_(10)),
+            _binop_(b, OP_ASSIGN, _int_(15)),
+         _block_END
+      ),
+   _block_END;
 
    Buffer *buf = buf::make();
-   print(buf, bl);
+   print(buf, B);
    printf("[%d, %d] %s", buf->len, buf->avail, buf->str);
    buf::free(buf);
 }

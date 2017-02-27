@@ -54,5 +54,3 @@ AST(WhileStmt, {
    Node *cond;
    Node *block;
 })
-
-
