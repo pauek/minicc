@@ -53,7 +53,7 @@ inline Node *_for_(Node *bef, Node *cond, Node *aft, Node *block) {
 inline Node *_binop_(OpType op, Node *left, Node *right) {
    return _node((tBinOp){ op, left, right });
 }
-inline Node *_localvar_(Atom *atom, Node *init = 0) {
+inline Node *_localvar_(atom::Atom *atom, Node *init = 0) {
    return _node((tLocalVar){ atom, init });
 }
 inline Node *_int_(int i) {
@@ -62,7 +62,7 @@ inline Node *_int_(int i) {
 inline Node *_float_(float f) {
    return _node((tFloatLiteral){ f });
 }
-inline Node *_label_(Atom *atom) {
+inline Node *_label_(atom::Atom *atom) {
    return _node((tLabel){ atom });
 }
 inline Node *_block_(Array *stmts) {
@@ -179,17 +179,17 @@ void test() {
    Array *stmts = array_new(0, sizeof(Node *));
    Node *b = _block_(stmts);
 
-   Node *lab = _label_(atom_get("blah"));
+   Node *lab = _label_(atom::get("blah"));
    array_push(stmts, &lab);
    Node *i = _int_(5);
    array_push(stmts, &i);
 
    Node *assign = _binop_( 
       OP_ASSIGN, 
-      _localvar_(atom_get("a")),
+      _localvar_(atom::get("a")),
       _binop_(
          OP_EQUALS,
-         _localvar_(atom_get("b")),
+         _localvar_(atom::get("b")),
          _float_(1.4f)
       )
    );

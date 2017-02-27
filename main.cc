@@ -18,7 +18,7 @@
 #undef   IMPLEMENTATION
 
 void init() {
-	atom_init();
+	atom::init();
 }
 
 int main() {

@@ -17,9 +17,9 @@ void  print_all_atoms();
 
 void print_all_atoms() {
    for (int i = 0; i < ATOM_NUM_NODES; i++) {
-      if (nodes[i]) {
+      if (atom::nodes[i]) {
          printf("%d:", i);
-         for (atom__Node *n = nodes[i]; n; n = n->prev) {
+         for (atom::Node *n = atom::nodes[i]; n; n = n->prev) {
             printf(" %s", n->atom.str);
          }
          printf("\n");

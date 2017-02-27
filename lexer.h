@@ -41,9 +41,9 @@ enum TokenKind {
 };
 
 struct Token {
-   TokenKind kind;
-   Pos       pos;
-   Atom     *atom;
+   TokenKind   kind;
+   Pos         pos;
+   atom::Atom *atom;
 };
 
 enum {
@@ -220,7 +220,7 @@ static Token lexer_read_include_filename() {
 
 	size_t filename_size = (size_t)(at - filename_begin);
 	ADVANCE(1);
-	Atom *a = atom_get(filename_begin, filename_size);
+	atom::Atom *a = atom::get(filename_begin, filename_size);
 	return { TOK_FILENAME, tokpos, a };
 }
 
@@ -236,7 +236,7 @@ static Token lexer_read_identifier() {
 		}
 		break;
 	}
-	Atom *id = atom_get(id_begin, (size_t)(at - id_begin));
+	atom::Atom *id = atom::get(id_begin, (size_t)(at - id_begin));
 	return { TOK_IDENT, tokpos, id };
 }
 
@@ -273,7 +273,7 @@ static Token lexer_read_number() {
 			kind = TOK_LIT_FLOAT;
 		}
 	}
-	Atom *atom = atom_get(id_begin, (size_t)(id_end - id_begin));
+	atom::Atom *atom = atom::get(id_begin, (size_t)(id_end - id_begin));
 	return { kind, tokpos, atom };
 }
 
@@ -311,7 +311,7 @@ Token lexer_read_literal_char_or_string() {
 	if (slash_error) {
 		return { TOK_ERROR, tokpos, NULL };
 	} else {
-		Atom *atom = atom_get(tok_begin, len);
+		atom::Atom *atom = atom::get(tok_begin, len);
 		return { kind, tokpos, atom };
 	}
 }
@@ -330,7 +330,7 @@ por tanto, estar guardados en el AST.
 */
 
 #define RESULT(kind, n, token) \
-   { ADVANCE(n); return { kind, tokpos, atom_##token }; }
+   { ADVANCE(n); return { kind, tokpos, atom::_##token##_ }; }
 
 #define IF_ID_RESULT(kind, n, token) \
    if (!strncmp(#token, at, n)) { RESULT(kind, n, token); }
@@ -449,48 +449,48 @@ Token lexer_get() {
 
 	case 'a':
 		tok = lexer_read_identifier();
-		if      (tok.atom == atom_auto) tok.kind = TOK_MODIFIER;
-		else if (tok.atom == atom_and)  tok.kind = TOK_OPERATOR;
+		if      (tok.atom == atom::_auto_) tok.kind = TOK_MODIFIER;
+		else if (tok.atom == atom::_and_)  tok.kind = TOK_OPERATOR;
 		return tok;
 
 	case 'b':
 		tok = lexer_read_identifier();
-		if      (tok.atom == atom_break) tok.kind = TOK_CONTROL;
-		else if (tok.atom == atom_bool)  tok.kind = TOK_TYPE;
+		if      (tok.atom == atom::_break_) tok.kind = TOK_CONTROL;
+		else if (tok.atom == atom::_bool_)  tok.kind = TOK_TYPE;
 		return tok;
 
 	case 'c':
 		tok = lexer_read_identifier();
-		if      (tok.atom == atom_continue) tok.kind = TOK_CONTROL;
-		else if (tok.atom == atom_const)    tok.kind = TOK_MODIFIER;
-		else if (tok.atom == atom_class)    tok.kind = TOK_TYPEDEF;
-		else if (tok.atom == atom_char)     tok.kind = TOK_TYPE;
-		else if (tok.atom == atom_case)     tok.kind = TOK_CONTROL;
+		if      (tok.atom == atom::_continue_) tok.kind = TOK_CONTROL;
+		else if (tok.atom == atom::_const_)    tok.kind = TOK_MODIFIER;
+		else if (tok.atom == atom::_class_)    tok.kind = TOK_TYPEDEF;
+		else if (tok.atom == atom::_char_)     tok.kind = TOK_TYPE;
+		else if (tok.atom == atom::_case_)     tok.kind = TOK_CONTROL;
 		return tok;
 
 	case 'd':
 		tok = lexer_read_identifier();
-		if (tok.atom == atom_double) tok.kind = TOK_TYPE;
+		if (tok.atom == atom::_double_) tok.kind = TOK_TYPE;
 		return tok;		
 
 	case 'e':
 		tok = lexer_read_identifier();
-		if      (tok.atom == atom_else)     tok.kind = TOK_CONTROL;
-		else if (tok.atom == atom_enum)     tok.kind = TOK_TYPEDEF;
-		else if (tok.atom == atom_extern)   tok.kind = TOK_MODIFIER;
-		else if (tok.atom == atom_explicit) tok.kind = TOK_MODIFIER;
+		if      (tok.atom == atom::_else_)     tok.kind = TOK_CONTROL;
+		else if (tok.atom == atom::_enum_)     tok.kind = TOK_TYPEDEF;
+		else if (tok.atom == atom::_extern_)   tok.kind = TOK_MODIFIER;
+		else if (tok.atom == atom::_explicit_) tok.kind = TOK_MODIFIER;
 		return tok;
 
 	case 'f':
 		tok = lexer_read_identifier();
-		if      (tok.atom == atom_for)   tok.kind = TOK_CONTROL;
-		else if (tok.atom == atom_float) tok.kind = TOK_TYPE;
-		else if (tok.atom == atom_false) tok.kind = TOK_LIT_BOOL;
+		if      (tok.atom == atom::_for_)   tok.kind = TOK_CONTROL;
+		else if (tok.atom == atom::_float_) tok.kind = TOK_TYPE;
+		else if (tok.atom == atom::_false_) tok.kind = TOK_LIT_BOOL;
 		return tok;
 
 	case 'g':
 		tok = lexer_read_identifier();
-		if (tok.atom == atom_goto) tok.kind = TOK_CONTROL;
+		if (tok.atom == atom::_goto_) tok.kind = TOK_CONTROL;
 		return tok;		
 
 	case 'h':
@@ -498,10 +498,10 @@ Token lexer_get() {
 
 	case 'i':
 		tok = lexer_read_identifier();
-		if      (tok.atom == atom_if)     tok.kind = TOK_CONTROL;
-		else if (tok.atom == atom_int)    tok.kind = TOK_TYPE;
-		else if (tok.atom == atom_inline) tok.kind = TOK_MODIFIER;
-		else if (tok.atom == atom_include) {
+		if      (tok.atom == atom::_if_)     tok.kind = TOK_CONTROL;
+		else if (tok.atom == atom::_int_)    tok.kind = TOK_TYPE;
+		else if (tok.atom == atom::_inline_) tok.kind = TOK_MODIFIER;
+		else if (tok.atom == atom::_include_) {
 			if (at_directive) {
 				at_include_filename = true;
 			}
@@ -514,22 +514,22 @@ Token lexer_get() {
 
 	case 'l':
 		tok = lexer_read_identifier();
-		if (tok.atom == atom_long) tok.kind = TOK_MODIFIER;
+		if (tok.atom == atom::_long_) tok.kind = TOK_MODIFIER;
 		return tok;		
 
 	case 'm':
 		tok = lexer_read_identifier();
-		if (tok.atom == atom_mutable) tok.kind = TOK_MODIFIER;
+		if (tok.atom == atom::_mutable_) tok.kind = TOK_MODIFIER;
 		return tok;		
 
 	case 'n':
 		tok = lexer_read_identifier();
-		if (tok.atom == atom_using) tok.kind = TOK_USING;
+		if (tok.atom == atom::_using_) tok.kind = TOK_USING;
 		return tok;		
 
 	case 'o':
 		tok = lexer_read_identifier();
-		if (tok.atom == atom_or) tok.kind = TOK_OPERATOR;
+		if (tok.atom == atom::_or_) tok.kind = TOK_OPERATOR;
 		return tok;		
 
 	case 'p': case 'q':
@@ -537,41 +537,41 @@ Token lexer_get() {
 
 	case 'r':
 		tok = lexer_read_identifier();
-		if      (tok.atom == atom_return)   tok.kind = TOK_CONTROL;
-		else if (tok.atom == atom_register) tok.kind = TOK_MODIFIER;
+		if      (tok.atom == atom::_return_)   tok.kind = TOK_CONTROL;
+		else if (tok.atom == atom::_register_) tok.kind = TOK_MODIFIER;
 		return tok;
 
 	case 's':
 		tok = lexer_read_identifier();
-		if      (tok.atom == atom_short)   tok.kind = TOK_CONTROL;
-		else if (tok.atom == atom_string)  tok.kind = TOK_TYPE;
-		else if (tok.atom == atom_switch)  tok.kind = TOK_CONTROL;
-		else if (tok.atom == atom_static)  tok.kind = TOK_MODIFIER;
-		else if (tok.atom == atom_struct)  tok.kind = TOK_TYPEDEF;
+		if      (tok.atom == atom::_short_)   tok.kind = TOK_CONTROL;
+		else if (tok.atom == atom::_string_)  tok.kind = TOK_TYPE;
+		else if (tok.atom == atom::_switch_)  tok.kind = TOK_CONTROL;
+		else if (tok.atom == atom::_static_)  tok.kind = TOK_MODIFIER;
+		else if (tok.atom == atom::_struct_)  tok.kind = TOK_TYPEDEF;
 		return tok;
 
 	case 't':
 		tok = lexer_read_identifier();
-		if      (tok.atom == atom_true)    tok.kind = TOK_LIT_BOOL;
-		else if (tok.atom == atom_typedef) tok.kind = TOK_TYPEDEF;
+		if      (tok.atom == atom::_true_)    tok.kind = TOK_LIT_BOOL;
+		else if (tok.atom == atom::_typedef_) tok.kind = TOK_TYPEDEF;
 		return tok;
 
 	case 'u':
 		tok = lexer_read_identifier();
-		if      (tok.atom == atom_unsigned) tok.kind = TOK_MODIFIER;
-		else if (tok.atom == atom_using)    tok.kind = TOK_USING;
+		if      (tok.atom == atom::_unsigned_) tok.kind = TOK_MODIFIER;
+		else if (tok.atom == atom::_using_)    tok.kind = TOK_USING;
 		return tok;
 
 	case 'v':
 		tok = lexer_read_identifier();
-		if      (tok.atom == atom_void)     tok.kind = TOK_TYPE;
-		else if (tok.atom == atom_volatile) tok.kind = TOK_MODIFIER;
-		else if (tok.atom == atom_virtual)  tok.kind = TOK_MODIFIER;
+		if      (tok.atom == atom::_void_)     tok.kind = TOK_TYPE;
+		else if (tok.atom == atom::_volatile_) tok.kind = TOK_MODIFIER;
+		else if (tok.atom == atom::_virtual_)  tok.kind = TOK_MODIFIER;
 		return tok;
 
 	case 'w':
 		tok = lexer_read_identifier();
-		if (tok.atom == atom_while) tok.kind = TOK_CONTROL;
+		if (tok.atom == atom::_while_) tok.kind = TOK_CONTROL;
 		return tok;
 
 	case 'x': case 'y': case 'z':
