@@ -17,6 +17,11 @@ AST(Label, {
    Atom *atom;
 })
 
+AST(UnOp, {
+   OpType op;
+   Node  *operand;
+})
+
 AST(BinOp, {
    OpType  op;
    Node   *left;
