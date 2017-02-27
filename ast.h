@@ -53,7 +53,7 @@ inline Node *_for_(Node *bef, Node *cond, Node *aft, Node *block) {
 inline Node *_binop_(OpType op, Node *left, Node *right) {
    return _node((tBinOp){ op, left, right });
 }
-inline Node *_localvar_(atom::T *atom, Node *init = 0) {
+inline Node *_localvar_(Atom *atom, Node *init = 0) {
    return _node((tLocalVar){ atom, init });
 }
 inline Node *_int_(int i) {
@@ -62,10 +62,10 @@ inline Node *_int_(int i) {
 inline Node *_float_(float f) {
    return _node((tFloatLiteral){ f });
 }
-inline Node *_label_(atom::T *atom) {
+inline Node *_label_(Atom *atom) {
    return _node((tLabel){ atom });
 }
-inline Node *_block_(array::T *stmts) {
+inline Node *_block_(Array *stmts) {
    return _node((tBlock){ stmts });
 }
 
@@ -114,7 +114,7 @@ char *_indent(int level) {
    return indent_str;
 }
 
-void _print(PrintState* state, buf::T *B, Node *node) {
+void _print(PrintState* state, Buffer *B, Node *node) {
    if (node == 0) {
       buf::printf(B, "<>");
       return;
@@ -169,7 +169,7 @@ void _print(PrintState* state, buf::T *B, Node *node) {
 
 }
 
-void print(buf::T *B, Node *node) {
+void print(Buffer *B, Node *node) {
    PrintState state = { 0 };
    _print(&state, B, node);
 }
@@ -178,7 +178,7 @@ void print(buf::T *B, Node *node) {
 void test() {
    using atom::atom;
 
-   array::T *stmts = array::make(0, sizeof(Node *));
+   Array *stmts = array::make(0, sizeof(Node *));
    Node *b = _block_(stmts);
 
    Node *lab = _label_(atom("blah"));
@@ -193,11 +193,11 @@ void test() {
    );
    array::push(stmts, &assign);
 
-   array::T *stmts2 = array::make(0, sizeof(Node *)); 
+   Array *stmts2 = array::make(0, sizeof(Node *)); 
    Node *f = _for_(0, 0, 0, _block_(stmts2));
    array::push(stmts, &f);
 
-   buf::T *buf = buf::make();
+   Buffer *buf = buf::make();
    print(buf, b);
    printf("[%d, %d] %s", buf->len, buf->avail, buf->str);
    buf::free(buf);

@@ -14,7 +14,7 @@ AST(FloatLiteral,  { float val; })
 AST(DoubleLiteral, { double val; })
 
 AST(Label, { 
-   atom::T *atom;
+   Atom *atom;
 })
 
 AST(BinOp, {
@@ -24,17 +24,17 @@ AST(BinOp, {
 })
 
 AST(LocalVar, {
-   atom::T *atom;
-   Node    *init;
+   Atom *atom;
+   Node *init;
 })
 
 AST(GlobalVar, {
-   atom::T *atom;
-   Node    *init;
+   Atom *atom;
+   Node *init;
 })
 
 AST(Block, { 
-   array::T *nodes; 
+   Array *nodes; 
 })
 
 AST(IfStmt, { 

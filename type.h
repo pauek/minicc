@@ -31,12 +31,12 @@ struct Type {
       Type *ptr;
       // struct
       struct {
-         array::T *fields;
+         Array *fields;
       };
       // function 
       struct {
          Type  *rettype;
-         array::T *params;
+         Array *params;
       };
    };
 };
