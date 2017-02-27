@@ -176,22 +176,20 @@ void print(Buffer *B, Node *node) {
 
 
 void test() {
+   using atom::atom;
+
    Array *stmts = array_new(0, sizeof(Node *));
    Node *b = _block_(stmts);
 
-   Node *lab = _label_(atom::get("blah"));
+   Node *lab = _label_(atom("blah"));
    array_push(stmts, &lab);
    Node *i = _int_(5);
    array_push(stmts, &i);
 
    Node *assign = _binop_( 
       OP_ASSIGN, 
-      _localvar_(atom::get("a")),
-      _binop_(
-         OP_EQUALS,
-         _localvar_(atom::get("b")),
-         _float_(1.4f)
-      )
+      _localvar_(atom("a")),
+      _binop_(OP_EQUALS, _localvar_(atom("b")), _float_(1.4f))
    );
    array_push(stmts, &assign);
 

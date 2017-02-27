@@ -27,10 +27,11 @@ extern Node *nodes[ATOM_NUM_NODES];
 #undef TOKEN
 
 void  init();
-Atom *get(const char *str, size_t len);
-Atom *get(const char *str);
+Atom *atom(const char *str, size_t len);
+Atom *atom(const char *str);
 
 } // namespace atom
+
 
 #endif // DECLARATION
 /////////////////////////////////////////////////////////////////////////////////////////////
@@ -59,16 +60,16 @@ static uint32_t hash(const char *p, size_t len) {
 
 // Register an atom for each token
 void init() {
-#define TOKEN(name, str, len) _##name##_ = get(str, len);
+#define TOKEN(name, str, len) _##name##_ = atom(str, len);
 #include "tokens.inc"
 #undef TOKEN
 }
 
-Atom *get(const char *str) {
-   return get(str, strlen(str));
+Atom *atom(const char *str) {
+   return atom(str, strlen(str));
 }
 
-Atom *get(const char *str, size_t len) {
+Atom *atom(const char *str, size_t len) {
 	uint32_t mask = ATOM_NUM_NODES-1;
 	uint32_t idx  = hash(str, len) & mask;
 	Node *n;
