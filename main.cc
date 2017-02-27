@@ -22,7 +22,7 @@ void init() {
 }
 
 int main() {
-   ast_test();
+   ast::test();
 }
 
 int main_main(int argc, char *argv[]) {

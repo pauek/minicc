@@ -1,13 +1,14 @@
 /////////////////////////////////////////////////////////////////////////////////////////////
 #if defined(DECLARATION)
 
+namespace ast {
 
-enum AST_Tag {
-   AST_None = 0,
-#define AST(type, members) AST_##type,
+enum Tag {
+   None = 0,
+#define AST(type, members) type,
 #include "ast.inc"
 #undef  AST
-   AST_TotalNodes,
+   TotalNodes,
 };
 
 enum OpType {
@@ -17,45 +18,71 @@ enum OpType {
 
 // sizeof(Node) is the size of 'tag' & 'type' + padding to
 // start the member 'data' aligned.
-struct AST_Node {
-   AST_Tag tag  = AST_None;
+struct Node {
+   Tag     tag  = None;
    Type   *type = NULL;
    uint8_t data[];
 };
 
 #define AST_NEW(T, x) do {\
-   x = (AST_Node *)malloc(sizeof(AST_Node) + sizeof(T));  assert(x); \
-   x->tag = AST_##T; \
+   x = (Node *)malloc(sizeof(Node) + sizeof(T));  assert(x); \
+   x->tag = T; \
 } while(0)
 
-#define AST(type, members) struct type members;
+#define   AST(type, members) struct t##type members;
 #include "ast.inc"
-#undef  AST
+#undef    AST
 
-#define AST_CAST(T, node) ((T *)&node->data[0])
-#define AST_ACCESS(var, T, node) assert(node->tag == AST_##T); T *var = AST_CAST(T, node);
+#define AST_CAST(T, node) ((t##T *)&node->data[0])
+#define AST_ACCESS(var, T, node) assert(node->tag == T); t##T *var = AST_CAST(T, node);
 
-#define AST(type, members) \
-   AST_Node *ast_node(type data) { \
-      AST_Node *n; \
-      AST_NEW(type, n); \
-      *AST_CAST(type, n) = data; \
+#define AST(T, members) \
+   Node *_node(t##T data) { \
+      Node *n; \
+      AST_NEW(T, n); \
+      *AST_CAST(T, n) = data; \
       return n; \
    }
 #include "ast.inc"
 #undef  AST
 
-      void  ast_print(AST_Node *node);
+
+inline Node *_for_(Node *bef, Node *cond, Node *aft, Node *block) {
+   return _node((tForStmt){ bef, cond, aft, block });
+}
+inline Node *_binop_(OpType op, Node *left, Node *right) {
+   return _node((tBinOp){ op, left, right });
+}
+inline Node *_localvar_(Atom *atom, Node *init = 0) {
+   return _node((tLocalVar){ atom, init });
+}
+inline Node *_int_(int i) {
+   return _node((tIntLiteral){ i });
+}
+inline Node *_float_(float f) {
+   return _node((tFloatLiteral){ f });
+}
+inline Node *_label_(Atom *atom) {
+   return _node((tLabel){ atom });
+}
+inline Node *_block_(Array *stmts) {
+   return _node((tBlock){ stmts });
+}
+
+      void  print(Node *node);
 const char *op2str(OpType op);
 
 extern int indent_size;
 
+}
 
 #endif // DECLARATION
 /////////////////////////////////////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////////////////////////////////////
 #if defined(IMPLEMENTATION)
 
+
+namespace ast {
 
 const char *op2str(OpType op) {
    switch (op) {
@@ -66,7 +93,7 @@ const char *op2str(OpType op) {
    }
 }
 
-struct AST_PrintState {
+struct PrintState {
    int level;
 };
 
@@ -74,7 +101,7 @@ struct AST_PrintState {
 
 int indent_size = 3;
 
-char *ast__indent(int level) {
+char *_indent(int level) {
    static char indent_str[MAX_INDENT] = {};
    assert((level * indent_size) < MAX_INDENT);
    char *curr = indent_str;
@@ -87,13 +114,13 @@ char *ast__indent(int level) {
    return indent_str;
 }
 
-void ast__print(AST_PrintState* state, Buffer *B, AST_Node *node) {
+void _print(PrintState* state, Buffer *B, Node *node) {
    if (node == 0) {
       buf_printf(B, "<>");
       return;
    }
 
-#define CASE(T) case AST_##T: { AST_ACCESS(it, T, node);
+#define CASE(T) case T: { AST_ACCESS(it, T, node);
 #define END     break; }
 
    switch (node->tag) {
@@ -101,17 +128,17 @@ void ast__print(AST_PrintState* state, Buffer *B, AST_Node *node) {
    CASE(FloatLiteral)  buf_printf(B, "%f", it->val); END
    CASE(DoubleLiteral) buf_printf(B, "%e", it->val); END
    CASE(Label)
-      buf_printf(B, "%s%s:\n", ast__indent(state->level-1), it->atom->str);
+      buf_printf(B, "%s%s:\n", _indent(state->level-1), it->atom->str);
    END
    CASE(ForStmt)
-      buf_printf(B, "%sfor (", ast__indent(state->level));
-      ast__print(state, B, it->before);
+      buf_printf(B, "%sfor (", _indent(state->level));
+      _print(state, B, it->before);
       buf_printf(B, "; ");
-      ast__print(state, B, it->cond);
+      _print(state, B, it->cond);
       buf_printf(B, "; ");
-      ast__print(state, B, it->after);
+      _print(state, B, it->after);
       buf_printf(B, ") ");
-      ast__print(state, B, it->block);
+      _print(state, B, it->block);
    END
    CASE(LocalVar)
       buf_printf(B, "%s", it->atom->str);
@@ -120,17 +147,17 @@ void ast__print(AST_PrintState* state, Buffer *B, AST_Node *node) {
       buf_printf(B, "{\n");
       state->level++;
       for (size_t i = 0; i < array_len(it->nodes); i++) {
-         ast__print(state, B, *(AST_Node **)array_get(it->nodes, i));
+         _print(state, B, *(Node **)array_get(it->nodes, i));
       }
       state->level--;
-      buf_printf(B, "%s}\n", ast__indent(state->level));
+      buf_printf(B, "%s}\n", _indent(state->level));
    END
    CASE(BinOp)
       // @Incorrect: this should be done for expression statements not for binops
-      buf_printf(B, "%s", ast__indent(state->level));
-      ast__print(state, B, it->left);
+      buf_printf(B, "%s", _indent(state->level));
+      _print(state, B, it->left);
       buf_printf(B, " %s ", op2str(it->op));
-      ast__print(state, B, it->right);
+      _print(state, B, it->right);
       buf_printf(B, ";\n");
    END
    default:
@@ -142,42 +169,43 @@ void ast__print(AST_PrintState* state, Buffer *B, AST_Node *node) {
 
 }
 
-void ast_print(Buffer *B, AST_Node *node) {
-   AST_PrintState state = { 0 };
-   ast__print(&state, B, node);
+void print(Buffer *B, Node *node) {
+   PrintState state = { 0 };
+   _print(&state, B, node);
 }
 
 
-void ast_test() {
-   Array *stmts = array_new(0, sizeof(AST_Node *));
-   AST_Node *block = ast_node((Block){ stmts });
+void test() {
+   Array *stmts = array_new(0, sizeof(Node *));
+   Node *b = _block_(stmts);
 
-   AST_Node *label = ast_node((Label){ atom_get("blah", 4) });
-   array_push(stmts, &label);
-   AST_Node *i = ast_node((IntLiteral){ 5 });
+   Node *lab = _label_(atom_get("blah"));
+   array_push(stmts, &lab);
+   Node *i = _int_(5);
    array_push(stmts, &i);
 
-   AST_Node *assign = ast_node((BinOp){ 
+   Node *assign = _binop_( 
       OP_ASSIGN, 
-      ast_node((LocalVar){ atom_get("a", 1), 0 }),
-      ast_node((BinOp){
+      _localvar_(atom_get("a")),
+      _binop_(
          OP_EQUALS,
-         ast_node((LocalVar){ atom_get("b", 1), 0 }),
-         ast_node((FloatLiteral){ 1.4f })
-      })
-   });
+         _localvar_(atom_get("b")),
+         _float_(1.4f)
+      )
+   );
    array_push(stmts, &assign);
 
-   Array *stmts2 = array_new(0, sizeof(AST_Node *)); 
-   AST_Node *f = ast_node((ForStmt){ 0, 0, 0, ast_node((Block){ stmts2 }) });
+   Array *stmts2 = array_new(0, sizeof(Node *)); 
+   Node *f = _for_(0, 0, 0, _block_(stmts2));
    array_push(stmts, &f);
 
-   Buffer *b = buf_new();
-   ast_print(b, block);
-   printf("[%d, %d] %s", b->len, b->avail, b->str);
-   buf_free(b);
+   Buffer *buf = buf_new();
+   print(buf, b);
+   printf("[%d, %d] %s", buf->len, buf->avail, buf->str);
+   buf_free(buf);
 }
 
+}
 
 #endif // IMPLEMENTATION
 /////////////////////////////////////////////////////////////////////////////////////////////

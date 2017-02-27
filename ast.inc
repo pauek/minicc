@@ -19,18 +19,18 @@ AST(Label, {
 
 AST(BinOp, {
    OpType    op;
-   AST_Node *left;
-   AST_Node *right;
+   Node *left;
+   Node *right;
 })
 
 AST(LocalVar, {
    Atom     *atom;
-   AST_Node *init;
+   Node *init;
 })
 
 AST(GlobalVar, {
    Atom     *atom;
-   AST_Node *init;
+   Node *init;
 })
 
 AST(Block, { 
@@ -38,21 +38,21 @@ AST(Block, {
 })
 
 AST(IfStmt, { 
-   AST_Node *cond;
-   AST_Node *then;
-   AST_Node *els; 
+   Node *cond;
+   Node *then;
+   Node *els; 
 })
 
 AST(ForStmt, { 
-   AST_Node *before;
-   AST_Node *cond;
-   AST_Node *after;
-   AST_Node *block; 
+   Node *before;
+   Node *cond;
+   Node *after;
+   Node *block; 
 })
 
 AST(WhileStmt, { 
-   AST_Node *cond;
-   AST_Node *block;
+   Node *cond;
+   Node *block;
 })
 
 

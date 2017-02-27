@@ -13,12 +13,12 @@ struct Atom {
    const char *str;
 };
 
-struct Atom__Node {
+struct atom__Node {
    Atom       atom;
-   Atom__Node *prev;
+   atom__Node *prev;
 };
 
-extern Atom__Node *nodes[ATOM_NUM_NODES];
+extern atom__Node *nodes[ATOM_NUM_NODES];
 
 #define TOKEN(name, str, len) extern Atom *atom_##name;
 #include "tokens.inc"
@@ -26,6 +26,7 @@ extern Atom__Node *nodes[ATOM_NUM_NODES];
 
 void  atom_init();
 Atom *atom_get(const char *str, size_t len);
+Atom *atom_get(const char *str);
 
 
 #endif // DECLARATION
@@ -34,7 +35,7 @@ Atom *atom_get(const char *str, size_t len);
 #if defined(IMPLEMENTATION)
 
 
-Atom__Node *nodes[ATOM_NUM_NODES] = {}; // important to fill with zeros!
+atom__Node *nodes[ATOM_NUM_NODES] = {}; // important to fill with zeros!
 
 static uint32_t hash(const char *p, size_t len) {
     // FNV hash
@@ -58,16 +59,20 @@ void atom_init() {
 #undef TOKEN
 }
 
+Atom *atom_get(const char *str) {
+   return atom_get(str, strlen(str));
+}
+
 Atom *atom_get(const char *str, size_t len) {
 	uint32_t mask = ATOM_NUM_NODES-1;
 	uint32_t idx  = hash(str, len) & mask;
-	Atom__Node *n;
+	atom__Node *n;
 	for (n = nodes[idx]; n; n = n->prev) {
 		if (n->atom.len == len && 0 == strncmp(n->atom.str, str, len)) {
 			return &n->atom;
 		}
 	}
-	n = (Atom__Node *)malloc(sizeof(Atom__Node));
+	n = (atom__Node *)malloc(sizeof(atom__Node));
 	n->atom.str = str;
 	n->atom.len = len;
 	n->prev = nodes[idx];
