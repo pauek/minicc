@@ -101,7 +101,7 @@ struct PrintState {
 
 int indent_size = 3;
 
-char *_indent(int level) {
+static char *_indent(int level) {
    static char indent_str[MAX_INDENT] = {};
    assert((level * indent_size) < MAX_INDENT);
    char *curr = indent_str;
@@ -114,9 +114,11 @@ char *_indent(int level) {
    return indent_str;
 }
 
-void _print(PrintState* state, Buffer *B, Node *node) {
+static void _print(PrintState* state, Buffer *B, Node *node) {
+   using buf::printf;
+
    if (node == 0) {
-      buf::printf(B, "<>");
+      printf(B, "<>");
       return;
    }
 
@@ -124,44 +126,44 @@ void _print(PrintState* state, Buffer *B, Node *node) {
 #define END     break; }
 
    switch (node->tag) {
-   CASE(IntLiteral)    buf::printf(B, "%d", it->val); END
-   CASE(FloatLiteral)  buf::printf(B, "%f", it->val); END
-   CASE(DoubleLiteral) buf::printf(B, "%e", it->val); END
+   CASE(IntLiteral)    printf(B, "%d", it->val); END
+   CASE(FloatLiteral)  printf(B, "%f", it->val); END
+   CASE(DoubleLiteral) printf(B, "%e", it->val); END
    CASE(Label)
-      buf::printf(B, "%s%s:\n", _indent(state->level-1), it->atom->str);
+      printf(B, "%s%s:\n", _indent(state->level-1), it->atom->str);
    END
    CASE(ForStmt)
-      buf::printf(B, "%sfor (", _indent(state->level));
+      printf(B, "%sfor (", _indent(state->level));
       _print(state, B, it->before);
-      buf::printf(B, "; ");
+      printf(B, "; ");
       _print(state, B, it->cond);
-      buf::printf(B, "; ");
+      printf(B, "; ");
       _print(state, B, it->after);
-      buf::printf(B, ") ");
+      printf(B, ") ");
       _print(state, B, it->block);
    END
    CASE(LocalVar)
-      buf::printf(B, "%s", it->atom->str);
+      printf(B, "%s", it->atom->str);
    END
    CASE(Block)
-      buf::printf(B, "{\n");
+      printf(B, "{\n");
       state->level++;
       for (size_t i = 0; i < array::len(it->nodes); i++) {
          _print(state, B, *(Node **)array::get(it->nodes, i));
       }
       state->level--;
-      buf::printf(B, "%s}\n", _indent(state->level));
+      printf(B, "%s}\n", _indent(state->level));
    END
    CASE(BinOp)
       // @Incorrect: this should be done for expression statements not for binops
-      buf::printf(B, "%s", _indent(state->level));
+      printf(B, "%s", _indent(state->level));
       _print(state, B, it->left);
-      buf::printf(B, " %s ", op2str(it->op));
+      printf(B, " %s ", op2str(it->op));
       _print(state, B, it->right);
-      buf::printf(B, ";\n");
+      printf(B, ";\n");
    END
    default:
-      buf::printf(B, "<unknown>");
+      printf(B, "<unknown>");
    }
 
 #undef CASE
