@@ -114,9 +114,9 @@ char *_indent(int level) {
    return indent_str;
 }
 
-void _print(PrintState* state, Buffer *B, Node *node) {
+void _print(PrintState* state, buf::Buffer *B, Node *node) {
    if (node == 0) {
-      buf_printf(B, "<>");
+      buf::printf(B, "<>");
       return;
    }
 
@@ -124,44 +124,44 @@ void _print(PrintState* state, Buffer *B, Node *node) {
 #define END     break; }
 
    switch (node->tag) {
-   CASE(IntLiteral)    buf_printf(B, "%d", it->val); END
-   CASE(FloatLiteral)  buf_printf(B, "%f", it->val); END
-   CASE(DoubleLiteral) buf_printf(B, "%e", it->val); END
+   CASE(IntLiteral)    buf::printf(B, "%d", it->val); END
+   CASE(FloatLiteral)  buf::printf(B, "%f", it->val); END
+   CASE(DoubleLiteral) buf::printf(B, "%e", it->val); END
    CASE(Label)
-      buf_printf(B, "%s%s:\n", _indent(state->level-1), it->atom->str);
+      buf::printf(B, "%s%s:\n", _indent(state->level-1), it->atom->str);
    END
    CASE(ForStmt)
-      buf_printf(B, "%sfor (", _indent(state->level));
+      buf::printf(B, "%sfor (", _indent(state->level));
       _print(state, B, it->before);
-      buf_printf(B, "; ");
+      buf::printf(B, "; ");
       _print(state, B, it->cond);
-      buf_printf(B, "; ");
+      buf::printf(B, "; ");
       _print(state, B, it->after);
-      buf_printf(B, ") ");
+      buf::printf(B, ") ");
       _print(state, B, it->block);
    END
    CASE(LocalVar)
-      buf_printf(B, "%s", it->atom->str);
+      buf::printf(B, "%s", it->atom->str);
    END
    CASE(Block)
-      buf_printf(B, "{\n");
+      buf::printf(B, "{\n");
       state->level++;
       for (size_t i = 0; i < array_len(it->nodes); i++) {
          _print(state, B, *(Node **)array_get(it->nodes, i));
       }
       state->level--;
-      buf_printf(B, "%s}\n", _indent(state->level));
+      buf::printf(B, "%s}\n", _indent(state->level));
    END
    CASE(BinOp)
       // @Incorrect: this should be done for expression statements not for binops
-      buf_printf(B, "%s", _indent(state->level));
+      buf::printf(B, "%s", _indent(state->level));
       _print(state, B, it->left);
-      buf_printf(B, " %s ", op2str(it->op));
+      buf::printf(B, " %s ", op2str(it->op));
       _print(state, B, it->right);
-      buf_printf(B, ";\n");
+      buf::printf(B, ";\n");
    END
    default:
-      buf_printf(B, "<unknown>");
+      buf::printf(B, "<unknown>");
    }
 
 #undef CASE
@@ -169,7 +169,7 @@ void _print(PrintState* state, Buffer *B, Node *node) {
 
 }
 
-void print(Buffer *B, Node *node) {
+void print(buf::Buffer *B, Node *node) {
    PrintState state = { 0 };
    _print(&state, B, node);
 }
@@ -197,10 +197,10 @@ void test() {
    Node *f = _for_(0, 0, 0, _block_(stmts2));
    array_push(stmts, &f);
 
-   Buffer *buf = buf_new();
+   buf::Buffer *buf = buf::make();
    print(buf, b);
    printf("[%d, %d] %s", buf->len, buf->avail, buf->str);
-   buf_free(buf);
+   buf::free(buf);
 }
 
 }

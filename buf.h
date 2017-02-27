@@ -4,18 +4,21 @@
 
 #include <stdarg.h>
 
+namespace buf {
+
 struct Buffer {
    int   len;
    int   avail;
    char *str;
 };
 
- Buffer *buf_new();
-   void  buf_free(Buffer *B);
-   void  buf_expand(Buffer *B);
-   void  buf_reset(Buffer *B);
-   void  buf_printf(Buffer *B, const char *fmt, ...);
+ Buffer *make();
+   void  free(Buffer *B);
+   void  expand(Buffer *B);
+   void  reset(Buffer *B);
+   void  printf(Buffer *B, const char *fmt, ...);
 
+} // namespace buf
 
 #endif // DECLARATION
 /////////////////////////////////////////////////////////////////////////////////////////////
@@ -25,7 +28,9 @@ struct Buffer {
 
 #define BUF_INITIAL_AVAIL 16
 
-Buffer *buf_new() {
+namespace buf {
+
+Buffer *make() {
    Buffer *result = (Buffer *)malloc(sizeof(Buffer));
    result->len   = 0;
    result->avail = BUF_INITIAL_AVAIL;
@@ -33,18 +38,18 @@ Buffer *buf_new() {
    return result;
 }
 
-void buf_free(Buffer *B) {
+void free(Buffer *B) {
    if (B->len > 0) {
-      free(B->str);
-      free(B);
+      ::free(B->str);
+      ::free(B);
    }
 }
 
-void buf_reset(Buffer *B) {
+void reset(Buffer *B) {
    B->len = 0;
 }
 
-void buf_expand(Buffer *B) {
+void expand(Buffer *B) {
    int newavail = B->avail * 2;
    char *newstr = (char *)malloc(newavail);
    memcpy(newstr, B->str, B->len);
@@ -52,7 +57,7 @@ void buf_expand(Buffer *B) {
    B->avail = newavail;
 }
 
-void buf_printf(Buffer *B, const char *fmt, ...) {
+void printf(Buffer *B, const char *fmt, ...) {
     va_list args;
     loop {
         int left = B->avail - B->len;
@@ -60,7 +65,7 @@ void buf_printf(Buffer *B, const char *fmt, ...) {
         int written = vsnprintf(B->str + B->len, left, fmt, args);
         va_end(args);
         if (written >= left) {
-            buf_expand(B);
+            expand(B);
             continue;
         }
         B->len += written;
@@ -68,6 +73,8 @@ void buf_printf(Buffer *B, const char *fmt, ...) {
         return;
     }
 }
+
+} // namespace buf
 
 
 #endif // IMPLEMENTATION
