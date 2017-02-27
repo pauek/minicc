@@ -6,17 +6,17 @@
 
 namespace buf {
 
-struct Buffer {
+struct T {
    int   len;
    int   avail;
    char *str;
 };
 
- Buffer *make();
-   void  free(Buffer *B);
-   void  expand(Buffer *B);
-   void  reset(Buffer *B);
-   void  printf(Buffer *B, const char *fmt, ...);
+ T *make();
+   void  free(T *B);
+   void  expand(T *B);
+   void  reset(T *B);
+   void  printf(T *B, const char *fmt, ...);
 
 } // namespace buf
 
@@ -30,26 +30,26 @@ struct Buffer {
 
 namespace buf {
 
-Buffer *make() {
-   Buffer *result = (Buffer *)malloc(sizeof(Buffer));
+T *make() {
+   T *result = (T *)malloc(sizeof(T));
    result->len   = 0;
    result->avail = BUF_INITIAL_AVAIL;
    result->str   = (char *)malloc(BUF_INITIAL_AVAIL);
    return result;
 }
 
-void free(Buffer *B) {
+void free(T *B) {
    if (B->len > 0) {
       ::free(B->str);
       ::free(B);
    }
 }
 
-void reset(Buffer *B) {
+void reset(T *B) {
    B->len = 0;
 }
 
-void expand(Buffer *B) {
+void expand(T *B) {
    int newavail = B->avail * 2;
    char *newstr = (char *)malloc(newavail);
    memcpy(newstr, B->str, B->len);
@@ -57,7 +57,7 @@ void expand(Buffer *B) {
    B->avail = newavail;
 }
 
-void printf(Buffer *B, const char *fmt, ...) {
+void printf(T *B, const char *fmt, ...) {
     va_list args;
     loop {
         int left = B->avail - B->len;

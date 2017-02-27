@@ -6,32 +6,36 @@
 #include <string.h> // memcpy
 #include <stdint.h> // uint8_t
 
-struct Array {
+namespace array {
+
+struct T {
    size_t   len;
    size_t   size;
    uint8_t *data;
 };
 
-        Array *array_new(size_t len, size_t size);
-         void  array_free(Array *array);
-         void *array_get(Array *array, int i);
-         void *array_put(Array *array, int i, void *elem);
-         void  array_resize(Array *array, size_t len);
-        Array *array_copy(Array *array, size_t len);
-         void  array_push(Array *array, void *elem);
-inline size_t  array_len(Array *array)  { assert(array); return array->len; }
-inline size_t  array_size(Array *array) { assert(array); return array->size; }
+            T *make(size_t len, size_t size);
+         void  free(T *array);
+         void *get(T *array, int i);
+         void *put(T *array, int i, void *elem);
+         void  resize(T *array, size_t len);
+            T *copy(T *array, size_t len);
+         void  push(T *array, void *elem);
+inline size_t  len(T *array)  { assert(array); return array->len; }
+inline size_t  size(T *array) { assert(array); return array->size; }
 
+}
 
 #endif // DECLARATION
 /////////////////////////////////////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////////////////////////////////////
 #if defined(IMPLEMENTATION)
 
+namespace array {
 
-Array *array_new(size_t len, size_t size) {
-   Array *array;
-   array = (Array *)malloc(sizeof(Array));
+T *make(size_t len, size_t size) {
+   T *array;
+   array = (T *)malloc(sizeof(T));
    array->len  = len;
    array->size = size;
    array->data = NULL;
@@ -41,21 +45,21 @@ Array *array_new(size_t len, size_t size) {
    return array;
 }
 
-void array_free(Array *array) {
+void free(T *array) {
    assert(array);
    if (array->data != NULL) {
-      free(array->data);
+      ::free(array->data);
    }
-   free(array);
+   ::free(array);
 }
 
-void *array_get(Array *array, int i) {
+void *get(T *array, int i) {
    assert(array);
    assert(i >= 0 && i < (int)array->len);
    return array->data + i * array->size;
 }
 
-void *array_put(Array *array, int i, void *elem) {
+void *put(T *array, int i, void *elem) {
    assert(array);
    assert(i >= 0 && i < (int)array->len);
    assert(elem);
@@ -63,11 +67,11 @@ void *array_put(Array *array, int i, void *elem) {
    return elem;
 }
 
-void array_resize(Array *array, size_t len) {
+void resize(T *array, size_t len) {
    assert(array);
    if (len == 0) {
       if (array->data != NULL) {
-         free(array->data);
+         ::free(array->data);
       }
       array->data = 0;
    } else if (array->len == 0) {
@@ -80,10 +84,10 @@ void array_resize(Array *array, size_t len) {
    array->len = len;
 }
 
-Array *array_copy(Array *array, size_t len) {
-   Array *copy;
+T *copy(T *array, size_t len) {
+   T *copy;
    assert(array);
-   copy = array_new(len, array->size);
+   copy = make(len, array->size);
    if (copy->len >= array->len && array->len > 0) {
       memcpy(copy->data, array->data, array->len * array->size);
    } else if (array->len > copy->len && copy->len > 0) {
@@ -92,9 +96,11 @@ Array *array_copy(Array *array, size_t len) {
    return copy;
 }
 
-void array_push(Array *array, void *elem) {
-   array_resize(array, array->len + 1);
-   array_put(array, (int)array->len - 1, elem);
+void push(T *array, void *elem) {
+   resize(array, array->len + 1);
+   put(array, (int)array->len - 1, elem);
+}
+
 }
 
 

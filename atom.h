@@ -10,25 +10,25 @@
 
 namespace atom {
 
-struct Atom {
+struct T {
    size_t      len;
    const char *str;
 };
 
 struct Node {
-   Atom  atom;
+   T     atom;
    Node *prev;
 };
 
 extern Node *nodes[ATOM_NUM_NODES];
 
-#define TOKEN(name, str, len) extern Atom *_##name##_;
+#define TOKEN(name, str, len) extern T *_##name##_;
 #include "tokens.inc"
 #undef TOKEN
 
 void  init();
-Atom *atom(const char *str, size_t len);
-Atom *atom(const char *str);
+   T *atom(const char *str, size_t len);
+   T *atom(const char *str);
 
 } // namespace atom
 
@@ -54,7 +54,7 @@ static uint32_t hash(const char *p, size_t len) {
 }
 
 // Token atoms
-#define TOKEN(name, str, len) Atom *_##name##_;
+#define TOKEN(name, str, len) T *_##name##_;
 #include "tokens.inc"
 #undef TOKEN
 
@@ -65,11 +65,11 @@ void init() {
 #undef TOKEN
 }
 
-Atom *atom(const char *str) {
+T *atom(const char *str) {
    return atom(str, strlen(str));
 }
 
-Atom *atom(const char *str, size_t len) {
+T *atom(const char *str, size_t len) {
 	uint32_t mask = ATOM_NUM_NODES-1;
 	uint32_t idx  = hash(str, len) & mask;
 	Node *n;

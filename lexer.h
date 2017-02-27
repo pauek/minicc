@@ -41,9 +41,9 @@ enum TokenKind {
 };
 
 struct Token {
-   TokenKind   kind;
-   Pos         pos;
-   atom::Atom *atom;
+   TokenKind kind;
+   Pos       pos;
+   atom::T  *atom;
 };
 
 enum {
@@ -220,7 +220,7 @@ static Token lexer_read_include_filename() {
 
 	size_t filename_size = (size_t)(at - filename_begin);
 	ADVANCE(1);
-	atom::Atom *a = atom::atom(filename_begin, filename_size);
+	atom::T *a = atom::atom(filename_begin, filename_size);
 	return { TOK_FILENAME, tokpos, a };
 }
 
@@ -236,7 +236,7 @@ static Token lexer_read_identifier() {
 		}
 		break;
 	}
-	atom::Atom *id = atom::atom(id_begin, (size_t)(at - id_begin));
+	atom::T *id = atom::atom(id_begin, (size_t)(at - id_begin));
 	return { TOK_IDENT, tokpos, id };
 }
 
@@ -273,7 +273,7 @@ static Token lexer_read_number() {
 			kind = TOK_LIT_FLOAT;
 		}
 	}
-	atom::Atom *atom = atom::atom(id_begin, (size_t)(id_end - id_begin));
+	atom::T *atom = atom::atom(id_begin, (size_t)(id_end - id_begin));
 	return { kind, tokpos, atom };
 }
 
@@ -311,7 +311,7 @@ Token lexer_read_literal_char_or_string() {
 	if (slash_error) {
 		return { TOK_ERROR, tokpos, NULL };
 	} else {
-		atom::Atom *atom = atom::atom(tok_begin, len);
+		atom::T *atom = atom::atom(tok_begin, len);
 		return { kind, tokpos, atom };
 	}
 }
