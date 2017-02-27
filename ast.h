@@ -25,8 +25,7 @@ struct Node {
 };
 
 #define AST_NEW(T, x) do {\
-   fprintf(stderr, "alloc(%s, %ld + %ld)\n", #T, sizeof(Node), sizeof(T)); \
-   x = (Node *)malloc(sizeof(Node) + sizeof(T) + 32);  assert(x); \
+   x = (Node *)malloc(sizeof(Node) + sizeof(t##T));  assert(x); \
    x->tag = T; \
 } while(0)
 
