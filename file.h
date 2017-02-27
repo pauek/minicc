@@ -3,15 +3,20 @@
 
 #include <stdio.h>
 
-char *read_whole_file(const char *filename);
+namespace file {
+
+char *read_whole(const char *filename);
+
+}
 
 #endif // DECLARATION
 /////////////////////////////////////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////////////////////////////////////
 #if defined(IMPLEMENTATION)
 
+namespace file {
 
-char *read_whole_file(char const *filename) {
+char *read_whole(char const *filename) {
    FILE *F = fopen(filename, "r");
    if (F == 0) {
       // fprintf(stderr, "Can't open '%s'\n", filename);
@@ -44,6 +49,8 @@ char *read_whole_file(char const *filename) {
 #endif
    buffer[n_bytes_read] = 0;
    return buffer;
+}
+
 }
 
 

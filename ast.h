@@ -97,7 +97,7 @@ struct PrintState {
    int level;
 };
 
-#define MAX_INDENT 1024
+const int MAX_INDENT = 1024;
 
 int indent_size = 3;
 

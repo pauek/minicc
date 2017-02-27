@@ -5,9 +5,10 @@
 #define LINUX
 #endif
 
-#define LEXER_MAX_COMMENTS_BETWEEN_TOKENS 10
-#define LEXER_MAX_SAVED_STATES 10
 #define loop while(1)
+
+const int LEXER_MAX_COMMENTS_BETWEEN_TOKENS = 10;
+const int LEXER_MAX_SAVED_STATES = 10;
 
 #define  DECLARATION
 #include "minicc.h"
@@ -33,7 +34,7 @@ int main_main(int argc, char *argv[]) {
 		exit(1);
 	}
 
-	const char *buffer = read_whole_file(argv[1]);
+	const char *buffer = file::read_whole(argv[1]);
 	lexer_start(buffer);
 	loop {
 		Token tok = lexer_get();
