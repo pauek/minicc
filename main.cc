@@ -23,7 +23,9 @@ void init() {
 }
 
 int main() {
+   atom::init();
    ast::test();
+   // atom::print_all();
 }
 
 int main_main(int argc, char *argv[]) {
@@ -35,15 +37,15 @@ int main_main(int argc, char *argv[]) {
 	}
 
 	const char *buffer = file::read_whole(argv[1]);
-	lexer_start(buffer);
+	lexer::start(buffer);
 	loop {
-		Token tok = lexer_get();
+		lexer::Token tok = lexer::get();
 		if (tok.kind == TOK_EOF) {
 			break;
 		}
 		printf("%d:%d: %s, %.*s\n", 
 			    tok.pos.lin, tok.pos.col, 
-			    lexer_token_kind(tok.kind), 
+			    lexer::token_kind(tok.kind), 
 			    (int)tok.atom->len, tok.atom->str);
 	}
    return 0;

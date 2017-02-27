@@ -19,13 +19,14 @@ enum OpType {
 // sizeof(Node) is the size of 'tag' & 'type' + padding to
 // start the member 'data' aligned.
 struct Node {
-   Tag     tag  = None;
-   Type   *type = NULL;
+   Tag     tag;
+   Type   *type;
    uint8_t data[];
 };
 
 #define AST_NEW(T, x) do {\
-   x = (Node *)malloc(sizeof(Node) + sizeof(T));  assert(x); \
+   fprintf(stderr, "alloc(%s, %ld + %ld)\n", #T, sizeof(Node), sizeof(T)); \
+   x = (Node *)malloc(sizeof(Node) + sizeof(T) + 32);  assert(x); \
    x->tag = T; \
 } while(0)
 

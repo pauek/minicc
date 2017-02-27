@@ -29,6 +29,9 @@ extern Node *nodes[ATOM_NUM_NODES];
 void  init();
    T *atom(const char *str, size_t len);
    T *atom(const char *str);
+#if defined(DEBUG)
+void  print_all();
+#endif
 
 } // namespace atom
 
@@ -87,6 +90,21 @@ T *atom(const char *str, size_t len) {
 	nodes[idx] = n;
 	return &n->atom;
 }
+
+#if defined(DEBUG)
+void print_all() {
+   for (int i = 0; i < ATOM_NUM_NODES; i++) {
+      if (atom::nodes[i]) {
+         printf("%d:", i);
+         for (atom::Node *n = atom::nodes[i]; n; n = n->prev) {
+            printf(" %s", n->atom.str);
+         }
+         printf("\n");
+      }
+   }
+}
+#endif
+
 
 } // namespace atom
 

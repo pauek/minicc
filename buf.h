@@ -12,7 +12,7 @@ struct T {
    char *str;
 };
 
- T *make();
+      T *make();
    void  free(T *B);
    void  expand(T *B);
    void  reset(T *B);

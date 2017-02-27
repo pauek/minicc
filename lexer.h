@@ -5,12 +5,6 @@
 #include <assert.h>
 #include <stddef.h>
 
-
-struct Pos { 
-   int lin;
-   int col;
-};
-
 enum TokenKind {
    TOK_EOF,
    TOK_ERROR,
@@ -40,6 +34,13 @@ enum TokenKind {
    TOK_LIT_STRING,
 };
 
+namespace lexer {
+
+struct Pos { 
+   int lin;
+   int col;
+};
+
 struct Token {
    TokenKind kind;
    Pos       pos;
@@ -62,20 +63,26 @@ struct CommentSeq {
    int    ncomments;
 };
 
-extern CommentSeq  lexer_comment_seq;
-             void  lexer_start(const char *buffer);
-             void  lexer_push();
-             void  lexer_pop();
-             void  lexer_discard();
-             bool  lexer_skip_space();  // Devuelve 'true' si ha encontrado espacios. Deja comentarios en 'comment_seq'
-            Token  lexer_get();         // Llama a 'lexer_skip_space' antes.
-            Token  lexer_peek();        // Devuelve el próximo token, sin avanzar.
+extern CommentSeq  comment_seq;
+             void  start(const char *buffer);
+             void  push();
+             void  pop();
+             void  discard();
+             bool  skip_space();  // Devuelve 'true' si ha encontrado espacios. Deja comentarios en 'comment_seq'
+            Token  get();         // Llama a 'lexer_skip_space' antes.
+            Token  peek();        // Devuelve el próximo token, sin avanzar.
+#if defined(DEBUG)            
+             char *token_kind(TokenKind kind);
+#endif
+}
 
 
 #endif // DECLARATION
 /////////////////////////////////////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////////////////////////////////////
 #if defined(IMPLEMENTATION)
+
+namespace lexer {
 
 struct LexerState {
 	const char *at;
@@ -100,7 +107,7 @@ static       bool  at_include_filename = false;
 #define LOWER(c)  ((c) >= 'a' && (c) <= 'z')
 #define UPPER(c)  ((c) >= 'A' && (c) <= 'Z')
 
-void lexer_start(const char *buf) {
+void start(const char *buf) {
 	buffer = buf;
 	top = -1;
 	pos = { 1, 1 };
@@ -110,28 +117,28 @@ void lexer_start(const char *buf) {
 	at_include_filename = false;
 }
 
-void lexer_push() {
+void push() {
 	top++;
 	assert(top >= 0 && top < LEXER_MAX_SAVED_STATES);
 	states[top].at  = at;
 	states[top].pos = pos;
 }
 
-void lexer_pop() {
+void pop() {
 	assert(top >= 0 && top < LEXER_MAX_SAVED_STATES);
 	at  = states[top].at;
 	pos = states[top].pos;
 	top--;
 }
 
-void lexer_discard() {
+void discard() {
 	assert(top >= 0);
 	top--;
 }
 
 #define ADVANCE(n) { at += (n); pos.col += (n); }
 
-void lexer_skip_comment(int type) {
+void skip_comment(int type) {
 	ADVANCE(2);
 	Comment *c = &lexer_comment_seq.comments[lexer_comment_seq.ncomments - 1];
 	c->type = type;
@@ -170,9 +177,9 @@ bool lexer_skip_space() {
 			pos.lin++;
 			pos.col = 1;
 		} else if (AT2('/','/')) {
-			lexer_skip_comment(COMMENT_SINGLELINE);
+			skip_comment(COMMENT_SINGLELINE);
 		} else if (AT2('/','*')) {
-			lexer_skip_comment(COMMENT_MULTILINE);
+			skip_comment(COMMENT_MULTILINE);
 		} else {
 			return at > start;
 		}
@@ -335,7 +342,7 @@ por tanto, estar guardados en el AST.
 #define IF_ID_RESULT(kind, n, token) \
    if (!strncmp(#token, at, n)) { RESULT(kind, n, token); }
 
-Token lexer_get() {
+Token get() {
 	if (AT_EOF) {
 		return { TOK_EOF, pos, NULL };
 	}
@@ -592,13 +599,44 @@ Token lexer_get() {
 	}
 }
 
-Token lexer_peek() {
+Token peek() {
 	const char *_at  = at;
 	Pos   _pos = pos;	
-	Token tok = lexer_get();
+	Token tok = lexer::get();
 	at  = _at;
 	pos = _pos;
 	return tok;
+}
+
+#if defined(DEBUG)
+char *token_kind(TokenKind kind) {
+   static char buffer[32];
+   switch (kind) {
+   case TOK_EOF:        sprintf(buffer, "EOF"); break;
+   case TOK_ERROR:      sprintf(buffer, "ERROR"); break;
+   case TOK_OPERATOR:   sprintf(buffer, "OPERATOR"); break;
+   case TOK_PUNCT:      sprintf(buffer, "PUNCT"); break;
+   case TOK_DELIM:      sprintf(buffer, "DELIM"); break;
+   case TOK_IDENT:      sprintf(buffer, "IDENT"); break;
+   case TOK_FILENAME:   sprintf(buffer, "FILENAME"); break;
+   case TOK_CONTROL:    sprintf(buffer, "CONTROL"); break;
+   case TOK_DIRECTIVE:  sprintf(buffer, "DIRECTIVE"); break;
+   case TOK_TYPE:       sprintf(buffer, "TYPE"); break;
+   case TOK_TYPEDEF:    sprintf(buffer, "TYPEDEF"); break;
+   case TOK_MODIFIER:   sprintf(buffer, "MODIFIER"); break;
+   case TOK_USING:      sprintf(buffer, "USING"); break;
+   case TOK_LIT_INT:    sprintf(buffer, "LIT_INT"); break;
+   case TOK_LIT_FLOAT:  sprintf(buffer, "LIT_FLOAT"); break;
+   case TOK_LIT_DOUBLE: sprintf(buffer, "LIT_DOUBLE"); break;
+   case TOK_LIT_BOOL:   sprintf(buffer, "LIT_BOOL"); break;
+   case TOK_LIT_STRING: sprintf(buffer, "LIT_STRING"); break;
+   case TOK_LIT_CHAR:   sprintf(buffer, "LIT_CHAR"); break;
+   case TOK_BACKSLASH:  sprintf(buffer, "BACKSLASH"); break;
+   }
+   return buffer;
+}
+#endif
+
 }
 
 
