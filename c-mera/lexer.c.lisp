@@ -1,6 +1,7 @@
 
 (include <stdio.h>)
 (include <stdlib.h>)
+(include <stdint.h>)
 
 (defmacro open-file (filename file)
    `(progn
@@ -28,7 +29,7 @@
             (free ,buffer)
             (return 0)))))
 
-(function read-whole-file ((char* filename)) -> char*
+(function read-whole-file ((const char* filename)) -> char*
    (macrolet ((err (fmt &rest vars)
                 `(progn (funcall fprintf stderr ,fmt ,@vars)
                         (return 0))))
@@ -41,6 +42,13 @@
          (read-all-bytes file size buffer)      
          (set buffer[n-bytes-read] 0) ; (zero-terminate buffer)
          (return buffer))))
+
+(enum TokenKind (:TOK_EOF :TOK_ERROR :TOK_BACKSLASH :TOK_DIRECTIVE :TOK_FILENAME))
+
+(struct Token
+   (decl ((TokenKind kind)
+          (uint32_t  pos)
+          (char*     atom))))
 
 (function main ((int argc) (char **argv)) -> int
    (decl ((char* data))

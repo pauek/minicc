@@ -1,3 +1,3 @@
 #!/bin/bash
-cm c lexer.c.lisp > lexer.c
-gcc -o lexer lexer.c
+cm c++ lexer.c.lisp > lexer.cc
+g++ -o lexer lexer.cc
