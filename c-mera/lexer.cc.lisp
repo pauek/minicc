@@ -197,6 +197,9 @@
          (set r (* r 16777619)))
       (return r)))
 
+(defmacro _new (type)
+   `(cast (postfix* ,type) (malloc (sizeof ,type))))
+
 (function atom ((const char *str) (size_t len)) -> Atom*
    (decl ((uint32_t mask = (1- ATOM_NUM_NODES))
           (uint32_t idx  = (& (hash str len) mask))
@@ -206,7 +209,7 @@
          (if (and (== n->atom.len len) (== 0 (strncmp n->atom.str str len)))
             (return (& n->atom)))
          (set n n->prev))
-      (set n (cast Node* (malloc (sizeof Node))))
+      (set n (_new Node));(cast Node* (malloc (sizeof Node))))
       (set n->atom.str str)
       (set n->atom.len len)
       (set n->prev (aref nodes idx))
