@@ -81,11 +81,6 @@ extern CommentSeq  comment_seq;
 
 namespace lexer {
 
-struct LexerState {
-	const char *at;
-	Pos         pos;
-};
-
 static const char *at = 0;
 static        Pos  pos = {1, 1};
 static const char *buffer = 0;
