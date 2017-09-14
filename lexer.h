@@ -352,6 +352,9 @@ Token get() {
 		at_directive = false;
 		return lexer_read_include_filename();
 	}
+   
+   lexer_skip_space();
+
 	Token tok;
 	Pos tokpos = pos;
 	switch (at[0]) 

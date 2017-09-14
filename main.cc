@@ -72,13 +72,13 @@ void ast_test() {
    buf::free(buf);
 }
 
-int main() {
+void main_ast() {
    atom::init();
    ast_test();
    // atom::print_all();
 }
 
-int main_main(int argc, char *argv[]) {
+int main(int argc, char *argv[]) {
 	init();
 
 	if (argc < 2) {
