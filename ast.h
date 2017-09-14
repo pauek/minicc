@@ -320,9 +320,9 @@ static void _print(PrintState* state, Buffer *B, Node *node) {
 #define END     break; }
 
    switch (node->tag) {
-   CASE(IntLiteral)    printf(B, "%d", it->val); END
-   CASE(FloatLiteral)  printf(B, "%g", it->val); END
-   CASE(DoubleLiteral) printf(B, "%g", it->val); END
+   CASE(IntLiteral)    printf(B, "%d",  it->val); END
+   CASE(FloatLiteral)  printf(B, "%gf", it->val); END
+   CASE(DoubleLiteral) printf(B, "%g",  it->val); END
    CASE(Label)
       printf(B, "%s:", it->atom->str);
    END
