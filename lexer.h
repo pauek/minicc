@@ -65,9 +65,6 @@ struct CommentSeq {
 
 extern CommentSeq  comment_seq;
              void  start(const char *buffer);
-             void  push();
-             void  pop();
-             void  discard();
              bool  skip_space();  // Devuelve 'true' si ha encontrado espacios. Deja comentarios en 'comment_seq'
             Token  get();         // Llama a 'lexer_skip_space' antes.
             Token  peek();        // Devuelve el próximo token, sin avanzar.
@@ -92,7 +89,6 @@ struct LexerState {
 static const char *at = 0;
 static        Pos  pos = {1, 1};
 static const char *buffer = 0;
-static LexerState  states[LEXER_MAX_SAVED_STATES] = {};
 static        int  top = -1;
 static       bool  at_directive = false;
 static       bool  at_include_filename = false;
@@ -115,25 +111,6 @@ void start(const char *buf) {
 	lexer_comment_seq.ncomments = 0;
 	at_directive = false;
 	at_include_filename = false;
-}
-
-void push() {
-	top++;
-	assert(top >= 0 && top < LEXER_MAX_SAVED_STATES);
-	states[top].at  = at;
-	states[top].pos = pos;
-}
-
-void pop() {
-	assert(top >= 0 && top < LEXER_MAX_SAVED_STATES);
-	at  = states[top].at;
-	pos = states[top].pos;
-	top--;
-}
-
-void discard() {
-	assert(top >= 0);
-	top--;
 }
 
 #define ADVANCE(n) { at += (n); pos.col += (n); }
@@ -352,7 +329,7 @@ Token get() {
 		at_directive = false;
 		return lexer_read_include_filename();
 	}
-   
+
    lexer_skip_space();
 
 	Token tok;
