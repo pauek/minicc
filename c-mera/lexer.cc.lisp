@@ -58,119 +58,56 @@
 
 ;;; Token list
 
-(lisp (defvar tokens '(
-   (:eof        "<eof>"     5)
-   (:error      "<error>"   7)
-   (:backslash  "\\\\"      1)
+(lisp 
+   (defvar control
+      '((:eof "<eof>") (:error "<error>") (:backlash "\\\\" 1) (:sharp "#")))
+   (defvar punctuation
+      '((:colon     ";") (:semicolon ";") (:coloncolon "::") (:comma ",") (:qmark "?")))
+   (defvar logical
+      '((:barbar "||") (:ampamp "&&") (:or "or") (:and "and")))
+   (defvar comparison
+      '((:eqeq "==") (:noteq "!=") (:lt "<") (:gt ">") (:le "<=") (:ge ">=")))
+   (defvar access
+      '((:dot ".") (:arrow "->") (:arrowp "->*")))
+   (defvar bitwise
+      '((:not "!") (:amp "&") (:bar "|") (:xor "^") (:lshift "<<") (:rshift ">>")))
+   (defvar arithmetic
+      '((:plus "+") (:minus "-") (:star "*") (:mod "%")))
+   (defvar increment
+      '((:plusplus "++") (:minusminus "--")))
+   (defvar assign
+      '((:eq "=") (:stareq "*=") (:minuseq "-=") (:pluseq "+=") (:slasheq "/=")
+        (:modeq "%=") (:bareq "|=") (:ampeq "&=") (:xoreq "^=") 
+        (:lshifteq "<<=") (:rshifteq ">>=")))
+   (defvar delimiters
+      '((:lbrace "{") (:rbrace "}") (:lparen "(") (:rparen ")") 
+        (:lbracket "[") (:rbracket "]")))
+   (defvar keywords
+      '(:if :else :while :for :switch :case :break :continue :goto :return
+        :using :namespace :struct :class :typedef :enum
+        :void :int :bool :char :float :double :string
+        :short :long :const :unsigned
+        :auto :register :static :extern :volatile :mutable
+        :inline :virtual :explicit
+        :true :false))
+   (defvar macros
+      '(:include)))
 
-   (:semicolon  ";"         1)
-   (:colon      ":"         1)
-   (:coloncolon "::"        2)
-   (:comma      ","         1)
-   (:qmark      "?"         1)
-
-   (:barbar     "||"        2)
-   (:ampamp     "&&"        2)
-   (:or         "or"        2)
-   (:and        "and"       3)
-
-   (:eqeq       "=="        2)
-   (:noteq      "!="        2)
-   (:lt         "<"         1)
-   (:gt         ">"         1)
-   (:leq        "<="        2)
-   (:geq        ">="        2)
-
-   (:dot        "."         1)
-   (:arrow      "->"        2)
-   (:arrowp     "->*"       3)
-
-   (:not        "!"         1)
-   (:amp        "&"         1)
-   (:bar        "|"         1)
-   (:xor        "^"         1)
-   (:plus       "+"         1)
-   (:minus      "-"         1)
-   (:star       "*"         1)
-   (:slash      "/"         1)
-   (:mod        "%"         1)
-   (:lshift     "<<"        2)
-   (:rshift     ">>"        2)
-   (:plusplus   "++"        2)
-   (:minusminus "--"        2)
-
-   (:eq         "="         1)
-   (:stareq     "*="        2)
-   (:minuseq    "-="        2)
-   (:pluseq     "+="        2)
-   (:slasheq    "/="        2)
-   (:modeq      "%="        2)
-   (:bareq      "|="        2)
-   (:ampeq      "&="        2)
-   (:xoreq      "^="        2)
-   (:lshifteq   "<<="       3)
-   (:rshifteq   ">>="       3)
-
-   (:sharp      "#"         1)
-   (:lbrace     "{"         1)
-   (:rbrace     "}"         1)
-   (:lparen     "("         1)
-   (:rparen     ")"         1)
-   (:lbracket   "["         1)
-   (:rbracket   "]"         1)
-
-   (:if         "if"        2)
-   (:else       "else"      4)
-   (:while      "while"     5)
-   (:for        "for"       3)
-   (:switch     "switch"    6)
-   (:case       "case"      4)
-   (:break      "break"     5)
-   (:continue   "continue"  8)
-   (:goto       "goto"      4)
-   (:return     "return"    6)
-
-   (:using      "using"     5)
-   (:namespace  "namespace" 9)
-   (:struct     "struct"    6)
-   (:class      "class"     4)
-   (:typedef    "typedef"   7)
-   (:enum       "enum"      4)
-
-   (:void       "void"      4)
-   (:int        "int"       3)
-   (:bool       "bool"      4)
-   (:char       "char"      4)
-   (:float      "float"     5)
-   (:double     "double"    6)
-   (:string     "string"    6)
-
-   (:short      "short"     5)
-   (:long       "long"      4)
-   (:const      "const"     5)
-   (:unsigned   "unsigned"  8)
-
-   (:auto       "auto"      4)
-   (:register   "register"  8)
-   (:static     "static"    6)
-   (:extern     "extern"    6)
-   (:volatile   "volatile"  7)
-   (:mutable    "mutable"   7)
-
-   (:inline     "inline"    6)
-   (:virtual    "virtual"   7)
-   (:explicit   "explicit"  8)
-
-   (:true       "true"      4)
-   (:false      "false"     5)
-
-   (:include    "include"   7)
-)))
+(lisp
+   (defvar tokens
+      (loop for tok in (append control punctuation logical comparison access bitwise 
+                               arithmetic increment assign delimiters keywords macros)
+         collect  (if (symbolp tok)
+                     (let ((str (string-downcase (symbol-name tok))))
+                        `(,tok ,str ,(length str)))
+                     (destructuring-bind (sym str &optional (size 'nil)) tok
+                        (if (null size) (setf size (length str)))
+                           `(,sym ,str ,size))))))
 
 (defun tok-sym  (tok) (nth 0 tok))
 (defun tok-str  (tok) (nth 1 tok))
 (defun tok-len  (tok) (nth 2 tok))
-(defun tok-atom (tok) (make-symbol (format nil "_~a_" (tok-sym tok))))
+(defun tok-atom (tok) (make-symbol (format nil "_atom_~a" (tok-sym tok))))
 
 ;;; Atom
 
