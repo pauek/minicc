@@ -6,8 +6,7 @@
 
 ;;; Configuration
 
-(lisp 
-   (defvar ATOM_NUM_NODES 4096)) ; Tiene que ser potencia de 2
+(defvar ATOM_NUM_NODES 4096) ; Tiene que ser potencia de 2
 
 ;;; Utils
 
@@ -58,42 +57,48 @@
 
 ;;; Token list
 
-(lisp 
-   (defvar control
-      '((:eof "<eof>") (:error "<error>") (:backlash "\\\\" 1) (:sharp "#")))
-   (defvar punctuation
-      '((:colon     ";") (:semicolon ";") (:coloncolon "::") (:comma ",") (:qmark "?")))
-   (defvar logical
-      '((:barbar "||") (:ampamp "&&") (:or "or") (:and "and")))
-   (defvar comparison
-      '((:eqeq "==") (:noteq "!=") (:lt "<") (:gt ">") (:le "<=") (:ge ">=")))
-   (defvar access
-      '((:dot ".") (:arrow "->") (:arrowp "->*")))
-   (defvar bitwise
-      '((:not "!") (:amp "&") (:bar "|") (:xor "^") (:lshift "<<") (:rshift ">>")))
-   (defvar arithmetic
-      '((:plus "+") (:minus "-") (:star "*") (:mod "%")))
-   (defvar increment
-      '((:plusplus "++") (:minusminus "--")))
-   (defvar assign
-      '((:eq "=") (:stareq "*=") (:minuseq "-=") (:pluseq "+=") (:slasheq "/=")
-        (:modeq "%=") (:bareq "|=") (:ampeq "&=") (:xoreq "^=") 
-        (:lshifteq "<<=") (:rshifteq ">>=")))
-   (defvar delimiters
-      '((:lbrace "{") (:rbrace "}") (:lparen "(") (:rparen ")") 
-        (:lbracket "[") (:rbracket "]")))
-   (defvar keywords
-      '(:if :else :while :for :switch :case :break :continue :goto :return
-        :using :namespace :struct :class :typedef :enum
-        :void :int :bool :char :float :double :string
-        :short :long :const :unsigned
-        :auto :register :static :extern :volatile :mutable
-        :inline :virtual :explicit
-        :true :false))
-   (defvar macros
-      '(:include)))
+; Here you can choose what tokens the lexer will handle
+; Every token is either:
+; 1. a symbol = :if
+; 2. a list   = (:eof "<eof>")  ; first item is a symbol, second is the associated string
+;                               ; the third item is optional and is the size of the token
+;                               ; this is normally computed from the string but for "\\\\" should be 1...
 
-(lisp
+(defvar control
+   '((:eof "<eof>") (:error "<error>") (:backlash "\\\\" 1) (:sharp "#")))
+(defvar punctuation
+   '((:colon     ";") (:semicolon ";") (:coloncolon "::") (:comma ",") (:qmark "?")))
+(defvar logical
+   '((:barbar "||") (:ampamp "&&") (:or "or") (:and "and")))
+(defvar comparison
+   '((:eqeq "==") (:noteq "!=") (:lt "<") (:gt ">") (:le "<=") (:ge ">=")))
+(defvar access
+   '((:dot ".") (:arrow "->") (:arrowp "->*")))
+(defvar bitwise
+   '((:not "!") (:amp "&") (:bar "|") (:xor "^") (:lshift "<<") (:rshift ">>")))
+(defvar arithmetic
+   '((:plus "+") (:minus "-") (:star "*") (:mod "%")))
+(defvar increment
+   '((:plusplus "++") (:minusminus "--")))
+(defvar assign
+   '((:eq "=") (:stareq "*=") (:minuseq "-=") (:pluseq "+=") (:slasheq "/=")
+     (:modeq "%=") (:bareq "|=") (:ampeq "&=") (:xoreq "^=") 
+     (:lshifteq "<<=") (:rshifteq ">>=")))
+(defvar delimiters
+   '((:lbrace "{") (:rbrace "}") (:lparen "(") (:rparen ")") 
+     (:lbracket "[") (:rbracket "]")))
+(defvar keywords
+   '(:if :else :while :for :switch :case :break :continue :goto :return
+     :using :namespace :struct :class :typedef :enum
+     :void :int :bool :char :float :double :string
+     :short :long :const :unsigned
+     :auto :register :static :extern :volatile :mutable
+     :inline :virtual :explicit
+     :true :false))
+(defvar macros
+   '(:include))
+
+(lisp ; Porqué hay que poner este 'lisp' aquí??
    (defvar tokens
       (loop for tok in (append control punctuation logical comparison access bitwise 
                                arithmetic increment assign delimiters keywords macros)
@@ -109,7 +114,7 @@
 (defun tok-len  (tok) (nth 2 tok))
 (defun tok-atom (tok) (make-symbol (format nil "_atom_~a" (tok-sym tok))))
 
-;;; Atom
+;;; Atoms
 
 (struct Atom
    (decl ((size_t      len)
@@ -169,17 +174,143 @@
    (:TOK_EOF :TOK_ERROR :TOK_BACKSLASH :TOK_DIRECTIVE :TOK_FILENAME
     :TOK_USING :TOK_PUNCT :TOK_DELIM :TOK_OPERATOR :TOK_IDENT :TOK_CONTROL
     :TOK_TYPEDEF :TOK_MODIFIER :TOK_TYPE 
-    :TOK_LIT_BOOL :TOK_LIT_INT :TOK_LIT_FLOAT :TOK_LIT_DOUBLE :TOK_LIT_CHAR :TOK_LIT_STRING))
+    :TOK_LIT_BOOL :TOK_LIT_INT :TOK_LIT_FLOAT :TOK_LIT_DOUBLE :TOK_LIT_CHAR 
+    :TOK_LIT_STRING))
 
 (typedef uint32_t Position)
 
 (struct Token
-   (decl ((TokenKind kind)
-          (char*     str)
-          (size_t    size))))
+   (decl ((TokenKind   kind)
+          (Atom*       atom)
+          (const char* at))))
 
-(enum (:COMMENT_MULTILINE :COMMENT_SINGLELINE))
+(struct Pos (decl ((int lin) (int col))))
 
+; Comments (we leave these for later...)
+; (enum (:COMMENT_MULTILINE :COMMENT_SINGLELINE))
+
+(macrolet ((_at (x)     `(== (aref curr 0) ,x))
+           (range (a b) `(&& (>= (aref curr 0) ,a) (>= (aref curr 0) ,b)))
+           (digit ()    `(range #\0 #\9))
+           (at (x)
+              (lisp 
+                 (cond 
+                    ((eq x :eof)      `(_at 0))
+                    ((eq x :space)    `(\|\| (_at #\Space) (_at #\Tab))) ; @Incomplete: Faltan '\v' i '\f'.
+                    ((eq x :endl)     `(_at #\Newline))
+                    ((eq x :id)       `(\|\| (range #\a #\z) (range #\A #\Z) (range #\0 #\9) (_at #\_)))
+                    ((symbolp x)      `(_at ,x))
+                    ((characterp x)   `(_at ,x))
+                    ((integerp x)     `(_at ,x))
+                    ((= 1 (length x)) `(_at ,(char x 0)))
+                    (t `(&& ,@(loop for c across x
+                                    for i from 0
+                                  collect `(== (aref curr ,i) ,c)))))))
+           (advance (n) `(progn (+= curr ,n) (+= pos.col ,n)))
+           (skip-comment (type)
+              `(progn 
+                  (advance 2)
+                  (while 1
+                     (when (at :eof) break)
+                     (when (at :endl)
+                        (postfix++ curr) 
+                        (postfix++ pos.lin) 
+                        (set pos.col 1)
+                        ,(lisp (when (eq type :COMMENT_SINGLELINE)
+                                 `(break))))
+                     ,(lisp (when (eq type :COMMENT_MULTILINE)
+                               `(when (at "*/")
+                                   (advance 2)
+                                   (break))))
+                     (advance 1)))))
+
+   (struct lexer
+      (decl ((const char* buffer)
+             (const char* curr)
+             (Pos         pos)))
+
+      (function lexer ((const char* buf)) -> ()
+         (set buffer buf))
+
+      (function skip-space () -> bool
+         ; Skip whitespace
+         (decl ((const char* start = curr))
+            (while 1
+               (cond ((at :eof)   (return (> curr start)))
+                     ((at :space) (advance 1))
+                     ((at :endl)  (postfix++ curr) (postfix++ pos.lin) (set pos.col 1))
+                     ((at "//")   (skip-comment :COMMENT_SINGLELINE))
+                     ((at "/*")   (skip-comment :COMMENT_MULTILINE))
+                     (t           (return (> curr start)))))))
+
+      (function read-identifier () -> Token
+         (decl ((const char* id-begin = curr))
+            (advance 1)
+            (while 1
+               (cond ((at :eof) (break))
+                     ((at :id)  (advance 1))
+                     (t (break))))
+            (return (cast Token (clist TOK_IDENT 
+                                       (funcall atom id-begin (cast size_t (- curr id-begin)))
+                                       id-begin)))))
+
+      (function read-number () -> Token
+         (decl ((const char* id-begin = curr)
+                (const char* id-end   = 0)
+                (bool        real-number = false))
+            (if (at #\-) (advance 1))
+            (while 1
+               (cond ((at :eof) (break))
+                     ((digit)   (advance 1))
+                     ((at #\.)  (if real-number 
+                                    (break)
+                                    (progn (set real-number true)
+                                       (advance 1))))))
+            (set id-end curr)
+            (decl ((TokenKind kind = TOK_LIT_INT))
+               (when real-number
+                  (set kind TOK_LIT_DOUBLE)
+                  (when (at #\f)
+                     (advance 1)
+                     (set kind TOK_LIT_FLOAT)))
+               (return (cast Token (clist kind
+                                          (funcall atom id-begin (- id-end id-begin)) 
+                                          id-begin))))))
+
+      (function read-char-or-string () -> Token
+         (decl ((char delimiter = curr[0])
+                (TokenKind kind = (? (== delimiter #\') TOK_LIT_CHAR TOK_LIT_STRING)))
+            (advance 1)
+            (decl ((bool slash-error      = false)
+                   (int  nchars           = 0)
+                   (const char* tok-begin = curr)
+                   (Pos         tokpos    = pos))
+               (while 1
+                  (cond ((at delimiter)  (break))
+                        ((at :endl)      (return (cast Token (clist TOK_ERROR 0 tok-begin))))
+                        ((at 92) ; #\\
+                            (advance 1)
+                            (switch curr[0]
+                                ((#\a #\b #\f #\n #\r #\t #\v #\' #\" #\? 92) (break))
+                                (t (set slash-error true)))))
+                  (advance 1)
+                  nchars++)
+               (decl ((size_t len = (- curr tok-begin)))
+                  (advance 1)
+                  (if slash-error
+                      (return (cast Token (clist TOK_ERROR 0 tok-begin)))
+                      (return (cast Token (clist kind (funcall atom tok-begin len) tok-begin))))))))
+
+      (function get () -> Token
+         (when (at :eof) 
+            (return (cast Token (clist TOK_EOF 0 curr))))
+         (skip-space)
+         ;;; GENERATE HUGE SWITCH FROM TOKENS!!!!
+         ; 1. Add all words to hash table or equivalent
+         ; 2. Generate cases from each key-value pair.
+         )))
+
+;; Main
 
 (function main ((int argc) (char **argv)) -> int
    (init)
