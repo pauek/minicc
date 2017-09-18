@@ -67,7 +67,8 @@
 (defstruct token kind str len)
 (defvar token-table (make-hash-table))
 
-(defun token-atom (sym) (make-symbol (string-upcase (format nil "_ATOM_~a" sym))))
+(defun token-atom   (sym) (make-symbol (string-upcase (format nil "_ATOM_~a" sym))))
+(defun token-length (sym) (token-len (gethash sym token-table)))
 
 (defmacro deftoken (kind sym str &optional len)
    (lisp (if (null len) (setf len (length str))))
@@ -122,8 +123,8 @@
    (:END :ERROR :BACKSLASH :DIRECTIVE :FILENAME
     :USING :PUNCT :DELIM :OPERATOR :ASSIGN :KEYWORD
     :IDENT :CONTROL :TYPEDEF :MODIFIER :TYPE 
-    :LIT_BOOL :LIT_INT :LIT_FLOAT :LIT_DOUBLE :LIT_CHAR 
-    :LIT_STRING))
+    :LIT-BOOL :LIT-INT :LIT-FLOAT :LIT-DOUBLE 
+    :LIT-CHAR :LIT-STRING))
 
 (struct Atom
    (decl ((Kind        kind)
@@ -303,69 +304,69 @@
                       (return (new-token :ERROR tok-begin 0))
                       (return (new-token kind tok-begin len)))))))
 
-      (macrolet ((result (kind len)
+      (macrolet ((result (sym)
                     `(block
-                        (decl ((Token result = (clist ,(token-atom kind) curr)))
-                           (advance ,len)
+                        (decl ((Token result = (clist ,(token-atom sym) curr)))
+                           (advance ,(token-length sym))
                            (return result))))
                  (at1 (ch) `(== (aref curr 1) ,ch))
                  (at2 (ch) `(== (aref curr 2) ,ch)))
          (function get () -> Token
-            (if (at :END) (result :END 0))
+            (if (at :END) (result :end))
             (skip-space)
             (switch curr[0]
-               (#\( (result :LPAREN 1))
-               (#\) (result :RPAREN 1))
-               (#\[ (result :LBRACKET 1))
-               (#\] (result :RBRACKET 1))
-               (#\{ (result :LBRACE 1))
-               (#\} (result :RBRACE 1))
-               (#\; (result :SEMICOLON 1))
-               (#\? (result :QMARK 1))
-               (#\, (result :COMMA 1))
-               (#\# (result :SHARP 1))
+               (#\( (result :lparen))
+               (#\) (result :rparen))
+               (#\[ (result :lbracket))
+               (#\] (result :rbracket))
+               (#\{ (result :lbrace))
+               (#\} (result :rbrace))
+               (#\; (result :semicolon))
+               (#\? (result :qmark))
+               (#\, (result :comma))
+               (#\# (result :sharp))
                
-               (#\: (if (at1 #\:) (result :COLONCOLON 2) (result :COLON 1)))
-               (#\+ (if (at1 #\+) (result :PLUSPLUS 2)   (result :PLUS 1)))
-               (#\* (if (at1 #\=) (result :STAREQ 2)     (result :STAR 1)))
-               (#\/ (if (at1 #\=) (result :DIVEQ 2)      (result :DIV 1)))
-               (#\^ (if (at1 #\=) (result :XOREQ 2)      (result :XOR 1)))
-               (#\& (if (at1 #\=) (result :AMPEQ 2)      (result :AMP 1)))
-               (#\% (if (at1 #\=) (result :MODEQ 2)      (result :MOD 1)))
-               (#\! (if (at1 #\=) (result :NOTEQ 2)      (result :NOT 1)))
-               (#\= (if (at1 #\=) (result :EQEQ 2)       (result :EQ 1)))
+               (#\: (if (at1 #\:) (result :coloncolon) (result :colon)))
+               (#\+ (if (at1 #\+) (result :plusplus)   (result :plus)))
+               (#\* (if (at1 #\=) (result :stareq)     (result :star)))
+               (#\/ (if (at1 #\=) (result :diveq)      (result :div)))
+               (#\^ (if (at1 #\=) (result :xoreq)      (result :xor)))
+               (#\& (if (at1 #\=) (result :ampeq)      (result :amp)))
+               (#\% (if (at1 #\=) (result :modeq)      (result :mod)))
+               (#\! (if (at1 #\=) (result :noteq)      (result :not)))
+               (#\= (if (at1 #\=) (result :eqeq)       (result :eq)))
 
                (#\. (if (is-digit (aref curr 1))
                         (return (read-number))
-                        (result :DOT 1)))
+                        (result :dot)))
                (#\| (switch curr[1]
-                       (#\| (result :BARBAR 2))
-                       (#\= (result :BAREQ 2))
-                       (t   (result :BAR 1))))
+                       (#\| (result :barbar))
+                       (#\= (result :bareq))
+                       (t   (result :bar))))
                (#\< (switch curr[1]
-                       (#\< (if (at2 #\=) (result :LSHIFTEQ 3) (result :LSHIFT 2)))
-                       (#\= (result :LE 2))
-                       (t   (result :LT 1))))
+                       (#\< (if (at2 #\=) (result :lshifteq) (result :lshift)))
+                       (#\= (result :le))
+                       (t   (result :lt))))
                (#\> (switch curr[1]
-                       (#\> (if (at2 #\=) (result :RSHIFTEQ 3) (result :RSHIFT 2)))
-                       (#\= (result :GE 2))
-                       (t   (result :GT 1))))
+                       (#\> (if (at2 #\=) (result :rshifteq) (result :rshift)))
+                       (#\= (result :ge))
+                       (t   (result :gt))))
                (#\- (switch curr[1]
-                        (#\- (result :MINUSMINUS 2))
-                        (#\= (result :MINUSEQ 2))
-                        (#\> (result :ARROW 2))
+                        (#\- (result :minusminus))
+                        (#\= (result :minuseq))
+                        (#\> (result :arrow))
                         (t   (if (is-digit curr[1]) 
                                  (return (read-number))
-                                 (result :MINUS 1)))))
+                                 (result :minus)))))
 
                ((#\0 #\1 #\2 #\3 #\4 #\5 #\6 #\7 #\8 #\9) (return (read-number)))
                ((#\' #\") (return (read-identifier)))
                ;(#\\ (result :BACKSLASH 1))
                (t   (if (at :id-start)
                         (return (read-identifier))
-                        (result :ERROR 0)))
+                        (result :error)))
                )))))
-#|
+#|a
                   
 |#
 
