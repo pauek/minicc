@@ -367,7 +367,7 @@
                                  (result :minus)))))
 
                ((#\0 #\1 #\2 #\3 #\4 #\5 #\6 #\7 #\8 #\9) (return (read-number)))
-               ((#\' #\") (return (read-identifier)))
+               ((#\' #\") (return (read-char-or-string-literal)))
                ;(#\\ (result :BACKSLASH 1))
                (t   (if (at :id-start)
                         (return (read-identifier))
@@ -391,7 +391,7 @@
          (while 1
             (set tok (lexer.get))
             (if (== tok.atom->kind :END) (break))
-            (printf "%s %.*s %lu\\n" 
+            (printf "%s \\\"%.*s\\\" %lu\\n" 
                     (kind2str tok.atom->kind)
                     (cast int tok.atom->len) tok.atom->str
                     tok.atom->len)))))
