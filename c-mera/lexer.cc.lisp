@@ -36,7 +36,6 @@
    `(progn 
       (decl ((size_t n-bytes-read))
          (set n-bytes-read (fread (cast void* ,buffer) 1 ,size ,file))
-         (printf "Read %lu bytes\\n" n-bytes-read)
          (if (!= n-bytes-read (cast size_t ,size))
             (die "Couldn't read the whole file: read %lu bytes (should be %lu)" 
                  n-bytes-read (cast size_t ,size))))))
@@ -56,13 +55,6 @@
          (return buffer))))
 
 ;;; Token list
-
-; Here you can choose what tokens the lexer will handle
-; Every token is either:
-; 1. a symbol = :if
-; 2. a list   = (:end "<eof>")  ; first item is a symbol, second is the associated string
-;                               ; the third item is optional and is the size of the token
-;                               ; this is normally computed from the string but for "\\\\" should be 1...
 
 (defstruct token kind str len)
 (defvar token-table (make-hash-table))
@@ -94,8 +86,10 @@
 
 (deftoken-list :PUNCT 
    (:colon ";") (:semicolon ";") (:coloncolon "::") (:comma ",") (:qmark "?") (:dot "."))
+
 (deftoken-list :DELIM
    (:lparen "(") (:rparen ")") (:lbracket "[") (:rbracket "]") (:lbrace "{") (:rbrace "}"))
+
 (deftoken-list :OPERATOR
    (:plus "+") (:minus "-") (:star "*") (:div "/") (:mod "%") 
    (:not "!") (:amp "&") (:bar "|") (:xor "^") (:lshift "<<") (:rshift ">>")
@@ -103,28 +97,40 @@
    (:barbar "||") (:ampamp "&&") (:or "or") (:and "and")
    (:arrow "->") (:arrowp "->*")
    (:plusplus "++") (:minusminus "--"))
+
 (deftoken-list :ASSIGN
    (:eq "=") (:stareq "*=") (:minuseq "-=") (:pluseq "+=") (:diveq "/=")
    (:modeq "%=") (:bareq "|=") (:ampeq "&=") (:xoreq "^=") (:barbareq "||=") (:ampampeq "&&=")
    (:noteq "!=")
    (:lshifteq "<<=") (:rshifteq ">>="))
 
-(defkeyword-list :if :else :while :for :switch :case :break :continue :goto :return
-     :using :namespace :struct :class :typedef :enum
-     :void :int :bool :char :float :double :string
-     :short :long :const :unsigned
-     :auto :register :static :extern :volatile :mutable
-     :inline :virtual :explicit
-     :true :false)
+(defkeyword-list
+   :if :else :while :for :switch :case :break :continue :goto :return
+   :using :namespace                                  ; :USING
+   :typedef :enum :struct :class                      ; :TYPEDEF
+   :void :int :bool :char :float :double :string      ; :TYPE
+   :short :long :const :unsigned                      ; :MODIFIER
+   :auto :register :static :extern :volatile :mutable ; :MODIFIER
+   :inline :virtual :explicit                         ; :MODIFIER
+   :true :false)                                      ; :LIT-BOOL
 
 ;;; Atoms
 
-(enum Kind 
-   (:END :ERROR :BACKSLASH :DIRECTIVE :FILENAME
-    :USING :PUNCT :DELIM :OPERATOR :ASSIGN :KEYWORD
-    :IDENT :CONTROL :TYPEDEF :MODIFIER :TYPE 
-    :LIT-BOOL :LIT-INT :LIT-FLOAT :LIT-DOUBLE 
-    :LIT-CHAR :LIT-STRING))
+(defvar kinds 
+   '(:END :ERROR :BACKSLASH :DIRECTIVE :FILENAME
+     :USING :PUNCT :DELIM :OPERATOR :ASSIGN :KEYWORD
+     :IDENT :CONTROL :MODIFIER :TYPE 
+     :LIT-BOOL :LIT-INT :LIT-FLOAT :LIT-DOUBLE 
+     :LIT-CHAR :LIT-STRING))
+
+(macrolet ((enum-kinds () `(enum Kind ,kinds)))
+   (enum-kinds))
+
+(macrolet ((fun-kind2str () 
+              `(function kind2str ((Kind kind)) -> (const char*)
+                   (switch kind ,@(loop for k in kinds collect `(,k (return ,(string-upcase (symbol-name k))))))
+                   (return "<unknown>"))))
+   (fun-kind2str))
 
 (struct Atom
    (decl ((Kind        kind)
@@ -197,7 +203,7 @@
 ; (enum (:COMMENT_MULTILINE :COMMENT_SINGLELINE))
 
 (macrolet ((_at (x)     `(== (aref curr 0) ,x))
-           (range (a b) `(&& (>= (aref curr 0) ,a) (>= (aref curr 0) ,b)))
+           (range (a b) `(&& (>= (aref curr 0) ,a) (<= (aref curr 0) ,b)))
            (digit ()    `(range #\0 #\9))
            (is-digit (x) `(&& (>= ,x #\0) (<= ,x #\9)))
            (at (x)
@@ -233,13 +239,14 @@
            (new-token (kind ptr size)
                `(cast Token (clist (funcall atom ,kind ,ptr ,size) ,ptr))))
 
-   (struct lexer
+   (struct Lexer
       (decl ((const char* buffer)
              (const char* curr)
              (Pos         pos)))
 
-      (function lexer ((const char* buf)) -> ()
-         (set buffer buf))
+      (function init ((const char* buf)) -> void
+         (set buffer buf)
+         (set curr   buf))
 
       (function skip-space () -> bool
          ; Skip whitespace
@@ -253,56 +260,55 @@
                      (t           (return (> curr start)))))))
 
       (function read-identifier () -> Token
-         (decl ((const char* id-begin = curr))
+         (decl ((const char* start = curr))
             (advance 1)
             (while 1
                (cond ((at :end) (break))
                      ((at :id)  (advance 1))
                      (t (break))))
-            (return (new-token :IDENT id-begin (- curr id-begin)))))
+            (return (new-token :IDENT start (- curr start)))))
 
       (function read-number () -> Token
-         (decl ((const char* id-begin = curr)
-                (const char* id-end   = 0)
-                (bool        real-number = false))
+         (decl ((const char* start       = curr)
+                (bool        real-number = false)
+                (Kind        kind))
             (if (at #\-) (advance 1))
             (while 1
                (cond ((at :end) (break))
                      ((digit)   (advance 1))
-                     ((at #\.)  (if real-number 
-                                    (break)
-                                    (progn (set real-number true)
-                                       (advance 1))))))
-            (set id-end curr)
-            (decl ((Kind kind = :LIT-INT))
-               (when real-number
-                  (set kind :LIT-DOUBLE)
-                  (when (at #\f)
-                     (advance 1)
-                     (set kind :LIT-FLOAT)))
-               (return (new-token kind id-begin (- id-end id-begin))))))
+                     ((at #\.)  (if real-number (break))
+                                (set real-number true)
+                                (advance 1))
+                     (t (break))))
+            (set kind :LIT-INT)
+            (when real-number
+               (set kind :LIT-DOUBLE)
+               (when (at #\f)
+                  (advance 1)
+                  (set kind :LIT-FLOAT)))
+            (return (new-token kind start (- curr start)))))
 
       (function read-char-or-string-literal () -> Token
          (decl ((char delimiter = curr[0])
                 (Kind kind      = (? (== delimiter #\') :LIT-CHAR :LIT-STRING)))
             (advance 1)
-            (decl ((bool slash-error      = false)
-                   (const char* tok-begin = curr)
-                   (Pos         tokpos    = pos))
+            (decl ((bool slash-error   = false)
+                   (const char* start  = curr)
+                   (Pos         tokpos = pos))
                (while 1
                   (cond ((at delimiter)  (break))
-                        ((at :endl)      (return (new-token :ERROR tok-begin 0)))
+                        ((at :endl)      (return (new-token :ERROR start 0)))
                         ((at 92) ; #\\
                             (advance 1)
                             (switch curr[0]
                                 ((#\a #\b #\f #\n #\r #\t #\v #\' #\" #\? 92) (break))
                                 (t (set slash-error true)))))
                   (advance 1))
-               (decl ((size_t len = (- curr tok-begin)))
-                  (advance 1)
+               (decl ((size_t len = (- curr start)))
+                  (advance 1) ; consume delimiter
                   (if slash-error
-                      (return (new-token :ERROR tok-begin 0))
-                      (return (new-token kind tok-begin len)))))))
+                      (return (new-token :ERROR start 0))
+                      (return (new-token kind start len)))))))
 
       (macrolet ((result (sym)
                     `(block
@@ -310,7 +316,8 @@
                            (advance ,(token-length sym))
                            (return result))))
                  (at1 (ch) `(== (aref curr 1) ,ch))
-                 (at2 (ch) `(== (aref curr 2) ,ch)))
+                 (at2 (ch) `(== (aref curr 2) ,ch))
+                 (if1 (ch a b) `(if (at1 ,ch) (result ,a) (result ,b))))
          (function get () -> Token
             (if (at :END) (result :end))
             (skip-space)
@@ -326,15 +333,15 @@
                (#\, (result :comma))
                (#\# (result :sharp))
                
-               (#\: (if (at1 #\:) (result :coloncolon) (result :colon)))
-               (#\+ (if (at1 #\+) (result :plusplus)   (result :plus)))
-               (#\* (if (at1 #\=) (result :stareq)     (result :star)))
-               (#\/ (if (at1 #\=) (result :diveq)      (result :div)))
-               (#\^ (if (at1 #\=) (result :xoreq)      (result :xor)))
-               (#\& (if (at1 #\=) (result :ampeq)      (result :amp)))
-               (#\% (if (at1 #\=) (result :modeq)      (result :mod)))
-               (#\! (if (at1 #\=) (result :noteq)      (result :not)))
-               (#\= (if (at1 #\=) (result :eqeq)       (result :eq)))
+               (#\: (if1 #\: :coloncolon :colon))
+               (#\+ (if1 #\+ :plusplus   :plus))
+               (#\* (if1 #\= :stareq     :star))
+               (#\/ (if1 #\= :diveq      :div))
+               (#\^ (if1 #\= :xoreq      :xor))
+               (#\& (if1 #\= :ampeq      :amp))
+               (#\% (if1 #\= :modeq      :mod))
+               (#\! (if1 #\= :noteq      :not))
+               (#\= (if1 #\= :eqeq       :eq))
 
                (#\. (if (is-digit (aref curr 1))
                         (return (read-number))
@@ -378,4 +385,13 @@
    (decl ((char *filename = argv[1])
           (const char* buffer))
       (set buffer (read-whole-file filename))
-      (printf "Buffer len = %lu\\n" (strlen buffer))))
+      (decl ((Token tok)
+             (Lexer lexer))
+         (lexer.init buffer)
+         (while 1
+            (set tok (lexer.get))
+            (if (== tok.atom->kind :END) (break))
+            (printf "%s %.*s %lu\\n" 
+                    (kind2str tok.atom->kind)
+                    (cast int tok.atom->len) tok.atom->str
+                    tok.atom->len)))))
