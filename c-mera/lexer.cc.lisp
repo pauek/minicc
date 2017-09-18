@@ -60,64 +60,74 @@
 ; Here you can choose what tokens the lexer will handle
 ; Every token is either:
 ; 1. a symbol = :if
-; 2. a list   = (:eof "<eof>")  ; first item is a symbol, second is the associated string
+; 2. a list   = (:end "<eof>")  ; first item is a symbol, second is the associated string
 ;                               ; the third item is optional and is the size of the token
 ;                               ; this is normally computed from the string but for "\\\\" should be 1...
 
-(defvar control
-   '((:eof "<eof>") (:error "<error>") (:backlash "\\\\" 1) (:sharp "#")))
-(defvar punctuation
-   '((:colon     ";") (:semicolon ";") (:coloncolon "::") (:comma ",") (:qmark "?")))
-(defvar logical
-   '((:barbar "||") (:ampamp "&&") (:or "or") (:and "and")))
-(defvar comparison
-   '((:eqeq "==") (:noteq "!=") (:lt "<") (:gt ">") (:le "<=") (:ge ">=")))
-(defvar access
-   '((:dot ".") (:arrow "->") (:arrowp "->*")))
-(defvar bitwise
-   '((:not "!") (:amp "&") (:bar "|") (:xor "^") (:lshift "<<") (:rshift ">>")))
-(defvar arithmetic
-   '((:plus "+") (:minus "-") (:star "*") (:mod "%")))
-(defvar increment
-   '((:plusplus "++") (:minusminus "--")))
-(defvar assign
-   '((:eq "=") (:stareq "*=") (:minuseq "-=") (:pluseq "+=") (:slasheq "/=")
-     (:modeq "%=") (:bareq "|=") (:ampeq "&=") (:xoreq "^=") 
-     (:lshifteq "<<=") (:rshifteq ">>=")))
-(defvar delimiters
-   '((:lbrace "{") (:rbrace "}") (:lparen "(") (:rparen ")") 
-     (:lbracket "[") (:rbracket "]")))
-(defvar keywords
-   '(:if :else :while :for :switch :case :break :continue :goto :return
+(defstruct token kind str len)
+(defvar token-table (make-hash-table))
+
+(defun token-atom (sym) (make-symbol (string-upcase (format nil "_ATOM_~a" sym))))
+
+(defmacro deftoken (kind sym str &optional len)
+   (lisp (if (null len) (setf len (length str))))
+   `(lisp (setf (gethash ,sym token-table) 
+                (make-token :kind ,kind :str ,str :len ,len))))
+
+(defmacro defkeyword (keyword)
+   `(lisp (setf (gethash ,keyword token-table)
+                (make-token :kind :KEYWORD 
+                            :str ,(lisp (string-downcase (symbol-name keyword)))
+                            :len ,(lisp (length (symbol-name keyword)))))))
+
+(defmacro deftoken-list (kind &rest tokens)
+   `(progn ,@(loop for tok in tokens collect `(deftoken ,kind ,@tok))))
+
+(defmacro defkeyword-list (&rest keywords)
+   `(progn ,@(loop for kw in keywords collect `(defkeyword ,kw))))
+
+(deftoken :END   :end "<end>" 0)
+(deftoken :ERROR :error "<error>" 0)
+(deftoken :DIRECTIVE :sharp "#")
+(deftoken :BACKSLASH :backslash "\\\\" 1)
+
+(deftoken-list :PUNCT 
+   (:colon ";") (:semicolon ";") (:coloncolon "::") (:comma ",") (:qmark "?") (:dot "."))
+(deftoken-list :DELIM
+   (:lparen "(") (:rparen ")") (:lbracket "[") (:rbracket "]") (:lbrace "{") (:rbrace "}"))
+(deftoken-list :OPERATOR
+   (:plus "+") (:minus "-") (:star "*") (:div "/") (:mod "%") 
+   (:not "!") (:amp "&") (:bar "|") (:xor "^") (:lshift "<<") (:rshift ">>")
+   (:eqeq "==") (:le "<=") (:ge ">=") (:lt "<") (:gt ">")
+   (:barbar "||") (:ampamp "&&") (:or "or") (:and "and")
+   (:arrow "->") (:arrowp "->*")
+   (:plusplus "++") (:minusminus "--"))
+(deftoken-list :ASSIGN
+   (:eq "=") (:stareq "*=") (:minuseq "-=") (:pluseq "+=") (:diveq "/=")
+   (:modeq "%=") (:bareq "|=") (:ampeq "&=") (:xoreq "^=") (:barbareq "||=") (:ampampeq "&&=")
+   (:noteq "!=")
+   (:lshifteq "<<=") (:rshifteq ">>="))
+
+(defkeyword-list :if :else :while :for :switch :case :break :continue :goto :return
      :using :namespace :struct :class :typedef :enum
      :void :int :bool :char :float :double :string
      :short :long :const :unsigned
      :auto :register :static :extern :volatile :mutable
      :inline :virtual :explicit
-     :true :false))
-(defvar macros
-   '(:include))
-
-(lisp ; Porqué hay que poner este 'lisp' aquí??
-   (defvar tokens
-      (loop for tok in (append control punctuation logical comparison access bitwise 
-                               arithmetic increment assign delimiters keywords macros)
-         collect  (if (symbolp tok)
-                     (let ((str (string-downcase (symbol-name tok))))
-                        `(,tok ,str ,(length str)))
-                     (destructuring-bind (sym str &optional (size 'nil)) tok
-                        (if (null size) (setf size (length str)))
-                           `(,sym ,str ,size))))))
-
-(defun tok-sym  (tok) (nth 0 tok))
-(defun tok-str  (tok) (nth 1 tok))
-(defun tok-len  (tok) (nth 2 tok))
-(defun tok-atom (tok) (make-symbol (format nil "_atom_~a" (tok-sym tok))))
+     :true :false)
 
 ;;; Atoms
 
+(enum Kind 
+   (:END :ERROR :BACKSLASH :DIRECTIVE :FILENAME
+    :USING :PUNCT :DELIM :OPERATOR :ASSIGN :KEYWORD
+    :IDENT :CONTROL :TYPEDEF :MODIFIER :TYPE 
+    :LIT_BOOL :LIT_INT :LIT_FLOAT :LIT_DOUBLE :LIT_CHAR 
+    :LIT_STRING))
+
 (struct Atom
-   (decl ((size_t      len)
+   (decl ((Kind        kind)
+          (size_t      len)
           (const char* str))))
 
 (struct Node
@@ -127,9 +137,8 @@
 (decl ((Node* (array nodes ATOM_NUM_NODES))))
 
 (macrolet ((define-token-atoms ()
-              `(decl (,@(loop for tok in tokens collect 
-                  `(Atom* ,(tok-atom tok)))))))
-   
+              `(decl (,@(loop for sym being the hash-key of token-table
+                              collect `(Atom* ,(token-atom sym)))))))
    (define-token-atoms))
 
 (function hash ((const char* p) (size_t len)) -> uint32_t
@@ -142,7 +151,7 @@
 (defmacro _new (type)
    `(cast (postfix* ,type) (malloc (sizeof ,type))))
 
-(function atom ((const char *str) (size_t len)) -> Atom*
+(function atom ((Kind kind) (const char *str) (size_t len)) -> Atom*
    (decl ((uint32_t mask = (1- ATOM_NUM_NODES))
           (uint32_t idx  = (& (hash str len) mask))
           (Node*    n))
@@ -152,36 +161,33 @@
             (return (& n->atom)))
          (set n n->prev))
       (set n (_new Node));(cast Node* (malloc (sizeof Node))))
+      (set n->atom.kind kind)
       (set n->atom.str str)
       (set n->atom.len len)
       (set n->prev (aref nodes idx))
       (set (aref nodes idx) n)
       (return (& n->atom))))
 
-(function atom ((const char* str)) -> Atom*
-   (return (funcall atom str (strlen str))))
+(function atom ((Kind kind) (const char* str)) -> Atom*
+   (return (funcall atom kind str (strlen str))))
 
 (function init () -> void
    (macrolet ((init-token-atoms ()
-                  `(progn ,@(loop for tok in tokens collect 
-                               `(set ,(tok-atom tok) 
-                                     (funcall atom ,(tok-str tok) ,(tok-len tok)))))))
+                  `(progn ,@(loop for sym being the hash-key of token-table
+                                 using (hash-value tok)
+                                 collect `(set ,(token-atom sym)
+                                               (funcall atom ,(token-kind tok)
+                                                             ,(token-str tok) 
+                                                             ,(token-len tok)))))))
       (init-token-atoms)))
 
 ;;; Lexer
 
-(enum TokenKind 
-   (:TOK_EOF :TOK_ERROR :TOK_BACKSLASH :TOK_DIRECTIVE :TOK_FILENAME
-    :TOK_USING :TOK_PUNCT :TOK_DELIM :TOK_OPERATOR :TOK_IDENT :TOK_CONTROL
-    :TOK_TYPEDEF :TOK_MODIFIER :TOK_TYPE 
-    :TOK_LIT_BOOL :TOK_LIT_INT :TOK_LIT_FLOAT :TOK_LIT_DOUBLE :TOK_LIT_CHAR 
-    :TOK_LIT_STRING))
 
 (typedef uint32_t Position)
 
 (struct Token
-   (decl ((TokenKind   kind)
-          (Atom*       atom)
+   (decl ((Atom*       atom)
           (const char* at))))
 
 (struct Pos (decl ((int lin) (int col))))
@@ -192,12 +198,14 @@
 (macrolet ((_at (x)     `(== (aref curr 0) ,x))
            (range (a b) `(&& (>= (aref curr 0) ,a) (>= (aref curr 0) ,b)))
            (digit ()    `(range #\0 #\9))
+           (is-digit (x) `(&& (>= ,x #\0) (<= ,x #\9)))
            (at (x)
               (lisp 
                  (cond 
-                    ((eq x :eof)      `(_at 0))
+                    ((eq x :end)      `(_at 0))
                     ((eq x :space)    `(\|\| (_at #\Space) (_at #\Tab))) ; @Incomplete: Faltan '\v' i '\f'.
                     ((eq x :endl)     `(_at #\Newline))
+                    ((eq x :id-start) `(\|\| (range #\a #\z) (range #\A #\Z) (_at #\_)))
                     ((eq x :id)       `(\|\| (range #\a #\z) (range #\A #\Z) (range #\0 #\9) (_at #\_)))
                     ((symbolp x)      `(_at ,x))
                     ((characterp x)   `(_at ,x))
@@ -206,23 +214,23 @@
                     (t `(&& ,@(loop for c across x
                                     for i from 0
                                   collect `(== (aref curr ,i) ,c)))))))
-           (advance (n) `(progn (+= curr ,n) (+= pos.col ,n)))
+           (advance (n)  `(progn (+= curr ,n) (+= pos.col ,n)))
+           (next-line () `(progn (postfix++ curr) (postfix++ pos.lin) (set pos.col 1)))
            (skip-comment (type)
               `(progn 
                   (advance 2)
                   (while 1
-                     (when (at :eof) break)
-                     (when (at :endl)
-                        (postfix++ curr) 
-                        (postfix++ pos.lin) 
-                        (set pos.col 1)
-                        ,(lisp (when (eq type :COMMENT_SINGLELINE)
-                                 `(break))))
+                     (when (at :end) (break))
                      ,(lisp (when (eq type :COMMENT_MULTILINE)
                                `(when (at "*/")
                                    (advance 2)
                                    (break))))
-                     (advance 1)))))
+                     (cond ((at :endl) (next-line)
+                                       ,(lisp (when (eq type :COMMENT_SINGLELINE)
+                                                 `(break))))
+                           (t (advance 1))))))
+           (new-token (kind ptr size)
+               `(cast Token (clist (funcall atom ,kind ,ptr ,size) ,ptr))))
 
    (struct lexer
       (decl ((const char* buffer)
@@ -236,9 +244,9 @@
          ; Skip whitespace
          (decl ((const char* start = curr))
             (while 1
-               (cond ((at :eof)   (return (> curr start)))
+               (cond ((at :end)   (return (> curr start)))
                      ((at :space) (advance 1))
-                     ((at :endl)  (postfix++ curr) (postfix++ pos.lin) (set pos.col 1))
+                     ((at :endl)  (next-line))
                      ((at "//")   (skip-comment :COMMENT_SINGLELINE))
                      ((at "/*")   (skip-comment :COMMENT_MULTILINE))
                      (t           (return (> curr start)))))))
@@ -247,12 +255,10 @@
          (decl ((const char* id-begin = curr))
             (advance 1)
             (while 1
-               (cond ((at :eof) (break))
+               (cond ((at :end) (break))
                      ((at :id)  (advance 1))
                      (t (break))))
-            (return (cast Token (clist TOK_IDENT 
-                                       (funcall atom id-begin (cast size_t (- curr id-begin)))
-                                       id-begin)))))
+            (return (new-token :IDENT id-begin (- curr id-begin)))))
 
       (function read-number () -> Token
          (decl ((const char* id-begin = curr)
@@ -260,55 +266,108 @@
                 (bool        real-number = false))
             (if (at #\-) (advance 1))
             (while 1
-               (cond ((at :eof) (break))
+               (cond ((at :end) (break))
                      ((digit)   (advance 1))
                      ((at #\.)  (if real-number 
                                     (break)
                                     (progn (set real-number true)
                                        (advance 1))))))
             (set id-end curr)
-            (decl ((TokenKind kind = TOK_LIT_INT))
+            (decl ((Kind kind = :LIT-INT))
                (when real-number
-                  (set kind TOK_LIT_DOUBLE)
+                  (set kind :LIT-DOUBLE)
                   (when (at #\f)
                      (advance 1)
-                     (set kind TOK_LIT_FLOAT)))
-               (return (cast Token (clist kind
-                                          (funcall atom id-begin (- id-end id-begin)) 
-                                          id-begin))))))
+                     (set kind :LIT-FLOAT)))
+               (return (new-token kind id-begin (- id-end id-begin))))))
 
-      (function read-char-or-string () -> Token
+      (function read-char-or-string-literal () -> Token
          (decl ((char delimiter = curr[0])
-                (TokenKind kind = (? (== delimiter #\') TOK_LIT_CHAR TOK_LIT_STRING)))
+                (Kind kind      = (? (== delimiter #\') :LIT-CHAR :LIT-STRING)))
             (advance 1)
             (decl ((bool slash-error      = false)
-                   (int  nchars           = 0)
                    (const char* tok-begin = curr)
                    (Pos         tokpos    = pos))
                (while 1
                   (cond ((at delimiter)  (break))
-                        ((at :endl)      (return (cast Token (clist TOK_ERROR 0 tok-begin))))
+                        ((at :endl)      (return (new-token :ERROR tok-begin 0)))
                         ((at 92) ; #\\
                             (advance 1)
                             (switch curr[0]
                                 ((#\a #\b #\f #\n #\r #\t #\v #\' #\" #\? 92) (break))
                                 (t (set slash-error true)))))
-                  (advance 1)
-                  nchars++)
+                  (advance 1))
                (decl ((size_t len = (- curr tok-begin)))
                   (advance 1)
                   (if slash-error
-                      (return (cast Token (clist TOK_ERROR 0 tok-begin)))
-                      (return (cast Token (clist kind (funcall atom tok-begin len) tok-begin))))))))
+                      (return (new-token :ERROR tok-begin 0))
+                      (return (new-token kind tok-begin len)))))))
 
-      (function get () -> Token
-         (when (at :eof) 
-            (return (cast Token (clist TOK_EOF 0 curr))))
-         (skip-space)
-         ;;; GENERATE HUGE SWITCH FROM TOKENS!!!!
-         ; 1. Add all words to hash table or equivalent
-         ; 2. Generate cases from each key-value pair.
-         )))
+      (macrolet ((result (kind len)
+                    `(block
+                        (decl ((Token result = (clist ,(token-atom kind) curr)))
+                           (advance ,len)
+                           (return result))))
+                 (at1 (ch) `(== (aref curr 1) ,ch))
+                 (at2 (ch) `(== (aref curr 2) ,ch)))
+         (function get () -> Token
+            (if (at :END) (result :END 0))
+            (skip-space)
+            (switch curr[0]
+               (#\( (result :LPAREN 1))
+               (#\) (result :RPAREN 1))
+               (#\[ (result :LBRACKET 1))
+               (#\] (result :RBRACKET 1))
+               (#\{ (result :LBRACE 1))
+               (#\} (result :RBRACE 1))
+               (#\; (result :SEMICOLON 1))
+               (#\? (result :QMARK 1))
+               (#\, (result :COMMA 1))
+               (#\# (result :SHARP 1))
+               
+               (#\: (if (at1 #\:) (result :COLONCOLON 2) (result :COLON 1)))
+               (#\+ (if (at1 #\+) (result :PLUSPLUS 2)   (result :PLUS 1)))
+               (#\* (if (at1 #\=) (result :STAREQ 2)     (result :STAR 1)))
+               (#\/ (if (at1 #\=) (result :DIVEQ 2)      (result :DIV 1)))
+               (#\^ (if (at1 #\=) (result :XOREQ 2)      (result :XOR 1)))
+               (#\& (if (at1 #\=) (result :AMPEQ 2)      (result :AMP 1)))
+               (#\% (if (at1 #\=) (result :MODEQ 2)      (result :MOD 1)))
+               (#\! (if (at1 #\=) (result :NOTEQ 2)      (result :NOT 1)))
+               (#\= (if (at1 #\=) (result :EQEQ 2)       (result :EQ 1)))
+
+               (#\. (if (is-digit (aref curr 1))
+                        (return (read-number))
+                        (result :DOT 1)))
+               (#\| (switch curr[1]
+                       (#\| (result :BARBAR 2))
+                       (#\= (result :BAREQ 2))
+                       (t   (result :BAR 1))))
+               (#\< (switch curr[1]
+                       (#\< (if (at2 #\=) (result :LSHIFTEQ 3) (result :LSHIFT 2)))
+                       (#\= (result :LE 2))
+                       (t   (result :LT 1))))
+               (#\> (switch curr[1]
+                       (#\> (if (at2 #\=) (result :RSHIFTEQ 3) (result :RSHIFT 2)))
+                       (#\= (result :GE 2))
+                       (t   (result :GT 1))))
+               (#\- (switch curr[1]
+                        (#\- (result :MINUSMINUS 2))
+                        (#\= (result :MINUSEQ 2))
+                        (#\> (result :ARROW 2))
+                        (t   (if (is-digit curr[1]) 
+                                 (return (read-number))
+                                 (result :MINUS 1)))))
+
+               ((#\0 #\1 #\2 #\3 #\4 #\5 #\6 #\7 #\8 #\9) (return (read-number)))
+               ((#\' #\") (return (read-identifier)))
+               ;(#\\ (result :BACKSLASH 1))
+               (t   (if (at :id-start)
+                        (return (read-identifier))
+                        (result :ERROR 0)))
+               )))))
+#|
+                  
+|#
 
 ;; Main
 

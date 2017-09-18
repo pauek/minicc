@@ -364,8 +364,6 @@ Token get() {
 			RESULT(TOK_OPERATOR, 2, minuseq)
 		else if (at[1] == '>')
 			RESULT(TOK_OPERATOR, 2, arrow)
-		else if (at[1] == '>')
-			RESULT(TOK_OPERATOR, 2, arrow)
 		else if (DIGIT(at[1]))
 			return lexer_read_number();
 		else
