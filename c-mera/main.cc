@@ -21,11 +21,16 @@ int main(int argc, char **argv) {
    lexer.init(buffer);
    while (1) {
       tok = lexer.get();
-      printf("%s \"%.*s\" %lu\n",
+      printf("%s \"%.*s\" %lu %u\n",
              kind2str(tok.atom->kind),
              (int) tok.atom->len,
              tok.atom->str,
-             tok.atom->len);
+             tok.atom->len,
+             tok.pos);
+      if (tok.atom->kind == ERROR) {
+         printf("Error, exiting!\n");
+         break;
+      }
       if (tok.atom->kind == END) {
          break;
       }

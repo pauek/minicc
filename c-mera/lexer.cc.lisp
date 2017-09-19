@@ -28,7 +28,7 @@
 (defmacro defkeyword-list (&rest keywords)
    `(progn ,@(loop for kw in keywords collect `(defkeyword ,kw))))
 
-(deftoken :END   :end   "<end>")
+(deftoken :END   :end   "\\0" 1)
 (deftoken :ERROR :error "<error>")
 (deftoken :DIRECTIVE :sharp "#")
 (deftoken :BACKSLASH :backslash "\\\\" 1)
@@ -143,8 +143,8 @@
 (typedef uint32_t Position)
 
 (struct Token
-   (decl ((Atom*       atom)
-          (const char* at))))
+   (decl ((Atom*    atom)
+          (uint32_t pos)))) ; La posición es un offset con respecto al inicio del buffer
 
 (struct Pos (decl ((int lin) (int col))))
 
@@ -170,8 +170,8 @@
                     (t `(&& ,@(loop for c across x
                                     for i from 0
                                   collect `(== (aref curr ,i) ,c)))))))
-           (advance (n)  `(progn (+= curr ,n) (+= pos.col ,n)))
-           (next-line () `(progn (postfix++ curr) (postfix++ pos.lin) (set pos.col 1)))
+           (advance (n)  `(+= curr ,n))
+           (next-line () `(progn (postfix++ curr)))
            (skip-comment (type)
               `(progn 
                   (advance 2)
@@ -186,12 +186,11 @@
                                                  `(break))))
                            (t (advance 1))))))
            (new-token (kind ptr size)
-               `(cast Token (clist (funcall atom ,kind ,ptr ,size) ,ptr))))
+               `(cast Token (clist (funcall atom ,kind ,ptr ,size) (- ,ptr buffer)))))
 
    (struct Lexer
       (decl ((const char* buffer)
-             (const char* curr)
-             (Pos         pos)))
+             (const char* curr)))
 
       (function init ((const char* buf)) -> void
          (set buffer buf)
@@ -242,8 +241,7 @@
                 (uint32_t  kind      = (? (== delimiter #\') :LIT-CHAR :LIT-STRING)))
             (advance 1)
             (decl ((bool slash-error   = false)
-                   (const char* start  = curr)
-                   (Pos         tokpos = pos))
+                   (const char* start  = curr))
                (while 1
                   (cond ((at delimiter)  (break))
                         ((at :endl)      (return (new-token :ERROR start 0)))
@@ -261,7 +259,7 @@
 
       (macrolet ((result (sym)
                     `(block
-                        (decl ((Token result = (clist ,(token-atom sym) curr)))
+                        (decl ((Token result = (clist ,(token-atom sym) (- curr buffer))))
                            (advance ,(token-length sym))
                            (return result))))
                  (at1 (ch) `(== (aref curr 1) ,ch))
