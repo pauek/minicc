@@ -205,17 +205,13 @@
          (for ((const char* p = buffer) *p p++)
             (when (and (== p[0] #\Newline) (!= p[1] 0))
                nlines++))
-         (printf "lines = %d\\n" nlines)
          (set line-offsets (cast uint32_t* (malloc (* (sizeof uint32_t) nlines))))
          (set line-offsets[0] 0)
          (decl ((int i = 1))
             (for ((const char* p = buffer) *p p++)
                (when (and (== p[0] #\Newline) (!= p[1] 0))
                   (set line-offsets[i] (- (1+ p) buffer))
-                  i++)))
-         (for ((int i = 0) (< i nlines) i++)
-            (printf "%d," line-offsets[i]))
-         (printf "\\n"))
+                  i++))))
 
       (function init ((const char* buf)) -> void
          (set buffer buf)
