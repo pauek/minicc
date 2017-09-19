@@ -21,13 +21,13 @@ int main(int argc, char **argv) {
    lexer.init(buffer);
    while (1) {
       tok = lexer.get();
-      if (tok.atom->kind == END) {
-         break;
-      }
       printf("%s \"%.*s\" %lu\n",
              kind2str(tok.atom->kind),
              (int) tok.atom->len,
              tok.atom->str,
              tok.atom->len);
+      if (tok.atom->kind == END) {
+         break;
+      }
    }
 }

@@ -28,8 +28,8 @@
 (defmacro defkeyword-list (&rest keywords)
    `(progn ,@(loop for kw in keywords collect `(defkeyword ,kw))))
 
-(deftoken :END   :end "<end>" 0)
-(deftoken :ERROR :error "<error>" 0)
+(deftoken :END   :end   "<end>")
+(deftoken :ERROR :error "<error>")
 (deftoken :DIRECTIVE :sharp "#")
 (deftoken :BACKSLASH :backslash "\\\\" 1)
 
@@ -72,17 +72,17 @@
      :LIT-BOOL :LIT-INT :LIT-FLOAT :LIT-DOUBLE 
      :LIT-CHAR :LIT-STRING))
 
-(macrolet ((enum-kinds () `(enum Kind ,kinds)))
+(macrolet ((enum-kinds () `(enum TokenKind ,kinds)))
    (enum-kinds))
 
 (macrolet ((fun-kind2str () 
-              `(function kind2str ((Kind kind)) -> (const char*)
+              `(function kind2str ((uint32_t kind)) -> (const char*)
                    (switch kind ,@(loop for k in kinds collect `(,k (return ,(string-upcase (symbol-name k))))))
                    (return "<unknown>"))))
    (fun-kind2str))
 
 (struct Atom
-   (decl ((Kind        kind)
+   (decl ((uint32_t    kind)
           (size_t      len)
           (const char* str))))
 
@@ -107,7 +107,7 @@
 (defmacro _new (type)
    `(cast (postfix* ,type) (malloc (sizeof ,type))))
 
-(function atom ((Kind kind) (const char *str) (size_t len)) -> Atom*
+(function atom ((uint32_t kind) (const char *str) (size_t len)) -> Atom*
    (decl ((uint32_t mask = (1- ATOM_NUM_NODES))
           (uint32_t idx  = (& (hash str len) mask))
           (Node*    n))
@@ -124,7 +124,7 @@
       (set (aref nodes idx) n)
       (return (& n->atom))))
 
-(function atom ((Kind kind) (const char* str)) -> Atom*
+(function atom ((uint32_t kind) (const char* str)) -> Atom*
    (return (funcall atom kind str (strlen str))))
 
 (function init () -> void
@@ -220,7 +220,7 @@
       (function read-number () -> Token
          (decl ((const char* start       = curr)
                 (bool        real-number = false)
-                (Kind        kind))
+                (uint32_t    kind))
             (if (at #\-) (advance 1))
             (while 1
                (cond ((at :end) (break))
@@ -238,8 +238,8 @@
             (return (new-token kind start (- curr start)))))
 
       (function read-char-or-string-literal () -> Token
-         (decl ((char delimiter = curr[0])
-                (Kind kind      = (? (== delimiter #\') :LIT-CHAR :LIT-STRING)))
+         (decl ((char      delimiter = curr[0])
+                (uint32_t  kind      = (? (== delimiter #\') :LIT-CHAR :LIT-STRING)))
             (advance 1)
             (decl ((bool slash-error   = false)
                    (const char* start  = curr)
