@@ -1,18 +1,7 @@
 
-(include <stdio.h>)
-(include <stdlib.h>)
-(include <stdint.h>)
-(include <string.h>)
-
 ;;; Configuration
 
 (defvar ATOM_NUM_NODES 4096) ; Tiene que ser potencia de 2
-
-;;; Utils
-
-(defmacro die (fmt &rest rest)
-   `(progn (fprintf stderr ,(format nil "~a~a" fmt "\\n") ,@rest)
-           (exit 1)))
 
 ;;; Token list
 
@@ -332,24 +321,3 @@
                (t   (if (at :id-start)
                         (return (read-identifier))
                         (result :error))))))))
-
-;; Main
-
-#|
-(function main ((int argc) (char **argv)) -> int
-   (init)
-   (if (< argc 2) (die "usage: minicc <file>"))
-   (decl ((char *filename = argv[1])
-          (const char* buffer))
-      (set buffer (read-whole-file filename))
-      (decl ((Token tok)
-             (Lexer lexer))
-         (lexer.init buffer)
-         (while 1
-            (set tok (lexer.get))
-            (if (== tok.atom->kind :END) (break))
-            (printf "%s \\\"%.*s\\\" %lu\\n" 
-                    (kind2str tok.atom->kind)
-                    (cast int tok.atom->len) tok.atom->str
-                    tok.atom->len)))))
-|#

@@ -1,8 +1,4 @@
 
-(include <stdio.h>)
-(include <stdlib.h>)
-; (include <string.h>)
-
 (defmacro die (fmt &rest rest)
    `(progn (fprintf stderr ,(format nil "~a~a" fmt "\\n") ,@rest)
            (exit 1)))
