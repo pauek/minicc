@@ -4,6 +4,22 @@
 		"selected_items":
 		[
 			[
+				"sla",
+				"slash-error"
+			],
+			[
+				"TOK_LIT",
+				"TOK_LIT_CHAR"
+			],
+			[
+				"COMM",
+				"COMMENT_MULTILINE"
+			],
+			[
+				"comment",
+				"COMMENT_MULTILINE"
+			],
+			[
 				"Accum",
 				"Accumulate"
 			],
@@ -23,7 +39,16 @@
 			"file": "c-mera/lexer.cc.lisp",
 			"settings":
 			{
-				"buffer_size": 7169,
+				"buffer_size": 13781,
+				"encoding": "UTF-8",
+				"line_ending": "Unix"
+			}
+		},
+		{
+			"file": "c-mera/file.cc.lisp",
+			"settings":
+			{
+				"buffer_size": 1522,
 				"encoding": "UTF-8",
 				"line_ending": "Unix"
 			}
@@ -32,7 +57,8 @@
 			"file": "c-mera/lexer.cc.lisp",
 			"settings":
 			{
-				"buffer_size": 7169,
+				"buffer_size": 13781,
+				"encoding": "UTF-8",
 				"line_ending": "Unix"
 			}
 		},
@@ -40,17 +66,37 @@
 			"file": "c-mera/build.sh",
 			"settings":
 			{
-				"buffer_size": 145,
+				"buffer_size": 241,
 				"encoding": "UTF-8",
 				"line_ending": "Unix"
 			}
 		},
 		{
-			"file": "lexer.h",
+			"file": "c-mera/main.cc",
 			"settings":
 			{
-				"buffer_size": 15756,
+				"buffer_size": 587,
 				"encoding": "UTF-8",
+				"line_ending": "Unix"
+			}
+		},
+		{
+			"contents": "/////////////////////////////////////////////////////////////////////////////////////////////\n#if defined(DECLARATION)\n\n\n#include <assert.h>\n#include <stddef.h>\n\nenum TokenKind {\n   TOK_EOF,\n   TOK_ERROR,\n\n   TOK_BACKSLASH,\n   TOK_DIRECTIVE,\n   TOK_FILENAME,\n   TOK_USING,\n\n   TOK_PUNCT,\n   TOK_DELIM,\n\n   TOK_OPERATOR,\n\n   TOK_IDENT,\n   TOK_CONTROL,\n   TOK_TYPEDEF,\n\n   TOK_MODIFIER,\n   TOK_TYPE,\n\n   TOK_LIT_BOOL,\n   TOK_LIT_INT,\n   TOK_LIT_FLOAT,\n   TOK_LIT_DOUBLE,\n   TOK_LIT_CHAR,\n   TOK_LIT_STRING,\n};\n\nnamespace lexer {\n\nstruct Pos { \n   int lin;\n   int col;\n};\n\nstruct Token {\n   TokenKind kind;\n   Pos       pos;\n   Atom  *atom;\n};\n\nenum {\n   COMMENT_MULTILINE,\n   COMMENT_SINGLELINE\n};\n\nstruct Comment {\n   int         type;\n   const char *str;\n   size_t      len;\n};\n\nstruct CommentSeq {\n   Comment comments[LEXER_MAX_COMMENTS_BETWEEN_TOKENS];\n   int    ncomments;\n};\n\nextern CommentSeq  comment_seq;\n             void  start(const char *buffer);\n             bool  skip_space();  // Devuelve 'true' si ha encontrado espacios. Deja comentarios en 'comment_seq'\n            Token  get();         // Llama a 'lexer_skip_space' antes.\n            Token  peek();        // Devuelve el próximo token, sin avanzar.\n#if defined(DEBUG)            \n             char *token_kind(TokenKind kind);\n#endif\n}\n\n\n#endif // DECLARATION\n/////////////////////////////////////////////////////////////////////////////////////////////\n/////////////////////////////////////////////////////////////////////////////////////////////\n#if defined(IMPLEMENTATION)\n\nnamespace lexer {\n\nstatic const char *at = 0;\nstatic        Pos  pos = {1, 1};\nstatic const char *buffer = 0;\nstatic        int  top = -1;\nstatic       bool  at_directive = false;\nstatic       bool  at_include_filename = false;\n       CommentSeq  lexer_comment_seq;\n\n#define AT(a)     (at[0] == (a))\n#define AT2(a, b) (at[0] == (a) && at[1] == (b))\n#define AT_EOF    (at[0] == 0)\n#define ENDL(c)   ((c) == '\\n') // endls en windows y linux?\n#define SPACE(c)  ((c) == ' ' || (c) == '\\t' || (c) == '\\f' || (c) == '\\v')\n#define DIGIT(c)  ((c) >= '0' && (c) <= '9')\n#define LOWER(c)  ((c) >= 'a' && (c) <= 'z')\n#define UPPER(c)  ((c) >= 'A' && (c) <= 'Z')\n\nvoid start(const char *buf) {\n\tbuffer = buf;\n\ttop = -1;\n\tpos = { 1, 1 };\n\tat = buffer;\n\tlexer_comment_seq.ncomments = 0;\n\tat_directive = false;\n\tat_include_filename = false;\n}\n\n#define ADVANCE(n) { at += (n); pos.col += (n); }\n\nvoid skip_comment(int type) {\n\tADVANCE(2);\n\tComment *c = &lexer_comment_seq.comments[lexer_comment_seq.ncomments - 1];\n\tc->type = type;\n\tc->str = at;\n\tloop {\n\t\tif (AT_EOF) break;\n\t\tif (AT('\\n')) {\n\t\t\tat++;\n\t\t\tpos.lin++;\n\t\t\tpos.col = 1;\n\t\t\tif (type == COMMENT_SINGLELINE) {\n\t\t\t\tbreak;\n\t\t\t}\n\t\t}\n\t\tif (type == COMMENT_MULTILINE && AT2('*','/')) {\n\t\t\tADVANCE(2);\n\t\t\tbreak;\n\t\t}\n\t\tADVANCE(1);\n\t}\n\tc->len = (size_t)(at - c->str);\n\tlexer_comment_seq.ncomments++;\n\tassert(lexer_comment_seq.ncomments < LEXER_MAX_COMMENTS_BETWEEN_TOKENS);\n}\n\nbool lexer_skip_space() {\n\tconst char *start = at;\n\tlexer_comment_seq.ncomments = 0;\n\tloop {\n\t\tif (AT_EOF) {\n\t\t\treturn at > start;\n\t\t} else if (SPACE(at[0])) {\n\t\t\tADVANCE(1);\n\t\t} else if (ENDL(at[0])) {\n\t\t\tat++;\n\t\t\tpos.lin++;\n\t\t\tpos.col = 1;\n\t\t} else if (AT2('/','/')) {\n\t\t\tskip_comment(COMMENT_SINGLELINE);\n\t\t} else if (AT2('/','*')) {\n\t\t\tskip_comment(COMMENT_MULTILINE);\n\t\t} else {\n\t\t\treturn at > start;\n\t\t}\n\t}\n}\n\nstatic Token lexer_read_include_filename() {\n\t// skip until non-space\n\tloop {\n\t\tif (at[0] == 0) {\n\t\t\treturn { TOK_EOF, pos, NULL };\n\t\t}\n\t\tif (at[0] == ' ' || at[0] == '\\t') {\n\t\t\tADVANCE(1);\n\t\t\tcontinue;\n\t\t}\n\t\tbreak;\n\t}\n\n\t// find out delimiter\n\tchar delimiter;\n\tif (at[0] == '<') {\n\t\tdelimiter = '>';\n\t} else if (at[0] == '\"') {\n\t\tdelimiter = '\"';\n\t} else {\n\t\treturn { TOK_ERROR, pos, NULL };\n\t}\n\tADVANCE(1);\n\tconst char *filename_begin = at;\n\tPos tokpos = pos;\n\n\t// look until next delimiter\n\tloop {\n\t\tif (at[0] == 0) {\n\t\t\treturn { TOK_EOF, pos, NULL };\n\t\t}\n\t\tif (at[0] != delimiter) {\n\t\t\tADVANCE(1);\n\t\t\tcontinue;\n\t\t}\n\t\tbreak;\n\t}\n\tassert(at[0] == delimiter);\n\n\tsize_t filename_size = (size_t)(at - filename_begin);\n\tADVANCE(1);\n\tAtom *a = atom::atom(filename_begin, filename_size);\n\treturn { TOK_FILENAME, tokpos, a };\n}\n\nstatic Token lexer_read_identifier() {\n\tconst char *id_begin = at;\n\tPos tokpos = pos;\n\tADVANCE(1);\n\tloop {\n\t\tif (AT_EOF) break;\n\t\tif (LOWER(at[0]) || UPPER(at[0]) || DIGIT(at[0]) || at[0] == '_') {\n\t\t\tADVANCE(1);\n\t\t\tcontinue;\n\t\t}\n\t\tbreak;\n\t}\n\tAtom *id = atom::atom(id_begin, (size_t)(at - id_begin));\n\treturn { TOK_IDENT, tokpos, id };\n}\n\nstatic Token lexer_read_number() {\n\tconst char *id_begin = at;\n\tconst char *id_end;\n\tPos tokpos = pos;\n\tbool real_number = false;\n\tif (at[0] == '-') {\n\t\tADVANCE(1);\n\t}\n\tloop {\n\t\tif (AT_EOF) break;\n\t\telse if (DIGIT(at[0])) {\n\t\t\tADVANCE(1);\n\t\t\tcontinue;\n\t\t} else if (at[0] == '.') {\n\t\t\tif (!real_number) {\n\t\t\t\treal_number = true;\n\t\t\t\tADVANCE(1);\n\t\t\t\tcontinue;\n\t\t\t} else {\n\t\t\t\tbreak;\n\t\t\t}\n\t\t}\n\t\tbreak;\n\t}\n\tid_end = at;                 // do not put 'f' into the atom\n\tTokenKind kind = TOK_LIT_INT;\n\tif (real_number) {\n\t\tkind = TOK_LIT_DOUBLE;\n\t\tif (at[0] == 'f') { \n\t\t\tADVANCE(1);\n\t\t\tkind = TOK_LIT_FLOAT;\n\t\t}\n\t}\n\tAtom *atom = atom::atom(id_begin, (size_t)(id_end - id_begin));\n\treturn { kind, tokpos, atom };\n}\n\nToken lexer_read_literal_char_or_string() {\n\tchar delimiter = at[0];\n\tTokenKind kind = (delimiter == '\\'' ? TOK_LIT_CHAR : TOK_LIT_STRING);\n\tADVANCE(1);\n\tbool slash_error = false;\n\tint nchars = 0;\n\tconst char *tok_begin = at;\n\tPos tokpos = pos;\n\tloop {\n\t\tif (at[0] == delimiter) {\n\t\t\tbreak;\n\t\t}\n\t\tif (ENDL(at[0])) {\n\t\t\treturn { TOK_ERROR, pos, NULL };\n\t\t}\n\t\tif (at[0] == '\\\\') {\n\t\t\tADVANCE(1);\n\t\t\tswitch (at[0]) {\n\t\t\tcase 'a': case 'b': case 'f': case 'n': case 'r':\n\t\t\tcase 't': case 'v': case '\\'': case '\\\"': \n\t\t\tcase '\\?': case '\\\\': \n\t\t\t\tbreak;\n         default:\n         \tslash_error = true; // how to handle this??\n\t\t\t}\n\t\t}\n\t\tADVANCE(1);\n\t\tnchars++;\n\t}\n\tsize_t len = (size_t)(at - tok_begin);\n\tADVANCE(1); // consume delimiter\n\tif (slash_error) {\n\t\treturn { TOK_ERROR, tokpos, NULL };\n\t} else {\n\t\tAtom *atom = atom::atom(tok_begin, len);\n\t\treturn { kind, tokpos, atom };\n\t}\n}\n\n/*\n\nEl lexer devuelve un token, el que encuentre primero, saltando los espacios\npero deja en lexer_comment_seq todos los comentarios que se ha encontrado entremedio.\nLa secuencia de comentarios es una variable global y se resetea cada vez.\nEsto permite luego recuperarlos (si es necesario), porque si quieres imprimir\nel código original desde el AST debes respetar los comentarios del usuario y deben, \npor tanto, estar guardados en el AST.\n \n   -pauek, 12 Febrero 2017\n\n*/\n\n#define RESULT(kind, n, token) \\\n   { ADVANCE(n); return { kind, tokpos, atom::_##token##_ }; }\n\n#define IF_ID_RESULT(kind, n, token) \\\n   if (!strncmp(#token, at, n)) { RESULT(kind, n, token); }\n\nToken get() {\n\tif (AT_EOF) {\n\t\treturn { TOK_EOF, pos, NULL };\n\t}\n\t// filenames are parsed specially in 'include' directives.\n\tif (at_include_filename) {\n\t\tat_include_filename = false;\n\t\tat_directive = false;\n\t\treturn lexer_read_include_filename();\n\t}\n\n   lexer_skip_space();\n\n\tToken tok;\n\tPos tokpos = pos;\n\tswitch (at[0]) \n\t{\n\tcase '(': RESULT(TOK_DELIM, 1, lparen)\n\tcase ')': RESULT(TOK_DELIM, 1, rparen)\n\tcase '[': RESULT(TOK_DELIM, 1, lbracket)\n\tcase ']': RESULT(TOK_DELIM, 1, rbracket)\n\tcase '{': RESULT(TOK_DELIM, 1, lbrace)\n\tcase '}': RESULT(TOK_DELIM, 1, rbrace)\n\n\tcase ';': RESULT(TOK_PUNCT, 1, semicolon)\n\tcase '?': RESULT(TOK_PUNCT, 1, qmark)\n\tcase ',': RESULT(TOK_PUNCT, 1, comma)\n\n\tcase '.': \n\t\tif (DIGIT(at[1]))\n\t\t\treturn lexer_read_number();\n\t\telse\n\t\t\tRESULT(TOK_PUNCT, 1, dot)\n\n\tcase ':': \n\t\tif (at[1] == ':')      RESULT(TOK_PUNCT, 2, coloncolon)\n\t\telse                   RESULT(TOK_PUNCT, 1, colon)\n\n\tcase '+':\n\t\tif (at[1] == '+')      RESULT(TOK_OPERATOR, 2, plusplus)\n\t\telse if (at[1] == '=') RESULT(TOK_OPERATOR, 2, pluseq)\n\t\telse                   RESULT(TOK_OPERATOR, 1, plus)\n\n\tcase '-':\n\t\tif (at[1] == '-')\n\t\t\tRESULT(TOK_OPERATOR, 2, minusminus)\n\t\telse if (at[1] == '=')\n\t\t\tRESULT(TOK_OPERATOR, 2, minuseq)\n\t\telse if (at[1] == '>')\n\t\t\tRESULT(TOK_OPERATOR, 2, arrow)\n\t\telse if (DIGIT(at[1]))\n\t\t\treturn lexer_read_number();\n\t\telse\n\t\t\tRESULT(TOK_OPERATOR, 1, minus)\n\n\tcase '*':\n\t\tif (at[1] == '=') RESULT(TOK_OPERATOR, 2, stareq)\n\t\telse              RESULT(TOK_OPERATOR, 1, star)\n\n\tcase '/':\n\t\tif (at[1] == '=') RESULT(TOK_OPERATOR, 2, slasheq)\n\t\telse              RESULT(TOK_OPERATOR, 1, slash)\n\n\tcase '^': \n\t\tif (at[1] == '=') RESULT(TOK_OPERATOR, 2, xoreq)\n\t\telse              RESULT(TOK_OPERATOR, 1, xor)\n\n\tcase '|':\n\t\tif (at[1] == '|')      RESULT(TOK_OPERATOR, 2, barbar)\n\t\telse if (at[1] == '=') RESULT(TOK_OPERATOR, 2, bareq)\n\t\telse                   RESULT(TOK_OPERATOR, 1, bar)\n\n\tcase '&':\n\t\tif (at[1] == '=') RESULT(TOK_OPERATOR, 2, ampeq)\n\t\telse              RESULT(TOK_OPERATOR, 1, amp)\n\n\tcase '%':\n\t\tif (at[1] == '=') RESULT(TOK_OPERATOR, 2, modeq)\n\t\telse              RESULT(TOK_OPERATOR, 1, mod)\n\n\tcase '<':\n\t\tif (at[1] == '=')  \tRESULT(TOK_OPERATOR, 2, leq)\n\t\telse if (at[1] == '<') {\n\t\t\tif (at[2] == '=') RESULT(TOK_OPERATOR, 2, lshifteq)\n\t\t\telse              RESULT(TOK_OPERATOR, 2, lshift)\n\t\t} \n\t   else                 RESULT(TOK_OPERATOR, 1, lt)\n\n\tcase '>':\n\t\tif (at[1] == '=')  \tRESULT(TOK_OPERATOR, 2, geq)\n\t\telse if (at[1] == '>') {\n\t\t\tif (at[2] == '=') RESULT(TOK_OPERATOR, 2, rshifteq)\n\t\t\telse              RESULT(TOK_OPERATOR, 2, rshift)\n\t\t} \n\t   else                 RESULT(TOK_OPERATOR, 1, gt)\n\n\tcase '!': \n\t\tif (at[1] == '=') RESULT(TOK_OPERATOR, 2, noteq)\n\t\telse              RESULT(TOK_OPERATOR, 1, not)\n\n\tcase '=':\n\t\tif (at[1] == '=') RESULT(TOK_OPERATOR, 2, eqeq)\n\t\telse              RESULT(TOK_OPERATOR, 1, eq)\n\n\tcase '#': \n\t\tif (pos.col == 1) at_directive = true;\n\t\tRESULT(TOK_PUNCT, 1, sharp);\n\n\tcase '0': case '1': case '2': case '3':\n\tcase '4': case '5': case '6': case '7':\n\tcase '8': case '9':\n\t\treturn lexer_read_number();\n\n\tcase 'a':\n\t\ttok = lexer_read_identifier();\n\t\tif      (tok.atom == atom::_auto_) tok.kind = TOK_MODIFIER;\n\t\telse if (tok.atom == atom::_and_)  tok.kind = TOK_OPERATOR;\n\t\treturn tok;\n\n\tcase 'b':\n\t\ttok = lexer_read_identifier();\n\t\tif      (tok.atom == atom::_break_) tok.kind = TOK_CONTROL;\n\t\telse if (tok.atom == atom::_bool_)  tok.kind = TOK_TYPE;\n\t\treturn tok;\n\n\tcase 'c':\n\t\ttok = lexer_read_identifier();\n\t\tif      (tok.atom == atom::_continue_) tok.kind = TOK_CONTROL;\n\t\telse if (tok.atom == atom::_const_)    tok.kind = TOK_MODIFIER;\n\t\telse if (tok.atom == atom::_class_)    tok.kind = TOK_TYPEDEF;\n\t\telse if (tok.atom == atom::_char_)     tok.kind = TOK_TYPE;\n\t\telse if (tok.atom == atom::_case_)     tok.kind = TOK_CONTROL;\n\t\treturn tok;\n\n\tcase 'd':\n\t\ttok = lexer_read_identifier();\n\t\tif (tok.atom == atom::_double_) tok.kind = TOK_TYPE;\n\t\treturn tok;\t\t\n\n\tcase 'e':\n\t\ttok = lexer_read_identifier();\n\t\tif      (tok.atom == atom::_else_)     tok.kind = TOK_CONTROL;\n\t\telse if (tok.atom == atom::_enum_)     tok.kind = TOK_TYPEDEF;\n\t\telse if (tok.atom == atom::_extern_)   tok.kind = TOK_MODIFIER;\n\t\telse if (tok.atom == atom::_explicit_) tok.kind = TOK_MODIFIER;\n\t\treturn tok;\n\n\tcase 'f':\n\t\ttok = lexer_read_identifier();\n\t\tif      (tok.atom == atom::_for_)   tok.kind = TOK_CONTROL;\n\t\telse if (tok.atom == atom::_float_) tok.kind = TOK_TYPE;\n\t\telse if (tok.atom == atom::_false_) tok.kind = TOK_LIT_BOOL;\n\t\treturn tok;\n\n\tcase 'g':\n\t\ttok = lexer_read_identifier();\n\t\tif (tok.atom == atom::_goto_) tok.kind = TOK_CONTROL;\n\t\treturn tok;\t\t\n\n\tcase 'h':\n\t\treturn lexer_read_identifier();\t\t\n\n\tcase 'i':\n\t\ttok = lexer_read_identifier();\n\t\tif      (tok.atom == atom::_if_)     tok.kind = TOK_CONTROL;\n\t\telse if (tok.atom == atom::_int_)    tok.kind = TOK_TYPE;\n\t\telse if (tok.atom == atom::_inline_) tok.kind = TOK_MODIFIER;\n\t\telse if (tok.atom == atom::_include_) {\n\t\t\tif (at_directive) {\n\t\t\t\tat_include_filename = true;\n\t\t\t}\n\t\t\ttok.kind = TOK_DIRECTIVE;\n\t\t}\n\t\treturn tok;\n\n\tcase 'j': case 'k':\n\t\treturn lexer_read_identifier();\t\t\n\n\tcase 'l':\n\t\ttok = lexer_read_identifier();\n\t\tif (tok.atom == atom::_long_) tok.kind = TOK_MODIFIER;\n\t\treturn tok;\t\t\n\n\tcase 'm':\n\t\ttok = lexer_read_identifier();\n\t\tif (tok.atom == atom::_mutable_) tok.kind = TOK_MODIFIER;\n\t\treturn tok;\t\t\n\n\tcase 'n':\n\t\ttok = lexer_read_identifier();\n\t\tif (tok.atom == atom::_using_) tok.kind = TOK_USING;\n\t\treturn tok;\t\t\n\n\tcase 'o':\n\t\ttok = lexer_read_identifier();\n\t\tif (tok.atom == atom::_or_) tok.kind = TOK_OPERATOR;\n\t\treturn tok;\t\t\n\n\tcase 'p': case 'q':\n\t\treturn lexer_read_identifier();\t\t\n\n\tcase 'r':\n\t\ttok = lexer_read_identifier();\n\t\tif      (tok.atom == atom::_return_)   tok.kind = TOK_CONTROL;\n\t\telse if (tok.atom == atom::_register_) tok.kind = TOK_MODIFIER;\n\t\treturn tok;\n\n\tcase 's':\n\t\ttok = lexer_read_identifier();\n\t\tif      (tok.atom == atom::_short_)   tok.kind = TOK_CONTROL;\n\t\telse if (tok.atom == atom::_string_)  tok.kind = TOK_TYPE;\n\t\telse if (tok.atom == atom::_switch_)  tok.kind = TOK_CONTROL;\n\t\telse if (tok.atom == atom::_static_)  tok.kind = TOK_MODIFIER;\n\t\telse if (tok.atom == atom::_struct_)  tok.kind = TOK_TYPEDEF;\n\t\treturn tok;\n\n\tcase 't':\n\t\ttok = lexer_read_identifier();\n\t\tif      (tok.atom == atom::_true_)    tok.kind = TOK_LIT_BOOL;\n\t\telse if (tok.atom == atom::_typedef_) tok.kind = TOK_TYPEDEF;\n\t\treturn tok;\n\n\tcase 'u':\n\t\ttok = lexer_read_identifier();\n\t\tif      (tok.atom == atom::_unsigned_) tok.kind = TOK_MODIFIER;\n\t\telse if (tok.atom == atom::_using_)    tok.kind = TOK_USING;\n\t\treturn tok;\n\n\tcase 'v':\n\t\ttok = lexer_read_identifier();\n\t\tif      (tok.atom == atom::_void_)     tok.kind = TOK_TYPE;\n\t\telse if (tok.atom == atom::_volatile_) tok.kind = TOK_MODIFIER;\n\t\telse if (tok.atom == atom::_virtual_)  tok.kind = TOK_MODIFIER;\n\t\treturn tok;\n\n\tcase 'w':\n\t\ttok = lexer_read_identifier();\n\t\tif (tok.atom == atom::_while_) tok.kind = TOK_CONTROL;\n\t\treturn tok;\n\n\tcase 'x': case 'y': case 'z':\n\t\treturn lexer_read_identifier();\n\n\tcase '\\'': case '\"':\n\t\treturn lexer_read_literal_char_or_string();\n\n\tcase '\\\\':\n\t\t// Slash at the end of a line is meant for macros.\n\t\tRESULT(TOK_BACKSLASH, 1, backslash)\n\n\tdefault:\n\t\tif (UPPER(at[0]) || at[0] == '_') {\n\t\t\treturn lexer_read_identifier();\n      }\n      RESULT(TOK_ERROR, 1, error);\n\t}\n}\n\nToken peek() {\n\tconst char *_at  = at;\n\tPos   _pos = pos;\t\n\tToken tok = lexer::get();\n\tat  = _at;\n\tpos = _pos;\n\treturn tok;\n}\n\n#if defined(DEBUG)\nchar *token_kind(TokenKind kind) {\n   static char buffer[32];\n   switch (kind) {\n   case TOK_EOF:        sprintf(buffer, \"EOF\"); break;\n   case TOK_ERROR:      sprintf(buffer, \"ERROR\"); break;\n   case TOK_OPERATOR:   sprintf(buffer, \"OPERATOR\"); break;\n   case TOK_DELIM:      sprintf(buffer, \"DELIM\"); break;\n   case TOK_IDENT:      sprintf(buffer, \"IDENT\"); break;\n   case TOK_FILENAME:   sprintf(buffer, \"FILENAME\"); break;\n   case TOK_CONTROL:    sprintf(buffer, \"CONTROL\"); break;\n   case TOK_DIRECTIVE:  sprintf(buffer, \"DIRECTIVE\"); break;\n   case TOK_TYPE:       sprintf(buffer, \"TYPE\"); break;\n   case TOK_TYPEDEF:    sprintf(buffer, \"TYPEDEF\"); break;\n   case TOK_MODIFIER:   sprintf(buffer, \"MODIFIER\"); break;\n   case TOK_USING:      sprintf(buffer, \"USING\"); break;\n   case TOK_LIT_INT:    sprintf(buffer, \"LIT_INT\"); break;\n   case TOK_LIT_FLOAT:  sprintf(buffer, \"LIT_FLOAT\"); break;\n   case TOK_LIT_DOUBLE: sprintf(buffer, \"LIT_DOUBLE\"); break;\n   case TOK_LIT_BOOL:   sprintf(buffer, \"LIT_BOOL\"); break;\n   case TOK_LIT_STRING: sprintf(buffer, \"LIT_STRING\"); break;\n   case TOK_LIT_CHAR:   sprintf(buffer, \"LIT_CHAR\"); break;\n   case TOK_BACKSLASH:  sprintf(buffer, \"BACKSLASH\"); break;\n   }\n   return buffer;\n}\n#endif\n\n}\n\n\n#endif // IMPLEMENTATION\n/////////////////////////////////////////////////////////////////////////////////////////////\n",
+			"file": "lexer.h",
+			"file_size": 15699,
+			"file_write_time": 131501939685132361,
+			"settings":
+			{
+				"buffer_size": 15640,
+				"encoding": "UTF-8",
+				"line_ending": "Unix"
+			}
+		},
+		{
+			"file": "file.h",
+			"settings":
+			{
+				"buffer_size": 1570,
 				"line_ending": "Unix"
 			}
 		},
@@ -59,6 +105,14 @@
 			"settings":
 			{
 				"buffer_size": 1951,
+				"line_ending": "Unix"
+			}
+		},
+		{
+			"file": "tokens.inc",
+			"settings":
+			{
+				"buffer_size": 3109,
 				"line_ending": "Unix"
 			}
 		}
@@ -90,10 +144,18 @@
 	"build_varint": "",
 	"command_palette":
 	{
-		"height": 319.0,
-		"last_filter": "side",
+		"height": 374.0,
+		"last_filter": "",
 		"selected_items":
 		[
+			[
+				"upper",
+				"Convert Case: Upper Case"
+			],
+			[
+				"lower",
+				"Convert Case: Lower Case"
+			],
 			[
 				"side",
 				"View: Toggle Side Bar"
@@ -163,7 +225,7 @@
 				"View: Toggle Status Bar"
 			]
 		],
-		"width": 399.0
+		"width": 420.0
 	},
 	"console":
 	{
@@ -185,24 +247,25 @@
 	},
 	"expanded_folders":
 	[
-		"/home/pauek/src/pauek/c++/minicc",
-		"/home/pauek/src/pauek/c++/minicc/c-mera"
+		"/home/pauek/src/pauek/c++/minicc"
 	],
 	"file_history":
 	[
-		"/home/pauek/src/pauek/c++/minicc/atom.h",
+		"/home/pauek/src/pauek/c++/minicc/c-mera/lexer.cc",
+		"/home/pauek/src/pauek/c++/minicc/main.cc",
+		"/home/pauek/src/pauek/c++/minicc/build.sh",
+		"/home/pauek/src/pauek/c++/minicc/c-mera/lexer2.cc.lisp",
 		"/home/pauek/src/pauek/c++/minicc/tokens.inc",
+		"/home/pauek/src/pauek/c++/minicc/atom.h",
 		"/home/pauek/src/pauek/c++/minicc/c-mera/build.sh",
 		"/home/pauek/src/pauek/c++/minicc/file.h",
 		"/home/pauek/src/pauek/c++/minicc/lexer.h",
 		"/home/pauek/src/pauek/c++/minicc/ast.h",
-		"/home/pauek/src/pauek/c++/minicc/main.cc",
 		"/home/pauek/src/pauek/c++/minicc/ast.inc",
 		"/home/pauek/src/pauek/c++/minicc/buf.h",
 		"/home/pauek/src/pauek/c++/minicc/type.inc",
 		"/home/pauek/src/pauek/c++/minicc/minicc.sublime-project",
 		"/home/pauek/src/pauek/c++/minicc/array.h",
-		"/home/pauek/src/pauek/c++/minicc/build.sh",
 		"/home/pauek/src/pauek/c++/minicc/type.h",
 		"/home/pauek/src/pauek/c++/minicc/debug.h",
 		"/home/pauek/src/pauek/c++/minicc/minicc.h",
@@ -237,7 +300,7 @@
 	],
 	"find":
 	{
-		"height": 41.0
+		"height": 40.0
 	},
 	"find_in_files":
 	{
@@ -252,6 +315,86 @@
 		"case_sensitive": true,
 		"find_history":
 		[
+			"die",
+			"lexer",
+			"file.cc.lisp",
+			"(at",
+			"at",
+			":END",
+			"tok-begin",
+			"digit",
+			"read-number",
+			"atom",
+			"init",
+			"kind",
+			"result-1-or-2",
+			"id-begin",
+			"id-end",
+			"namespace",
+			"USING",
+			"read-identifier",
+			"LIT-BOOL",
+			"LIT-FLOAT",
+			"LIT-CHAR",
+			"new-token",
+			"#\\Newline",
+			"optional len",
+			":END",
+			"kind",
+			"paren",
+			"PUNCT",
+			"token-kind",
+			"tok-atom",
+			"tok-len",
+			"tok-str",
+			"tok-sym",
+			"SLASH",
+			"slash",
+			"\"\\",
+			":L",
+			"#\\<",
+			"AMP",
+			":end",
+			":error",
+			"lit-char",
+			"TokenKind",
+			"lit-int",
+			"ident",
+			"atom ",
+			":eof",
+			"eof",
+			"EOF",
+			"LIT_",
+			"LIT_CHAR",
+			"ERROR",
+			":EOF",
+			"TOK_",
+			":TOK_",
+			"TOK_",
+			"tok-atom",
+			"string",
+			":",
+			"short",
+			"'.'",
+			"char-class",
+			"tokens",
+			"postfix+",
+			"postfix++",
+			"null",
+			"id-begin",
+			"Token ",
+			"token ",
+			"tokpos",
+			"tok.",
+			"tok",
+			"at ",
+			"at",
+			"loop",
+			"lin",
+			"\"or\"",
+			":or",
+			"     ",
+			"         1",
 			"_new",
 			"alloc",
 			")))",
@@ -299,87 +442,7 @@
 			"INC",
 			"BinOp",
 			"binop",
-			"OP_MT",
-			"EQUALS",
-			"str2op",
-			"op2str",
-			"Label",
-			"label",
-			"array::",
-			"push",
-			"binop",
-			"B",
-			"bl",
-			"array::push",
-			"size",
-			"put(",
-			"float",
-			"_float",
-			"float",
-			"local",
-			"AST_ACCESS",
-			"AST_CAST",
-			"AST_NEW",
-			"free",
-			"print_all_atoms",
-			"lexer_peek",
-			"lexer_",
-			"lexer_push",
-			"lexer_start",
-			"read_all",
-			"read_whole_file",
-			"buf::",
-			"buf::T",
-			"buffer::T",
-			"array::T",
-			"atom::T",
-			"Buffer",
-			"Atom",
-			"array::Array",
-			"Array",
-			"array_",
-			"array::array_new",
-			"buf_",
-			"buf_new",
-			"atom::",
-			"atom::get",
-			"atom_get",
-			"atom_",
-			"Atom",
-			"atom_get",
-			"ast_",
-			"Atom__Node",
-			"AST_",
-			"ast_node",
-			"Node",
-			"printf",
-			"printf(",
-			"f",
-			"stmts",
-			"ast_print",
-			"ast_show",
-			"body",
-			"b->",
-			"b",
-			"data",
-			"END_CASE",
-			"BEGIN_CASE",
-			", false",
-			"= type_make((Type){",
-			"Type *type_",
-			"type_new",
-			"new_type",
-			"new_type({",
-			"new_type(",
-			"&(Type)",
-			" K",
-			", t",
-			", f",
-			"};",
-			"->type",
-			"AST_Type",
-			"lexer_token_kind",
-			"Atom_Node"
+			"OP_MT"
 		],
 		"highlight": true,
 		"in_selection": false,
@@ -409,7 +472,7 @@
 	"groups":
 	[
 		{
-			"selected": 0,
+			"selected": 4,
 			"sheets":
 			[
 				{
@@ -418,48 +481,20 @@
 					"semi_transient": false,
 					"settings":
 					{
-						"buffer_size": 7169,
+						"buffer_size": 13781,
 						"regions":
 						{
 						},
 						"selection":
 						[
 							[
-								5537,
-								5537
+								205,
+								205
 							]
 						],
 						"settings":
 						{
 							"auto_name": "",
-							"syntax": "Packages/Lisp/Lisp.sublime-syntax"
-						},
-						"translation.x": 0.0,
-						"translation.y": 3780.0,
-						"zoom_level": 1.0
-					},
-					"stack_index": 0,
-					"type": "text"
-				},
-				{
-					"buffer": 1,
-					"file": "c-mera/lexer.cc.lisp",
-					"semi_transient": false,
-					"settings":
-					{
-						"buffer_size": 7169,
-						"regions":
-						{
-						},
-						"selection":
-						[
-							[
-								127,
-								127
-							]
-						],
-						"settings":
-						{
 							"syntax": "Packages/Lisp/Lisp.sublime-syntax"
 						},
 						"translation.x": 0.0,
@@ -470,20 +505,76 @@
 					"type": "text"
 				},
 				{
-					"buffer": 2,
-					"file": "c-mera/build.sh",
+					"buffer": 1,
+					"file": "c-mera/file.cc.lisp",
 					"semi_transient": false,
 					"settings":
 					{
-						"buffer_size": 145,
+						"buffer_size": 1522,
 						"regions":
 						{
 						},
 						"selection":
 						[
 							[
-								106,
-								106
+								259,
+								259
+							]
+						],
+						"settings":
+						{
+							"syntax": "Packages/Lisp/Lisp.sublime-syntax"
+						},
+						"translation.x": 0.0,
+						"translation.y": 0.0,
+						"zoom_level": 1.0
+					},
+					"stack_index": 2,
+					"type": "text"
+				},
+				{
+					"buffer": 2,
+					"file": "c-mera/lexer.cc.lisp",
+					"semi_transient": false,
+					"settings":
+					{
+						"buffer_size": 13781,
+						"regions":
+						{
+						},
+						"selection":
+						[
+							[
+								163,
+								163
+							]
+						],
+						"settings":
+						{
+							"syntax": "Packages/Lisp/Lisp.sublime-syntax"
+						},
+						"translation.x": 0.0,
+						"translation.y": 0.0,
+						"zoom_level": 1.0
+					},
+					"stack_index": 3,
+					"type": "text"
+				},
+				{
+					"buffer": 3,
+					"file": "c-mera/build.sh",
+					"semi_transient": false,
+					"settings":
+					{
+						"buffer_size": 241,
+						"regions":
+						{
+						},
+						"selection":
+						[
+							[
+								241,
+								241
 							]
 						],
 						"settings":
@@ -496,28 +587,57 @@
 					},
 					"stack_index": 4,
 					"type": "text"
-				}
-			]
-		},
-		{
-			"selected": 0,
-			"sheets":
-			[
+				},
 				{
-					"buffer": 3,
-					"file": "lexer.h",
+					"buffer": 4,
+					"file": "c-mera/main.cc",
 					"semi_transient": false,
 					"settings":
 					{
-						"buffer_size": 15756,
+						"buffer_size": 587,
 						"regions":
 						{
 						},
 						"selection":
 						[
 							[
-								778,
-								778
+								20,
+								20
+							]
+						],
+						"settings":
+						{
+							"auto_name": "",
+							"syntax": "Packages/C++/C++.sublime-syntax"
+						},
+						"translation.x": 0.0,
+						"translation.y": 0.0,
+						"zoom_level": 1.0
+					},
+					"stack_index": 0,
+					"type": "text"
+				}
+			]
+		},
+		{
+			"selected": 1,
+			"sheets":
+			[
+				{
+					"buffer": 5,
+					"file": "lexer.h",
+					"semi_transient": false,
+					"settings":
+					{
+						"buffer_size": 15640,
+						"regions":
+						{
+						},
+						"selection":
+						[
+							[
+								100,
+								102
 							]
 						],
 						"settings":
@@ -525,14 +645,43 @@
 							"syntax": "Packages/C++/C++.sublime-syntax"
 						},
 						"translation.x": 0.0,
-						"translation.y": 584.0,
+						"translation.y": 0.0,
 						"zoom_level": 1.0
 					},
-					"stack_index": 2,
+					"stack_index": 6,
 					"type": "text"
 				},
 				{
-					"buffer": 4,
+					"buffer": 6,
+					"file": "file.h",
+					"semi_transient": false,
+					"settings":
+					{
+						"buffer_size": 1570,
+						"regions":
+						{
+						},
+						"selection":
+						[
+							[
+								0,
+								0
+							]
+						],
+						"settings":
+						{
+							"history_list_is_closing": true,
+							"syntax": "Packages/C++/C++.sublime-syntax"
+						},
+						"translation.x": 0.0,
+						"translation.y": 0.0,
+						"zoom_level": 1.0
+					},
+					"stack_index": 5,
+					"type": "text"
+				},
+				{
+					"buffer": 7,
 					"file": "main.cc",
 					"semi_transient": true,
 					"settings":
@@ -544,19 +693,48 @@
 						"selection":
 						[
 							[
-								1514,
-								1514
+								1119,
+								1119
 							]
 						],
 						"settings":
 						{
+							"history_list_is_closing": true,
 							"syntax": "Packages/C++/C++.sublime-syntax"
 						},
 						"translation.x": 0.0,
-						"translation.y": 1012.0,
+						"translation.y": 962.0,
 						"zoom_level": 1.0
 					},
-					"stack_index": 3,
+					"stack_index": 8,
+					"type": "text"
+				},
+				{
+					"buffer": 8,
+					"file": "tokens.inc",
+					"semi_transient": false,
+					"settings":
+					{
+						"buffer_size": 3109,
+						"regions":
+						{
+						},
+						"selection":
+						[
+							[
+								546,
+								546
+							]
+						],
+						"settings":
+						{
+							"syntax": "Packages/HTML/HTML.sublime-syntax"
+						},
+						"translation.x": 0.0,
+						"translation.y": 3800.0,
+						"zoom_level": 1.0
+					},
+					"stack_index": 7,
 					"type": "text"
 				}
 			]
@@ -564,7 +742,7 @@
 	],
 	"incremental_find":
 	{
-		"height": 37.0
+		"height": 27.0
 	},
 	"input":
 	{
@@ -590,7 +768,7 @@
 		"cols":
 		[
 			0.0,
-			0.550429799427,
+			0.57106017192,
 			1.0
 		],
 		"rows":
@@ -616,7 +794,7 @@
 	"project": "minicc.sublime-project",
 	"replace":
 	{
-		"height": 70.0
+		"height": 50.0
 	},
 	"save_all_on_build": true,
 	"select_file":
@@ -625,6 +803,22 @@
 		"last_filter": "",
 		"selected_items":
 		[
+			[
+				"main",
+				"main.cc"
+			],
+			[
+				"build.sh",
+				"build.sh"
+			],
+			[
+				"build",
+				"build.sh"
+			],
+			[
+				"file",
+				"file.h"
+			],
 			[
 				"ast.inc",
 				"ast.inc"
@@ -650,20 +844,8 @@
 				"ast.h"
 			],
 			[
-				"build.sh",
-				"build.sh"
-			],
-			[
 				"atom",
 				"atom.h"
-			],
-			[
-				"build",
-				"build.sh"
-			],
-			[
-				"main",
-				"main.cc"
 			],
 			[
 				"main.cc",

@@ -1,5 +1,13 @@
 #!/bin/bash
-cm c++ lexer.cc.lisp > _lexer.cc && \
-   clang-format _lexer.cc -style="{ IndentWidth: 3 }" > lexer.cc && \
-   rm -f _lexer.cc && \
-   g++ -O0 -g3 -o lexer lexer.cc
+
+function ccgen() { 
+   file=$1;
+   echo "generating "$file.cc;
+   cm c++ $file.cc.lisp > generated_$file.cc && \
+      clang-format generated_$file.cc -style="{ IndentWidth: 3 }" > $file.cc && \
+      rm generated_$file.cc;
+}
+
+ccgen file && \
+   ccgen lexer && \
+   g++ -o main main.cc;
