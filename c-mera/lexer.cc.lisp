@@ -152,7 +152,9 @@
    (decl ((Atom*    atom)
           (uint32_t pos)))) ; La posición es un offset con respecto al inicio del buffer
 
-(struct Pos (decl ((int lin) (int col))))
+(struct Pos 
+   (decl ((int lin) 
+          (int col))))
 
 ; Comments (we leave these for later...)
 ; (enum (:COMMENT_MULTILINE :COMMENT_SINGLELINE))
@@ -196,6 +198,7 @@
 
    (struct Lexer
       (decl ((const char* buffer)
+             (size_t      buflen)
              (const char* curr)
              (uint32_t*   line-offsets)
              (int         nlines))) ; offsets of all lines
@@ -213,8 +216,19 @@
                   (set line-offsets[i] (- (1+ p) buffer))
                   i++))))
 
+      (function position ((uint32_t offset)) -> Pos
+         (when (or (< offset 0) (>= offset buflen))
+            (return (cast Pos (clist -1 -1))))
+         (decl ((int i = 0))
+            (for (() (< line-offsets[i] offset) i++))
+            (decl ((int idx = (? (== line-offsets[i] offset) i (1- i)))
+                   (int lin = (1+ idx))
+                   (int col = (1+ (- offset (aref line-offsets idx)))))
+               (return (cast Pos (clist lin col))))))
+
       (function init ((const char* buf)) -> void
          (set buffer buf)
+         (set buflen (strlen buf))
          (set curr   buf)
          (fill-lines))
 

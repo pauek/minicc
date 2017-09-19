@@ -3,6 +3,7 @@
 #include <stdlib.h>
 #include <stdint.h>
 #include <string.h>
+#include <assert.h>
 
 #include "file.cc"
 #include "lexer.cc"
@@ -21,12 +22,13 @@ int main(int argc, char **argv) {
    lexer.init(buffer);
    while (1) {
       tok = lexer.get();
-      printf("%s \"%.*s\" %lu %u\n",
+      Pos pos = lexer.position(tok.pos);
+      printf("%d:%d: %s \"%.*s\" %lu\n",
+             pos.lin, pos.col,
              kind2str(tok.atom->kind),
              (int) tok.atom->len,
              tok.atom->str,
-             tok.atom->len,
-             tok.pos);
+             tok.atom->len);
       if (tok.atom->kind == ERROR) {
          printf("Error, exiting!\n");
          break;
