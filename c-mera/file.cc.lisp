@@ -3,6 +3,10 @@
    `(progn (fprintf stderr ,(format nil "~a~a" fmt "\\n") ,@rest)
            (exit 1)))
 
+(defmacro err (fmt &rest vars)
+   `(progn (funcall fprintf stderr ,fmt ,@vars)
+           (return 0)))
+
 ;;; Read Whole File
 
 (defmacro open-file (filename file)
@@ -30,15 +34,12 @@
                  n-bytes-read (cast size_t ,size))))))
 
 (function read-whole-file ((const char* filename)) -> char*
-   (macrolet ((err (fmt &rest vars)
-                `(progn (funcall fprintf stderr ,fmt ,@vars)
-                        (return 0))))
-      (decl ((FILE*  file) 
-             (size_t size)
-             (char*  buffer))
-         (open-file filename file)
-         (determine-file-size file size)
-         (alloc buffer char* size)
-         (read-all-bytes file size buffer)      
-         (set buffer[n-bytes-read] 0) ; (zero-terminate buffer)
-         (return buffer))))
+   (decl ((FILE*  file) 
+          (size_t size)
+          (char*  buffer))
+      (open-file filename file)
+      (determine-file-size file size)
+      (alloc buffer char* (1+ size))
+      (read-all-bytes file size buffer)      
+      (set buffer[n-bytes-read] 0) ; (zero-terminate buffer)
+      (return buffer)))

@@ -17,4 +17,4 @@ function ccgen() {
 ccgen file
 ccgen lexer
 echo "Compiling"
-g++ -o main main.cc
+g++ -g3 -o main main.cc

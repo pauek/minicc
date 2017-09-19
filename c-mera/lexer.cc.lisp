@@ -3,6 +3,15 @@
 
 (defvar ATOM_NUM_NODES 4096) ; Tiene que ser potencia de 2
 
+(defmacro err (fmt &rest vars)
+   `(progn (funcall fprintf stderr ,fmt ,@vars)
+           (return 0)))
+
+(defmacro alloc (var type size)
+   `(progn 
+      (set ,var (cast ,type (malloc ,size)))
+      (if (== ,var 0) (err "Cannot allocate\\n"))))
+
 ;;; Token list
 
 (defstruct token kind str len)
@@ -139,9 +148,6 @@
 
 ;;; Lexer
 
-
-(typedef uint32_t Position)
-
 (struct Token
    (decl ((Atom*    atom)
           (uint32_t pos)))) ; La posición es un offset con respecto al inicio del buffer
@@ -190,11 +196,35 @@
 
    (struct Lexer
       (decl ((const char* buffer)
-             (const char* curr)))
+             (const char* curr)
+             (uint32_t*   line-offsets)
+             (int         nlines))) ; offsets of all lines
+
+      (function fill-lines () -> void
+         (set nlines 1)
+         (for ((const char* p = buffer) *p p++)
+            (decl ((const char *next = (1+ p)))
+               (when (&& (== *p #\Newline)
+                         (!= *next 0))
+                  nlines++)))
+         (printf "lines = %d\\n" nlines)
+         (set line-offsets (cast uint32_t* (malloc (* (sizeof uint32_t) nlines))))
+         (set line-offsets[0] 0)
+         (decl ((int i = 1))
+            (for ((const char* p = buffer) *p p++)
+               (when (== *p #\Newline)
+                  (decl ((const char* next = (1+ p)))
+                     (when (!= *next 0) 
+                        (set line-offsets[i] (- next buffer))
+                        i++)))))
+         (for ((int i = 0) (< i nlines) i++)
+            (printf "%d," line-offsets[i]))
+         (printf "\\n"))
 
       (function init ((const char* buf)) -> void
          (set buffer buf)
-         (set curr   buf))
+         (set curr   buf)
+         (fill-lines))
 
       (function skip-space () -> bool
          ; Skip whitespace
@@ -266,8 +296,8 @@
                  (at2 (ch) `(== (aref curr 2) ,ch))
                  (if1 (ch a b) `(if (at1 ,ch) (result ,a) (result ,b))))
          (function get () -> Token
-            (if (at :END) (result :end))
             (skip-space)
+            (if (at :end) (result :end))
             (switch curr[0]
                (#\( (result :lparen))
                (#\) (result :rparen))
