@@ -30,6 +30,18 @@ const int screenHeight = 960;
 
 SpriteFont font;
 int lineheight;
+int program_width = 150;
+const int bar_width = 5;
+
+const Color COLOR_PROGRAM_BACKGROUND = (Color){ 235, 235, 255, 255 };
+const Color COLOR_BAR                = (Color) { 100, 100, 100, 50 };
+const Color COLOR_BAR_HOVER          = (Color) { 0, 0, 0, 50 };
+
+bool inBar(int x) {
+   const int margin = 2;
+   return x >= program_width - bar_width - margin 
+       && x <= program_width + margin;
+}
 
 enum Type { NONE, INTEGER, FLOAT };
 
@@ -148,6 +160,7 @@ struct Program {
    void push(const char* fname, int n) { stack.push(fname, n); }
    void pop()                          { stack.pop(); }
 
+   void draw_source();
    void draw();
 
    void exec_one() {
@@ -172,7 +185,7 @@ const char *getline(const char **str) {
    return line;
 }
 
-void Program::draw() {
+void Program::draw_source() {
    Vector2 pos, size;
 
    // Draw highlight
@@ -196,12 +209,13 @@ void Program::draw() {
       DrawTextEx(font, line, pos, font.baseSize, 0, BLACK);
       pos.y += lineheight;
    }
+}
 
-   // Separator
-   DrawLine(300, 0, 300, screenHeight, BLACK);
+void Program::draw() {
+   Vector2 pos;
 
    // Draw Stack
-   pos = { 320, screenHeight - 30 };
+   pos = { program_width + 20.0f, screenHeight - 30 };
    if (!stack.frames.empty()) {
       DrawLine(pos.x, pos.y, pos.x + 200, pos.y, BLUE);
    }
@@ -297,15 +311,34 @@ int main() {
    InitWindow(screenWidth, screenHeight, "bola");
    SetConfigFlags(FLAG_VSYNC_HINT);
    SetTargetFPS(60);
-   font = LoadSpriteFontTTF("iosevka-regular.ttf", 18, 0, 0);
+   font = LoadSpriteFontEx("iosevka-regular.ttf", 18, 0, 0);
    lineheight = font.baseSize + 3;
+
+   int orig_x = -1, orig_program_width;
+   bool dragging_bar = false;
 
    Program P;
    P.push("main", 0);
 
+   RenderTexture2D program_source = LoadRenderTexture(screenWidth, screenHeight);
    while (!WindowShouldClose())
    {
+      BeginTextureMode(program_source);
+         DrawRectangle(0, 0, screenWidth, screenHeight, COLOR_PROGRAM_BACKGROUND);
+         P.draw_source();
+         Color color_bar = COLOR_BAR;
+         if (inBar(GetMouseX())) {
+            color_bar = COLOR_BAR_HOVER;
+         }
+         DrawRectangle(program_width - bar_width, 0, program_width, screenHeight, color_bar);
+      EndTextureMode();
+
       BeginDrawing();
+         DrawTextureRec(program_source.texture, 
+                        // WARNING: aquí hace falta poner     -screenHeight,    sino sale al revés
+                        (Rectangle){ 0, 0, program_width + 1, -screenHeight },  
+                        (Vector2){ 0, 0 }, 
+                        WHITE);
          P.draw();
       EndDrawing();
 
@@ -313,6 +346,23 @@ int main() {
          P.exec_one();
          if (P.end()) {
             break;
+         }
+      }
+
+      // Drag bar 
+      if (inBar(GetMouseX()) && IsMouseButtonPressed(MOUSE_LEFT_BUTTON)) {
+         dragging_bar = true;
+         orig_x = GetMouseX();
+         orig_program_width = program_width;
+      }
+      if (dragging_bar) {
+         if (IsMouseButtonDown(MOUSE_LEFT_BUTTON)) {
+            int new_width = orig_program_width + (GetMouseX() - orig_x); 
+            if (new_width >= bar_width) {
+               program_width = new_width;
+            }
+         } else {
+            dragging_bar = false;
          }
       }
    }
