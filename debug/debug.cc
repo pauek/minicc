@@ -116,6 +116,15 @@ struct Stack
 
 struct Highlight { int line, begin, end; };
 
+struct Instr;
+struct Context;
+typedef void (*InstrFunc)(Context& C, Instr& I);
+
+struct Instr { 
+   InstrFunc fn; 
+   Highlight hl;
+};
+
 struct Context {
    Stack stack;
 
@@ -143,21 +152,87 @@ struct Context {
    void intermediate_value(float x) {}
 
    void draw();
+
+   void exec_one() {
+      int ip = curr();
+      (*instrs[ip].fn)(*this, instrs[ip]);
+   }
+
+   static Instr instrs[];
+   static const char *source;
 };
 
 
-struct Instr;
-typedef void (*InstrFunc)(Context& C, Instr& I);
-struct Instr { 
-   InstrFunc fn; 
-   Highlight hl;
-};
+
+const char *getline(const char **str) {
+   static char line[1024];
+   char *t = line;
+   const char *s = *str;
+   while (*s != 0 && *s != '\n') {
+      *t++ = *s++;
+   }
+   *t = 0;
+   if (*s == '\n') s++;
+   *str = s;
+   return line;
+}
+
+void Context::draw() {
+   Vector2 pos, size;
+
+   // Draw highlight
+   if (!end()) {
+      int ip = stack.top().ip;
+      Highlight H = instrs[ip].hl;
+      if (H.line != -1) {
+         pos.x  = 20 + 7.1 * (H.begin - 1) - 1;
+         pos.y  = (H.line - 1) * (lineheight) + 4;
+         size.x = 7.1 * (H.end - H.begin);
+         size.y = lineheight;
+         DrawRectangleV(pos, size, GREEN);
+      }
+   }
+
+   // Draw source
+   pos = { 20, 20 };
+   const char *text = source;
+   while (*text != 0) {
+      const char *line = getline(&text);
+      DrawTextEx(font, line, pos, font.baseSize, 0, BLACK);
+      pos.y += lineheight;
+   }
+
+   // Separator
+   DrawLine(300, 0, 300, screenHeight, BLACK);
+
+   // Draw Stack
+   pos = { 320, screenHeight - 30 };
+   if (!stack.frames.empty()) {
+      DrawLine(pos.x, pos.y, pos.x + 200, pos.y, BLUE);
+   }
+   for (int i = 0; i < stack.frames.size(); i++) {
+      Stack::Frame& f = stack.frames[i];
+      pos.x += 20;
+      for (size_t i = 0; i < f.names.size(); i++) {
+         pos.y -= 30;
+         DrawTextEx(font, f.names[i].c_str(), pos, font.baseSize, 0, BLACK);
+         pos.x += 30;
+         f.values[i].draw(pos);
+         pos.x -= 30;
+      }
+      pos.y -= 30;
+      DrawTextEx(font, f.fname, pos, font.baseSize, 0, BLACK);
+      pos.x -= 20;
+      pos.y -= 30;
+      DrawLine(pos.x, pos.y, pos.x + 200, pos.y, BLUE);
+   }
+}
 
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-const char *source = R"(XXXXX XXXXX XXXXX XXXXX XXXXX
+const char *Context::source = R"(XXXXX XXXXX XXXXX XXXXX XXXXX
 int f(int a, int b) {
    int c = a + b;
    c++;
@@ -206,7 +281,7 @@ void f3(Context& C, Instr& I) {
    C.pop(); // Esta vuelta está mal, debería ser la siguiente instrucción de la 0 después del 'call'
 }
 
-Instr instructions[] = {
+Instr Context::instrs[] = {
    { main1, { 9, 12, 19 } },
    { main2, { 9, 4, 28 } },
    { f1, { 3, 4, 18 } },
@@ -218,69 +293,7 @@ Instr instructions[] = {
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-const char *getline(const char **str) {
-   static char line[1024];
-   char *t = line;
-   const char *s = *str;
-   while (*s != 0 && *s != '\n') {
-      *t++ = *s++;
-   }
-   *t = 0;
-   if (*s == '\n') s++;
-   *str = s;
-   return line;
-}
 
-void Context::draw() {
-   Vector2 pos, size;
-
-   // Draw highlight
-   if (!end()) {
-      int ip = stack.top().ip;
-      Highlight H = instructions[ip].hl;
-      if (H.line != -1) {
-         pos.x  = 20 + 7.1 * (H.begin - 1) - 1;
-         pos.y  = (H.line - 1) * (lineheight) + 4;
-         size.x = 7.1 * (H.end - H.begin);
-         size.y = lineheight;
-         DrawRectangleV(pos, size, GREEN);
-      }
-   }
-
-   // Draw source
-   pos = { 20, 20 };
-   const char *text = source;
-   while (*text != 0) {
-      const char *line = getline(&text);
-      DrawTextEx(font, line, pos, font.baseSize, 0, BLACK);
-      pos.y += lineheight;
-   }
-
-   // Separator
-   DrawLine(300, 0, 300, screenHeight, BLACK);
-
-   // Draw Stack
-   pos = { 320, screenHeight - 30 };
-   if (!stack.frames.empty()) {
-      DrawLine(pos.x, pos.y, pos.x + 200, pos.y, BLUE);
-   }
-   for (int i = 0; i < stack.frames.size(); i++) {
-      Stack::Frame& f = stack.frames[i];
-      pos.x += 20;
-      for (size_t i = 0; i < f.names.size(); i++) {
-         pos.y -= 30;
-         DrawTextEx(font, f.names[i].c_str(), pos, font.baseSize, 0, BLACK);
-         pos.x += 30;
-         f.values[i].draw(pos);
-         pos.x -= 30;
-      }
-      pos.y -= 30;
-      DrawTextEx(font, f.fname, pos, font.baseSize, 0, BLACK);
-      pos.x -= 20;
-      pos.y -= 30;
-      DrawLine(pos.x, pos.y, pos.x + 200, pos.y, BLUE);
-   }
-}
 
 int main() {
    InitWindow(screenWidth, screenHeight, "bola");
@@ -301,8 +314,7 @@ int main() {
       EndDrawing();
 
       if (IsKeyPressed(KEY_SPACE) && !C.end()) {
-         int i = C.curr();
-         (*instructions[i].fn)(C, instructions[i]);
+         C.exec_one();
       }
    }
    CloseWindow();
