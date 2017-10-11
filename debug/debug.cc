@@ -280,7 +280,7 @@ void Program::draw_stack() {
    Vector2 pos;
 
    // Draw Stack
-   pos = { program_width + 20.0f, screenHeight - status_bar_height - 30 };
+   pos = { program_width + 20.0f, screenHeight - status_bar_height - 10 };
    Stack& S = stack();
    for (int i = 0; i < S.frames.size(); i++) {
       Stack::Frame& f = S.frames[i];
@@ -299,7 +299,7 @@ void Program::draw_stack() {
       pos.x -= 10;
       pos.y -= 25;
       DrawRectangleLines(ini.x - 1, pos.y + 1, 300, ini.y - pos.y - 10, GRAY);
-      pos.y -= 20;
+      pos.y -= 10;
    }
 }
 
@@ -371,7 +371,6 @@ void Program::draw_status_bar() {
       if (IsMouseButtonDown(MOUSE_LEFT_BUTTON)) {
          int dx = GetMouseX() - orig_x;
          int new_cursor = ((orig_knob_x + dx) - buttons_size) / step_size;
-         cout << new_cursor << endl;
          cursor = new_cursor;
          if (new_cursor >= timeline.size()) {
             cursor = timeline.size()-1;
