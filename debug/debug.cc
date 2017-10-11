@@ -30,7 +30,7 @@ const int screenHeight = 960;
 
 SpriteFont font;
 int lineheight;
-int program_width = 150;
+int program_width = 250;
 const int bar_width = 5;
 
 const Color COLOR_PROGRAM_BACKGROUND = (Color){ 235, 235, 255, 255 };
@@ -52,9 +52,11 @@ struct Value {
       float as_float;
    };
 
+   // WARNING: Ojo con la copia de Value, porque viene de la copia de Stack!
    Value()        : type(NONE)               {}
    Value(int x)   : type(INTEGER), as_int(x) {}
    Value(float f) : type(FLOAT), as_float(f) {}
+   // Value(const Value& val) <--- Hay que currarse este bien!
 
      int get_int()    const { assert(type == INTEGER); return as_int; }
    float get_float()  const { assert(type == FLOAT);   return as_float; }
@@ -138,15 +140,20 @@ struct Instr {
 };
 
 struct Program {
-   Stack stack;
+   int cursor;
+   vector<Stack> timeline;
 
-    int curr() const { return stack.top().ip; }
-   void next(int n)  { stack.top().ip = n; }
+   Program() : timeline(1), cursor(0) {}
 
-   bool end()  const { return stack.frames.empty(); }
+   Stack& stack() { return timeline[cursor]; }
+   const Stack& stack() const { return timeline[cursor]; }
+
+   void next(int n)  { stack().top().ip = n; }
+
+   bool end()   const { return stack().frames.empty(); }
 
    int add_local(string name, Value v) {
-      Stack::Frame& curr_frame = stack.top();
+      Stack::Frame& curr_frame = stack().top();
       assert(curr_frame.names.size() == curr_frame.values.size());
       int idx = curr_frame.names.size();
       curr_frame.names.push_back(name);
@@ -154,18 +161,33 @@ struct Program {
       return idx;
    }
 
-   Value& local(int index) { return stack.top().values[index]; }
-   Value& result()         { return stack.result; }
+   Value& local(int index) { return stack().top().values[index]; }
+   Value& result()         { return stack().result; }
 
-   void push(const char* fname, int n) { stack.push(fname, n); }
-   void pop()                          { stack.pop(); }
+   void push(const char* fname, int n) { stack().push(fname, n); }
+   void pop()                          { stack().pop(); }
 
    void draw_source();
    void draw();
 
-   void exec_one() {
-      int ip = curr();
-      (*instrs[ip].fn)(*this, instrs[ip]);
+   void forwards() {
+      assert(cursor >= 0 && cursor < timeline.size());
+      if (end()) {
+         return;
+      }
+      cursor++;
+      if (cursor >= timeline.size()) {
+         timeline.push_back(timeline.back());
+         int ip = stack().top().ip;
+         (*instrs[ip].fn)(*this, instrs[ip]);
+      }
+   }
+
+   void backwards() {
+      cursor--;
+      if (cursor < 0) {
+         cursor = 0;
+      }
    }
 
    static Instr instrs[];
@@ -190,7 +212,7 @@ void Program::draw_source() {
 
    // Draw highlight
    if (!end()) {
-      int ip = stack.top().ip;
+      int ip = stack().top().ip;
       Highlight H = instrs[ip].hl;
       if (H.line != -1) {
          pos.x  = 20 + 7.1 * (H.begin - 1) - 1;
@@ -216,11 +238,12 @@ void Program::draw() {
 
    // Draw Stack
    pos = { program_width + 20.0f, screenHeight - 30 };
-   if (!stack.frames.empty()) {
+   Stack& S = stack();
+   if (!S.frames.empty()) {
       DrawLine(pos.x, pos.y, pos.x + 200, pos.y, BLUE);
    }
-   for (int i = 0; i < stack.frames.size(); i++) {
-      Stack::Frame& f = stack.frames[i];
+   for (int i = 0; i < S.frames.size(); i++) {
+      Stack::Frame& f = S.frames[i];
       pos.x += 20;
       for (size_t i = 0; i < f.names.size(); i++) {
          pos.y -= 30;
@@ -342,11 +365,11 @@ int main() {
          P.draw();
       EndDrawing();
 
-      if (IsKeyPressed(KEY_SPACE) && !P.end()) {
-         P.exec_one();
-         if (P.end()) {
-            break;
-         }
+      if (IsKeyPressed(KEY_RIGHT)) {
+         P.forwards();
+      }
+      if (IsKeyPressed(KEY_LEFT)) {
+         P.backwards();
       }
 
       // Drag bar 
