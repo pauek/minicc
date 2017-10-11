@@ -118,7 +118,7 @@ struct Highlight { int line, begin, end; };
 
 struct Instr;
 struct Program;
-typedef void (*InstrFunc)(Program& C, Instr& I);
+typedef void (*InstrFunc)(Program& P, Instr& I);
 
 struct Instr { 
    InstrFunc fn; 
@@ -240,39 +240,44 @@ int main() {
 )";
 
 // f(1, 2)
-void main1(Program& C, Instr& I) {
-   C.next(1);
-   C.push("f", 2);
-   C.add_local("a", Value(1));
-   C.add_local("b", Value(2));
+void main1(Program& P, Instr& I) {
+   P.next(1);
+   P.push("f", 2);
+   P.add_local("a", Value(1));
+   P.add_local("b", Value(2));
 }
 
 // cout << [result] << endl;
-void main2(Program& C, Instr& I) {
-   int result = C.result().get_int();
+void main2(Program& P, Instr& I) {
+   P.next(5);
+   int result = P.result().get_int();
+   // TODO: Emulate the output!
    cout << result << endl;
-   C.pop();
+}
+
+void main3(Program& P, Instr& I) {
+   P.pop();
 }
 
 // int c = a + b;
-void f1(Program& C, Instr& I) {
-   int a = C.local(0).get_int();
-   int b = C.local(1).get_int();
+void f1(Program& P, Instr& I) {
+   int a = P.local(0).get_int();
+   int b = P.local(1).get_int();
    int c = a + b;
-   C.add_local("c", Value(c));
-   C.next(3);
+   P.add_local("c", Value(c));
+   P.next(3);
 }
 
 // c++;
-void f2(Program& C, Instr& I) {
-   C.local(2).set_int(C.local(2).get_int() + 1);
-   C.next(4);
+void f2(Program& P, Instr& I) {
+   P.local(2).set_int(P.local(2).get_int() + 1);
+   P.next(4);
 }
 
 // return c;
-void f3(Program& C, Instr& I) {
-   C.result().set_int(C.local(2).get_int());
-   C.pop(); // Esta vuelta está mal, debería ser la siguiente instrucción de la 0 después del 'call'
+void f3(Program& P, Instr& I) {
+   P.result().set_int(P.local(2).get_int());
+   P.pop(); // Esta vuelta está mal, debería ser la siguiente instrucción de la 0 después del 'call'
 }
 
 Instr Program::instrs[] = {
@@ -281,6 +286,7 @@ Instr Program::instrs[] = {
    { f1, { 3, 4, 18 } },
    { f2, { 4, 4, 8 } },
    { f3, { 5, 4, 13 } },
+   { main3, {} },
 };
 
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -294,19 +300,20 @@ int main() {
    font = LoadSpriteFontTTF("iosevka-regular.ttf", 18, 0, 0);
    lineheight = font.baseSize + 3;
 
-   Program C;
-   C.push("main", 0);
-   C.add_local("x", Value(7.5f));
+   Program P;
+   P.push("main", 0);
 
    while (!WindowShouldClose())
    {
       BeginDrawing();
-         // DrawTextEx(font, "hi, there!", (Vector2){400, 300}, font.baseSize, 0, BLACK);
-         C.draw();
+         P.draw();
       EndDrawing();
 
-      if (IsKeyPressed(KEY_SPACE) && !C.end()) {
-         C.exec_one();
+      if (IsKeyPressed(KEY_SPACE) && !P.end()) {
+         P.exec_one();
+         if (P.end()) {
+            break;
+         }
       }
    }
    CloseWindow();
