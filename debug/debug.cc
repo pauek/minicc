@@ -17,11 +17,18 @@ Pero que contenga toda la información para poder debugarlo
 
 */
 
+#include "raylib.h"
+
 #include <assert.h>
 #include <iostream>
 #include <sstream>
 #include <vector>
 using namespace std;
+
+const int screenWidth = 1280;
+const int screenHeight = 960;
+
+SpriteFont font;
 
 enum Type { NONE, INTEGER, FLOAT };
 
@@ -59,6 +66,27 @@ struct Value {
       }
       return oss.str();
    }
+
+   void draw(Vector2 pos) {
+      int H = font.baseSize + 5;
+      switch (type) {
+         case NONE: break;
+         case INTEGER: {
+            ostringstream oss;
+            oss << as_int;
+            DrawRectangleLines(pos.x - 4, pos.y - H + 5, 100, H, RED);
+            DrawTextEx(font, oss.str().c_str(), pos, font.baseSize, 0, BLACK);
+            break;
+         }
+         case FLOAT: {
+            ostringstream oss;
+            oss << as_float;
+            DrawRectangleLines(pos.x - 4, pos.y - H + 5, 100, H, RED);
+            DrawTextEx(font, oss.str().c_str(), pos, font.baseSize, 0, BLACK);
+            break;
+         }
+      }
+   }
 };
 
 
@@ -67,97 +95,118 @@ struct Stack
    struct Frame {
       vector<string> names;
       vector<Value>  values;
-      Value result;
       Frame *below = 0;
    }; 
-   Frame *top, *bottom;
+   vector<Frame> frames;
+   Value result;
 
-   Stack() { bottom = top = new Frame; }
+   Stack() {}
+
+   void push() { frames.push_back(Frame()); }
+   void pop()  { frames.pop_back(); }
+
+   Frame& top() { return frames.back(); }
 };
 
 struct Context {
    Stack stack;
+   vector<int> ip; // instruction pointer
 
-   int add_local(string name, Value v) { 
-      assert(stack.top->names.size() == stack.top->values.size());
-      int idx = stack.top->names.size();
-      stack.top->names.push_back(name);
-      stack.top->values.push_back(v);
+    int curr() const { return ip.back(); }
+   void next(int n)  { ip.back() = n; }
+
+   bool end()  const { return ip.empty(); }
+
+   int add_local(string name, Value v) {
+      Stack::Frame& curr_frame = stack.top();
+      assert(curr_frame.names.size() == curr_frame.values.size());
+      int idx = curr_frame.names.size();
+      curr_frame.names.push_back(name);
+      curr_frame.values.push_back(v);
       return idx;
    }
 
-   Value& local(int index) { return stack.top->values[index]; }
-   Value& result()         { return stack.top->result; }
+   Value& local(int index) { return stack.top().values[index]; }
+   Value& result()         { return stack.result; }
 
-   void push() {
-      Stack::Frame *new_frame = new Stack::Frame;
-      new_frame->below = stack.top;
-      stack.top = new_frame;
+   void push(int n) {
+      stack.push();
+      ip.push_back(n);
    }
 
    void pop() {
-      Stack::Frame *new_top = stack.top->below;
-      delete stack.top;
-      stack.top = new_top;
+      stack.pop();
+      ip.pop_back();
    }
 
    void intermediate_value(int x)   {}
    void intermediate_value(float x) {}
 
-   void show() {
-      Stack::Frame *f = stack.top;
-      while (f != 0) {
-         cout << "Frame: " << f << endl;
-         for (size_t i = 0; i < f->names.size(); i++) {
-            cout << f->names[i] << ' ' << f->values[i].as_string() << endl;
+   void draw() {
+      Vector2 pos = { 50, screenHeight - 30 };
+      for (int i = 0; i < stack.frames.size(); i++) {
+         Stack::Frame& f = stack.frames[i];
+         DrawLine(pos.x, pos.y, pos.x + 200, pos.y, BLUE);
+         pos.x += 20;
+         for (size_t i = 0; i < f.names.size(); i++) {
+            pos.y -= 30;
+            DrawTextEx(font, f.names[i].c_str(), pos, font.baseSize, 0, BLACK);
+            pos.x += 30;
+            f.values[i].draw(pos);
+            pos.x -= 30;
          }
-         f = f->below;
+         pos.x -= 20;
+         pos.y -= 40;
       }
-      cout << endl;
+      DrawLine(pos.x, pos.y, pos.x + 200, pos.y, BLUE);
    }
 };
 
-struct Instruction;
-typedef int (*InstrFunc)(Context& C, Instruction& I);
+struct Instr;
+typedef void (*InstrFunc)(Context& C, Instr& I);
 
-struct Instruction { 
+struct Instr { 
    InstrFunc fn; 
 };
 
-int f0(Context& C, Instruction& I) {
-   C.push();
+// f(1, 2)
+void f0(Context& C, Instr& I) {
+   C.next(4);
+   C.push(1);
    C.add_local("a", Value(1));
    C.add_local("b", Value(2));
-   return 1;
 }
 
-int f1(Context& C, Instruction& I) {
+// int c = a + b;
+void f1(Context& C, Instr& I) {
    int a = C.local(0).get_int();
    int b = C.local(1).get_int();
    int c = a + b;
    C.intermediate_value(c);
    C.add_local("c", Value(c));
-   return 2;
+   C.next(2);
 }
 
-int f2(Context& C, Instruction& I) {
+// c++;
+void f2(Context& C, Instr& I) {
    C.local(2).set_int(C.local(2).get_int() + 1);
-   return 3;
+   C.next(3);
 }
 
-int f3(Context& C, Instruction& I) {
+// return c;
+void f3(Context& C, Instr& I) {
    C.result().set_int(C.local(2).get_int());
-   return 4; // Esta vuelta está mal, debería ser la siguiente instrucción de la 0 después del 'call'
+   C.pop(); // Esta vuelta está mal, debería ser la siguiente instrucción de la 0 después del 'call'
 }
 
-int f4(Context& C, Instruction& I) {
+// cout << [result] << endl;
+void f4(Context& C, Instr& I) {
    int result = C.result().get_int();
-   C.pop();
    cout << result << endl;
-   return -1;
+   C.pop();
 }
 
-Instruction instructions[] = {
+Instr instructions[] = {
    { f0 },
    { f1 },
    { f2 },
@@ -166,11 +215,27 @@ Instruction instructions[] = {
 };
 
 int main() {
+   InitWindow(screenWidth, screenHeight, "bola");
+   SetConfigFlags(FLAG_VSYNC_HINT);
+   SetTargetFPS(60);
+   font = LoadSpriteFontTTF("iosevka-regular.ttf", 24, 0, 0);
+
    Context C;
+   C.push(0);
    C.add_local("x", Value(7.5f));
-   int i = 0;
-   while (i != -1) {
-      C.show();
-      i = (*instructions[i].fn)(C, instructions[i]);
+
+   while (!WindowShouldClose())
+   {
+      BeginDrawing();
+         // DrawTextEx(font, "hi, there!", (Vector2){400, 300}, font.baseSize, 0, BLACK);
+         C.draw();
+      EndDrawing();
+
+      if (IsKeyPressed(KEY_SPACE) && !C.end()) {
+         int i = C.curr();
+         (*instructions[i].fn)(C, instructions[i]);
+      }
    }
+   CloseWindow();
+   return 0;
 }
