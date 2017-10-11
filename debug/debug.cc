@@ -117,15 +117,15 @@ struct Stack
 struct Highlight { int line, begin, end; };
 
 struct Instr;
-struct Context;
-typedef void (*InstrFunc)(Context& C, Instr& I);
+struct Program;
+typedef void (*InstrFunc)(Program& C, Instr& I);
 
 struct Instr { 
    InstrFunc fn; 
    Highlight hl;
 };
 
-struct Context {
+struct Program {
    Stack stack;
 
     int curr() const { return stack.top().ip; }
@@ -148,9 +148,6 @@ struct Context {
    void push(const char* fname, int n) { stack.push(fname, n); }
    void pop()                          { stack.pop(); }
 
-   void intermediate_value(int x)   {}
-   void intermediate_value(float x) {}
-
    void draw();
 
    void exec_one() {
@@ -161,8 +158,6 @@ struct Context {
    static Instr instrs[];
    static const char *source;
 };
-
-
 
 const char *getline(const char **str) {
    static char line[1024];
@@ -177,7 +172,7 @@ const char *getline(const char **str) {
    return line;
 }
 
-void Context::draw() {
+void Program::draw() {
    Vector2 pos, size;
 
    // Draw highlight
@@ -232,7 +227,7 @@ void Context::draw() {
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-const char *Context::source = R"(XXXXX XXXXX XXXXX XXXXX XXXXX
+const char *Program::source = R"(
 int f(int a, int b) {
    int c = a + b;
    c++;
@@ -245,7 +240,7 @@ int main() {
 )";
 
 // f(1, 2)
-void main1(Context& C, Instr& I) {
+void main1(Program& C, Instr& I) {
    C.next(1);
    C.push("f", 2);
    C.add_local("a", Value(1));
@@ -253,35 +248,34 @@ void main1(Context& C, Instr& I) {
 }
 
 // cout << [result] << endl;
-void main2(Context& C, Instr& I) {
+void main2(Program& C, Instr& I) {
    int result = C.result().get_int();
    cout << result << endl;
    C.pop();
 }
 
 // int c = a + b;
-void f1(Context& C, Instr& I) {
+void f1(Program& C, Instr& I) {
    int a = C.local(0).get_int();
    int b = C.local(1).get_int();
    int c = a + b;
-   C.intermediate_value(c);
    C.add_local("c", Value(c));
    C.next(3);
 }
 
 // c++;
-void f2(Context& C, Instr& I) {
+void f2(Program& C, Instr& I) {
    C.local(2).set_int(C.local(2).get_int() + 1);
    C.next(4);
 }
 
 // return c;
-void f3(Context& C, Instr& I) {
+void f3(Program& C, Instr& I) {
    C.result().set_int(C.local(2).get_int());
    C.pop(); // Esta vuelta está mal, debería ser la siguiente instrucción de la 0 después del 'call'
 }
 
-Instr Context::instrs[] = {
+Instr Program::instrs[] = {
    { main1, { 9, 12, 19 } },
    { main2, { 9, 4, 28 } },
    { f1, { 3, 4, 18 } },
@@ -293,8 +287,6 @@ Instr Context::instrs[] = {
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-
-
 int main() {
    InitWindow(screenWidth, screenHeight, "bola");
    SetConfigFlags(FLAG_VSYNC_HINT);
@@ -302,7 +294,7 @@ int main() {
    font = LoadSpriteFontTTF("iosevka-regular.ttf", 18, 0, 0);
    lineheight = font.baseSize + 3;
 
-   Context C;
+   Program C;
    C.push("main", 0);
    C.add_local("x", Value(7.5f));
 
