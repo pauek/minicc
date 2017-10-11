@@ -30,6 +30,8 @@ const int screenWidth = 1280;
 const int screenHeight = 960;
 
 SpriteFont font;
+SpriteFont font_bold;
+
 int lineheight;
 int program_width = 250;
 
@@ -280,11 +282,9 @@ void Program::draw_stack() {
    // Draw Stack
    pos = { program_width + 20.0f, screenHeight - status_bar_height - 30 };
    Stack& S = stack();
-   if (!S.frames.empty()) {
-      DrawLine(pos.x, pos.y, pos.x + 200, pos.y, BLUE);
-   }
    for (int i = 0; i < S.frames.size(); i++) {
       Stack::Frame& f = S.frames[i];
+      Vector2 ini = pos;
       pos.x += 20;
       for (size_t i = 0; i < f.names.size(); i++) {
          pos.y -= 30;
@@ -293,11 +293,13 @@ void Program::draw_stack() {
          f.values[i].draw(pos);
          pos.x -= 30;
       }
-      pos.y -= 30;
-      DrawTextEx(font, f.fname, pos, font.baseSize, 0, BLACK);
-      pos.x -= 20;
-      pos.y -= 30;
-      DrawLine(pos.x, pos.y, pos.x + 200, pos.y, BLUE);
+      pos.y -= 35;
+      pos.x -= 10;
+      DrawTextEx(font_bold, f.fname, pos, font_bold.baseSize, 0, BLACK);
+      pos.x -= 10;
+      pos.y -= 25;
+      DrawRectangleLines(ini.x - 1, pos.y + 1, 300, ini.y - pos.y - 10, GRAY);
+      pos.y -= 20;
    }
 }
 
@@ -369,11 +371,14 @@ void Program::draw_status_bar() {
       if (IsMouseButtonDown(MOUSE_LEFT_BUTTON)) {
          int dx = GetMouseX() - orig_x;
          int new_cursor = ((orig_knob_x + dx) - buttons_size) / step_size;
+         cout << new_cursor << endl;
          cursor = new_cursor;
-         if (cursor >= timeline.size()) {
+         if (new_cursor >= timeline.size()) {
             cursor = timeline.size()-1;
-         } else if (cursor < 0) {
+         } else if (new_cursor < 0) {
             cursor = 0;
+         } else {
+            cursor = new_cursor;
          }
       } else {
          dragging = DRAGGING_NOTHING;
@@ -460,6 +465,8 @@ int main() {
    SetTargetFPS(60);
 
    font = LoadSpriteFontEx("iosevka-regular.ttf", 18, 0, 0);
+   font_bold = LoadSpriteFontEx("iosevka-bold.ttf", 20, 0, 0);
+
    tx_buttons = LoadTexture("buttons.png");
 
    lineheight = font.baseSize + 3;
