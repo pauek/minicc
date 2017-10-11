@@ -20,6 +20,7 @@ Pero que contenga toda la información para poder debugarlo
 #include "raylib.h"
 
 #include <assert.h>
+#include <algorithm>
 #include <iostream>
 #include <sstream>
 #include <vector>
@@ -31,16 +32,55 @@ const int screenHeight = 960;
 SpriteFont font;
 int lineheight;
 int program_width = 250;
+
+const int min_program_width = 100;
 const int bar_width = 5;
+const int status_bar_height = 45;
 
-const Color COLOR_PROGRAM_BACKGROUND = (Color){ 235, 235, 255, 255 };
-const Color COLOR_BAR                = (Color) { 100, 100, 100, 50 };
-const Color COLOR_BAR_HOVER          = (Color) { 0, 0, 0, 50 };
+Texture2D tx_buttons;
 
-bool inBar(int x) {
+enum DraggingWhat { 
+   DRAGGING_NOTHING,
+   DRAGGING_STATUS_BAR_KNOB, 
+   DRAGGING_BAR 
+};
+DraggingWhat dragging;
+
+// Themes
+
+struct Colors {
+   Color highlight;
+   Color program_background;
+   Color bar, bar_hover;
+   Color knob, knob_dragging;
+   Color status_bar_background;
+};
+
+struct Theme {
+   Colors colors;
+};
+
+Theme defaultTheme = {
+   .colors = {
+      .highlight = GREEN,
+      .program_background = (Color){ 235, 235, 255, 255 },
+      .bar  = (Color) { 100, 100, 100, 50 },
+      .bar_hover = (Color) { 0, 0, 0, 50 },
+      .knob = (Color) { 255, 0, 0, 100 },
+      .knob_dragging = (Color) { 255, 0, 0, 150 },
+      .status_bar_background = GRAY,
+   }
+};
+
+Theme *theme = &defaultTheme;
+
+//
+
+bool inBar(Vector2 pos) {
    const int margin = 2;
-   return x >= program_width - bar_width - margin 
-       && x <= program_width + margin;
+   return pos.x >= program_width - bar_width - margin 
+       && pos.x <= program_width + margin
+       && pos.y < screenHeight - status_bar_height;
 }
 
 enum Type { NONE, INTEGER, FLOAT };
@@ -168,7 +208,8 @@ struct Program {
    void pop()                          { stack().pop(); }
 
    void draw_source();
-   void draw();
+   void draw_stack();
+   void draw_status_bar();
 
    void forwards() {
       assert(cursor >= 0 && cursor < timeline.size());
@@ -219,7 +260,7 @@ void Program::draw_source() {
          pos.y  = (H.line - 1) * (lineheight) + 4;
          size.x = 7.1 * (H.end - H.begin);
          size.y = lineheight;
-         DrawRectangleV(pos, size, GREEN);
+         DrawRectangleV(pos, size, theme->colors.highlight);
       }
    }
 
@@ -233,11 +274,11 @@ void Program::draw_source() {
    }
 }
 
-void Program::draw() {
+void Program::draw_stack() {
    Vector2 pos;
 
    // Draw Stack
-   pos = { program_width + 20.0f, screenHeight - 30 };
+   pos = { program_width + 20.0f, screenHeight - status_bar_height - 30 };
    Stack& S = stack();
    if (!S.frames.empty()) {
       DrawLine(pos.x, pos.y, pos.x + 200, pos.y, BLUE);
@@ -260,9 +301,91 @@ void Program::draw() {
    }
 }
 
+void Program::draw_status_bar() {
+   int top = screenHeight - status_bar_height;
+   DrawRectangle(0, top, screenWidth, screenHeight, GRAY);
+   int X = status_bar_height;
+
+   Vector2 zero = { 0, 0 };
+
+   // Buttons 
+   Color prev_color = BLACK;
+   if (CheckCollisionPointRec(GetMousePosition(), (Rectangle) { 0, top, X, X })) {
+      prev_color = WHITE;
+      if (IsMouseButtonPressed(MOUSE_LEFT_BUTTON)) {
+         backwards();
+      }
+   }
+   DrawTexturePro(tx_buttons, (Rectangle){   0, 0,  90, 90 }, (Rectangle) { 0, top, X, X }, zero, 0.0f, prev_color);
+
+   Color next_color = BLACK;
+   if (CheckCollisionPointRec(GetMousePosition(), (Rectangle) { X, top, X, X })) {
+      next_color = WHITE;
+      if (IsMouseButtonPressed(MOUSE_LEFT_BUTTON)) {
+         forwards();
+      }
+   }
+   DrawTexturePro(tx_buttons, (Rectangle){  90, 0,  90, 90 }, (Rectangle) { X, top, X, X }, zero, 0.0f, next_color);
+
+   Color play_color = BLACK;
+   if (CheckCollisionPointRec(GetMousePosition(), (Rectangle) { 2*X, top, X, X })) {
+      play_color = WHITE;
+   }
+   DrawTexturePro(tx_buttons, (Rectangle){ 180, 0,  90, 90 }, (Rectangle) { 2*X, top, X, X }, zero, 0.0f, play_color);
+
+   // Timeline bar
+   const int nbuttons = 3;
+   const int buttons_size = nbuttons * status_bar_height;
+   const int bar_size = screenWidth - status_bar_height - buttons_size;
+
+
+   // Timeline Knob
+   static int orig_x;
+   static int orig_knob_x;
+
+   const int min_steps = 50;
+   int steps = max((int)timeline.size(), min_steps);
+   float step_size = float(bar_size)/float(steps);
+   const int knob_x = buttons_size + cursor * step_size;
+   Color red = theme->colors.knob;
+   if (dragging == DRAGGING_STATUS_BAR_KNOB) {
+      red = theme->colors.knob_dragging;
+   }
+   // line
+   DrawRectangle(status_bar_height/2 + buttons_size, top + status_bar_height/2, bar_size, 3, (Color){   0, 0, 0, 100 });
+   DrawRectangle(status_bar_height/2 + buttons_size, top + status_bar_height/2, (timeline.size() - 1) * step_size, 3, (Color){ 255, 0, 0, 150 });
+
+   DrawTexturePro(tx_buttons, (Rectangle){ 270, 0,  90, 90 }, (Rectangle) { knob_x, top, X, X }, zero, 0.0f, red);
+
+   if (CheckCollisionPointRec(GetMousePosition(), (Rectangle) { knob_x, top, X, X }) &&
+       IsMouseButtonPressed(MOUSE_LEFT_BUTTON) &&
+       dragging == DRAGGING_NOTHING) 
+   {
+      dragging = DRAGGING_STATUS_BAR_KNOB;
+      orig_x = GetMouseX();
+      orig_knob_x = knob_x;
+   }
+   if (dragging == DRAGGING_STATUS_BAR_KNOB) {
+      if (IsMouseButtonDown(MOUSE_LEFT_BUTTON)) {
+         int dx = GetMouseX() - orig_x;
+         int new_cursor = ((orig_knob_x + dx) - buttons_size) / step_size;
+         cursor = new_cursor;
+         if (cursor >= timeline.size()) {
+            cursor = timeline.size()-1;
+         } else if (cursor < 0) {
+            cursor = 0;
+         }
+      } else {
+         dragging = DRAGGING_NOTHING;
+      }
+   }
+}
+
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+// TODO: Cargar esto como una DLL... ??
 
 const char *Program::source = R"(
 int f(int a, int b) {
@@ -290,6 +413,7 @@ void main2(Program& P, Instr& I) {
    int result = P.result().get_int();
    // TODO: Emulate the output!
    cout << result << endl;
+   P.pop();
 }
 
 void main3(Program& P, Instr& I) {
@@ -334,37 +458,43 @@ int main() {
    InitWindow(screenWidth, screenHeight, "bola");
    SetConfigFlags(FLAG_VSYNC_HINT);
    SetTargetFPS(60);
+
    font = LoadSpriteFontEx("iosevka-regular.ttf", 18, 0, 0);
+   tx_buttons = LoadTexture("buttons.png");
+
    lineheight = font.baseSize + 3;
 
    int orig_x = -1, orig_program_width;
-   bool dragging_bar = false;
 
    Program P;
    P.push("main", 0);
 
-   RenderTexture2D program_source = LoadRenderTexture(screenWidth, screenHeight);
+   RenderTexture2D program_source = LoadRenderTexture(screenWidth, screenHeight - status_bar_height);
    while (!WindowShouldClose())
    {
+      // program source
       BeginTextureMode(program_source);
-         DrawRectangle(0, 0, screenWidth, screenHeight, COLOR_PROGRAM_BACKGROUND);
+         DrawRectangle(0, 0, screenWidth, screenHeight, theme->colors.program_background);
          P.draw_source();
-         Color color_bar = COLOR_BAR;
-         if (inBar(GetMouseX())) {
-            color_bar = COLOR_BAR_HOVER;
+         Color color_bar = theme->colors.bar;
+         if (dragging == DRAGGING_NOTHING && inBar(GetMousePosition())) {
+            color_bar = theme->colors.bar_hover;
          }
          DrawRectangle(program_width - bar_width, 0, program_width, screenHeight, color_bar);
       EndTextureMode();
 
+      // whole window
       BeginDrawing();
          DrawTextureRec(program_source.texture, 
                         // WARNING: aquí hace falta poner     -screenHeight,    sino sale al revés
-                        (Rectangle){ 0, 0, program_width + 1, -screenHeight },  
+                        (Rectangle){ 0, 0, program_width + 1, -(screenHeight - status_bar_height) },  
                         (Vector2){ 0, 0 }, 
                         WHITE);
-         P.draw();
+         P.draw_stack();
+         P.draw_status_bar();
       EndDrawing();
 
+      // Key events
       if (IsKeyPressed(KEY_RIGHT)) {
          P.forwards();
       }
@@ -373,19 +503,19 @@ int main() {
       }
 
       // Drag bar 
-      if (inBar(GetMouseX()) && IsMouseButtonPressed(MOUSE_LEFT_BUTTON)) {
-         dragging_bar = true;
+      if (inBar(GetMousePosition()) && IsMouseButtonPressed(MOUSE_LEFT_BUTTON)) {
+         dragging = DRAGGING_BAR;
          orig_x = GetMouseX();
          orig_program_width = program_width;
       }
-      if (dragging_bar) {
+      if (dragging == DRAGGING_BAR) {
          if (IsMouseButtonDown(MOUSE_LEFT_BUTTON)) {
             int new_width = orig_program_width + (GetMouseX() - orig_x); 
-            if (new_width >= bar_width) {
+            if (new_width >= min_program_width) {
                program_width = new_width;
             }
          } else {
-            dragging_bar = false;
+            dragging = DRAGGING_NOTHING;
          }
       }
    }
