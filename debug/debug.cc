@@ -185,9 +185,13 @@ struct Program {
    int cursor;
    vector<Stack> timeline;
    static vector<Instr> instrs;
+   static InstrFunc start;
    static const char *source;
 
-   Program() : timeline(1), cursor(0) {}
+   Program() : timeline(1), cursor(0) {
+      assert(start != 0);
+      push("main", start);
+   }
 
    Stack& stack() { return timeline[cursor]; }
    const Stack& stack() const { return timeline[cursor]; }
@@ -469,6 +473,7 @@ int main() {
 }
 )";
 
+InstrFunc Program::start = main_01;
 vector<Instr> Program::instrs = {
    { main_01, { 9, 12, 19 } },
    { main_02, { 9, 4, 28 } },
@@ -497,7 +502,6 @@ int main() {
    int orig_x = -1, orig_program_width;
 
    Program P;
-   P.push("main", main_01);
 
    RenderTexture2D program_source = LoadRenderTexture(screenWidth, screenHeight - status_bar_height);
    while (!WindowShouldClose())
