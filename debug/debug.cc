@@ -184,13 +184,28 @@ struct Instr {
 struct Program {
    int cursor;
    vector<Stack> timeline;
+   static vector<Instr> instrs;
+   static const char *source;
 
    Program() : timeline(1), cursor(0) {}
 
    Stack& stack() { return timeline[cursor]; }
    const Stack& stack() const { return timeline[cursor]; }
 
-   void next(int n)  { stack().top().ip = n; }
+   int findFunc(InstrFunc fn) {
+      for (int i = 0; i < instrs.size(); i++) {
+         if (instrs[i].fn == fn) {
+            return i;
+         }
+      }
+      return -1;
+   }
+
+   void next(InstrFunc fn) { 
+      int n = findFunc(fn);
+      assert(n != -1);
+      stack().top().ip = n;
+   }
 
    bool end()   const { return stack().frames.empty(); }
 
@@ -206,8 +221,12 @@ struct Program {
    Value& local(int index) { return stack().top().values[index]; }
    Value& result()         { return stack().result; }
 
-   void push(const char* fname, int n) { stack().push(fname, n); }
-   void pop()                          { stack().pop(); }
+   void push(const char* fname, InstrFunc fn) { 
+      int n = findFunc(fn);
+      assert(n != -1);
+      stack().push(fname, n); 
+   }
+   void pop() { stack().pop(); }
 
    void draw_source();
    void draw_stack();
@@ -233,8 +252,6 @@ struct Program {
       }
    }
 
-   static Instr instrs[];
-   static const char *source;
 };
 
 const char *getline(const char **str) {
@@ -390,6 +407,55 @@ void Program::draw_status_bar() {
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 // TODO: Cargar esto como una DLL... ??
+#define DECL(name) void name(Program& P, Instr& I)
+#define INSTR(name, code) DECL(name) code
+
+DECL(main_01);
+DECL(main_02);
+DECL(main_03);
+DECL(f_01);
+DECL(f_02);
+DECL(f_03);
+
+// f(1, 2)
+INSTR(main_01, {
+   P.next(main_02);
+   P.push("f", f_01);
+   P.add_local("a", Value(1));
+   P.add_local("b", Value(2));
+})
+
+// cout << [result] << endl;
+INSTR(main_02, {
+   int result = P.result().get_int();
+   // TODO: Emulate the output!
+   cout << result << endl;
+   P.pop();
+   P.next(main_03);
+})
+
+INSTR(main_03, { P.pop(); })
+
+// int c = a + b;
+INSTR(f_01, {
+   int a = P.local(0).get_int();
+   int b = P.local(1).get_int();
+   int c = a + b;
+   P.add_local("c", Value(c));
+   P.next(f_02);
+})
+
+// c++;
+INSTR(f_02, {
+   P.local(2).set_int(P.local(2).get_int() + 1);
+   P.next(f_03);
+})
+
+// return c;
+INSTR(f_03, {
+   P.result().set_int(P.local(2).get_int());
+   P.pop(); // Esta vuelta está mal, debería ser la siguiente instrucción de la 0 después del 'call'
+})
 
 const char *Program::source = R"(
 int f(int a, int b) {
@@ -397,61 +463,19 @@ int f(int a, int b) {
    c++;
    return c;
 }
-   
+
 int main() {
    cout << f(1, 2) << endl;
 }
 )";
 
-// f(1, 2)
-void main1(Program& P, Instr& I) {
-   P.next(1);
-   P.push("f", 2);
-   P.add_local("a", Value(1));
-   P.add_local("b", Value(2));
-}
-
-// cout << [result] << endl;
-void main2(Program& P, Instr& I) {
-   P.next(5);
-   int result = P.result().get_int();
-   // TODO: Emulate the output!
-   cout << result << endl;
-   P.pop();
-}
-
-void main3(Program& P, Instr& I) {
-   P.pop();
-}
-
-// int c = a + b;
-void f1(Program& P, Instr& I) {
-   int a = P.local(0).get_int();
-   int b = P.local(1).get_int();
-   int c = a + b;
-   P.add_local("c", Value(c));
-   P.next(3);
-}
-
-// c++;
-void f2(Program& P, Instr& I) {
-   P.local(2).set_int(P.local(2).get_int() + 1);
-   P.next(4);
-}
-
-// return c;
-void f3(Program& P, Instr& I) {
-   P.result().set_int(P.local(2).get_int());
-   P.pop(); // Esta vuelta está mal, debería ser la siguiente instrucción de la 0 después del 'call'
-}
-
-Instr Program::instrs[] = {
-   { main1, { 9, 12, 19 } },
-   { main2, { 9, 4, 28 } },
-   { f1, { 3, 4, 18 } },
-   { f2, { 4, 4, 8 } },
-   { f3, { 5, 4, 13 } },
-   { main3, {} },
+vector<Instr> Program::instrs = {
+   { main_01, { 9, 12, 19 } },
+   { main_02, { 9, 4, 28 } },
+   { main_03, {} },
+   { f_01,    { 3, 4, 18 } },
+   { f_02,    { 4, 4, 8 } },
+   { f_03,    { 5, 4, 13 } },
 };
 
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -473,7 +497,7 @@ int main() {
    int orig_x = -1, orig_program_width;
 
    Program P;
-   P.push("main", 0);
+   P.push("main", main_01);
 
    RenderTexture2D program_source = LoadRenderTexture(screenWidth, screenHeight - status_bar_height);
    while (!WindowShouldClose())
