@@ -166,6 +166,8 @@ Token Lexer::next_token() {
                           ColonColon, None, "::");
    case '!': RESULT2('=', Not,   Operator, "!",
                           NotEq, Operator, "!=");
+   case '*': RESULT2('=', Star,       Operator, "*",
+                          StarAssign, Operator, "*=");
 
    case '+': RESULT_OP3('+', "+", Plus, PlusPlus, PlusAssign);
    case '|': RESULT_OP3('|', "|", Pipe, BarBar,   OrAssign);
@@ -187,7 +189,7 @@ Token Lexer::next_token() {
    }
 
    // case '+':
-   case '*': case '/': case '%': case '=': case '^': 
+   case '/': case '%': case '=': case '^': 
    case '<': case '>': {
       return read_operator();
    }      
