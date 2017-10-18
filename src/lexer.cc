@@ -137,17 +137,16 @@ Token Lexer::next_token() {
       // fallthrough ||  (NOT break;)
       //             vv
 
-/*
-   case '(': {
+   case ')': case ']': case '}': {
       string s(1, curr());
-      Token tok(Token::LParen, Token::None);
+      Token tok(Token::token2type(s));
       tok.str = s;
       next();
       return tok;
    }
-   case ')': {
-      Token tok(Token::RParen);
-      tok.str = ")";
+   case '(': {
+      Token tok(Token::LParen);
+      tok.str = "(";
       next();
       return tok;
    }
@@ -157,45 +156,12 @@ Token Lexer::next_token() {
       next();
       return tok;
    }
-   case ']': {
-      Token tok(Token::RBrack);
-      tok.str = "]";
-      next();
-      return tok;
-   }
    case '{': {
       Token tok(Token::LCurly);
       tok.str = "{";
       next();
       return tok;
    }
-   case '}': {
-      Token tok(Token::RCurly);
-      tok.str = "}";
-      next();
-      return tok;
-   }
-   case '#': {
-      Token tok(Token::Sharp);
-      tok.str = "#";
-      next();
-      return tok;
-   }
-   case ';': {
-      Token tok(Token::SemiColon);
-      tok.str = ";";
-      next();
-      return tok;
-   }
-   */
-   case '(': case ')': case '[': case ']': case '{': case '}': {
-      string s(1, curr());
-      Token tok(Token::token2type(s));
-      tok.str = s;
-      next();
-      return tok;
-   }
-
    case ';': {
       Token tok(Token::SemiColon);
       tok.str = ";";
