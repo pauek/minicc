@@ -137,6 +137,13 @@ Token Lexer::next_token() {
    return tok; \
 } while(0)
 
+#define RESULT2(ch, type1, group1, s1, type2, group2, s2) \
+   if (curr(1) == ch) { \
+      RESULT1(type2, group2, s2); \
+   } else { \
+      RESULT1(type1, group1, s1); \
+   }
+
    switch (curr()) {
    case '.': {
       if (isdigit(curr(1))) {
@@ -152,45 +159,18 @@ Token Lexer::next_token() {
    case '}': RESULT1(RCurly, None, "}");
    case ';': RESULT1(SemiColon, None, ";");
    case '#': RESULT1(Sharp, None, "#");
-   case ':': {
-      next();
-      Token tok(Token::Colon);
-      tok.str = ":";
-      if (curr() == ':') {
-         next();
-         tok.type = Token::ColonColon;
-         tok.str = "::";
-      } 
-      return tok;
-   }
+   case ',': RESULT1(Comma, Operator, ",");
+
+   case ':': RESULT2(':', Colon, None, ":", 
+                          ColonColon, None, "::");
+   case '!': RESULT2('=', Not,   Operator, "!",
+                          NotEq, Operator, "!=");
+   
    case '-': {
       if (isdigit(curr(1))) {
          return read_number_literal();
       } else {
          return read_operator();
-      }
-   }
-   case ',': {
-      Token tok(Token::Comma, Token::Operator);
-      tok.str = ",";
-      tok.ini = _curr;
-      next();
-      return tok;
-   }
-   case '!': {
-      if (curr(1) == '=') {
-         Token tok(Token::NotEq, Token::Operator);
-         tok.str = "!=";
-         tok.ini = _curr;
-         next();
-         next();
-         return tok;
-      } else {
-         Token tok(Token::Not, Token::Operator);
-         tok.str = "!";
-         tok.ini = _curr;
-         next();
-         return tok;
       }
    }
    case '+': case '&': case '|': 
