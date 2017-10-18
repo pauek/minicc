@@ -77,7 +77,7 @@ int step(string filename) {
       Stepper S;
       program->accept(&S);
       while (!S.finished()) {
-         cout << S.span() << ": " << P.input().substr(S.span()) << endl;
+         cout << S.span() << ": " << P.lexer().substr(S.span()) << endl;
          cout << S.status() << endl;
          string out = S.output();
          if (out != "") {

@@ -32,12 +32,12 @@ struct Range {
    void sf(const Pos& p) { fin = p; }
 };
 
-// Input /////////////////////////////////////////////////////////////
+// Lexer /////////////////////////////////////////////////////////////
 
 struct Comment;
 struct CommentSeq;
 
-class Input {
+class Lexer {
    std::istream* _in;
    std::string _text;
    int _curr;
@@ -65,8 +65,8 @@ class Input {
    int _pos_to_idx(Pos p) const;
 
 public:
-                Input()                : _in(0), _linepos(1) { _reset(); }
-                Input(std::istream* i) : _in(i), _linepos(1) { _reset(); }
+                Lexer()                : _in(0), _linepos(1) { _reset(); }
+                Lexer(std::istream* i) : _in(i), _linepos(1) { _reset(); }
 
           bool  next();
           bool  peek(int offset);

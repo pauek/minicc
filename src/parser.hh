@@ -3,7 +3,7 @@
 
 #include <set>
 #include "ast.hh"
-#include "input.hh"
+#include "lexer.hh"
 
 struct ParseError {
    Pos pos;
@@ -16,7 +16,7 @@ struct ParseError {
 };
 
 class Parser {
-   Input _in;
+   Lexer _in;
    std::ostream *_err;
 
    set<std::string> _types; // things known as types
@@ -52,7 +52,7 @@ class Parser {
 public:
              Parser(std::istream *in, std::ostream* err = &std::cerr);
 
-const Input& input() const { return _in; }
+const Lexer& lexer() const { return _in; }
 
     AstNode *parse();
     AstNode *parse_macro(AstNode *parent);

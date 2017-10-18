@@ -6,11 +6,13 @@ using namespace std;
 // OJO: El orden de la tabla es importante!
 // Hay que dejarla antes que el _table...
 //
-struct { 
+struct TokenInfo { 
    string      s; 
    Token::Type t; 
    int         k;
-} toktab[] = {
+};
+
+TokenInfo toktab[] = {
    { "",           Token::Empty, Token::None },
 
    { ";",      Token::SemiColon, Token::None },

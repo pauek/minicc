@@ -3,7 +3,7 @@
 #include <sstream>
 using namespace std;
 
-#include "input.hh"
+#include "lexer.hh"
 #include "ast.hh"
 
 bool is_space(string s) {
@@ -25,23 +25,23 @@ void Pos::to_json(ostream& o) const {
    o << "{\"lin\": " << lin << ", \"col\": " << col << "}";
 }
 
-void Input::error(string msg) {
+void Lexer::error(string msg) {
    cerr << msg << endl;
    exit(1);
 }
 
-void Input::consume(char c) {
+void Lexer::consume(char c) {
    assert(curr() == c);
    next();
 }
 
-void Input::consume(string word) {
+void Lexer::consume(string word) {
    for (int i = 0; i < word.size(); i++) {
       consume(word[i]);
    }
 }
 
-string Input::substr(const Token& t) {
+string Lexer::substr(const Token& t) {
    string s;
    if (t.ini != -1 and t.fin != -1) {
       s = _text.substr(t.ini, t.fin - t.ini);
@@ -49,7 +49,7 @@ string Input::substr(const Token& t) {
    return s;
 }
 
-string Input::substr(const Pos& ini, const Pos& fin) const {
+string Lexer::substr(const Pos& ini, const Pos& fin) const {
    const int i = _pos_to_idx(ini);
    const int j = _pos_to_idx(fin);
    if (i == -1 || j == -1) {
@@ -58,11 +58,11 @@ string Input::substr(const Pos& ini, const Pos& fin) const {
    return _text.substr(i, j - i);
 }
 
-bool Input::curr_one_of(std::string set) const { 
+bool Lexer::curr_one_of(std::string set) const { 
    return set.find(curr()) != std::string::npos; 
 }
 
-CommentSeq* Input::skip(string skip_set) {
+CommentSeq* Lexer::skip(string skip_set) {
    CommentSeq *cs = 0;
    int endls_in_a_row = 0;
    while (!end()) {
@@ -102,7 +102,7 @@ CommentSeq* Input::skip(string skip_set) {
    return cs;
 }
 
-string Input::skip_to(string stop_set) {
+string Lexer::skip_to(string stop_set) {
    string s;
    while (!end() and (stop_set.find(curr()) == string::npos)) {
       s += curr();
@@ -111,11 +111,11 @@ string Input::skip_to(string stop_set) {
    return s;
 }
 
-void Input::save() {
+void Lexer::save() {
    _stack.push_back(SavedItem(_curr, _pos, _linepos));
 }
 
-void Input::restore() {
+void Lexer::restore() {
    assert(!_stack.empty());
    SavedItem item = _stack.back();
    _curr    = item.curr;
@@ -124,11 +124,11 @@ void Input::restore() {
    _stack.pop_back();
 }
 
-void Input::discard() {
+void Lexer::discard() {
    _stack.pop_back();
 }
 
-Token Input::next_token() {
+Token Lexer::next_token() {
    switch (curr()) {
    case '.': 
       if (isdigit(curr(1))) {
@@ -201,7 +201,7 @@ Token Input::next_token() {
    }
 }
 
-Token Input::peek_token() {
+Token Lexer::peek_token() {
    save();
    skip("\n\t ");
    Token tok = next_token();
@@ -209,7 +209,7 @@ Token Input::peek_token() {
    return tok;
 }
 
-Token Input::peek_operator() {
+Token Lexer::peek_operator() {
    save();
    skip("\n\t ");
    Token tok = read_operator();
@@ -217,7 +217,7 @@ Token Input::peek_operator() {
    return tok;
 }
 
-int Input::_pos_to_idx(Pos p) const {
+int Lexer::_pos_to_idx(Pos p) const {
    if (p.lin < 1 || p.lin >= _linepos.size()) {
       return -1;
    }
@@ -233,7 +233,7 @@ int Input::_pos_to_idx(Pos p) const {
    return lini + p.col;
 }
 
-bool Input::peek(int offset) {
+bool Lexer::peek(int offset) {
    if (_in == 0 || !_in->good()) {
       return false;
    }
@@ -251,7 +251,7 @@ bool Input::peek(int offset) {
    return k < _text.size();
 }
 
-bool Input::next() {
+bool Lexer::next() {
    if (_in == 0) {
       return false;
    }
@@ -282,7 +282,7 @@ bool Input::next() {
    return true;
 }
 
-bool Input::expect(string word) {
+bool Lexer::expect(string word) {
    Pos p = _pos;
    int c = _curr;
    for (int i = 0; i < word.size(); i++) {
@@ -298,7 +298,7 @@ bool Input::expect(string word) {
 
 // read_*
 
-void Input::read_singleline_comment(Comment& c) {
+void Lexer::read_singleline_comment(Comment& c) {
    consume("//");
    while (!end() and curr() != '\n') {
       c.text += curr();
@@ -307,7 +307,7 @@ void Input::read_singleline_comment(Comment& c) {
    return;
 }
 
-void Input::read_multiline_comment(Comment& c) {
+void Lexer::read_multiline_comment(Comment& c) {
    consume("/*");
    while (!end()) {
       if (curr() == '*') {
@@ -328,7 +328,7 @@ inline bool _isupper(char c) { return c >= 'A' and c <= 'Z'; }
 inline bool _islower(char c) { return c >= 'a' and c <= 'z'; }
 inline bool _isdigit(char c) { return c >= '0' and c <= '9'; }
 
-Token Input::read_id() {
+Token Lexer::read_id() {
    Token t;
    t.ini = _curr;
    char c = curr();
@@ -350,7 +350,7 @@ Token Input::read_id() {
    return t;
 }
 
-Token Input::read_operator() {
+Token Lexer::read_operator() {
    string op;
    char x;
    int ini = _curr, fin = -1;
@@ -427,7 +427,7 @@ Token Input::read_operator() {
    return t;
 }
 
-Token Input::read_string_or_char_literal(char delim) {
+Token Lexer::read_string_or_char_literal(char delim) {
    string str;
    Token t;
    t.ini = _curr+1;
@@ -471,7 +471,7 @@ Token Input::read_string_or_char_literal(char delim) {
    return t;
 }
 
-Token Input::read_number_literal() {
+Token Lexer::read_number_literal() {
    Token t;
    t.ini = _curr;
    if (curr() == '.') {
@@ -496,7 +496,7 @@ Token Input::read_number_literal() {
    return t;
 }
 
-Token Input::read_real_literal(Token t) {
+Token Lexer::read_real_literal(Token t) {
    while (isdigit(curr())) {
       t.str += curr();
       next();

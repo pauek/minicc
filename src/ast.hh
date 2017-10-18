@@ -8,7 +8,7 @@
 #include <list>
 #include <map>
 #include <algorithm>
-#include "input.hh"
+#include "lexer.hh"
 
 class AstVisitor;
 
