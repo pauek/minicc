@@ -65,7 +65,9 @@ TokenInfo toktab[] = {
    { "{",        Token::LCurly,   Token::None },
    { "}",        Token::RCurly,   Token::None },
    { "[",        Token::LBrack,   Token::None },
+   //{ "]",        Token::RBrack,   Token::None },
    { "(",        Token::LParen,   Token::None },
+   //{ ")",        Token::RParen,   Token::None },
 
    { "if",       Token::If,       Token::Control },
    { "else",     Token::Else,     Token::Control },
