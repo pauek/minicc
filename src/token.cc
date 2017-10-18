@@ -8,7 +8,7 @@ using namespace std;
 //
 struct { 
    string      s; 
-   Token::Kind t; 
+   Token::Type t; 
    int         k;
 } toktab[] = {
    { "",           Token::Empty, Token::None },

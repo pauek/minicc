@@ -153,7 +153,7 @@ Token Input::next_token() {
       tok.str = ":";
       if (curr() == ':') {
          next();
-         tok.kind = Token::ColonColon;
+         tok.type = Token::ColonColon;
          tok.str = "::";
       } 
       return tok;
@@ -345,7 +345,7 @@ Token Input::read_id() {
    }
    t.fin = _curr;
    Token x = Token::token2type(substr(t));
-   t.kind  = x.kind;
+   t.type  = x.type;
    t.group = x.group;
    return t;
 }
@@ -467,7 +467,7 @@ Token Input::read_string_or_char_literal(char delim) {
    if (curr() == delim) {
       consume(delim);
    }
-   t.kind = (delim == '"' ? Token::StringLiteral : Token::CharLiteral);
+   t.type = (delim == '"' ? Token::StringLiteral : Token::CharLiteral);
    return t;
 }
 
@@ -492,7 +492,7 @@ Token Input::read_number_literal() {
       return read_real_literal(t);
    }
    t.fin = _curr;
-   t.kind = Token::IntLiteral;
+   t.type = Token::IntLiteral;
    return t;
 }
 
@@ -507,7 +507,7 @@ Token Input::read_real_literal(Token t) {
       next();
    }
    t.fin = _curr;
-   t.kind = (isfloat 
+   t.type = (isfloat 
              ? Token::FloatLiteral 
              : Token::DoubleLiteral);
    return t;

@@ -267,9 +267,9 @@ struct Expr : public AstNode {
    virtual void collect_rights(std::list<Expr*>& L) const {}
 
    static std::map<std::string, Kind> _op2kind;
-   static std::map<Token::Kind, Kind> _tok2kind;
+   static std::map<Token::Type, Kind> _tok2kind;
    static Kind op2kind(std::string op);
-   static Kind tok2kind(Token::Kind toktyp);
+   static Kind tok2kind(Token::Type toktyp);
    static Op2KindInitializer initializer;
    static bool right_associative(Kind t);
 

@@ -28,7 +28,7 @@ void Error::to_json(ostream& o) const {
 //
 struct { 
    string      op; 
-   Token::Kind tokkind; 
+   Token::Type tokkind; 
    Expr::Kind  kind; 
 } pairs[] = {
    { "",    Token::Empty,        Expr::Unknown },
@@ -89,7 +89,7 @@ const string TypeSpec::QualifiersNames[] = {
 };
 
 map<string, Expr::Kind>      Expr::_op2kind;
-map<Token::Kind, Expr::Kind> Expr::_tok2kind;
+map<Token::Type, Expr::Kind> Expr::_tok2kind;
 Expr::Op2KindInitializer Expr::initializer;
 
 Expr::Op2KindInitializer::Op2KindInitializer() {
@@ -106,7 +106,7 @@ Expr::Kind Expr::op2kind(string op) {
    return (it != _op2kind.end() ? it->second : Expr::Unknown);
 }
 
-Expr::Kind Expr::tok2kind(Token::Kind tokkind) {
+Expr::Kind Expr::tok2kind(Token::Type tokkind) {
    auto it = _tok2kind.find(tokkind);
    return (it != _tok2kind.end() ? it->second : Expr::Unknown);
 }

@@ -65,7 +65,7 @@ AstNode* Parser::parse() {
    while (!_in.end()) {
       Pos pos = _in.pos();
       Token tok = _in.peek_token();
-      switch (tok.kind) {
+      switch (tok.type) {
       case Token::Sharp: {
          prog->add(parse_macro(prog));
          break;
@@ -200,7 +200,7 @@ FullIdent *Parser::parse_ident(AstNode *parent, Token tok, Pos ini) {
    Pos fin = _in.pos();
    while (true) {
       tok = _in.peek_token();
-      if (_is_type(id->name) and tok.kind == Token::LT) { // template_id
+      if (_is_type(id->name) and tok.type == Token::LT) { // template_id
          _skip(id);
          _in.consume("<");
          _skip(id);
@@ -214,7 +214,7 @@ FullIdent *Parser::parse_ident(AstNode *parent, Token tok, Pos ini) {
          fin = _in.pos();
       }
       tok = _in.peek_token();
-      if (tok.kind != Token::ColonColon) {
+      if (tok.type != Token::ColonColon) {
          break;
       }
       _skip(id);
@@ -241,7 +241,7 @@ bool Parser::_parse_type_process_token(TypeSpec *type, Token tok, Pos p) {
       return true;
    } 
    if (tok.group & Token::TypeQual) {
-      switch (tok.kind) {
+      switch (tok.type) {
       case Token::Const:    type->qual.push_back(TypeSpec::Const);    break;
       case Token::Auto:     type->qual.push_back(TypeSpec::Auto);     break;
       case Token::Mutable:  type->qual.push_back(TypeSpec::Mutable);  break;
@@ -256,7 +256,7 @@ bool Parser::_parse_type_process_token(TypeSpec *type, Token tok, Pos p) {
       type->id = parse_ident(type, tok, p);
       return true;
    } 
-   if (tok.kind == Token::Amp) {
+   if (tok.type == Token::Amp) {
       type->reference = true;
       return true;
    }
@@ -379,7 +379,7 @@ Block *Parser::parse_block(AstNode *parent) {
 
 Stmt* Parser::parse_stmt(AstNode *parent) {
    Token tok1 = _in.peek_token();
-   switch (tok1.kind) {
+   switch (tok1.type) {
    case Token::LParen:
       return parse_exprstmt(parent);
 
@@ -445,7 +445,7 @@ Stmt *Parser::parse_jumpstmt(AstNode *parent) {
    stmt->parent = parent;
    stmt->ini = _in.pos();
    Token tok = _in.next_token();
-   switch (tok.kind) {
+   switch (tok.type) {
    case Token::Break:    stmt->kind = JumpStmt::Break; break;
    case Token::Continue: stmt->kind = JumpStmt::Continue; break;
    case Token::Goto:     stmt->kind = JumpStmt::Goto; break;
@@ -472,7 +472,7 @@ ExprStmt *Parser::parse_exprstmt(AstNode *parent, bool is_return) {
    stmt->ini = _in.pos();
    if (is_return) {
       Token tok = _in.next_token();
-      assert(tok.kind == Token::Return);
+      assert(tok.type == Token::Return);
       _skip(stmt);
    }
    Pos eini = _in.pos();
@@ -495,7 +495,7 @@ Expr *Parser::parse_primary_expr(AstNode *parent) {
    Expr *e;
    Pos ini = _in.pos();
    Token tok = _in.next_token();
-   switch (tok.kind) {
+   switch (tok.type) {
    case Token::LParen: {
       CommentSeq *cn = _in.skip("\n\t ");
       e = parse_expr(parent);
@@ -513,7 +513,7 @@ Expr *Parser::parse_primary_expr(AstNode *parent) {
    case Token::False: {
       Literal* lit = new Literal(Literal::Bool);
       lit->parent = parent;
-      lit->val.as_bool = (tok.kind == Token::True);
+      lit->val.as_bool = (tok.type == Token::True);
       lit->ini = ini;
       lit->fin = _in.pos();
       _skip(lit);
@@ -544,7 +544,7 @@ Expr *Parser::parse_primary_expr(AstNode *parent) {
    case Token::FloatLiteral:
    case Token::DoubleLiteral: {
       Literal::Type typ = Literal::Double;
-      if (tok.kind == Token::FloatLiteral) {
+      if (tok.type == Token::FloatLiteral) {
          typ = Literal::Float;
       }
       Literal* lit = new Literal(typ);
@@ -581,7 +581,7 @@ Expr *Parser::parse_postfix_expr(AstNode *parent, Expr *e = 0) {
    }
  begin:
    Token tok = _in.peek_token();
-   switch (tok.kind) {
+   switch (tok.type) {
    case Token::LParen:
       e = parse_callexpr(e);
       goto begin;
@@ -610,7 +610,7 @@ Expr *Parser::parse_unary_expr(AstNode *parent) {
    Expr *e;
    Pos ini = _in.pos();
    Token tok = _in.peek_token();
-   switch (tok.kind) {
+   switch (tok.type) {
    case Token::Not: {
       NegExpr *ne = new NegExpr();
       _in.next();
@@ -622,7 +622,7 @@ Expr *Parser::parse_unary_expr(AstNode *parent) {
    }
    case Token::Plus:
    case Token::Minus: {
-      SignExpr *se = new SignExpr(tok.kind == Token::Plus
+      SignExpr *se = new SignExpr(tok.type == Token::Plus
                                   ? SignExpr::Positive
                                   : SignExpr::Negative);
       _in.next();
@@ -652,10 +652,10 @@ Expr *Parser::parse_unary_expr(AstNode *parent) {
    }      
    case Token::MinusMinus:
    case Token::PlusPlus: {
-      IncrExpr *ie = new IncrExpr(tok.kind == Token::PlusPlus 
+      IncrExpr *ie = new IncrExpr(tok.type == Token::PlusPlus 
                                   ? IncrExpr::Positive 
                                   : IncrExpr::Negative);
-      _in.consume(tok.kind == Token::PlusPlus ? "++" : "--");
+      _in.consume(tok.type == Token::PlusPlus ? "++" : "--");
       CommentSeq *comm = _in.skip("\n\t ");
       ie->expr = parse_unary_expr(ie);
       ie->preincr = true;
@@ -682,13 +682,13 @@ Expr *Parser::parse_expr(AstNode *parent, BinaryExpr::Kind max) {
       if (!(tok.group & Token::Operator)) {
          break;
       }
-      BinaryExpr::Kind kind = BinaryExpr::tok2kind(tok.kind);
-      if (tok.kind == Token::Empty or kind > max) {
+      BinaryExpr::Kind kind = BinaryExpr::tok2kind(tok.type);
+      if (tok.type == Token::Empty or kind > max) {
          break;
       }
       CommentSeq *c0 = _in.skip("\n\t ");
       tok = _in.read_operator();
-      if (tok.kind == Token::QMark) { // (... ? ... : ...)
+      if (tok.type == Token::QMark) { // (... ? ... : ...)
          CondExpr *e = new CondExpr();
          e->cond = left;
          e->comments.push_back(c0);
@@ -696,7 +696,7 @@ Expr *Parser::parse_expr(AstNode *parent, BinaryExpr::Kind max) {
          e->then = parse_expr(e, Expr::Assignment); // Expr::comma?
          _skip(e);
          Token colon = _in.read_operator();
-         if (colon.kind != Token::Colon) {
+         if (colon.type != Token::Colon) {
             error(e, _T("Expected '%s' here.", ":"));
          }
          _skip(e);
@@ -771,8 +771,8 @@ Expr *Parser::parse_fieldexpr(Expr *x, Token tok) {
    FieldExpr *e = new FieldExpr();
    e->ini  = x->ini;
    e->base = x;
-   e->pointer = (tok.kind == Token::Arrow);
-   _in.consume(tok.kind == Token::Arrow ? "->" : ".");
+   e->pointer = (tok.type == Token::Arrow);
+   _in.consume(tok.type == Token::Arrow ? "->" : ".");
    _skip(e);
    Token id = _in.read_id();
    e->field = new SimpleIdent(id.str);
@@ -781,11 +781,11 @@ Expr *Parser::parse_fieldexpr(Expr *x, Token tok) {
 }
 
 Expr *Parser::parse_increxpr(Expr *x, Token tok) {
-   IncrExpr *e = new IncrExpr(tok.kind == Token::PlusPlus 
+   IncrExpr *e = new IncrExpr(tok.type == Token::PlusPlus 
                               ? IncrExpr::Positive 
                               : IncrExpr::Negative);
    e->expr = x;
-   _in.consume(tok.kind == Token::PlusPlus ? "++" : "--");
+   _in.consume(tok.type == Token::PlusPlus ? "++" : "--");
    e->fin = _in.pos();
    return e;
 }
@@ -888,7 +888,7 @@ Stmt *Parser::parse_ifstmt(AstNode *parent) {
    _in.save();
    _skip(stmt);
    string tok;
-   if (_in.peek_token().kind == Token::Else) {
+   if (_in.peek_token().type == Token::Else) {
       _in.consume("else");
       _in.discard();
       _skip(stmt);
@@ -1000,7 +1000,7 @@ DeclStmt *Parser::parse_declstmt(AstNode *parent, bool is_typedef) {
       Token id = _in.next_token();
       string name = id.str;
       Decl::Kind kind = Decl::Normal;
-      if (id.kind == Token::Star) {
+      if (id.type == Token::Star) {
          kind = Decl::Pointer;
          _skip(stmt);
          id = _in.next_token();
@@ -1076,7 +1076,7 @@ EnumDecl *Parser::parse_enum(AstNode *parent) {
          _in.next();
          _skip(decl);
          Token num = _in.read_number_literal();
-         if (num.kind != Token::IntLiteral) {
+         if (num.type != Token::IntLiteral) {
             error(decl, _in.pos().str() + ": " + _T("Expected an integer here."));
             _in.skip_to(",};");
          }
@@ -1118,7 +1118,7 @@ TypedefDecl *Parser::parse_typedef(AstNode *parent) {
 
 StructDecl *Parser::parse_struct(AstNode *parent) {
    Token tok = _in.next_token();
-   assert(tok.kind == Token::Struct);
+   assert(tok.type == Token::Struct);
 
    StructDecl *decl = new StructDecl();
    decl->parent = parent;
@@ -1128,7 +1128,7 @@ StructDecl *Parser::parse_struct(AstNode *parent) {
    _skip(decl);
    
    tok = _in.next_token();
-   if (tok.kind != Token::LCurly) {
+   if (tok.type != Token::LCurly) {
       error(decl, _T("Expected '%s' here.", "{"));
       _in.skip_to("};");
       return decl;
@@ -1136,14 +1136,14 @@ StructDecl *Parser::parse_struct(AstNode *parent) {
    _skip(decl);
    
    tok = _in.peek_token();
-   while (!_in.end() and tok.kind != Token::RCurly) {
+   while (!_in.end() and tok.type != Token::RCurly) {
       DeclStmt *field = parse_declstmt(decl);
       decl->decls.push_back(field);
       field->parent = decl;
       _skip(decl);
       tok = _in.peek_token();      
    }
-   if (tok.kind != Token::RCurly) {
+   if (tok.type != Token::RCurly) {
       error(decl, _in.pos().str() + ": " + _T("Expected '%s' here.", "}"));
    }
    _in.expect("}");
