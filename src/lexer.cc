@@ -138,19 +138,16 @@ Token Lexer::next_token() {
 } while(0)
 
 #define RESULT2(ch, type1, group1, s1, type2, group2, s2) \
-   if (curr(1) == ch) { \
-      RESULT1(type2, group2, s2); \
-   } else { \
-      RESULT1(type1, group1, s1); \
-   }
+   if (curr(1) == ch) RESULT1(type2, group2, s2); \
+   else RESULT1(type1, group1, s1); \
+
+#define RESULT_OP3(ch, str, type1, type2, type3) \
+   if (curr(1) == ch) RESULT1(type2, Operator, str str); \
+   else if (curr(1) == '=') RESULT1(type3, Operator, str "="); \
+   else RESULT1(type1, Operator, str);
+
 
    switch (curr()) {
-   case '.': {
-      if (isdigit(curr(1))) {
-         return read_number_literal();
-      }
-      RESULT1(Dot, Operator, ".");
-   }
    case '(': RESULT1(LParen, None, "(");
    case ')': RESULT1(Unknown, Ident, ")");
    case '[': RESULT1(LBrack, None, "[");
@@ -160,12 +157,24 @@ Token Lexer::next_token() {
    case ';': RESULT1(SemiColon, None, ";");
    case '#': RESULT1(Sharp, None, "#");
    case ',': RESULT1(Comma, Operator, ",");
+   case '?': RESULT1(QMark, Operator, "?");
+
+   // TODO: Add '~'
+   // case '~': RESULT1(Tilde, Operator, "~");
 
    case ':': RESULT2(':', Colon, None, ":", 
                           ColonColon, None, "::");
    case '!': RESULT2('=', Not,   Operator, "!",
                           NotEq, Operator, "!=");
-   
+   case '+': RESULT_OP3('+', "+", Plus, PlusPlus, PlusAssign);
+
+   case '.': {
+      if (isdigit(curr(1))) {
+         return read_number_literal();
+      }
+      RESULT1(Dot, Operator, ".");
+   }
+
    case '-': {
       if (isdigit(curr(1))) {
          return read_number_literal();
@@ -173,10 +182,11 @@ Token Lexer::next_token() {
          return read_operator();
       }
    }
-   case '+': case '&': case '|': 
+
+   // case '+':
+   case '&': case '|': 
    case '*': case '/': case '%': case '=': case '^': 
-   case '<': case '>': 
-   case '~': case '?': {
+   case '<': case '>': {
       return read_operator();
    }      
    case '0': case '1': case '2': case '3': case '4':
