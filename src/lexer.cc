@@ -130,21 +130,30 @@ void Lexer::discard() {
 
 Token Lexer::next_token() {
    switch (curr()) {
-   case '.': 
+   case '.': {
       if (isdigit(curr(1))) {
          return read_number_literal();
       }
-      // fallthrough ||  (NOT break;)
-      //             vv
-
-   case ']': case '}': {
-      string s(1, curr());
-      Token tok(Token::token2type(s));
-      tok.str = s;
+      Token tok(Token::Dot, Token::Operator);
+      tok.str = ".";
+      next();
+      return tok;
+   }
+   case '}': {
+      Token tok(Token::RCurly, Token::None);
+      tok.str = "}";
+      next();
+      return tok;
+   }
+   case ']': {
+      // FIXME FIXME FIXME: esto es un bug horrible!
+      Token tok(Token::Unknown, Token::Ident);
+      tok.str = "]";
       next();
       return tok;
    }
    case ')': {
+      // FIXME FIXME FIXME: esto es un bug horrible!
       Token tok(Token::Unknown, Token::Ident);
       tok.str = ")";
       next();
@@ -180,7 +189,6 @@ Token Lexer::next_token() {
       next();
       return tok;
    }
-
    case ':': {
       next();
       Token tok(Token::Colon);
