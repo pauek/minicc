@@ -6,8 +6,8 @@ void f() {
 Program{
    FuncDecl(id:'f', Type(id:'void'), Params = {}, {
       Block({
-         ExprStmt(=(id:'a', Int<-1>))
-         ExprStmt(=(id:'b', Double<-0.5>))
+         ExprStmt(=(id:'a', SignExpr<->(Int<1>)))
+         ExprStmt(=(id:'b', SignExpr<->(Double<0.5>)))
       })
    })
 }

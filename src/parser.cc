@@ -678,7 +678,7 @@ Expr *Parser::parse_expr(AstNode *parent, BinaryExpr::Kind max) {
    Expr *left = parse_unary_expr(parent);
 
    while (true) {
-      Token tok = _in.peek_operator();
+      Token tok = _in.peek_token();
       if (!(tok.group & Token::Operator)) {
          break;
       }

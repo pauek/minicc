@@ -180,16 +180,7 @@ Token Lexer::next_token() {
       RESULT1(Dot, Operator, ".");
    }
 
-   case '-': {
-      if (isdigit(curr(1))) {
-         return read_number_literal();
-      } else {
-         return read_operator();
-      }
-   }
-
-   // case '+':
-   case '/': case '%': case '=': case '^': 
+   case '-': case '/': case '%': case '=': case '^': 
    case '<': case '>': {
       return read_operator();
    }      
@@ -500,9 +491,6 @@ Token Lexer::read_number_literal() {
       next();
       t.str += '.';
       return read_real_literal(t);
-   } else if (curr() == '-') {
-      t.str += '-';
-      next();
    }
    while (isdigit(curr())) {
       t.str += curr();
