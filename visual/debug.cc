@@ -85,41 +85,68 @@ bool inBar(Vector2 pos) {
        && pos.y < screenHeight - status_bar_height;
 }
 
-enum Type { NONE, INTEGER, FLOAT };
+enum Type { 
+   tyNONE, 
+   tyBOOL, tyCHAR, tyINTEGER, tyFLOAT, tyDOUBLE,
+   tySTRUCT, tyARRAY, tyVECTOR,
+   tyFILE,
+};
 
 struct Value {
-   Type type;
+   Type type, subtype;
+   bool unknown;
    union {
-      int as_int;
-      float as_float;
+      bool        as_bool;
+      char        as_char;
+      int         as_int;
+      float       as_float;
+      double      as_double;
+      const char *as_file;
+
+      vector<Value> *elems;
    };
 
    // WARNING: Ojo con la copia de Value, porque viene de la copia de Stack!
-   Value()        : type(NONE)               {}
-   Value(int x)   : type(INTEGER), as_int(x) {}
-   Value(float f) : type(FLOAT), as_float(f) {}
-   // Value(const Value& val) <--- Hay que currarse este bien!
+   Value() : type(tyNONE), unknown(true) {}
+   Value(Type ty) : type(ty), unknown (true) {}
 
-     int get_int()    const { assert(type == INTEGER); return as_int; }
-   float get_float()  const { assert(type == FLOAT);   return as_float; }
+#define GET(ty, tyX) \
+     ty get_##ty() const { assert(type == tyX && !unknown); return as_##ty; }
 
-   void set_int(int x) { 
-      if (type == NONE) {
-         type = INTEGER;
-      } else if (type != INTEGER) {
+#define SET(ty, tyX)            \
+   void set_##ty(ty x) {        \
+      if (type == tyNONE) {     \
+         type = tyX;            \
+      } else if (type != tyX) { \
+         assert(false);         \
+      }                         \
+      unknown = false;          \
+      as_##ty = x;              \
+   }                            \
+
+#define GETSET(ty, tyX) GET(ty, tyX) SET(ty, tyX)
+
+   GETSET(bool,   tyBOOL)
+   GETSET(char,   tyCHAR)
+   GETSET(int,    tyINTEGER)
+   GETSET(float,  tyFLOAT)
+   GETSET(double, tyDOUBLE)
+
+   void set_file(const char *filename) { 
+      if (type == tyNONE) {
+         type = tyFILE;
+      } else if (type != tyFILE) {
          assert(false);
       }
-      as_int = x; 
+      as_file = filename;
    }
-
-   void set_float(float x) { assert(type == FLOAT);   as_float = x; }
 
    string as_string() const {
       ostringstream oss;
       switch (type) {
-      case NONE:    oss << "none" << endl; break;
-      case INTEGER: oss << "int = " << as_int; break;
-      case FLOAT:   oss << "float = " << as_float; break;
+      case tyNONE:    oss << "none" << endl; break;
+      case tyINTEGER: oss << "int = " << as_int; break;
+      case tyFLOAT:   oss << "float = " << as_float; break;
       }
       return oss.str();
    }
@@ -127,15 +154,15 @@ struct Value {
    void draw(Vector2 pos) {
       int H = lineheight;
       switch (type) {
-         case NONE: break;
-         case INTEGER: {
+         case tyNONE: break;
+         case tyINTEGER: {
             ostringstream oss;
             oss << as_int;
             DrawRectangleLines(pos.x - 4, pos.y - H + 5, 100, H, RED);
             DrawTextEx(font, oss.str().c_str(), pos, font.baseSize, 0, BLACK);
             break;
          }
-         case FLOAT: {
+         case tyFLOAT: {
             ostringstream oss;
             oss << as_float;
             DrawRectangleLines(pos.x - 4, pos.y - H + 5, 100, H, RED);
@@ -145,6 +172,44 @@ struct Value {
       }
    }
 };
+
+Value make_int() { return Value(tyINTEGER); }
+
+Value make_int(int x) {
+   Value v;
+   v.set_int(x);
+   return v;
+}
+
+Value make_float() { return Value(tyFLOAT); }
+
+Value make_float(float f) {
+   Value v;
+   v.set_float(f);
+   return v;
+}
+
+Value make_file(const char *filename) { 
+   Value v(tyFILE);
+   v.set_file(filename);
+   return v;
+}
+
+Value make_struct(Value v1, Value v2) {
+   Value v(tySTRUCT);
+   vector<Value> *fields = new vector<Value>();
+   fields->push_back(v1);
+   fields->push_back(v2);
+   v.elems = fields;
+   return v;
+}
+
+Value make_vector(Type ty) {
+   Value v(tyVECTOR);
+   v.subtype = ty;
+   v.elems = new vector<Value>();
+   return v;
+}
 
 struct Stack 
 {
@@ -223,7 +288,11 @@ struct Program {
    }
 
    Value& local(int index) { return stack().top().values[index]; }
-   Value& result()         { return stack().result; }
+   Value& elem(int index)  { 
+      assert(type == tySTRUCT || type == tyARRAY || type == tyVECTOR);
+      return elems->at(index); 
+   }
+   Value& result() { return stack().result; }
 
    void push(const char* fname, InstrFunc fn) { 
       int n = findFunc(fn);
@@ -411,66 +480,91 @@ void Program::draw_status_bar() {
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 // TODO: Cargar esto como una DLL... ??
-#define DECL(name) void name(Program& P, Instr& I)
-#define INSTR(name, code) DECL(name) code
+#define INSTR(name) void name(Program& P, Instr& I)
 
-DECL(main_01);
-DECL(main_02);
-DECL(main_03);
-DECL(f_01);
-DECL(f_02);
-DECL(f_03);
+INSTR(main_01);
+INSTR(main_02);
+INSTR(main_03);
+INSTR(f_01);
+INSTR(f_02);
+INSTR(f_03);
 
 // f(1, 2)
-INSTR(main_01, {
+INSTR(main_01) {
+   P.add_local("P", make_file("points.txt"));
    P.next(main_02);
-   P.push("f", f_01);
-   P.add_local("a", Value(1));
-   P.add_local("b", Value(2));
-})
+}
 
-// cout << [result] << endl;
-INSTR(main_02, {
-   int result = P.result().get_int();
-   // TODO: Emulate the output!
-   cout << result << endl;
-   P.pop();
+INSTR(main_02) {
+   P.add_local("p", make_struct(
+      make_float(),
+      make_float()
+   ));
    P.next(main_03);
-})
+}
 
-INSTR(main_03, { P.pop(); })
+INSTR(main_03) {
+   P.add_local("points", make_vector(tySTRUCT));
+   P.next(main_04);
+}
+
+INSTR(main_04) {
+   Value& p = P.get_local(2).field(1);
+}
 
 // int c = a + b;
-INSTR(f_01, {
+INSTR(f_01) {
    int a = P.local(0).get_int();
    int b = P.local(1).get_int();
    int c = a + b;
-   P.add_local("c", Value(c));
+   P.add_local("c", make_int(c));
    P.next(f_02);
-})
+}
 
 // c++;
-INSTR(f_02, {
+INSTR(f_02) {
    P.local(2).set_int(P.local(2).get_int() + 1);
    P.next(f_03);
-})
+}
 
 // return c;
-INSTR(f_03, {
+INSTR(f_03) {
    P.result().set_int(P.local(2).get_int());
    P.pop(); // Esta vuelta está mal, debería ser la siguiente instrucción de la 0 después del 'call'
-})
+}
 
 const char *Program::source = R"(
-int f(int a, int b) {
-   int c = a + b;
-   c++;
-   return c;
+#include <iostream>
+#include <vector>
+using namespace std;
+
+struct v2 {
+   float x, y;
+};
+
+v2 average(const vector<v2>& points) {
+   vector<v2>::const_iterator it = points.begin();
+   v2 sum = {0, 0};
+   for (it = points.begin; it != points.end(); it++) {
+      sum.x += it->x;
+      sum.y += it->y;
+   }
+   float size = points.size();
+   v2 avg = {sum.x / size, sum.y / size};
+   return avg;
 }
 
 int main() {
-   cout << f(1, 2) << endl;
+   ifstream P("points.txt");
+   v2 p;
+   vector<v2> points;
+   while (P >> p.x >> p.y) {
+      points.push_back(p);
+   }
+   v2 avg = average(points);
+   cout << avg.x << ' ' << avg.y << endl;
 }
+
 )";
 
 InstrFunc Program::start = main_01;
