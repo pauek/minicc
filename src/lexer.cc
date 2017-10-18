@@ -188,8 +188,7 @@ Token Lexer::next_token() {
       return tok;
    }
    */
-   case '(': case ')': case '[': case ']': case '{': case '}':
-   case ';': {
+   case '(': case ')': case '[': case ']': case '{': case '}': {
       string s(1, curr());
       Token tok(Token::token2type(s));
       tok.str = s;
@@ -197,6 +196,12 @@ Token Lexer::next_token() {
       return tok;
    }
 
+   case ';': {
+      Token tok(Token::SemiColon);
+      tok.str = ";";
+      next();
+      return tok;
+   }
    case '#': {
       Token tok(Token::Sharp);
       tok.str = "#";
