@@ -129,66 +129,29 @@ void Lexer::discard() {
 }
 
 Token Lexer::next_token() {
+
+#define RESULT1(type, group, s) do {\
+   Token tok(Token::type, Token::group); \
+   tok.str = s; \
+   next(); \
+   return tok; \
+} while(0)
+
    switch (curr()) {
    case '.': {
       if (isdigit(curr(1))) {
          return read_number_literal();
       }
-      Token tok(Token::Dot, Token::Operator);
-      tok.str = ".";
-      next();
-      return tok;
+      RESULT1(Dot, Operator, ".");
    }
-   case '(': {
-      Token tok(Token::LParen);
-      tok.str = "(";
-      next();
-      return tok;
-   }
-   case ')': {
-      // FIXME FIXME FIXME: esto es un bug horrible!
-      Token tok(Token::Unknown, Token::Ident);
-      tok.str = ")";
-      next();
-      return tok;
-   }
-   case '[': {
-      Token tok(Token::LBrack);
-      tok.str = "[";
-      next();
-      return tok;
-   }
-   case ']': {
-      // FIXME FIXME FIXME: esto es un bug horrible!
-      Token tok(Token::Unknown, Token::Ident);
-      tok.str = "]";
-      next();
-      return tok;
-   }
-   case '{': {
-      Token tok(Token::LCurly);
-      tok.str = "{";
-      next();
-      return tok;
-   }
-   case '}': {
-      Token tok(Token::RCurly, Token::None);
-      tok.str = "}";
-      next();
-      return tok;
-   }
-   case ';': {
-      Token tok(Token::SemiColon);
-      tok.str = ";";
-      next();
-      return tok;
-   }
-   case '#': {
-      Token tok(Token::Sharp);
-      tok.str = "#";
-      next();
-      return tok;
-   }
+   case '(': RESULT1(LParen, None, "(");
+   case ')': RESULT1(Unknown, Ident, ")");
+   case '[': RESULT1(LBrack, None, "[");
+   case ']': RESULT1(RBrack, None, "]");
+   case '{': RESULT1(LCurly, None, "{");
+   case '}': RESULT1(RCurly, None, "}");
+   case ';': RESULT1(SemiColon, None, ";");
+   case '#': RESULT1(Sharp, None, "#");
    case ':': {
       next();
       Token tok(Token::Colon);
