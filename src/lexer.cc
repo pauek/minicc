@@ -139,16 +139,9 @@ Token Lexer::next_token() {
       next();
       return tok;
    }
-   case '}': {
-      Token tok(Token::RCurly, Token::None);
-      tok.str = "}";
-      next();
-      return tok;
-   }
-   case ']': {
-      // FIXME FIXME FIXME: esto es un bug horrible!
-      Token tok(Token::Unknown, Token::Ident);
-      tok.str = "]";
+   case '(': {
+      Token tok(Token::LParen);
+      tok.str = "(";
       next();
       return tok;
    }
@@ -159,21 +152,28 @@ Token Lexer::next_token() {
       next();
       return tok;
    }
-   case '(': {
-      Token tok(Token::LParen);
-      tok.str = "(";
-      next();
-      return tok;
-   }
    case '[': {
       Token tok(Token::LBrack);
       tok.str = "[";
       next();
       return tok;
    }
+   case ']': {
+      // FIXME FIXME FIXME: esto es un bug horrible!
+      Token tok(Token::Unknown, Token::Ident);
+      tok.str = "]";
+      next();
+      return tok;
+   }
    case '{': {
       Token tok(Token::LCurly);
       tok.str = "{";
+      next();
+      return tok;
+   }
+   case '}': {
+      Token tok(Token::RCurly, Token::None);
+      tok.str = "}";
       next();
       return tok;
    }
@@ -207,10 +207,33 @@ Token Lexer::next_token() {
          return read_operator();
       }
    }
-   case '+': case '&': case '|': case '!':
+   case ',': {
+      Token tok(Token::Comma, Token::Operator);
+      tok.str = ",";
+      tok.ini = _curr;
+      next();
+      return tok;
+   }
+   case '!': {
+      if (curr(1) == '=') {
+         Token tok(Token::NotEq, Token::Operator);
+         tok.str = "!=";
+         tok.ini = _curr;
+         next();
+         next();
+         return tok;
+      } else {
+         Token tok(Token::Not, Token::Operator);
+         tok.str = "!";
+         tok.ini = _curr;
+         next();
+         return tok;
+      }
+   }
+   case '+': case '&': case '|': 
    case '*': case '/': case '%': case '=': case '^': 
    case '<': case '>': 
-   case ',': case '~': case '?': {
+   case '~': case '?': {
       return read_operator();
    }      
    case '0': case '1': case '2': case '3': case '4':
