@@ -7,7 +7,7 @@ using namespace std;
 #include "ast.hh"
 
 void Lexer::error(string msg) {
-   cerr << msg << endl;
+   cerr << _pos << ": " << msg << endl;
    exit(1);
 }
 
@@ -393,7 +393,7 @@ void Lexer::read_multiline_comment(Comment& c) {
       c.text += curr();
       next();
    }
-   error(pos().str() + "unfinished comment");
+   error("unfinished comment");
    return;
 }
 
@@ -455,7 +455,7 @@ Token Lexer::read_string_or_char_literal(char delim) {
             t.str += curr();
          }
       } else if (curr() == '\n') {
-         error(pos().str() + ": string inacabado");
+         error("string inacabado");
          break;
       } else {
          t.str += curr();
