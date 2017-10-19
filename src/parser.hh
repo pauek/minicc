@@ -16,20 +16,20 @@ struct ParseError {
 };
 
 class Parser {
-   Lexer _in;
+   Lexer _lexer;
    std::ostream *_err;
 
    set<std::string> _types; // things known as types
    bool _is_type(std::string);
 
    void _skip(string stopset) {
-      CommentSeq *cn = _in.skip(stopset);
+      CommentSeq *cn = _lexer.skip(stopset);
       if (cn != 0) delete cn;
    }
 
    template<typename X> 
    void _skip(X *n, std::string stopset = "\n\t ") {
-      n->comments.push_back(_in.skip(stopset));
+      n->comments.push_back(_lexer.skip(stopset));
    }
 
    void error(AstNode *n, std::string msg);
@@ -52,7 +52,7 @@ class Parser {
 public:
              Parser(std::istream *in, std::ostream* err = &std::cerr);
 
-const Lexer& lexer() const { return _in; }
+const Lexer& lexer() const { return _lexer; }
 
     AstNode *parse();
     AstNode *parse_macro(AstNode *parent);
