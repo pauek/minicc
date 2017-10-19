@@ -709,7 +709,7 @@ Expr *Parser::parse_expr(AstNode *parent, BinaryExpr::Kind max) {
 
    while (true) {
       Token tok = _lexer.peek_token();
-      if (!(tok.group & Token::Operator)) {
+      if (!tok.IsOperator()) {
          break;
       }
       BinaryExpr::Kind kind = BinaryExpr::tok2kind(tok.type);
@@ -718,7 +718,7 @@ Expr *Parser::parse_expr(AstNode *parent, BinaryExpr::Kind max) {
       }
       CommentSeq *c0 = _lexer.skip("\n\t ");
       tok = _lexer.read_token();
-      if (!(tok.group & Token::Operator)) {
+      if (!tok.IsOperator()) {
          error(left, _T("Expected operator here."));
       }
       if (tok.type == Token::QMark) { // (... ? ... : ...)
@@ -1039,7 +1039,7 @@ DeclStmt *Parser::parse_declstmt(AstNode *parent, bool is_typedef) {
          id = _lexer.read_token();
          name = _lexer.SubStr(id);
       }
-      if (id.group != Token::Ident) {
+      if (!id.IsIdent()) {
          stopper_error(stmt, _T("Expected a variable name here."));
       }
       after_id = _lexer.pos();
