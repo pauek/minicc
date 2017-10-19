@@ -160,7 +160,7 @@ AstNode* Parser::parse_macro(AstNode *parent) {
       Pos p = _lexer.pos();
       _lexer.next();
       if (_lexer.end()) {
-         error(inc, p, p + 1, _T("'#include' missing closing '%c'", close));
+         error(inc, p, _lexer.pos(), _T("'#include' missing closing '%c'", close));
          break;
       }
    }
@@ -1010,8 +1010,7 @@ DeclStmt *Parser::parse_declstmt(AstNode *parent, bool is_typedef) {
          name = id.str;
       }
       if (id.group != Token::Ident) {
-         stopper_error(stmt, after_comma, after_comma+1,
-                       _T("Expected a variable name here."));
+         stopper_error(stmt, _T("Expected a variable name here."));
       }
       after_id = _lexer.pos();
       DeclStmt::Item item;
@@ -1043,7 +1042,7 @@ DeclStmt *Parser::parse_declstmt(AstNode *parent, bool is_typedef) {
    }
    stmt->fin = _lexer.pos();
    if (!_lexer.expect(";")) {
-      stopper_error(stmt, after_id, after_id + 1, _T("Expected '%s' here.", ";"));
+      stopper_error(stmt, _T("Expected '%s' here.", ";"));
    }
    return stmt;
 }

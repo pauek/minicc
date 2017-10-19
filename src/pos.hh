@@ -25,17 +25,4 @@ inline std::ostream& operator<<(std::ostream& o, const Range& rng) {
    return o << rng.ini << "-" << rng.fin;
 }
 
-inline bool operator==(const Pos& a, const Pos& b) {
-   return a.lin == b.lin && a.col == b.col;
-}
-
-// FIXME: Esto es una burrada en realidad, cada línea tiene un tamaño distinto y no sabes si te pasas o qué...
-inline Pos operator+(const Pos& p, int n) {
-   return Pos(p.lin, p.col + n);
-}
-
-inline Pos operator-(const Pos& p, int n) {
-   return Pos(p.lin, p.col - n);
-}
-
 #endif

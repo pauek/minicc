@@ -65,7 +65,8 @@ Range Stepper::ProgramVisitState::span() const {
    if (at == ProgramVisitState::Begin) {
       return x->id->span(); 
    } else if (at == ProgramVisitState::Finished) {
-      Pos ini = x->block->fin - 1, fin = x->block->fin;
+      Pos ini = x->block->fin, fin = x->block->fin;
+      ini.col--;
       return Range(ini, fin);
    }
    return Range();
