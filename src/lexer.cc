@@ -175,6 +175,8 @@ Token Lexer::next_token() {
 
    case ':': RESULT_1_2(':', Colon,      None,     ":", 
                              ColonColon, None,     "::");
+   case '=': RESULT_1_2('=', Assign,     Operator, "=", 
+                             EqEq,       Operator, "==");
    case '!': RESULT_1_2('=', Not,        Operator, "!",
                              NotEq,      Operator, "!=");
    case '*': RESULT_1_2('=', Star,       Operator, "*",
@@ -195,8 +197,7 @@ Token Lexer::next_token() {
       RESULT1(Dot, Operator, ".");
    }
 
-   case '-': case '=': case '^': 
-   case '<': case '>': {
+   case '-': case '^': case '<': case '>': {
       return read_operator();
    }      
    case '0': case '1': case '2': case '3': case '4':
@@ -399,7 +400,7 @@ Token Lexer::read_operator() {
       }
       break;
 
-   case '/': case '%': //  / /= % %= = == ! != ^ ^=
+   case '/': case '%': //  = == ! != ^ ^=
    case '=': case '!': case '^': 
       op += curr(); next();
       if (curr() == '=') {
