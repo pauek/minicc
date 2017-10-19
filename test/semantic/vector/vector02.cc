@@ -7,4 +7,4 @@ int main() {
    a[] = 4;
 }
 [[err]]--------------------------------------------------
-semantic/vector/vector02.cc[7:5]: Debe haber una expresión entre los corchetes.
+semantic/vector/vector02.cc[7:6]: Debe haber una expresión entre los corchetes.

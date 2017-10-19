@@ -11,6 +11,6 @@ void f() {
    s = b + d;
 }
 [[err]]--------------------------------------------------
-semantic/expr/expr1.cc[8:7-8:12]: No se puede sumar un 'int' con un 'bool'.
-semantic/expr/expr1.cc[9:7-9:12]: No se puede sumar un 'char' con un 'bool'.
-semantic/expr/expr1.cc[11:7-11:12]: No se puede sumar un 'bool' con un 'double'.
+semantic/expr/expr1.cc[8:8-8:13]: No se puede sumar un 'int' con un 'bool'.
+semantic/expr/expr1.cc[9:8-9:13]: No se puede sumar un 'char' con un 'bool'.
+semantic/expr/expr1.cc[11:8-11:13]: No se puede sumar un 'bool' con un 'double'.

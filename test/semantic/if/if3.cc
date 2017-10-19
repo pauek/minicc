@@ -10,4 +10,4 @@ void f() {
 }
 
 [[err]]----------------------------------------------------
-semantic/if/if3.cc[7:7-7:8]: La condición siempre vale 'false'.
+semantic/if/if3.cc[7:8-7:9]: La condición siempre vale 'false'.

@@ -4,4 +4,4 @@ int main() {
    }
 }
 [[err]]-----------------------------------------------
-parser/for1.cc[2:8-2:29]: El 'for' debe tener como separador el caracter ';' (y no ',').
+parser/for1.cc[2:9-2:30]: El 'for' debe tener como separador el caracter ';' (y no ',').

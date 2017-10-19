@@ -4,4 +4,4 @@ int main() {
    std::cout << s.tamanyo << std::endl;
 }
 [[err]]----------------------------------------------------
-semantic/notfound/notfound4.cc[4:16-4:25]: La clase 'string' no tiene campo 'tamanyo'.
+semantic/notfound/notfound4.cc[4:17-4:26]: La clase 'string' no tiene campo 'tamanyo'.

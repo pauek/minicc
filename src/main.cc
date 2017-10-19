@@ -129,7 +129,7 @@ int tokenize(string filename) {
    L.skip("\n\t ");
    while (!L.end()) {
       Token tok = L.read_token();
-      cout << tok.ini << ' ' << tok.str << endl;
+      cout << tok.pos << ' ' << tok.str << endl;
       L.skip("\n\t ");
    }
 }

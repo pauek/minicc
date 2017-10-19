@@ -8,30 +8,30 @@ int main() {
 }
 
 [[out]]--------------------------------------------------
-4:4-4:8: main
+4:5-4:9: main
 Empieza el programa.
 
-5:3-5:23: int a[2] = {-5, -15}
+5:4-5:24: int a[2] = {-5, -15}
 Se declara la variable 'a'.
 
-6:11-6:15: a[0]
+6:12-6:16: a[0]
 Se escribe a la salida.
 OUTPUT: "-5"
 
-6:19-6:23: endl
+6:20-6:24: endl
 Se escribe a la salida.
 OUTPUT: "
 "
 
-7:11-7:15: a[1]
+7:12-7:16: a[1]
 Se escribe a la salida.
 OUTPUT: "-15"
 
-7:19-7:23: endl
+7:20-7:24: endl
 Se escribe a la salida.
 OUTPUT: "
 "
 
-8:0-8:1: }
+8:1-8:2: }
 Termina el programa.
 

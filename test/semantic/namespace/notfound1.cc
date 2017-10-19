@@ -5,4 +5,4 @@ int main() {
 }
 
 [[err]]----------------------------------------------------
-semantic/namespace/notfound1.cc[4:21-4:30]: No se ha encontrado 'end1' en el namespace 'std'.
+semantic/namespace/notfound1.cc[4:22-4:31]: No se ha encontrado 'end1' en el namespace 'std'.

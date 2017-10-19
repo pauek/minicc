@@ -11,4 +11,4 @@ int main() {
    cout << a[f()] << endl;
 }
 [[err]]--------------------------------------------------
-semantic/vector/vector01.cc[11:13-11:16]: El índice a una casilla de un vector debe ser un 'int' (no 'double').
+semantic/vector/vector01.cc[11:14-11:17]: El índice a una casilla de un vector debe ser un 'int' (no 'double').

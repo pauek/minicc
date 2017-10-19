@@ -3,4 +3,4 @@ using namespace std;
 
    using namespace xx;
 [[err]]----------------------------------------------------
-semantic/namespace/using2.cc[4:3-4:21]: El "namespace" 'xx' no existe.
+semantic/namespace/using2.cc[4:4-4:22]: El "namespace" 'xx' no existe.

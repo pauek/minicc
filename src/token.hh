@@ -3,6 +3,7 @@
 
 #include <string>
 #include <map>
+#include "pos.hh"
 
 class Token {
 public:
@@ -38,6 +39,8 @@ public:
    
    static Token token2type(std::string tok);
 
+   Pos pos;
+   uint len;
    int ini, fin;
    Type type;
    int  group;

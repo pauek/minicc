@@ -1,4 +1,4 @@
 
 # inclu
 [[err]]---------------------------------------------
-interpreter/errors/include_truncated2.cc[2:7]: Macro '#inclu' desconocida.
+interpreter/errors/include_truncated2.cc[2:8]: Macro '#inclu' desconocida.

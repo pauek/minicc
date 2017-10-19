@@ -59,7 +59,7 @@ public:
           bool  expect(std::string word);
           void  consume(char c);
           void  consume(std::string s);
-   CommentSeq *skip(std::string skip_set);
+    CommentSeq *skip(std::string skip_set);
    std::string  skip_to(std::string stop_set);
 
          Token  read_token();

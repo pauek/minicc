@@ -6,4 +6,4 @@ int main() {
    a(1, 2);
 }
 [[err]]--------------------------------------------------
-semantic/func/func08.cc[6:3-6:10]: Intentas llamar como función un valor de tipo 'int'.
+semantic/func/func08.cc[6:4-6:11]: Intentas llamar como función un valor de tipo 'int'.

@@ -6,4 +6,4 @@ void f() {
    s = string(1);
 }
 [[err]]--------------------------------------------------
-semantic/func/typeconv2.cc[6:7-6:16]: No se puede convertir un 'int' en un 'string'.
+semantic/func/typeconv2.cc[6:8-6:17]: No se puede convertir un 'int' en un 'string'.

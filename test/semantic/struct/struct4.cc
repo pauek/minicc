@@ -3,4 +3,4 @@ struct X {
    int a;
 };
 [[err]]--------------------------------------------------
-semantic/struct/struct4.cc[3:3-3:8]: El campo 'a' está repetido.
+semantic/struct/struct4.cc[3:4-3:9]: El campo 'a' está repetido.

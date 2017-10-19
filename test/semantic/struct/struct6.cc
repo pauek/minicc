@@ -2,4 +2,4 @@ struct X {
    bool a["hola"];
 };
 [[err]]--------------------------------------------------
-semantic/struct/struct6.cc[2:8-2:17]: El tamaño de una tabla no puede ser un 'string'.
+semantic/struct/struct6.cc[2:9-2:18]: El tamaño de una tabla no puede ser un 'string'.

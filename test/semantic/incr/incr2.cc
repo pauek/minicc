@@ -5,4 +5,4 @@ void f() {
    s++;
 }
 [[err]]--------------------------------------------------
-semantic/incr/incr2.cc[5:3-5:6]: El tipo 'string' no tiene operador '++'.
+semantic/incr/incr2.cc[5:4-5:7]: El tipo 'string' no tiene operador '++'.

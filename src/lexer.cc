@@ -128,13 +128,46 @@ void Lexer::discard() {
    _stack.pop_back();
 }
 
+bool Lexer::next() {
+   if (_in == 0) {
+      return false;
+   }
+   if (_curr == -1) {
+      _pos.lin = 1;
+      _pos.col = 1;
+      _linepos.push_back(0);
+   } else if (_curr < _text.size() && _text[_curr] == '\n') {
+      _pos.lin++;
+      _pos.col = 1;
+      _linepos.push_back(_curr+1);
+      _seen_endl = true;
+   } else {
+      _pos.col++;
+   }
+   _curr++;
+   assert(_curr <= _text.size());
+   if (_curr == _text.size()) {
+      string line;
+      if (!getline(*_in, line)) {
+         return false;
+      }
+      _text += line;
+      if (!_in->eof()) {
+         _text += "\n";
+      }
+   }
+   return true;
+}
+
 Token Lexer::read_token() {
 
 #define RESULT1(type, group, s) do {\
    Token tok(Token::type, Token::group); \
+   tok.pos = _pos; \
    tok.ini = _curr; \
    next(); \
    tok.fin = _curr; \
+   tok.len = _curr - tok.ini; \
    tok.str = s; \
    return tok; \
 } while(0)
@@ -142,8 +175,10 @@ Token Lexer::read_token() {
 #define RESULT2(type, group, s) do {\
    Token tok(Token::type, Token::group); \
    tok.ini = _curr; \
+   tok.pos = _pos; \
    next(), next(); \
    tok.fin = _curr; \
+   tok.len = _curr - tok.ini; \
    tok.str = s; \
    return tok; \
 } while(0)
@@ -201,6 +236,7 @@ Token Lexer::read_token() {
 
    case '<': { // < <= << <<= > >= >> >>=
       Token tok;
+      tok.pos = _pos;
       tok.ini = _curr;
       tok.group = Token::Operator;
       if (curr(1) == '<') { 
@@ -221,12 +257,14 @@ Token Lexer::read_token() {
          tok.str = "<";
          next();
       }
+      tok.len = _curr - tok.ini;
       tok.fin = _curr;
       return tok;
    }
 
    case '>': {
       Token tok;
+      tok.pos = _pos;
       tok.ini = _curr;
       tok.group = Token::Operator;
       if (curr(1) == '>') { 
@@ -247,12 +285,14 @@ Token Lexer::read_token() {
          tok.str = ">";
          next();
       }
+      tok.len = _curr - tok.ini;
       tok.fin = _curr;
       return tok;
    }
 
    case '-': { // - -- -= ->
       Token tok;
+      tok.pos = _pos;
       tok.ini = _curr;
       tok.group = Token::Operator;
       next();
@@ -262,6 +302,7 @@ Token Lexer::read_token() {
       case '>': tok.type = Token::Arrow;       tok.str = "->"; next(); break;
       default:  tok.type = Token::Minus;       tok.str = "-"; break;
       }
+      tok.len = _curr - tok.ini;
       tok.fin = _curr;
       return tok;
    }
@@ -314,10 +355,10 @@ int Lexer::_pos_to_idx(Pos p) const {
       lfin = _linepos[p.lin+1];
    }
    const int lsize = lfin - lini;
-   if (p.col < 0 || p.col >= lsize) {
+   if (p.col < 1 || p.col > lsize) {
       return -1;
    }
-   return lini + p.col;
+   return lini + p.col - 1;
 }
 
 bool Lexer::peek(int offset) {
@@ -338,36 +379,6 @@ bool Lexer::peek(int offset) {
    return k < _text.size();
 }
 
-bool Lexer::next() {
-   if (_in == 0) {
-      return false;
-   }
-   if (_curr == -1) {
-      _pos.lin = 1;
-      _pos.col = 0;
-      _linepos.push_back(0);
-   } else if (_curr < _text.size() && _text[_curr] == '\n') {
-      _pos.lin++;
-      _pos.col = 0;
-      _linepos.push_back(_curr+1);
-      _seen_endl = true;
-   } else {
-      _pos.col++;
-   }
-   _curr++;
-   assert(_curr <= _text.size());
-   if (_curr == _text.size()) {
-      string line;
-      if (!getline(*_in, line)) {
-         return false;
-      }
-      _text += line;
-      if (!_in->eof()) {
-         _text += "\n";
-      }
-   }
-   return true;
-}
 
 bool Lexer::expect(string word) {
    Pos p = _pos;
@@ -417,6 +428,7 @@ inline bool _isdigit(char c) { return c >= '0' and c <= '9'; }
 
 Token Lexer::read_id() {
    Token t;
+   t.pos = _pos;
    t.ini = _curr;
    char c = curr();
    if (!_isupper(c) and !_islower(c) and c != '_') {
@@ -440,6 +452,8 @@ Token Lexer::read_id() {
 Token Lexer::read_string_or_char_literal(char delim) {
    string str;
    Token t;
+   int ini = _curr;
+   t.pos = _pos;
    t.ini = _curr+1;
    if (curr() == 'L') {
       next(); // TODO: Handle 'L'
@@ -478,11 +492,13 @@ Token Lexer::read_string_or_char_literal(char delim) {
       consume(delim);
    }
    t.type = (delim == '"' ? Token::StringLiteral : Token::CharLiteral);
+   t.len = _curr - ini;
    return t;
 }
 
 Token Lexer::read_number_literal() {
    Token t;
+   t.pos = _pos;
    t.ini = _curr;
    if (curr() == '.') {
       next();
@@ -499,6 +515,7 @@ Token Lexer::read_number_literal() {
       return read_real_literal(t);
    }
    t.fin = _curr;
+   t.len = _curr - t.ini;
    t.type = Token::IntLiteral;
    return t;
 }
@@ -514,6 +531,7 @@ Token Lexer::read_real_literal(Token t) {
       next();
    }
    t.fin = _curr;
+   t.len = _curr - t.ini;
    t.type = (isfloat 
              ? Token::FloatLiteral 
              : Token::DoubleLiteral);

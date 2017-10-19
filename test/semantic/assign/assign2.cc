@@ -19,10 +19,10 @@ void fac() {
    f = 0.02f;
 }
 [[err]]--------------------------------------------------
-semantic/assign/assign2.cc[5:3-5:15]: No se puede asignar un 'string' a una variable de tipo 'double'.
-semantic/assign/assign2.cc[7:3-7:10]: No se puede asignar un 'char' a una variable de tipo 'bool'.
-semantic/assign/assign2.cc[8:3-8:8]: No se puede asignar un 'int' a una variable de tipo 'bool'.
-semantic/assign/assign2.cc[10:3-10:11]: No se puede asignar un 'bool' a una variable de tipo 'int'.
-semantic/assign/assign2.cc[12:3-12:11]: No se puede asignar un 'double' a una variable de tipo 'char'.
-semantic/assign/assign2.cc[14:3-14:11]: No se puede asignar un 'bool' a una variable de tipo 'string'.
-semantic/assign/assign2.cc[15:3-15:14]: El tipo 'MadeUp' no existe.
+semantic/assign/assign2.cc[5:4-5:16]: No se puede asignar un 'string' a una variable de tipo 'double'.
+semantic/assign/assign2.cc[7:4-7:11]: No se puede asignar un 'char' a una variable de tipo 'bool'.
+semantic/assign/assign2.cc[8:4-8:9]: No se puede asignar un 'int' a una variable de tipo 'bool'.
+semantic/assign/assign2.cc[10:4-10:12]: No se puede asignar un 'bool' a una variable de tipo 'int'.
+semantic/assign/assign2.cc[12:4-12:12]: No se puede asignar un 'double' a una variable de tipo 'char'.
+semantic/assign/assign2.cc[14:4-14:12]: No se puede asignar un 'bool' a una variable de tipo 'string'.
+semantic/assign/assign2.cc[15:4-15:15]: El tipo 'MadeUp' no existe.

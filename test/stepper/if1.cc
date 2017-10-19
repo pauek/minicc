@@ -13,27 +13,27 @@ int main() {
 [[in]]---------------------------------------------------
 41
 [[out]]--------------------------------------------------
-4:4-4:8: main
+4:5-4:9: main
 Empieza el programa.
 
-5:3-5:8: int a
+5:4-5:9: int a
 Se declara la variable 'a'.
 
-6:3-6:11: cin >> a
+6:4-6:12: cin >> a
 Se lee de la entrada.
 
-7:7-7:14: a == 42
+7:8-7:15: a == 42
 La condición vale 'false', seguimos por la segunda rama.
 
-10:14-10:18: "no"
+10:15-10:19: "no"
 Se escribe a la salida.
 OUTPUT: "no"
 
-10:22-10:26: endl
+10:23-10:27: endl
 Se escribe a la salida.
 OUTPUT: "
 "
 
-12:0-12:1: }
+12:1-12:2: }
 Termina el programa.
 

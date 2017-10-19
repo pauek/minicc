@@ -4,4 +4,4 @@ int main() {
    }
 }
 [[err]]-----------------------------------------------
-parser/for2.cc[2:8-2:32]: 'for' erróneo.
+parser/for2.cc[2:9-2:33]: 'for' erróneo.

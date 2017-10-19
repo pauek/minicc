@@ -5,9 +5,9 @@ int main() {
 }
 
 [[out]]--------------------------------------------------
-4:4-4:8: main
+4:5-4:9: main
 Empieza el programa.
 
-5:0-5:1: }
+5:1-5:2: }
 Termina el programa.
 

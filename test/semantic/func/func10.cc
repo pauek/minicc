@@ -9,4 +9,4 @@ int main() {
    f(A);
 }
 [[err]]--------------------------------------------------
-semantic/func/func10.cc[9:5-9:6]: No se ha declarado 'A'.
+semantic/func/func10.cc[9:6-9:7]: No se ha declarado 'A'.
