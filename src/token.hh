@@ -41,13 +41,12 @@ public:
 
    Pos pos;
    uint len;
-   int ini, fin;
    Type type;
    int  group;
    std::string str;
 
    Token(Type t = Token::Unknown, int _g = None) 
-      : type(t), group(_g), ini(-1), fin(-1) {}
+      : type(t), group(_g) {}
 
 private:
    struct Table { 

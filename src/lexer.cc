@@ -134,22 +134,20 @@ Token Lexer::read_token() {
 
 #define RESULT1(type, group, s) do {\
    Token tok(Token::type, Token::group); \
+   int ini = _curr; \
    tok.pos = _pos; \
-   tok.ini = _curr; \
    next(); \
-   tok.fin = _curr; \
-   tok.len = _curr - tok.ini; \
+   tok.len = _curr - ini; \
    tok.str = s; \
    return tok; \
 } while(0)
 
 #define RESULT2(type, group, s) do {\
    Token tok(Token::type, Token::group); \
-   tok.ini = _curr; \
+   int ini = _curr; \
    tok.pos = _pos; \
    next(), next(); \
-   tok.fin = _curr; \
-   tok.len = _curr - tok.ini; \
+   tok.len = _curr - ini; \
    tok.str = s; \
    return tok; \
 } while(0)
@@ -208,7 +206,7 @@ Token Lexer::read_token() {
    case '<': { // < <= << <<= > >= >> >>=
       Token tok;
       tok.pos = _pos;
-      tok.ini = _curr;
+      int ini = _curr;
       tok.group = Token::Operator;
       if (curr(1) == '<') { 
          if (curr(2) == '=') { // <<=
@@ -228,15 +226,14 @@ Token Lexer::read_token() {
          tok.str = "<";
          next();
       }
-      tok.len = _curr - tok.ini;
-      tok.fin = _curr;
+      tok.len = _curr - ini;
       return tok;
    }
 
    case '>': {
       Token tok;
       tok.pos = _pos;
-      tok.ini = _curr;
+      int ini = _curr;
       tok.group = Token::Operator;
       if (curr(1) == '>') { 
          if (curr(2) == '=') { // >>=
@@ -256,15 +253,14 @@ Token Lexer::read_token() {
          tok.str = ">";
          next();
       }
-      tok.len = _curr - tok.ini;
-      tok.fin = _curr;
+      tok.len = _curr - ini;
       return tok;
    }
 
    case '-': { // - -- -= ->
       Token tok;
       tok.pos = _pos;
-      tok.ini = _curr;
+      int ini = _curr;
       tok.group = Token::Operator;
       next();
       switch (curr()) {
@@ -273,8 +269,7 @@ Token Lexer::read_token() {
       case '>': tok.type = Token::Arrow;       tok.str = "->"; next(); break;
       default:  tok.type = Token::Minus;       tok.str = "-"; break;
       }
-      tok.len = _curr - tok.ini;
-      tok.fin = _curr;
+      tok.len = _curr - ini;
       return tok;
    }
 
@@ -400,7 +395,7 @@ inline bool IsDigit(char c) { return c >= '0' and c <= '9'; }
 Token Lexer::read_id() {
    Token t;
    t.pos = _pos;
-   t.ini = _curr;
+   int ini = _curr;
    char c = curr();
    if (!IsUpper(c) and !IsLower(c) and c != '_') {
       return Token();
@@ -413,8 +408,8 @@ Token Lexer::read_id() {
       next();
       c = curr();
    }
-   t.fin = _curr;
-   t.len = _curr - t.ini;
+   // t.fin = _curr;
+   t.len = _curr - ini;
    Token x = Token::token2type(SubStr(t));
    t.type  = x.type;
    t.group = x.group;
@@ -424,9 +419,8 @@ Token Lexer::read_id() {
 Token Lexer::read_string_or_char_literal(char delim) {
    string str;
    Token t;
-   int ini = _curr;
    t.pos = _pos;
-   t.ini = _curr+1;
+   int ini = _curr + 1;
    if (curr() == 'L') {
       next(); // TODO: Handle 'L'
    }
@@ -459,23 +453,22 @@ Token Lexer::read_string_or_char_literal(char delim) {
       }
       next();
    }
-   t.fin = _curr;
+   t.len = _curr - ini;
    if (curr() == delim) {
       consume(delim);
    }
    t.type = (delim == '"' ? Token::StringLiteral : Token::CharLiteral);
-   t.len = _curr - ini;
    return t;
 }
 
 Token Lexer::read_number_literal() {
    Token t;
    t.pos = _pos;
-   t.ini = _curr;
+   int ini = _curr;
    if (curr() == '.') {
       next();
       t.str += '.';
-      return read_real_literal(t);
+      return read_real_literal(t, ini);
    }
    while (isdigit(curr())) {
       t.str += curr();
@@ -484,15 +477,15 @@ Token Lexer::read_number_literal() {
    if (curr() == '.') {
       next();
       t.str += '.';
-      return read_real_literal(t);
+      return read_real_literal(t, ini);
    }
-   t.fin = _curr;
-   t.len = _curr - t.ini;
+   // t.fin = _curr;
+   t.len = _curr - ini;
    t.type = Token::IntLiteral;
    return t;
 }
 
-Token Lexer::read_real_literal(Token t) {
+Token Lexer::read_real_literal(Token t, int ini) {
    while (isdigit(curr())) {
       t.str += curr();
       next();
@@ -502,8 +495,7 @@ Token Lexer::read_real_literal(Token t) {
       isfloat = true;
       next();
    }
-   t.fin = _curr;
-   t.len = _curr - t.ini;
+   t.len = _curr - ini;
    t.type = (isfloat 
              ? Token::FloatLiteral 
              : Token::DoubleLiteral);
