@@ -117,32 +117,19 @@ struct TokenInfo {
 // Hay que dejarla antes que el _table...
 //
 TokenInfo toktab[] = {
-   { "or",            Token::Or, Token::Operator },
-   { "and",          Token::And, Token::Operator },
-
-   { "if",       Token::If,       Token::Control },
-   { "else",     Token::Else,     Token::Control },
    { "while",    Token::While,    Token::Control },
-   { "for",      Token::For,      Token::Control },
    { "switch",   Token::Switch,   Token::Control },
    { "break",    Token::Break,    Token::Control },
    { "continue", Token::Continue, Token::Control },
-   { "goto",     Token::Goto,     Token::Control },
    { "return",   Token::Return,   Token::Control },
 
    { "using",    Token::Using,    Token::None },
    { "struct",   Token::Struct,   Token::None },
    { "class",    Token::Class,    Token::None },
    { "typedef",  Token::Typedef,  Token::None },
-   { "enum",     Token::Enum,     Token::None },
 
    // simple_type_specifier
-   { "void",     Token::Void,     Token::TypeSpec | Token::BasicType },
-   { "int",      Token::Int,      Token::TypeSpec | Token::BasicType },
    { "short",    Token::Short,    Token::TypeSpec | Token::BasicType },
-   { "long",     Token::Long,     Token::TypeSpec | Token::BasicType | Token::TypeQual },
-   { "bool",     Token::Bool,     Token::TypeSpec | Token::BasicType },
-   { "char",     Token::Char,     Token::TypeSpec | Token::BasicType },
    { "float",    Token::Float,    Token::TypeSpec | Token::BasicType },
    { "double",   Token::Double,   Token::TypeSpec | Token::BasicType },
    { "string",   Token::String,   Token::TypeSpec | Token::BasicType | Token::Ident },
@@ -154,7 +141,6 @@ TokenInfo toktab[] = {
    { "volatile", Token::Volatile, Token::TypeSpec | Token::TypeQual },
 
    // storage_class_specifier
-   { "auto",     Token::Auto,     Token::TypeSpec | Token::TypeQual },
    { "register", Token::Register, Token::TypeSpec | Token::TypeQual },
    { "static",   Token::Static,   Token::TypeSpec | Token::TypeQual },
    { "extern",   Token::Extern,   Token::TypeSpec | Token::TypeQual },
@@ -165,7 +151,6 @@ TokenInfo toktab[] = {
    { "virtual",  Token::Virtual,  Token::TypeSpec },
    { "explicit", Token::Explicit, Token::TypeSpec },
 
-   { "true",     Token::True,     Token::Literal },
    { "false",    Token::False,    Token::Literal },
 
    { "END",      Token::Unknown,  Token::None }

@@ -404,21 +404,26 @@ Token Lexer::read_ident() {
    string s = SubStr(tok);
    switch (tok.len) {
    case 2: {
-      if (s == "or") {
-         tok.type = Token::Or;
-      } else if (s == "if") {
-         tok.type  = Token::If;
-      }
+      if (s == "or")      tok.type = Token::Or;
+      else if (s == "if") tok.type  = Token::If;
       break;
    }
    case 3: {
-      if (s == "and") {
-         tok.type = Token::And;
-      } else if (s == "int") {
-         tok.type = Token::Int;
-      } else if (s == "for") {
-         tok.type = Token::For;
-      }
+      if (s == "and")       tok.type = Token::And;
+      else if (s == "int")  tok.type = Token::Int;
+      else if (s == "for")  tok.type = Token::For;
+      break;
+   }
+   case 4: {
+      if (s == "else")      tok.type = Token::Else;
+      else if (s == "goto") tok.type = Token::Goto;
+      else if (s == "enum") tok.type = Token::Enum;
+      else if (s == "void") tok.type = Token::Void;
+      else if (s == "long") tok.type = Token::Long;
+      else if (s == "bool") tok.type = Token::Bool;
+      else if (s == "char") tok.type = Token::Char;
+      else if (s == "auto") tok.type = Token::Auto;
+      else if (s == "true") tok.type = Token::True;
       break;
    }
    default:
