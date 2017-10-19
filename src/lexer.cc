@@ -426,6 +426,17 @@ Token Lexer::read_ident() {
       else if (s == "true") tok.type = Token::True;
       break;
    }
+   case 5: {
+      if (s == "while")      tok.type = Token::While;
+      else if (s == "break") tok.type = Token::Break;
+      else if (s == "using") tok.type = Token::Using;
+      else if (s == "short") tok.type = Token::Short;
+      else if (s == "class") tok.type = Token::Class;
+      else if (s == "float") tok.type = Token::Float;
+      else if (s == "const") tok.type = Token::Const;
+      else if (s == "false") tok.type = Token::False;
+      break;      
+   }
    default:
       Token x = Token::token2type(SubStr(tok));
       tok.type  = x.type;

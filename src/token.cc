@@ -117,27 +117,20 @@ struct TokenInfo {
 // Hay que dejarla antes que el _table...
 //
 TokenInfo toktab[] = {
-   { "while",    Token::While,    Token::Control },
    { "switch",   Token::Switch,   Token::Control },
-   { "break",    Token::Break,    Token::Control },
    { "continue", Token::Continue, Token::Control },
    { "return",   Token::Return,   Token::Control },
 
-   { "using",    Token::Using,    Token::None },
    { "struct",   Token::Struct,   Token::None },
-   { "class",    Token::Class,    Token::None },
    { "typedef",  Token::Typedef,  Token::None },
 
    // simple_type_specifier
-   { "short",    Token::Short,    Token::TypeSpec | Token::BasicType },
-   { "float",    Token::Float,    Token::TypeSpec | Token::BasicType },
    { "double",   Token::Double,   Token::TypeSpec | Token::BasicType },
    { "string",   Token::String,   Token::TypeSpec | Token::BasicType | Token::Ident },
 
    { "signed",   Token::Signed,   Token::TypeSpec },
    { "unsigned", Token::Unsigned, Token::TypeSpec },
 
-   { "const",    Token::Const,    Token::TypeSpec | Token::TypeQual },
    { "volatile", Token::Volatile, Token::TypeSpec | Token::TypeQual },
 
    // storage_class_specifier
@@ -150,8 +143,6 @@ TokenInfo toktab[] = {
    { "inline",   Token::Inline,   Token::TypeSpec },
    { "virtual",  Token::Virtual,  Token::TypeSpec },
    { "explicit", Token::Explicit, Token::TypeSpec },
-
-   { "false",    Token::False,    Token::Literal },
 
    { "END",      Token::Unknown,  Token::None }
 };
