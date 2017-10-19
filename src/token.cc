@@ -112,7 +112,6 @@ bool Token::IsBasicType() const {
    return false;
 }
 
-/*
 bool Token::IsTypeQual() const {
    switch (type) {
    case Token::Const:
@@ -127,7 +126,6 @@ bool Token::IsTypeQual() const {
    }
    return false;
 }
-*/
 
 TokenInfo toktab[] = {
    { "",           Token::Empty, Token::None },

@@ -46,8 +46,8 @@ public:
 
    bool IsIdent()     const { return group & Ident; }
    bool IsTypeSpec()  const;
-   bool IsBasicType() const; // { return group & BasicType; }
-   bool IsTypeQual()  const { return group & TypeQual; }
+   bool IsBasicType() const;
+   bool IsTypeQual()  const;
    bool IsOperator()  const;
 
    Token(Type t = Token::Unknown, int _g = Group::None) 
