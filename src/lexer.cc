@@ -379,14 +379,6 @@ Token Lexer::read_operator() {
    char x;
    int ini = _curr, fin = -1;
    switch (curr()) {
-   case '+': case '&': case '|': // + ++ += & && &= | || |=
-      x = curr();
-      op += x; next();
-      if (curr() == '=' or curr() == x) {
-         op += curr(); next();
-      }
-      break;
-
    case '-':                     // - -- -= -> ->*
       op += '-'; next();
       switch (curr()) {

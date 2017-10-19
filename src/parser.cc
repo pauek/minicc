@@ -698,7 +698,7 @@ Expr *Parser::parse_expr(AstNode *parent, BinaryExpr::Kind max) {
          _skip(e);
          e->then = parse_expr(e, Expr::Assignment); // Expr::comma?
          _skip(e);
-         Token colon = _in.read_operator();
+         Token colon = _in.next_token();
          if (colon.type != Token::Colon) {
             error(e, _T("Expected '%s' here.", ":"));
          }
