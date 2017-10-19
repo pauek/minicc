@@ -25,9 +25,13 @@ struct Token
       Star, 
       Slash, 
       Div,
+
+      Plus, 
+      Minus, 
+      PlusPlus, 
+      MinusMinus,
       
-      Plus, Minus, PlusPlus, MinusMinus,
-      LCurly, RCurly, LParen, RParen, LBrack, RBrack, Dot, Arrow,
+      LBrace, RBrace, LParen, RParen, LBrack, RBrack, Dot, Arrow,
       If, Else, While, For, Switch, 
       Break, Continue, Goto, Return,
       Typedef, Class, Struct, Enum,

@@ -165,8 +165,8 @@ Token Lexer::read_token() {
    case ')': RESULT1(RParen);
    case '[': RESULT1(LBrack);
    case ']': RESULT1(RBrack);
-   case '{': RESULT1(LCurly);
-   case '}': RESULT1(RCurly);
+   case '{': RESULT1(LBrace);
+   case '}': RESULT1(RBrace);
    case ';': RESULT1(SemiColon);
    case '#': RESULT1(Sharp);
    case ',': RESULT1(Comma);

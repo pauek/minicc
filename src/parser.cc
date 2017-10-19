@@ -383,7 +383,7 @@ Stmt* Parser::parse_stmt(AstNode *parent) {
    case Token::LParen:
       return parse_exprstmt(parent);
 
-   case Token::LCurly:  
+   case Token::LBrace:  
       return parse_block(parent);
 
    case Token::Break: case Token::Continue: case Token::Goto:
@@ -861,6 +861,7 @@ Stmt *Parser::parse_for(AstNode *parent) {
    }
    _skip(stmt);
    if (_lexer.curr() == ';') {
+      _lexer.next();
       stmt->cond = 0;
    } else {
       stmt->cond = parse_expr(stmt);
@@ -1161,7 +1162,7 @@ StructDecl *Parser::parse_struct(AstNode *parent) {
    _skip(decl);
    
    tok = _lexer.read_token();
-   if (tok.type != Token::LCurly) {
+   if (tok.type != Token::LBrace) {
       error(decl, _T("Expected '%s' here.", "{"));
       _lexer.skip_to("};");
       return decl;
@@ -1169,14 +1170,14 @@ StructDecl *Parser::parse_struct(AstNode *parent) {
    _skip(decl);
    
    tok = _lexer.peek_token();
-   while (!_lexer.end() and tok.type != Token::RCurly) {
+   while (!_lexer.end() and tok.type != Token::RBrace) {
       DeclStmt *field = parse_declstmt(decl);
       decl->decls.push_back(field);
       field->parent = decl;
       _skip(decl);
       tok = _lexer.peek_token();      
    }
-   if (tok.type != Token::RCurly) {
+   if (tok.type != Token::RBrace) {
       error(decl, _lexer.pos().str() + ": " + _T("Expected '%s' here.", "}"));
    }
    _lexer.expect("}");
