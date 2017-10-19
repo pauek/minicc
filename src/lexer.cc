@@ -6,25 +6,6 @@ using namespace std;
 #include "lexer.hh"
 #include "ast.hh"
 
-bool is_space(string s) {
-   for (char c : s) {
-      if (c != ' ' && c != '\t') {
-         return false;
-      }
-   }
-   return true;
-}
-
-string Pos::str() const {
-   ostringstream out;
-   out << lin << ':' << col;
-   return out.str();
-}
-
-void Pos::to_json(ostream& o) const {
-   o << "{\"lin\": " << lin << ", \"col\": " << col << "}";
-}
-
 void Lexer::error(string msg) {
    cerr << msg << endl;
    exit(1);

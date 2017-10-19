@@ -74,7 +74,4 @@ public:
           void  error(std::string msg);
 };
 
-bool is_space(std::string s);
-
-
 #endif

@@ -1,6 +1,8 @@
 #ifndef POS_H
 #define POS_H
 
+#include <sstream>
+
 struct Pos { 
    uint32_t lin, col; 
 
@@ -23,6 +25,16 @@ inline std::ostream& operator<<(std::ostream& o, const Pos& pos) {
 
 inline std::ostream& operator<<(std::ostream& o, const Range& rng) {
    return o << rng.ini << "-" << rng.fin;
+}
+
+inline std::string Pos::str() const {
+   std::ostringstream out;
+   out << lin << ':' << col;
+   return out.str();
+}
+
+inline void Pos::to_json(std::ostream& o) const {
+   o << "{\"lin\": " << lin << ", \"col\": " << col << "}";
 }
 
 #endif
