@@ -1,5 +1,4 @@
 
-#include <iostream>
 #include "token.hh"
 using namespace std;
 
@@ -105,32 +104,4 @@ bool Token::IsTypeQual() const {
       return true;
    }
    return false;
-}
-
-struct TokenInfo { 
-   string      s; 
-   Token::Type t; 
-   int         k;
-};
-
-// OJO: El orden de la tabla es importante!
-// Hay que dejarla antes que el _table...
-//
-TokenInfo toktab[] = {
-   { "END",      Token::Unknown,  Token::None }
-};
-
-Token::Table Token::_table;
-
-Token::Table::Table() {
-   int i = 0;
-   while (toktab[i].s != "END") {
-      _table._map[toktab[i].s] = Token(toktab[i].t, toktab[i].k);
-      i++;
-   }
-}
-
-Token Token::token2type(std::string tok) {
-   auto it = _table._map.find(tok);
-   return (it != _table._map.end() ? it->second : Token(Token::Ident, Token::Ident));
 }

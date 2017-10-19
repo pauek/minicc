@@ -1,12 +1,10 @@
 #ifndef TOKEN_HH
 #define TOKEN_HH
 
-#include <string>
-#include <map>
 #include "pos.hh"
 
-class Token {
-public:
+struct Token 
+{
    enum Type {
       Empty,
       Int, Void, Char, Double, Float, Bool, String,
@@ -32,35 +30,19 @@ public:
       Ident,
       Unknown
    };
-
-   enum Group {
-      None = 0, Literal = 1, TypeSpec = 2, Operator = 8, 
-      Control = 16, BasicType = 32, TypeQual = 64
-   };
    
-   static Token token2type(std::string tok);
-
    Type  type;
    Pos   pos;
    uint  len;
    int   group;
+
+   Token(Type t = Token::Unknown) : type(t) {}
 
    bool IsIdent()     const { return type == Ident or type == String; }
    bool IsTypeSpec()  const;
    bool IsBasicType() const;
    bool IsTypeQual()  const;
    bool IsOperator()  const;
-
-   Token(Type t = Token::Unknown, int _g = Group::None) 
-      : type(t), group(_g) {}
-
-private:
-   struct Table { 
-      std::map<std::string, Token> _map;
-      Table(); 
-   };
-   static Table _table;
 };
-
 
 #endif

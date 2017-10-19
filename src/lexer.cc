@@ -132,8 +132,8 @@ bool Lexer::next() {
 
 Token Lexer::read_token() {
 
-#define RESULT1(type, group) do {\
-   Token tok(Token::type, Token::group); \
+#define RESULT1(type) do {\
+   Token tok(Token::type); \
    int ini = _curr; \
    tok.pos = _pos; \
    next(); \
@@ -141,8 +141,8 @@ Token Lexer::read_token() {
    return tok; \
 } while(0)
 
-#define RESULT2(type, group) do {\
-   Token tok(Token::type, Token::group); \
+#define RESULT2(type) do {\
+   Token tok(Token::type); \
    int ini = _curr; \
    tok.pos = _pos; \
    next(), next(); \
@@ -150,45 +150,38 @@ Token Lexer::read_token() {
    return tok; \
 } while(0)
 
-#define RESULT_1_2(ch, type1, group1, type2, group2) \
-   if (curr(1) == ch) RESULT2(type2, group2); \
-   else RESULT1(type1, group1); \
+#define RESULT_1_2(ch, type1, type2) \
+   if (curr(1) == ch) RESULT2(type2); \
+   else RESULT1(type1); \
 
 #define RESULT_OP_EQUALS(ch, type1, type2, type3) \
-   if (curr(1) == ch) RESULT2(type2, Operator); \
-   else if (curr(1) == '=') RESULT2(type3, Operator); \
-   else RESULT1(type1, Operator);
+   if (curr(1) == ch) RESULT2(type2); \
+   else if (curr(1) == '=') RESULT2(type3); \
+   else RESULT1(type1);
 
 
    switch (curr()) {
-   case '(': RESULT1(LParen, None);
-   case ')': RESULT1(RParen, None);
-   case '[': RESULT1(LBrack, None);
-   case ']': RESULT1(RBrack, None);
-   case '{': RESULT1(LCurly, None);
-   case '}': RESULT1(RCurly, None);
-   case ';': RESULT1(SemiColon, None);
-   case '#': RESULT1(Sharp, None);
-   case ',': RESULT1(Comma, Operator);
-   case '?': RESULT1(QMark, Operator);
+   case '(': RESULT1(LParen);
+   case ')': RESULT1(RParen);
+   case '[': RESULT1(LBrack);
+   case ']': RESULT1(RBrack);
+   case '{': RESULT1(LCurly);
+   case '}': RESULT1(RCurly);
+   case ';': RESULT1(SemiColon);
+   case '#': RESULT1(Sharp);
+   case ',': RESULT1(Comma);
+   case '?': RESULT1(QMark);
 
    // TODO: Add '~'
    // case '~': RESULT1(Tilde, Operator, "~");
 
-   case ':': RESULT_1_2(':', Colon,      None,
-                             ColonColon, None);
-   case '=': RESULT_1_2('=', Assign,     Operator,
-                             EqEq,       Operator);
-   case '!': RESULT_1_2('=', Not,        Operator,
-                             NotEq,      Operator);
-   case '*': RESULT_1_2('=', Star,       Operator,
-                             StarAssign, Operator);
-   case '/': RESULT_1_2('=', Slash,       Operator,
-                             SlashAssign, Operator);
-   case '%': RESULT_1_2('=', Percent,     Operator,
-                             DivAssign,   Operator);
-   case '^': RESULT_1_2('=', Circum,      Operator,
-                             XorAssign,   Operator);
+   case ':': RESULT_1_2(':', Colon, ColonColon);
+   case '=': RESULT_1_2('=', Assign, EqEq);
+   case '!': RESULT_1_2('=', Not, NotEq);
+   case '*': RESULT_1_2('=', Star, StarAssign);
+   case '/': RESULT_1_2('=', Slash, SlashAssign);
+   case '%': RESULT_1_2('=', Percent, DivAssign);
+   case '^': RESULT_1_2('=', Circum, XorAssign);
 
    case '+': RESULT_OP_EQUALS('+', Plus, PlusPlus, PlusAssign);
    case '|': RESULT_OP_EQUALS('|', Pipe, BarBar,   OrAssign);
@@ -198,14 +191,13 @@ Token Lexer::read_token() {
       if (isdigit(curr(1))) {
          return read_number_literal();
       }
-      RESULT1(Dot, Operator);
+      RESULT1(Dot);
    }
 
    case '<': { // < <= << <<= > >= >> >>=
       Token tok;
       tok.pos = _pos;
       int ini = _curr;
-      tok.group = Token::Operator;
       if (curr(1) == '<') { 
          if (curr(2) == '=') { // <<=
             tok.type = Token::LShiftAssign;
@@ -229,7 +221,6 @@ Token Lexer::read_token() {
       Token tok;
       tok.pos = _pos;
       int ini = _curr;
-      tok.group = Token::Operator;
       if (curr(1) == '>') { 
          if (curr(2) == '=') { // >>=
             tok.type = Token::RShiftAssign;
@@ -253,7 +244,6 @@ Token Lexer::read_token() {
       Token tok;
       tok.pos = _pos;
       int ini = _curr;
-      tok.group = Token::Operator;
       next();
       switch (curr()) {
       case '=': tok.type = Token::MinusAssign; next(); break;
