@@ -8,7 +8,6 @@ struct Pos {
    Pos(uint32_t l, uint32_t c) : lin(l), col(c) {}
    std::string str() const;
    
-   Pos next() const { return Pos(lin, col+1); }
    void to_json(std::ostream& o) const;
 };
 
@@ -30,6 +29,7 @@ inline bool operator==(const Pos& a, const Pos& b) {
    return a.lin == b.lin && a.col == b.col;
 }
 
+// FIXME: Esto es una burrada en realidad, cada línea tiene un tamaño distinto y no sabes si te pasas o qué...
 inline Pos operator+(const Pos& p, int n) {
    return Pos(p.lin, p.col + n);
 }

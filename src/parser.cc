@@ -160,7 +160,7 @@ AstNode* Parser::parse_macro(AstNode *parent) {
       Pos p = _lexer.pos();
       _lexer.next();
       if (_lexer.end()) {
-         error(inc, p, p.next(), _T("'#include' missing closing '%c'", close));
+         error(inc, p, p + 1, _T("'#include' missing closing '%c'", close));
          break;
       }
    }
