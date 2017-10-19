@@ -484,7 +484,7 @@ ExprStmt *Parser::parse_exprstmt(AstNode *parent, bool is_return) {
    }
    _skip(stmt);
    stmt->fin = _lexer.pos();
-   if (!_lexer.expect(";")) {
+   if (!_lexer.expect(Token::SemiColon)) {
       error(stmt, _lexer.pos().str() + ": " + _T("Expected ';' after expression"));
       _lexer.skip_to(";\n"); // resync...
    }
