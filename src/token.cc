@@ -3,14 +3,6 @@
 #include "token.hh"
 using namespace std;
 
-// OJO: El orden de la tabla es importante!
-// Hay que dejarla antes que el _table...
-//
-struct TokenInfo { 
-   string      s; 
-   Token::Type t; 
-   int         k;
-};
 
 #if 0
 bool Token::IsIdent() const {
@@ -25,26 +17,26 @@ bool Token::IsIdent() const {
 
 bool Token::IsTypeSpec() const {
    switch (type) {
-   case Token::Void:    
-   case Token::Int:     
-   case Token::Short:   
-   case Token::Long:    
-   case Token::Bool:    
-   case Token::Char:    
-   case Token::Float:   
-   case Token::Double:  
-   case Token::String:  
-   case Token::Signed:  
+   case Token::Void:
+   case Token::Int:
+   case Token::Short:
+   case Token::Long:
+   case Token::Bool:
+   case Token::Char:
+   case Token::Float:
+   case Token::Double:
+   case Token::String:
+   case Token::Signed:
    case Token::Unsigned:
-   case Token::Const:   
+   case Token::Const:
    case Token::Volatile:
-   case Token::Auto:    
+   case Token::Auto:
    case Token::Register:
-   case Token::Static:  
-   case Token::Extern:  
-   case Token::Mutable: 
-   case Token::Inline:  
-   case Token::Virtual: 
+   case Token::Static:
+   case Token::Extern:
+   case Token::Mutable:
+   case Token::Inline:
+   case Token::Virtual:
    case Token::Explicit:
       return true;
    }
@@ -127,6 +119,15 @@ bool Token::IsTypeQual() const {
    return false;
 }
 
+struct TokenInfo { 
+   string      s; 
+   Token::Type t; 
+   int         k;
+};
+
+// OJO: El orden de la tabla es importante!
+// Hay que dejarla antes que el _table...
+//
 TokenInfo toktab[] = {
    { "",           Token::Empty, Token::None },
 
