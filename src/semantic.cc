@@ -310,7 +310,7 @@ void SemanticAnalyzer::visit_binaryexpr(BinaryExpr *x) {
    // left
    x->left->accept(this);
    Value left = _curr;
-   if (x->kind != Expr::Assignment) {
+   if (x->kind != Expr::Eqment) {
       left = Reference::deref(left);
       check_unknown(left, x->left, _curr_varname);
    }

@@ -102,10 +102,10 @@ public:
       Range span() const { return x->span(); }
    };
 
-   struct AssignmentVisitState : public StepperState {
+   struct EqmentVisitState : public StepperState {
       BinaryExpr *x;
       Value left, right;
-      AssignmentVisitState(BinaryExpr *_x, Value r) : x(_x), right(r) {}
+      EqmentVisitState(BinaryExpr *_x, Value r) : x(_x), right(r) {}
       Todo step(Stepper *S);
       Range span() const;
    };

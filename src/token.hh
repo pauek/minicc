@@ -39,15 +39,16 @@ struct Token
       RBracket, 
       Dot, 
       Arrow,
-      
+
       If, Else, While, For, Switch, 
       Break, Continue, Goto, Return,
       Typedef, Class, Struct, Enum,
-      Using, 
-      StarAssign, SlashAssign, DivAssign, LShiftAssign, RShiftAssign,
+      Using,
+      
+      StarEq, SlashEq, DivEq, LShiftEq, RShiftEq,
       Or, BarBar, And, AmpAmp, Bar, Circum,
-      Comma, Assign, PlusAssign, MinusAssign,
-      AndAssign, OrAssign, XorAssign, 
+      Comma, Eq, PlusEq, MinusEq,
+      AndEq, OrEq, XorEq, 
       EqEq, NotEq, LT, GT, LE, GE, LShift, RShift,
       IntLiteral, CharLiteral, StringLiteral, 
       FloatLiteral, DoubleLiteral,

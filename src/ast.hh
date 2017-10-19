@@ -253,7 +253,7 @@ struct Expr : public AstNode {
       // pm_expression 
       Multiplicative, Additive, Shift, Relational, Equality, 
       BitAnd, BitXor, BitOr, LogicalAnd, LogicalOr, Conditional,
-      Assignment, Comma, Infinite
+      Eqment, Comma, Infinite
    };
    struct Op2KindInitializer { Op2KindInitializer(); }; // init _op2kind
 

@@ -34,17 +34,17 @@ struct {
    { "",    Token::Empty,        Expr::Unknown },
    { ",",   Token::Comma,        Expr::Comma },
 
-   { "=",   Token::Assign,       Expr::Assignment },
-   { "+=",  Token::PlusAssign,   Expr::Assignment },
-   { "-=",  Token::MinusAssign,  Expr::Assignment },
-   { "*=",  Token::StarAssign,   Expr::Assignment },
-   { "/=",  Token::SlashAssign,  Expr::Assignment },
-   { "%=",  Token::DivAssign,    Expr::Assignment },
-   { "<<=", Token::LShiftAssign, Expr::Assignment },
-   { ">>=", Token::RShiftAssign, Expr::Assignment },
-   { "&=",  Token::AndAssign,    Expr::Assignment },
-   { "|=",  Token::OrAssign,     Expr::Assignment },
-   { "^=",  Token::XorAssign,    Expr::Assignment },
+   { "=",   Token::Eq,       Expr::Eqment },
+   { "+=",  Token::PlusEq,   Expr::Eqment },
+   { "-=",  Token::MinusEq,  Expr::Eqment },
+   { "*=",  Token::StarEq,   Expr::Eqment },
+   { "/=",  Token::SlashEq,  Expr::Eqment },
+   { "%=",  Token::DivEq,    Expr::Eqment },
+   { "<<=", Token::LShiftEq, Expr::Eqment },
+   { ">>=", Token::RShiftEq, Expr::Eqment },
+   { "&=",  Token::AndEq,    Expr::Eqment },
+   { "|=",  Token::OrEq,     Expr::Eqment },
+   { "^=",  Token::XorEq,    Expr::Eqment },
 
    { ":",   Token::Colon,        Expr::Infinite },
    { "?",   Token::QMark,        Expr::Conditional },
@@ -112,7 +112,7 @@ Expr::Kind Expr::tok2kind(Token::Type tokkind) {
 }
 
 bool Expr::right_associative(Expr::Kind t) {
-   return t == Expr::Assignment;
+   return t == Expr::Eqment;
 }
 
 std::ostream& ReadWriter::out(OutType typ) { 
@@ -407,7 +407,7 @@ bool BinaryExpr::is_write_expr() const {
 }
 
 bool BinaryExpr::is_assignment() const {
-   return kind == Expr::Assignment;
+   return kind == Expr::Eqment;
 }
 
 void BinaryExpr::collect_rights(list<Expr*>& L) const {

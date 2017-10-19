@@ -36,17 +36,17 @@ bool Token::IsOperator() const {
    case Token::QMark:
    case Token::BarBar:
    case Token::AmpAmp:
-   case Token::Assign:
-   case Token::StarAssign:
-   case Token::MinusAssign:
-   case Token::PlusAssign:
-   case Token::SlashAssign:
-   case Token::DivAssign:
-   case Token::OrAssign:
-   case Token::AndAssign:
-   case Token::XorAssign:
-   case Token::LShiftAssign:
-   case Token::RShiftAssign:
+   case Token::Eq:
+   case Token::StarEq:
+   case Token::MinusEq:
+   case Token::PlusEq:
+   case Token::SlashEq:
+   case Token::DivEq:
+   case Token::OrEq:
+   case Token::AndEq:
+   case Token::XorEq:
+   case Token::LShiftEq:
+   case Token::RShiftEq:
    case Token::Or:
    case Token::And:
    case Token::EqEq:

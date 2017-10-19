@@ -176,16 +176,16 @@ Token Lexer::read_token() {
    // case '~': RESULT1(Tilde, Operator, "~");
 
    case ':': RESULT_1_2(':', Colon,   ColonColon);
-   case '=': RESULT_1_2('=', Assign,  EqEq);
+   case '=': RESULT_1_2('=', Eq,  EqEq);
    case '!': RESULT_1_2('=', Not,     NotEq);
-   case '*': RESULT_1_2('=', Star,    StarAssign);
-   case '/': RESULT_1_2('=', Slash,   SlashAssign);
-   case '%': RESULT_1_2('=', Div,     DivAssign);
-   case '^': RESULT_1_2('=', Circum,  XorAssign);
+   case '*': RESULT_1_2('=', Star,    StarEq);
+   case '/': RESULT_1_2('=', Slash,   SlashEq);
+   case '%': RESULT_1_2('=', Div,     DivEq);
+   case '^': RESULT_1_2('=', Circum,  XorEq);
 
-   case '+': RESULT_OP_EQUALS('+', Plus, PlusPlus, PlusAssign);
-   case '|': RESULT_OP_EQUALS('|', Pipe, BarBar,   OrAssign);
-   case '&': RESULT_OP_EQUALS('&', Amp,  AmpAmp,   AndAssign);
+   case '+': RESULT_OP_EQUALS('+', Plus, PlusPlus, PlusEq);
+   case '|': RESULT_OP_EQUALS('|', Pipe, BarBar,   OrEq);
+   case '&': RESULT_OP_EQUALS('&', Amp,  AmpAmp,   AndEq);
 
    case '.': {
       if (isdigit(curr(1))) {
@@ -200,7 +200,7 @@ Token Lexer::read_token() {
       int ini = _curr;
       if (curr(1) == '<') { 
          if (curr(2) == '=') { // <<=
-            tok.type = Token::LShiftAssign;
+            tok.type = Token::LShiftEq;
             next(), next(), next();
          } else { // <<
             tok.type = Token::LShift;
@@ -223,7 +223,7 @@ Token Lexer::read_token() {
       int ini = _curr;
       if (curr(1) == '>') { 
          if (curr(2) == '=') { // >>=
-            tok.type = Token::RShiftAssign;
+            tok.type = Token::RShiftEq;
             next(), next(), next();
          } else { // >>
             tok.type = Token::RShift;
@@ -246,7 +246,7 @@ Token Lexer::read_token() {
       int ini = _curr;
       next();
       switch (curr()) {
-      case '=': tok.type = Token::MinusAssign; next(); break;
+      case '=': tok.type = Token::MinusEq; next(); break;
       case '-': tok.type = Token::MinusMinus;  next(); break;
       case '>': tok.type = Token::Arrow;       next(); break;
       default:  tok.type = Token::Minus;       break;

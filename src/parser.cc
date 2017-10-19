@@ -726,14 +726,14 @@ Expr *Parser::parse_expr(AstNode *parent, BinaryExpr::Kind max) {
          e->cond = left;
          e->comments.push_back(c0);
          _skip(e);
-         e->then = parse_expr(e, Expr::Assignment); // Expr::comma?
+         e->then = parse_expr(e, Expr::Eqment); // Expr::comma?
          _skip(e);
          Token colon = _lexer.read_token();
          if (colon.type != Token::Colon) {
             error(e, _T("Expected '%s' here.", ":"));
          }
          _skip(e);
-         e->els = parse_expr(e, Expr::Assignment);
+         e->els = parse_expr(e, Expr::Eqment);
          left = e;
       } else {
          BinaryExpr *e = new BinaryExpr();
@@ -765,12 +765,12 @@ Expr *Parser::parse_callexpr(Expr *x) {
    _lexer.consume('(');
    _skip(e);
    if (_lexer.curr() != ')') {
-      e->args.push_back(parse_expr(e, Expr::Assignment));
+      e->args.push_back(parse_expr(e, Expr::Eqment));
       _skip(e);
       while (_lexer.curr() == ',') {
          _lexer.next();
          _skip(e);
-         e->args.push_back(parse_expr(e, Expr::Assignment));
+         e->args.push_back(parse_expr(e, Expr::Eqment));
          _skip(e);
       }
    }
@@ -939,11 +939,11 @@ Stmt *Parser::parse_switch(AstNode *parent) {
 }
 
 void Parser::parse_expr_seq(AstNode *parent, vector<Expr*>& exprs) {
-   exprs.push_back(parse_expr(parent, Expr::Assignment));
+   exprs.push_back(parse_expr(parent, Expr::Eqment));
    while (_lexer.curr() == ',') {
       _lexer.next();
       _skip(parent);
-      exprs.push_back(parse_expr(parent, Expr::Assignment));
+      exprs.push_back(parse_expr(parent, Expr::Eqment));
    }
 }
 
@@ -968,7 +968,7 @@ Expr *Parser::parse_exprlist(AstNode *parent) {
       }
       elist->exprs.push_back(_lexer.curr() == '{' 
                              ? parse_exprlist(parent) 
-                             : parse_expr(parent, Expr::Assignment));
+                             : parse_expr(parent, Expr::Eqment));
    } while (_lexer.curr() == ',');
 
    if (!_lexer.expect("}")) {
@@ -1059,7 +1059,7 @@ DeclStmt *Parser::parse_declstmt(AstNode *parent, bool is_typedef) {
          _skip(stmt);
          item.init = (_lexer.curr() == '{' 
                       ? parse_exprlist(item.decl) 
-                      : parse_expr(item.decl, Expr::Assignment));
+                      : parse_expr(item.decl, Expr::Eqment));
       }
       item.decl->typespec = stmt->typespec;
       item.decl->fin = _lexer.pos();
