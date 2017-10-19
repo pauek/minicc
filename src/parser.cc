@@ -867,7 +867,7 @@ Stmt *Parser::parse_for(AstNode *parent) {
       stmt->cond = parse_expr(stmt);
    }
    _skip(stmt);
-   if (!_lexer.expect(";")) {
+   if (!_lexer.expect(Token::SemiColon)) {
       error(stmt, _lexer.pos().str() + ": " + _T("Expected '%s' here.", ";"));
    }
    _skip(stmt);
