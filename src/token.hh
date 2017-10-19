@@ -39,10 +39,13 @@ public:
    
    static Token token2type(std::string tok);
 
-   Pos pos;
-   uint len;
    Type type;
+   Pos  pos;
+   uint len;
    int  group;
+
+   bool IsIdent()    const { return group & Ident; }
+   bool IsTypeSpec() const { return group & TypeSpec; }
 
    Token(Type t = Token::Unknown, int _g = None) 
       : type(t), group(_g) {}

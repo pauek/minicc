@@ -105,8 +105,7 @@ AstNode* Parser::parse() {
          break;
       }
       default:
-         if (tok.group & Token::Ident or 
-             tok.group & Token::TypeSpec) {
+         if (tok.IsIdent() or tok.IsTypeSpec()) {
             prog->add(parse_func_or_var(prog));
             break;
          }
@@ -222,7 +221,7 @@ FullIdent *Parser::parse_ident(AstNode *parent, Token tok, Pos ini) {
       _lexer.consume("::");
       _skip(id);
       tok = _lexer.read_token();
-      if (!(tok.group & Token::Ident)) {
+      if (!tok.IsIdent()) {
          error(id, _T("Expected an identifier here"));
       }
       id->shift(_lexer.SubStr(tok));
@@ -253,7 +252,7 @@ bool Parser::_parse_type_process_token(TypeSpec *type, Token tok, Pos p) {
       }
       return true;
    } 
-   if (type->id == 0 and (tok.group & Token::Ident)) {
+   if (type->id == 0 and tok.IsIdent()) {
       type->id = parse_ident(type, tok, p);
       return true;
    } 
@@ -1084,7 +1083,7 @@ EnumDecl *Parser::parse_enum(AstNode *parent) {
    decl->parent = parent;
    _skip(decl);
    Token tok = _lexer.read_token();
-   if (!(tok.group & Token::Ident)) {
+   if (!tok.IsIdent()) {
       error(decl, _lexer.pos().str() + ": " + _T("Expected an identifier here."));
       _lexer.skip_to(";");
       return decl;
@@ -1098,7 +1097,7 @@ EnumDecl *Parser::parse_enum(AstNode *parent) {
    _skip(decl);
    while (true) {
       Token tok = _lexer.read_token();
-      if (!(tok.group & Token::Ident)) {
+      if (!tok.IsIdent()) {
          error(decl, _lexer.pos().str() + ": " + _T("Expected an identifier here."));
          _lexer.skip_to(",}");
          break;
