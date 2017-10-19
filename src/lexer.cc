@@ -128,7 +128,7 @@ void Lexer::discard() {
    _stack.pop_back();
 }
 
-Token Lexer::next_token() {
+Token Lexer::read_token() {
 
 #define RESULT1(type, group, s) do {\
    Token tok(Token::type, Token::group); \
@@ -299,7 +299,7 @@ Token Lexer::next_token() {
 Token Lexer::peek_token() {
    save();
    skip("\n\t ");
-   Token tok = next_token();
+   Token tok = read_token();
    restore();
    return tok;
 }

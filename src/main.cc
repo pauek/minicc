@@ -128,7 +128,7 @@ int tokenize(string filename) {
    L.next();
    L.skip("\n\t ");
    while (!L.end()) {
-      Token tok = L.next_token();
+      Token tok = L.read_token();
       cout << tok.ini << ' ' << tok.str << endl;
       L.skip("\n\t ");
    }

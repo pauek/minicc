@@ -62,7 +62,7 @@ public:
    CommentSeq *skip(std::string skip_set);
    std::string  skip_to(std::string stop_set);
 
-         Token  next_token();
+         Token  read_token();
          Token  peek_token();
          Token  read_id();
          Token  read_number_literal();

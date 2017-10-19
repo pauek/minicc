@@ -101,7 +101,7 @@ AstNode* Parser::parse() {
          ostringstream msg;
          msg << pos << ": " << _T("Unexpected character '%c'", _in.curr());
          prog->add(error<Stmt>(msg.str()));
-         _in.next_token();
+         _in.read_token();
          break;
       }
       default:
@@ -111,7 +111,7 @@ AstNode* Parser::parse() {
             break;
          }
          error(prog, _T("Unexpected '%s' here.", tok.str.c_str()));
-         _in.next_token();
+         _in.read_token();
          break;
       }
       _skip(prog);
@@ -206,7 +206,7 @@ FullIdent *Parser::parse_ident(AstNode *parent, Token tok, Pos ini) {
          _skip(id);
          parse_type_seq(id, id->subtypes);
          _skip(id);
-         if (_in.curr() != '>') { // Do NOT call next_token here, since it will return ">>"
+         if (_in.curr() != '>') { // Do NOT call read_token here, since it will return ">>"
             error(id, _T("Expected '%s' here.", ">"));
          } else {
             _in.next();
@@ -220,7 +220,7 @@ FullIdent *Parser::parse_ident(AstNode *parent, Token tok, Pos ini) {
       _skip(id);
       _in.consume("::");
       _skip(id);
-      tok = _in.next_token();
+      tok = _in.read_token();
       if (!(tok.group & Token::Ident)) {
          error(id, _T("Expected an identifier here"));
       }
@@ -269,12 +269,12 @@ TypeSpec *Parser::parse_typespec(AstNode *parent) {
 
    Pos p = _in.pos();
    _in.save();
-   Token tok = _in.next_token();
+   Token tok = _in.read_token();
    while (_parse_type_process_token(type, tok, p)) {
       _in.discard();
       _in.save();
       _skip(type);
-      p = _in.pos(), tok = _in.next_token();
+      p = _in.pos(), tok = _in.read_token();
    }
    _in.restore();
    return type;
@@ -444,7 +444,7 @@ Stmt *Parser::parse_jumpstmt(AstNode *parent) {
    JumpStmt *stmt = new JumpStmt();
    stmt->parent = parent;
    stmt->ini = _in.pos();
-   Token tok = _in.next_token();
+   Token tok = _in.read_token();
    switch (tok.type) {
    case Token::Break:    stmt->kind = JumpStmt::Break; break;
    case Token::Continue: stmt->kind = JumpStmt::Continue; break;
@@ -471,7 +471,7 @@ ExprStmt *Parser::parse_exprstmt(AstNode *parent, bool is_return) {
    stmt->parent = parent;
    stmt->ini = _in.pos();
    if (is_return) {
-      Token tok = _in.next_token();
+      Token tok = _in.read_token();
       assert(tok.type == Token::Return);
       _skip(stmt);
    }
@@ -494,7 +494,7 @@ ExprStmt *Parser::parse_exprstmt(AstNode *parent, bool is_return) {
 Expr *Parser::parse_primary_expr(AstNode *parent) {
    Expr *e;
    Pos ini = _in.pos();
-   Token tok = _in.next_token();
+   Token tok = _in.read_token();
    switch (tok.type) {
    case Token::LParen: {
       CommentSeq *cn = _in.skip("\n\t ");
@@ -687,7 +687,7 @@ Expr *Parser::parse_expr(AstNode *parent, BinaryExpr::Kind max) {
          break;
       }
       CommentSeq *c0 = _in.skip("\n\t ");
-      tok = _in.next_token();
+      tok = _in.read_token();
       if (!(tok.group & Token::Operator)) {
          error(left, _T("Expected operator here."));
       }
@@ -698,7 +698,7 @@ Expr *Parser::parse_expr(AstNode *parent, BinaryExpr::Kind max) {
          _skip(e);
          e->then = parse_expr(e, Expr::Assignment); // Expr::comma?
          _skip(e);
-         Token colon = _in.next_token();
+         Token colon = _in.read_token();
          if (colon.type != Token::Colon) {
             error(e, _T("Expected '%s' here.", ":"));
          }
@@ -1000,13 +1000,13 @@ DeclStmt *Parser::parse_declstmt(AstNode *parent, bool is_typedef) {
    Pos after_comma = _in.pos(), after_id = _in.pos();
    while (true) {
       Pos item_ini = _in.pos();
-      Token id = _in.next_token();
+      Token id = _in.read_token();
       string name = id.str;
       Decl::Kind kind = Decl::Normal;
       if (id.type == Token::Star) {
          kind = Decl::Pointer;
          _skip(stmt);
-         id = _in.next_token();
+         id = _in.read_token();
          name = id.str;
       }
       if (id.group != Token::Ident) {
@@ -1053,7 +1053,7 @@ EnumDecl *Parser::parse_enum(AstNode *parent) {
    EnumDecl *decl = new EnumDecl();
    decl->parent = parent;
    _skip(decl);
-   Token tok = _in.next_token();
+   Token tok = _in.read_token();
    if (!(tok.group & Token::Ident)) {
       error(decl, _in.pos().str() + ": " + _T("Expected an identifier here."));
       _in.skip_to(";");
@@ -1067,7 +1067,7 @@ EnumDecl *Parser::parse_enum(AstNode *parent) {
    }
    _skip(decl);
    while (true) {
-      Token tok = _in.next_token();
+      Token tok = _in.read_token();
       if (!(tok.group & Token::Ident)) {
          error(decl, _in.pos().str() + ": " + _T("Expected an identifier here."));
          _in.skip_to(",}");
@@ -1120,7 +1120,7 @@ TypedefDecl *Parser::parse_typedef(AstNode *parent) {
 }
 
 StructDecl *Parser::parse_struct(AstNode *parent) {
-   Token tok = _in.next_token();
+   Token tok = _in.read_token();
    assert(tok.type == Token::Struct);
 
    StructDecl *decl = new StructDecl();
@@ -1130,7 +1130,7 @@ StructDecl *Parser::parse_struct(AstNode *parent) {
    decl->id = new SimpleIdent(_in.read_id().str);
    _skip(decl);
    
-   tok = _in.next_token();
+   tok = _in.read_token();
    if (tok.type != Token::LCurly) {
       error(decl, _T("Expected '%s' here.", "{"));
       _in.skip_to("};");
