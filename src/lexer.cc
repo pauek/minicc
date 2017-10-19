@@ -17,11 +17,7 @@ void Lexer::consume(string word) {
 }
 
 string Lexer::substr(const Token& t) {
-   string s;
-   if (t.ini != -1 and t.fin != -1) {
-      s = _text.substr(t.ini, t.fin - t.ini);
-   } 
-   return s;
+   return _text.substr(_pos_to_idx(t.pos), t.len);
 }
 
 string Lexer::substr(const Pos& ini, const Pos& fin) const {
@@ -418,6 +414,7 @@ Token Lexer::read_id() {
       c = curr();
    }
    t.fin = _curr;
+   t.len = _curr - t.ini;
    Token x = Token::token2type(substr(t));
    t.type  = x.type;
    t.group = x.group;
