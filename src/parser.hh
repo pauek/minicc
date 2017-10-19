@@ -12,7 +12,7 @@ struct ParseError {
    ParseError() : pos(-1, 0) {}
    ParseError(Pos p, std::string m) : pos(p), msg(m) {}
 
-   bool empty() const { return pos.l() == -1; }
+   bool empty() const { return pos.lin == -1; }
 };
 
 class Parser {
