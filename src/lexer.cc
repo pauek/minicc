@@ -185,6 +185,8 @@ Token Lexer::next_token() {
                              SlashAssign, Operator, "/=");
    case '%': RESULT_1_2('=', Percent,     Operator, "%",
                              DivAssign,   Operator, "%=");
+   case '^': RESULT_1_2('=', Circum,      Operator, "^",
+                             XorAssign,   Operator, "^=");
 
    case '+': RESULT_OP_EQUALS('+', "+", Plus, PlusPlus, PlusAssign);
    case '|': RESULT_OP_EQUALS('|', "|", Pipe, BarBar,   OrAssign);
@@ -197,7 +199,7 @@ Token Lexer::next_token() {
       RESULT1(Dot, Operator, ".");
    }
 
-   case '-': case '^': case '<': case '>': {
+   case '-': case '<': case '>': {
       return read_operator();
    }      
    case '0': case '1': case '2': case '3': case '4':
@@ -400,14 +402,6 @@ Token Lexer::read_operator() {
       }
       break;
 
-   case '/': case '%': //  = == ! != ^ ^=
-   case '=': case '!': case '^': 
-      op += curr(); next();
-      if (curr() == '=') {
-         op += '='; next();
-      }
-      break;
-      
    case '<': case '>':           // < <= << <<= > >= >> >>=
       x = curr();
       op += x; next();
