@@ -82,7 +82,7 @@ public:
       Span spn;
       PopState(Span _span) : spn(_span) {}
       Todo step(Stepper *S);
-       Span span() const { return spn; }
+      Span span() const { return spn; }
    };
 
    struct ProgramVisitState : public StepperState {
@@ -91,7 +91,7 @@ public:
       At at;
       ProgramVisitState(FuncDecl *_x) : x(_x), at(Begin) {}
       Todo  step(Stepper *S);
-       Span span() const;
+      Span span() const;
    };
 
    struct BlockVisitState : public StepperState {
@@ -99,7 +99,7 @@ public:
       int curr;
       BlockVisitState(Block *_x) : x(_x), curr(0) {}
       Todo step(Stepper *S);      
-       Span span() const { return x->span(); }
+      Span span() const { return x->span(); }
    };
 
    struct EqmentVisitState : public StepperState {
@@ -107,7 +107,7 @@ public:
       Value left, right;
       EqmentVisitState(BinaryExpr *_x, Value r) : x(_x), right(r) {}
       Todo step(Stepper *S);
-       Span span() const;
+      Span span() const;
    };
    
    struct IfVisitState : public StepperState {
@@ -115,7 +115,7 @@ public:
       Stmt *next;
       IfVisitState(Span _span, Stmt *_next) : spn(_span), next(_next) {}
       Todo step(Stepper *S);
-       Span span() const { return spn; }
+      Span span() const { return spn; }
    };
 
    struct ForVisitState : public StepperState {
@@ -125,7 +125,7 @@ public:
       bool cond;
       ForVisitState(ForStmt *_x) : x(_x), at(Cond) {}
       Todo step(Stepper *S);
-       Span span() const { return x->span(); }
+      Span span() const { return x->span(); }
    };
 
    struct WhileVisitState : public StepperState {
@@ -134,7 +134,7 @@ public:
       WhileStmt *x;
       WhileVisitState(WhileStmt *_x) : x(_x), at(Cond) {}
       Todo step(Stepper *S);
-       Span span() const { return x->cond->span(); }
+      Span span() const { return x->cond->span(); }
    };
 
    struct CallExprVisitState : public StepperState {
