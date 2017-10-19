@@ -240,14 +240,6 @@ Token Lexer::peek_token() {
    return tok;
 }
 
-Token Lexer::peek_operator() {
-   save();
-   skip("\n\t ");
-   Token tok = read_operator();
-   restore();
-   return tok;
-}
-
 int Lexer::_pos_to_idx(Pos p) const {
    if (p.lin < 1 || p.lin >= _linepos.size()) {
       return -1;

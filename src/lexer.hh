@@ -64,7 +64,6 @@ public:
 
          Token  next_token();
          Token  peek_token();
-         Token  peek_operator();
          Token  read_id();
          Token  read_operator();
          Token  read_number_literal();
