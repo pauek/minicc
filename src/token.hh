@@ -45,8 +45,8 @@ public:
    int   group;
 
    bool IsIdent()     const { return group & Ident; }
-   bool IsTypeSpec()  const; // { return group & TypeSpec; }
-   bool IsBasicType() const { return group & BasicType; }
+   bool IsTypeSpec()  const;
+   bool IsBasicType() const; // { return group & BasicType; }
    bool IsTypeQual()  const { return group & TypeQual; }
    bool IsOperator()  const;
 

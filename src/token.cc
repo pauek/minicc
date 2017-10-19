@@ -96,7 +96,6 @@ bool Token::IsOperator() const {
    return false;
 }
 
-/*
 bool Token::IsBasicType() const {
    switch (type) {
    case Token::Void:
@@ -113,6 +112,7 @@ bool Token::IsBasicType() const {
    return false;
 }
 
+/*
 bool Token::IsTypeQual() const {
    switch (type) {
    case Token::Const:
