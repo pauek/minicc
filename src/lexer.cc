@@ -346,6 +346,7 @@ bool Lexer::expect(Token::Type type) {
    save();
    Token tok = read_token();
    if (tok.type == type) {
+      discard();
       return true;
    }
    restore();
