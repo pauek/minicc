@@ -342,6 +342,16 @@ bool Lexer::expect(string word) {
    return true;
 }
 
+bool Lexer::expect(Token::Type type) {
+   save();
+   Token tok = read_token();
+   if (tok.type == type) {
+      return true;
+   }
+   restore();
+   return false;
+}
+
 // read_*
 
 void Lexer::read_singleline_comment(Comment& c) {
@@ -440,15 +450,16 @@ Token Lexer::read_ident() {
       break;
    }
    default:
-      if (s == "continue")     tok.type = Token::Continue;
-      else if (s == "typedef") tok.type = Token::Typedef;
-      else if (s == "mutable") tok.type = Token::Mutable;
-      else if (s == "virtual") tok.type = Token::Virtual;
-      else if (s == "continue") tok.type = Token::Continue;
-      else if (s == "register") tok.type = Token::Register;
-      else if (s == "explicit") tok.type = Token::Explicit;
-      else if (s == "unsigned") tok.type = Token::Unsigned;
-      else if (s == "volatile") tok.type = Token::Volatile;
+      if (s == "continue")       tok.type = Token::Continue;
+      else if (s == "typedef")   tok.type = Token::Typedef;
+      else if (s == "mutable")   tok.type = Token::Mutable;
+      else if (s == "virtual")   tok.type = Token::Virtual;
+      else if (s == "continue")  tok.type = Token::Continue;
+      else if (s == "register")  tok.type = Token::Register;
+      else if (s == "explicit")  tok.type = Token::Explicit;
+      else if (s == "unsigned")  tok.type = Token::Unsigned;
+      else if (s == "volatile")  tok.type = Token::Volatile;
+      else if (s == "namespace") tok.type = Token::Namespace;
       break;
    }
    return tok;

@@ -179,7 +179,7 @@ AstNode* Parser::parse_using_declaration(AstNode *parent) {
    u->ini = _lexer.pos();
    _lexer.consume("using");
    _skip(u);
-   if (!_lexer.expect("namespace")) {
+   if (!_lexer.expect(Token::Namespace)) {
       error(u, u->ini.str() + ": " + _T("Expected '%s' here.", "namespace"));
       _lexer.skip_to("\n");
       return u;

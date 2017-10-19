@@ -57,6 +57,7 @@ public:
 
           void  mark()                { _seen_endl = false; }
 
+          bool  expect(Token::Type type);
           bool  expect(std::string word);
           void  consume(char c)       { assert(curr() == c); next(); }
           void  consume(std::string word);

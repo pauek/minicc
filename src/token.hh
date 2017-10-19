@@ -16,7 +16,7 @@ struct Token
       If, Else, While, For, Switch, 
       Break, Continue, Goto, Return,
       Typedef, Class, Struct, Enum,
-      Using,
+      Using, Namespace,
       StarEq, SlashEq, DivEq, LShiftEq, RShiftEq,
       Or, BarBar, And, AmpAmp, Xor,
       Comma, Eq, PlusEq, MinusEq,
