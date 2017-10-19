@@ -406,23 +406,21 @@ Token Lexer::read_ident() {
    case 2: {
       if (s == "or") {
          tok.type = Token::Or;
-         tok.group = Token::Operator;
       } else if (s == "if") {
          tok.type  = Token::If;
-         tok.group = Token::Control;
       }
+      break;
    }
-   case 3:
+   case 3: {
       if (s == "and") {
          tok.type = Token::And;
-         tok.group = Token::Operator;
       } else if (s == "int") {
          tok.type = Token::Int;
-         tok.group = Token::TypeSpec | Token::BasicType;
       } else if (s == "for") {
          tok.type = Token::For;
-         tok.group = Token::Control;
       }
+      break;
+   }
    default:
       Token x = Token::token2type(SubStr(tok));
       tok.type  = x.type;
