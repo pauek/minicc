@@ -1072,7 +1072,7 @@ DeclStmt *Parser::parse_declstmt(AstNode *parent, bool is_typedef) {
       _skip(stmt); // before identifier
    }
    stmt->fin = _lexer.pos();
-   if (!_lexer.expect(";")) {
+   if (!_lexer.expect(Token::SemiColon)) {
       stopper_error(stmt, _T("Expected '%s' here.", ";"));
    }
    return stmt;
@@ -1129,7 +1129,7 @@ EnumDecl *Parser::parse_enum(AstNode *parent) {
    if (!_lexer.expect("}")) {
       error(decl, _lexer.pos().str() + ": " + _T("Expected '%s' here.", "{"));
    }
-   if (!_lexer.expect(";")) {
+   if (!_lexer.expect(Token::SemiColon)) {
       error(decl, _lexer.pos().str() + ": " + _T("Expected '%s' here.", ";"));
    }
    return decl;
@@ -1182,7 +1182,7 @@ StructDecl *Parser::parse_struct(AstNode *parent) {
    }
    _lexer.expect("}");
    _skip(decl);
-   if (!_lexer.expect(";")) {
+   if (!_lexer.expect(Token::SemiColon)) {
       error(decl, _lexer.pos().str() + ": " + _T("Expected '%s' here.", ";"));
    }
    return decl;   
