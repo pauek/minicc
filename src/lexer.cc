@@ -199,8 +199,56 @@ Token Lexer::next_token() {
       RESULT1(Dot, Operator, ".");
    }
 
-   case '<': case '>': {
-      return read_operator();
+   case '<': { // < <= << <<= > >= >> >>=
+      Token tok;
+      tok.ini = _curr;
+      tok.group = Token::Operator;
+      if (curr(1) == '<') { 
+         if (curr(2) == '=') { // <<=
+            tok.type = Token::LShiftAssign;
+            tok.str = "<<=";
+            next(), next(), next();
+         } else { // <<
+            tok.type = Token::LShift;
+            next(), next();
+         }
+      } else if (curr(1) == '=') { // <=
+         tok.type = Token::LE;
+         tok.str = "<=";
+         next(), next();
+      } else {
+         tok.type = Token::LT;
+         tok.str = "<";
+         next();
+      }
+      tok.fin = _curr;
+      return tok;
+   }
+
+   case '>': {
+      Token tok;
+      tok.ini = _curr;
+      tok.group = Token::Operator;
+      if (curr(1) == '>') { 
+         if (curr(2) == '=') { // >>=
+            tok.type = Token::RShiftAssign;
+            tok.str = ">>=";
+            next(), next(), next();
+         } else { // >>
+            tok.type = Token::RShift;
+            next(), next();
+         }
+      } else if (curr(1) == '=') { // >=
+         tok.type = Token::GE;
+         tok.str = ">=";
+         next(), next();
+      } else {
+         tok.type = Token::GT;
+         tok.str = ">";
+         next();
+      }
+      tok.fin = _curr;
+      return tok;
    }
 
    case '-': { // - -- -= ->
@@ -386,33 +434,6 @@ Token Lexer::read_id() {
    Token x = Token::token2type(substr(t));
    t.type  = x.type;
    t.group = x.group;
-   return t;
-}
-
-Token Lexer::read_operator() {
-   string op;
-   char x;
-   int ini = _curr, fin = -1;
-   switch (curr()) {
-   case '<': case '>':           // < <= << <<= > >= >> >>=
-      x = curr();
-      op += x; next();
-      if (curr() == x) {
-         op += x; next();
-      } 
-      if (curr() == '=') {
-         op += '='; next();
-      }
-      break;
-
-   default:
-      break;
-   }
-   fin = _curr;
-   Token t(Token::token2type(op));
-   t.ini = ini;
-   t.fin = fin;
-   t.str = op;
    return t;
 }
 
