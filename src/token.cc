@@ -42,8 +42,8 @@ bool Token::IsOperator() const {
    case Token::PlusEq:
    case Token::SlashEq:
    case Token::DivEq:
-   case Token::OrEq:
-   case Token::AndEq:
+   case Token::BarEq:
+   case Token::AmpEq:
    case Token::XorEq:
    case Token::LShiftEq:
    case Token::RShiftEq:
@@ -61,7 +61,7 @@ bool Token::IsOperator() const {
    case Token::Arrow:
    case Token::Not:
    case Token::Amp:
-   case Token::Pipe:
+   case Token::Bar:
    case Token::Circum:
    case Token::Plus:
    case Token::Minus:

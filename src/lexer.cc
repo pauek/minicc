@@ -184,8 +184,8 @@ Token Lexer::read_token() {
    case '^': RESULT_1_2('=', Circum,  XorEq);
 
    case '+': RESULT_OP_EQUALS('+', Plus, PlusPlus, PlusEq);
-   case '|': RESULT_OP_EQUALS('|', Pipe, BarBar,   OrEq);
-   case '&': RESULT_OP_EQUALS('&', Amp,  AmpAmp,   AndEq);
+   case '|': RESULT_OP_EQUALS('|', Bar, BarBar,   BarEq);
+   case '&': RESULT_OP_EQUALS('&', Amp,  AmpAmp,   AmpEq);
 
    case '.': {
       if (isdigit(curr(1))) {

@@ -42,8 +42,8 @@ struct {
    { "%=",  Token::DivEq,    Expr::Eqment },
    { "<<=", Token::LShiftEq, Expr::Eqment },
    { ">>=", Token::RShiftEq, Expr::Eqment },
-   { "&=",  Token::AndEq,    Expr::Eqment },
-   { "|=",  Token::OrEq,     Expr::Eqment },
+   { "&=",  Token::AmpEq,    Expr::Eqment },
+   { "|=",  Token::BarEq,     Expr::Eqment },
    { "^=",  Token::XorEq,    Expr::Eqment },
 
    { ":",   Token::Colon,        Expr::Infinite },
