@@ -39,18 +39,18 @@ public:
    
    static Token token2type(std::string tok);
 
-   Type type;
-   Pos  pos;
-   uint len;
-   int  group;
+   Type  type;
+   Pos   pos;
+   uint  len;
+   int   group;
 
    bool IsIdent()     const { return group & Ident; }
    bool IsTypeSpec()  const { return group & TypeSpec; }
    bool IsBasicType() const { return group & BasicType; }
    bool IsTypeQual()  const { return group & TypeQual; }
-   bool IsOperator()  const { return group & Operator; }
+   bool IsOperator()  const; // { return group & Operator; }
 
-   Token(Type t = Token::Unknown, int _g = None) 
+   Token(Type t = Token::Unknown, int _g = Group::None) 
       : type(t), group(_g) {}
 
 private:

@@ -12,6 +12,123 @@ struct TokenInfo {
    int         k;
 };
 
+/*
+bool Token::IsIdent() const {
+   switch (type) {
+   case Token::String: 
+   case Token::Ident: 
+         return true;
+   }
+   return false;
+}
+
+bool Token::IsTypeSpec() const {
+   switch (type) {
+   case Token::Void:    
+   case Token::Int:     
+   case Token::Short:   
+   case Token::Long:    
+   case Token::Bool:    
+   case Token::Char:    
+   case Token::Float:   
+   case Token::Double:  
+   case Token::String:  
+   case Token::Signed:  
+   case Token::Unsigned:
+   case Token::Const:   
+   case Token::Volatile:
+   case Token::Auto:    
+   case Token::Register:
+   case Token::Static:  
+   case Token::Extern:  
+   case Token::Mutable: 
+   case Token::Inline:  
+   case Token::Virtual: 
+   case Token::Explicit:
+      return true;
+   }
+   return false;
+}
+*/
+
+bool Token::IsOperator() const {
+   switch (type) {
+   case Token::Comma:
+   case Token::QMark:
+   case Token::BarBar:
+   case Token::AmpAmp:
+   case Token::Assign:
+   case Token::StarAssign:
+   case Token::MinusAssign:
+   case Token::PlusAssign:
+   case Token::SlashAssign:
+   case Token::DivAssign:
+   case Token::OrAssign:
+   case Token::AndAssign:
+   case Token::XorAssign:
+   case Token::LShiftAssign:
+   case Token::RShiftAssign:
+   case Token::Or:
+   case Token::And:
+   case Token::EqEq:
+   case Token::NotEq:
+   case Token::LT:
+   case Token::GT:
+   case Token::GE:
+   case Token::LE:
+   case Token::LShift:
+   case Token::RShift:
+   case Token::Dot:
+   case Token::Arrow:
+   case Token::Not:
+   case Token::Amp:
+   case Token::Pipe:
+   case Token::Circum:
+   case Token::Plus:
+   case Token::Minus:
+   case Token::Star:
+   case Token::Slash:
+   case Token::Percent:
+   case Token::PlusPlus:
+   case Token::MinusMinus:
+      return true;
+   }
+   return false;
+}
+
+/*
+bool Token::IsBasicType() const {
+   switch (type) {
+   case Token::Void:
+   case Token::Int:
+   case Token::Short:
+   case Token::Long:
+   case Token::Bool:
+   case Token::Char:
+   case Token::Float:
+   case Token::Double:
+   case Token::String:
+      return true;
+   }
+   return false;
+}
+
+bool Token::IsTypeQual() const {
+   switch (type) {
+   case Token::Const:
+   case Token::Long:
+   case Token::Volatile:
+   case Token::Auto:
+   case Token::Register:
+   case Token::Static:
+   case Token::Extern:
+   case Token::Mutable:
+      return true;
+   }
+   return false;
+}
+*/
+
 TokenInfo toktab[] = {
    { "",           Token::Empty, Token::None },
 
@@ -89,7 +206,7 @@ TokenInfo toktab[] = {
    { "void",     Token::Void,     Token::TypeSpec | Token::BasicType },
    { "int",      Token::Int,      Token::TypeSpec | Token::BasicType },
    { "short",    Token::Short,    Token::TypeSpec | Token::BasicType },
-   { "long",     Token::Long,     Token::TypeSpec | Token::BasicType },
+   { "long",     Token::Long,     Token::TypeSpec | Token::BasicType | Token::TypeQual },
    { "bool",     Token::Bool,     Token::TypeSpec | Token::BasicType },
    { "char",     Token::Char,     Token::TypeSpec | Token::BasicType },
    { "float",    Token::Float,    Token::TypeSpec | Token::BasicType },
@@ -100,7 +217,6 @@ TokenInfo toktab[] = {
    { "unsigned", Token::Unsigned, Token::TypeSpec },
 
    { "const",    Token::Const,    Token::TypeSpec | Token::TypeQual },
-   { "long",     Token::Long,     Token::TypeSpec | Token::TypeQual },
    { "volatile", Token::Volatile, Token::TypeSpec | Token::TypeQual },
 
    // storage_class_specifier
