@@ -44,8 +44,10 @@ public:
    uint len;
    int  group;
 
-   bool IsIdent()    const { return group & Ident; }
-   bool IsTypeSpec() const { return group & TypeSpec; }
+   bool IsIdent()     const { return group & Ident; }
+   bool IsTypeSpec()  const { return group & TypeSpec; }
+   bool IsBasicType() const { return group & BasicType; }
+   bool IsTypeQual()  const { return group & TypeQual; }
 
    Token(Type t = Token::Unknown, int _g = None) 
       : type(t), group(_g) {}

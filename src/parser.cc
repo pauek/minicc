@@ -233,14 +233,14 @@ FullIdent *Parser::parse_ident(AstNode *parent, Token tok, Pos ini) {
 }
 
 bool Parser::_parse_type_process_token(TypeSpec *type, Token tok, Pos p) {
-   if (tok.group & Token::BasicType) {
+   if (tok.IsBasicType()) {
       if (type->id != 0) {
          error(type, _T("Basic types are not templates"));
       }
       type->id = new FullIdent(_lexer.SubStr(tok));
       return true;
    } 
-   if (tok.group & Token::TypeQual) {
+   if (tok.IsTypeQual()) {
       switch (tok.type) {
       case Token::Const:    type->qual.push_back(TypeSpec::Const);    break;
       case Token::Auto:     type->qual.push_back(TypeSpec::Auto);     break;
