@@ -413,10 +413,6 @@ Token Lexer::read_operator() {
       }
       break;
 
-   case ',': case '~': case '?': case ':': // , ~ ? :
-      op += curr(); next();
-      break;
-
    case 'o':
       if (curr(1) == 'r') {
          next(), next();
