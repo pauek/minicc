@@ -159,7 +159,7 @@ int test_visitor(string filename, VisitorType vtype) {
          Stepper S(&Sin, &Saux);
          program->accept(&S);
          while (!S.finished()) {
-            Sout << S.span() << ": " << P.lexer().substr(S.span()) << endl;
+            Sout << S.span() << ": " << P.lexer().SubStr(S.span()) << endl;
             Sout << S.status() << endl;
             string output = S.output();
             if (output != "") {

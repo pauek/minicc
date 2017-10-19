@@ -46,9 +46,10 @@ public:
           char  curr(int i = 0) const { return _text[_curr + i]; }
           bool  end()           const { return _curr >= _text.size(); }
           bool  curr_one_of(std::string set) const;
-   std::string  substr(const Range& r) const { return substr(r.ini, r.fin); }
-   std::string  substr(const Pos& ini, const Pos& fin) const;
-   std::string  substr(const Token& t);
+
+   std::string  SubStr(const Token& t);
+   std::string  SubStr(const Pos& ini, const Pos& fin) const;
+   std::string  SubStr(const Range& r) const { return SubStr(r.ini, r.fin); }
 
           void  save();
           void  restore();

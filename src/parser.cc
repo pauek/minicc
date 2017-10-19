@@ -130,7 +130,7 @@ AstNode* Parser::parse_macro(AstNode *parent) {
       _lexer.skip_to("\n");
       Pos macro_fin = _lexer.pos();
       _lexer.next();
-      Macro *m = new Macro(_lexer.substr(macro_ini, macro_fin));
+      Macro *m = new Macro(_lexer.SubStr(macro_ini, macro_fin));
       m->ini = ini;
       m->fin = macro_fin;
       fatal_error(macro_fin, _T("Macro '#%s' unknown.", macro_name.c_str()));
@@ -523,7 +523,7 @@ Expr *Parser::parse_primary_expr(AstNode *parent) {
    case Token::IntLiteral: {
       Literal* lit = new Literal(Literal::Int);
       lit->parent = parent;
-      lit->val.as_int = atoi(_lexer.substr(tok).c_str());
+      lit->val.as_int = atoi(_lexer.SubStr(tok).c_str());
       lit->ini = ini;
       lit->fin = _lexer.pos();
       _skip(lit);
@@ -707,7 +707,7 @@ Expr *Parser::parse_expr(AstNode *parent, BinaryExpr::Kind max) {
          left = e;
       } else {
          BinaryExpr *e = new BinaryExpr();
-         e->op = _lexer.substr(tok);
+         e->op = _lexer.SubStr(tok);
          e->set(kind);
          e->comments.push_back(c0);
          _skip(e);
