@@ -122,7 +122,7 @@ AstNode* Parser::parse() {
 AstNode* Parser::parse_macro(AstNode *parent) {
    Pos ini = _lexer.pos();
    _lexer.consume('#');
-   _lexer.skip("\t "); // comments between '#' and the macro name are gobbled up...
+   _lexer.skip(Lexer::Skip::SpaceTab); // comments between '#' and the macro name are gobbled up...
    Pos macro_ini = _lexer.pos();
    if (!_lexer.expect("include")) {
       Token tok = _lexer.read_ident();
@@ -286,11 +286,11 @@ AstNode *Parser::parse_func_or_var(AstNode *parent) {
    Pos ini = _lexer.pos();
    _lexer.save();
    TypeSpec *typespec = parse_typespec(0);
-   c[0] = _lexer.skip("\n\t ");
+   c[0] = _lexer.skip();
    Pos id_ini = _lexer.pos();
    Token tok = _lexer.read_ident();
    FullIdent *id = parse_ident(0, tok, id_ini);
-   c[1] = _lexer.skip("\n\t ");
+   c[1] = _lexer.skip();
    if (_lexer.curr() == '(') {
       _lexer.discard();
       FuncDecl *fn = new FuncDecl(id);
@@ -497,7 +497,7 @@ Expr *Parser::parse_primary_expr(AstNode *parent) {
    Token tok = _lexer.read_token();
    switch (tok.type) {
    case Token::LParen: {
-      CommentSeq *cn = _lexer.skip("\n\t ");
+      CommentSeq *cn = _lexer.skip();
       e = parse_expr(parent);
       e->paren = true;
       e->comments.insert(e->comments.begin(), cn);
@@ -686,7 +686,7 @@ Expr *Parser::parse_unary_expr(AstNode *parent) {
                                   ? IncrExpr::Positive 
                                   : IncrExpr::Negative);
       _lexer.consume(tok.type == Token::PlusPlus ? "++" : "--");
-      CommentSeq *comm = _lexer.skip("\n\t ");
+      CommentSeq *comm = _lexer.skip();
       ie->expr = parse_unary_expr(ie);
       ie->preincr = true;
       ie->fin = ie->expr->fin;
@@ -716,7 +716,7 @@ Expr *Parser::parse_expr(AstNode *parent, BinaryExpr::Kind max) {
       if (tok.type == Token::Empty or kind > max) {
          break;
       }
-      CommentSeq *c0 = _lexer.skip("\n\t ");
+      CommentSeq *c0 = _lexer.skip();
       tok = _lexer.read_token();
       if (!tok.IsOperator()) {
          error(left, _T("Expected operator here."));
@@ -1045,7 +1045,7 @@ DeclStmt *Parser::parse_declstmt(AstNode *parent, bool is_typedef) {
       }
       after_id = _lexer.pos();
       DeclStmt::Item item;
-      CommentSeq *comm = _lexer.skip("\n\t ");
+      CommentSeq *comm = _lexer.skip();
       if (_lexer.curr() == '(' and !is_typedef) {
          item.decl = _parse_objdecl(stmt, name, comm);
       } else if (_lexer.curr() == '[') {

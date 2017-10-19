@@ -9,6 +9,7 @@
 struct Comment;
 struct CommentSeq;
 
+
 class Lexer {
    std::istream* _in;
    std::string _text;
@@ -61,7 +62,11 @@ public:
           bool  expect(std::string word);
           void  consume(char c)       { assert(curr() == c); next(); }
           void  consume(std::string word);
-    CommentSeq *skip(std::string skip_set);
+
+   enum class Skip {
+      SpaceTabNewline, SpaceTab
+   };
+    CommentSeq *skip(Skip skip = Skip::SpaceTabNewline);
    std::string  skip_to(std::string stop_set);
 
          Token  read_token();

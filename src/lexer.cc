@@ -33,7 +33,7 @@ bool Lexer::curr_one_of(std::string set) const {
    return set.find(curr()) != std::string::npos; 
 }
 
-CommentSeq* Lexer::skip(string skip_set) {
+CommentSeq* Lexer::skip(Skip skip) {
    CommentSeq *cs = 0;
    int endls_in_a_row = 0;
    while (!end()) {
@@ -65,11 +65,23 @@ CommentSeq* Lexer::skip(string skip_set) {
       } else {
          endls_in_a_row = 0;
       }
-      if (skip_set.find(curr()) == string::npos) {
+
+      switch (skip) {
+      case Skip::SpaceTabNewline:
+         if (!(curr() == ' ' or curr() == '\t' or curr() == '\n')) {
+            goto finish; // break would break from the switch only
+         }
+         break;
+      case Skip::SpaceTab:
+         if (!(curr() == ' ' or curr() == '\t')) {
+            goto finish;
+         }
          break;
       }
+
       next();
    }
+finish:
    return cs;
 }
 
@@ -287,7 +299,7 @@ Token Lexer::read_token() {
 
 Token Lexer::peek_token() {
    save();
-   skip("\n\t ");
+   skip();
    Token tok = read_token();
    restore();
    return tok;

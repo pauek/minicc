@@ -126,11 +126,11 @@ int tokenize(string filename) {
    ifstream codefile(filename);
    Lexer L(&codefile);
    L.next();
-   L.skip("\n\t ");
+   L.skip();
    while (!L.end()) {
       Token tok = L.read_token();
       cout << tok.pos << ' ' << L.SubStr(tok) << endl;
-      L.skip("\n\t ");
+      L.skip();
    }
 }
 
