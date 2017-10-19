@@ -175,13 +175,13 @@ Token Lexer::read_token() {
    // TODO: Add '~'
    // case '~': RESULT1(Tilde, Operator, "~");
 
-   case ':': RESULT_1_2(':', Colon, ColonColon);
-   case '=': RESULT_1_2('=', Assign, EqEq);
-   case '!': RESULT_1_2('=', Not, NotEq);
-   case '*': RESULT_1_2('=', Star, StarAssign);
-   case '/': RESULT_1_2('=', Slash, SlashAssign);
-   case '%': RESULT_1_2('=', Percent, DivAssign);
-   case '^': RESULT_1_2('=', Circum, XorAssign);
+   case ':': RESULT_1_2(':', Colon,   ColonColon);
+   case '=': RESULT_1_2('=', Assign,  EqEq);
+   case '!': RESULT_1_2('=', Not,     NotEq);
+   case '*': RESULT_1_2('=', Star,    StarAssign);
+   case '/': RESULT_1_2('=', Slash,   SlashAssign);
+   case '%': RESULT_1_2('=', Div,     DivAssign);
+   case '^': RESULT_1_2('=', Circum,  XorAssign);
 
    case '+': RESULT_OP_EQUALS('+', Plus, PlusPlus, PlusAssign);
    case '|': RESULT_OP_EQUALS('|', Pipe, BarBar,   OrAssign);

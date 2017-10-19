@@ -7,9 +7,25 @@ struct Token
 {
    enum Type {
       Empty,
-      Int, Void, Char, Double, Float, Bool, String,
-      True, False,
-      Sharp, Not, Amp, Pipe, Star, Slash, Percent, Div,
+      Int, 
+      Void, 
+      Char, 
+      Double, 
+      Float, 
+      Bool, 
+      String,
+      
+      True, 
+      False,
+
+      Sharp, 
+      Not, 
+      Amp, 
+      Pipe, 
+      Star, 
+      Slash, 
+      Div,
+      
       Plus, Minus, PlusPlus, MinusMinus,
       LCurly, RCurly, LParen, RParen, LBrack, RBrack, Dot, Arrow,
       If, Else, While, For, Switch, 

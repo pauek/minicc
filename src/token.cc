@@ -67,7 +67,7 @@ bool Token::IsOperator() const {
    case Token::Minus:
    case Token::Star:
    case Token::Slash:
-   case Token::Percent:
+   case Token::Div:
    case Token::PlusPlus:
    case Token::MinusMinus:
       return true;
