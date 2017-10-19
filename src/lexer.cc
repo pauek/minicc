@@ -162,7 +162,7 @@ Token Lexer::read_token() {
 
    switch (curr()) {
    case '(': RESULT1(LParen, None);
-   case ')': RESULT1(Unknown, Ident);
+   case ')': RESULT1(RParen, None);
    case '[': RESULT1(LBrack, None);
    case ']': RESULT1(RBrack, None);
    case '{': RESULT1(LCurly, None);
