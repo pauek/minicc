@@ -30,8 +30,16 @@ struct Token
       Minus, 
       PlusPlus, 
       MinusMinus,
+
+      LBrace, 
+      RBrace, 
+      LParen, 
+      RParen, 
+      LBracket, 
+      RBracket, 
+      Dot, 
+      Arrow,
       
-      LBrace, RBrace, LParen, RParen, LBrack, RBrack, Dot, Arrow,
       If, Else, While, For, Switch, 
       Break, Continue, Goto, Return,
       Typedef, Class, Struct, Enum,

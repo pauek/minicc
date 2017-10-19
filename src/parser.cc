@@ -616,7 +616,7 @@ Expr *Parser::parse_postfix_expr(AstNode *parent, Expr *e = 0) {
       e = parse_callexpr(e);
       goto begin;
       
-   case Token::LBrack:
+   case Token::LBracket:
       e = parse_indexexpr(e);
       goto begin;
       
