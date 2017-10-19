@@ -189,7 +189,7 @@ AstNode* Parser::parse_using_declaration(AstNode *parent) {
    u->namespc = _lexer.SubStr(tok);
    _skip(u);
    u->fin = _lexer.pos();
-   if (!_lexer.expect(";")) {
+   if (!_lexer.expect(Token::SemiColon)) {
       error(u, u->fin.str() + ": " + _T("Expected '%s' here.", ";"));
    }
    return u;
