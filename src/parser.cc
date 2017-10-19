@@ -378,8 +378,8 @@ Block *Parser::parse_block(AstNode *parent) {
 }
 
 Stmt* Parser::parse_stmt(AstNode *parent) {
-   Token tok1 = _lexer.peek_token();
-   switch (tok1.type) {
+   Token tok = _lexer.peek_token();
+   switch (tok.type) {
    case Token::LParen:
       return parse_exprstmt(parent);
 
@@ -407,7 +407,7 @@ Stmt* Parser::parse_stmt(AstNode *parent) {
       return stmt;
    }
    default:
-      if (tok1.group == Token::Operator) {
+      if (tok.IsOperator()) {
          return parse_exprstmt(parent);
       }
       Stmt *stmt = parse_decl_or_expr_stmt(parent);
