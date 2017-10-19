@@ -199,9 +199,25 @@ Token Lexer::next_token() {
       RESULT1(Dot, Operator, ".");
    }
 
-   case '-': case '<': case '>': {
+   case '<': case '>': {
       return read_operator();
-   }      
+   }
+
+   case '-': { // - -- -= ->
+      Token tok;
+      tok.ini = _curr;
+      tok.group = Token::Operator;
+      next();
+      switch (curr()) {
+      case '=': tok.type = Token::MinusAssign; tok.str = "-="; next(); break;
+      case '-': tok.type = Token::MinusMinus;  tok.str = "--"; next(); break;
+      case '>': tok.type = Token::Arrow;       tok.str = "->"; next(); break;
+      default:  tok.type = Token::Minus;       tok.str = "-"; break;
+      }
+      tok.fin = _curr;
+      return tok;
+   }
+
    case '0': case '1': case '2': case '3': case '4':
    case '5': case '6': case '7': case '8': case '9':
       return read_number_literal();
@@ -378,22 +394,6 @@ Token Lexer::read_operator() {
    char x;
    int ini = _curr, fin = -1;
    switch (curr()) {
-   case '-':                     // - -- -= -> ->*
-      op += '-'; next();
-      switch (curr()) {
-      case '=': case '-':
-         op += curr(); next();
-         break;
-
-      case '>':
-         op += '>'; next();
-         if (curr() == '*') {
-            op += '*'; next();
-         }
-         break;
-      }
-      break;
-
    case '<': case '>':           // < <= << <<= > >= >> >>=
       x = curr();
       op += x; next();
