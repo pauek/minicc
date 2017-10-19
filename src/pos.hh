@@ -2,13 +2,13 @@
 #define POS_H
 
 struct Pos { 
-   int lin, col; 
+   uint32_t lin, col; 
+
    Pos() : lin(1), col(0) {}
-   Pos(int l, int c) : lin(l), col(c) {}
+   Pos(uint32_t l, uint32_t c) : lin(l), col(c) {}
    std::string str() const;
    
-    Pos next() const { return Pos(lin, col+1); }
-
+   Pos next() const { return Pos(lin, col+1); }
    void to_json(std::ostream& o) const;
 };
 
@@ -28,22 +28,6 @@ inline std::ostream& operator<<(std::ostream& o, const Range& rng) {
 
 inline bool operator==(const Pos& a, const Pos& b) {
    return a.lin == b.lin && a.col == b.col;
-}
-
-inline bool operator<(const Pos& a, const Pos& b) {
-   return (a.lin != b.lin ? a.lin < b.lin : a.col < b.col);
-}
-
-inline bool operator>(const Pos& a, const Pos& b) {
-   return (a.lin != b.lin ? a.lin > b.lin : a.col > b.col);
-}
-
-inline bool operator<=(const Pos& a, const Pos& b) { 
-   return operator<(a, b) || operator==(a, b); 
-}
-
-inline bool operator>=(const Pos& a, const Pos& b) { 
-   return operator>(a, b) || operator==(a, b); 
 }
 
 inline Pos operator+(const Pos& p, int n) {
