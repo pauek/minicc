@@ -132,18 +132,29 @@ Token Lexer::next_token() {
 
 #define RESULT1(type, group, s) do {\
    Token tok(Token::type, Token::group); \
-   tok.str = s; \
+   tok.ini = _curr; \
    next(); \
+   tok.fin = _curr; \
+   tok.str = s; \
    return tok; \
 } while(0)
 
-#define RESULT2(ch, type1, group1, s1, type2, group2, s2) \
-   if (curr(1) == ch) RESULT1(type2, group2, s2); \
+#define RESULT2(type, group, s) do {\
+   Token tok(Token::type, Token::group); \
+   tok.ini = _curr; \
+   next(), next(); \
+   tok.fin = _curr; \
+   tok.str = s; \
+   return tok; \
+} while(0)
+
+#define RESULT_1_2(ch, type1, group1, s1, type2, group2, s2) \
+   if (curr(1) == ch) RESULT2(type2, group2, s2); \
    else RESULT1(type1, group1, s1); \
 
-#define RESULT_OP3(ch, str, type1, type2, type3) \
-   if (curr(1) == ch) RESULT1(type2, Operator, str str); \
-   else if (curr(1) == '=') RESULT1(type3, Operator, str "="); \
+#define RESULT_OP_EQUALS(ch, str, type1, type2, type3) \
+   if (curr(1) == ch) RESULT2(type2, Operator, str str); \
+   else if (curr(1) == '=') RESULT2(type3, Operator, str "="); \
    else RESULT1(type1, Operator, str);
 
 
@@ -162,16 +173,16 @@ Token Lexer::next_token() {
    // TODO: Add '~'
    // case '~': RESULT1(Tilde, Operator, "~");
 
-   case ':': RESULT2(':', Colon, None, ":", 
-                          ColonColon, None, "::");
-   case '!': RESULT2('=', Not,   Operator, "!",
-                          NotEq, Operator, "!=");
-   case '*': RESULT2('=', Star,       Operator, "*",
-                          StarAssign, Operator, "*=");
+   case ':': RESULT_1_2(':', Colon,      None,     ":", 
+                             ColonColon, None,     "::");
+   case '!': RESULT_1_2('=', Not,        Operator, "!",
+                             NotEq,      Operator, "!=");
+   case '*': RESULT_1_2('=', Star,       Operator, "*",
+                             StarAssign, Operator, "*=");
 
-   case '+': RESULT_OP3('+', "+", Plus, PlusPlus, PlusAssign);
-   case '|': RESULT_OP3('|', "|", Pipe, BarBar,   OrAssign);
-   case '&': RESULT_OP3('&', "&", Amp,  AmpAmp,   AndAssign);
+   case '+': RESULT_OP_EQUALS('+', "+", Plus, PlusPlus, PlusAssign);
+   case '|': RESULT_OP_EQUALS('|', "|", Pipe, BarBar,   OrAssign);
+   case '&': RESULT_OP_EQUALS('&', "&", Amp,  AmpAmp,   AndAssign);
 
    case '.': {
       if (isdigit(curr(1))) {

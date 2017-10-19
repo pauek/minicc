@@ -687,7 +687,10 @@ Expr *Parser::parse_expr(AstNode *parent, BinaryExpr::Kind max) {
          break;
       }
       CommentSeq *c0 = _in.skip("\n\t ");
-      tok = _in.read_operator();
+      tok = _in.next_token();
+      if (!(tok.group & Token::Operator)) {
+         error(left, _T("Expected operator here."));
+      }
       if (tok.type == Token::QMark) { // (... ? ... : ...)
          CondExpr *e = new CondExpr();
          e->cond = left;
