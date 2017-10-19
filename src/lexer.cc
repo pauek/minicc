@@ -29,10 +29,6 @@ string Lexer::SubStr(const Pos& ini, const Pos& fin) const {
    return _text.substr(i, j - i);
 }
 
-bool Lexer::curr_one_of(std::string set) const { 
-   return set.find(curr()) != std::string::npos; 
-}
-
 CommentSeq* Lexer::skip(Skip skip) {
    CommentSeq *cs = 0;
    int endls_in_a_row = 0;
