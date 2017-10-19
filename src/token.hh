@@ -29,12 +29,13 @@ public:
       Inline, Virtual, Explicit,
       Auto, Register, Static, Extern, Mutable,
       Colon, ColonColon, SemiColon, QMark,
+      Ident,
       Unknown
    };
 
    enum Group {
-      None = 0, Literal = 1, TypeSpec = 2, Ident = 4, 
-      Operator = 8, Control = 16, BasicType = 32, TypeQual = 64
+      None = 0, Literal = 1, TypeSpec = 2, Operator = 8, 
+      Control = 16, BasicType = 32, TypeQual = 64
    };
    
    static Token token2type(std::string tok);
@@ -44,7 +45,7 @@ public:
    uint  len;
    int   group;
 
-   bool IsIdent()     const { return group & Ident; }
+   bool IsIdent()     const { return type == Ident or type == String; }
    bool IsTypeSpec()  const;
    bool IsBasicType() const;
    bool IsTypeQual()  const;

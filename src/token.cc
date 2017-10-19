@@ -3,18 +3,6 @@
 #include "token.hh"
 using namespace std;
 
-
-#if 0
-bool Token::IsIdent() const {
-   switch (type) {
-   case Token::String: 
-   case Token::Ident: 
-         return true;
-   }
-   return false;
-}
-#endif
-
 bool Token::IsTypeSpec() const {
    switch (type) {
    case Token::Void:
@@ -195,5 +183,5 @@ Token::Table::Table() {
 
 Token Token::token2type(std::string tok) {
    auto it = _table._map.find(tok);
-   return (it != _table._map.end() ? it->second : Token(Token::Unknown, Token::Ident));
+   return (it != _table._map.end() ? it->second : Token(Token::Ident, Token::Ident));
 }

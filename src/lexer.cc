@@ -385,8 +385,8 @@ inline bool IsLower(char c) { return c >= 'a' and c <= 'z'; }
 inline bool IsDigit(char c) { return c >= '0' and c <= '9'; }
 
 Token Lexer::read_ident() {
-   Token t;
-   t.pos = _pos;
+   Token tok;
+   tok.pos = _pos;
    int ini = _curr;
    char c = curr();
    if (!IsUpper(c) and !IsLower(c) and c != '_') {
@@ -398,12 +398,37 @@ Token Lexer::read_ident() {
       next();
       c = curr();
    }
-   // t.fin = _curr;
-   t.len = _curr - ini;
-   Token x = Token::token2type(SubStr(t));
-   t.type  = x.type;
-   t.group = x.group;
-   return t;
+   // tok.fin = _curr;
+   tok.len = _curr - ini;
+   tok.type = Token::Ident;
+   string s = SubStr(tok);
+   switch (tok.len) {
+   case 2: {
+      if (s == "or") {
+         tok.type = Token::Or;
+         tok.group = Token::Operator;
+      } else if (s == "if") {
+         tok.type  = Token::If;
+         tok.group = Token::Control;
+      }
+   }
+   case 3:
+      if (s == "and") {
+         tok.type = Token::And;
+         tok.group = Token::Operator;
+      } else if (s == "int") {
+         tok.type = Token::Int;
+         tok.group = Token::TypeSpec | Token::BasicType;
+      } else if (s == "for") {
+         tok.type = Token::For;
+         tok.group = Token::Control;
+      }
+   default:
+      Token x = Token::token2type(SubStr(tok));
+      tok.type  = x.type;
+      tok.group = x.group;
+   }
+   return tok;
 }
 
 Token Lexer::read_string_or_char_literal(char delim) {
