@@ -125,7 +125,7 @@ AstNode* Parser::parse_macro(AstNode *parent) {
    _lexer.skip("\t "); // comments between '#' and the macro name are gobbled up...
    Pos macro_ini = _lexer.pos();
    if (!_lexer.expect("include")) {
-      Token tok = _lexer.read_id();
+      Token tok = _lexer.read_ident();
       string macro_name = _lexer.SubStr(tok);
       _lexer.skip_to("\n");
       Pos macro_fin = _lexer.pos();
@@ -185,7 +185,7 @@ AstNode* Parser::parse_using_declaration(AstNode *parent) {
       return u;
    }
    _skip(u);
-   Token tok = _lexer.read_id();
+   Token tok = _lexer.read_ident();
    u->namespc = _lexer.SubStr(tok);
    _skip(u);
    u->fin = _lexer.pos();
@@ -288,7 +288,7 @@ AstNode *Parser::parse_func_or_var(AstNode *parent) {
    TypeSpec *typespec = parse_typespec(0);
    c[0] = _lexer.skip("\n\t ");
    Pos id_ini = _lexer.pos();
-   Token tok = _lexer.read_id();
+   Token tok = _lexer.read_ident();
    FullIdent *id = parse_ident(0, tok, id_ini);
    c[1] = _lexer.skip("\n\t ");
    if (_lexer.curr() == '(') {
@@ -324,7 +324,7 @@ void Parser::parse_function(FuncDecl *fn) {
       p->ini = _lexer.pos();
       p->typespec = parse_typespec(fn);
       _skip(fn);
-      Token tok = _lexer.read_id();
+      Token tok = _lexer.read_ident();
       p->name = _lexer.SubStr(tok);
       _skip(fn);
       fn->params.push_back(p);
@@ -454,7 +454,7 @@ Stmt *Parser::parse_jumpstmt(AstNode *parent) {
    }
    _skip(stmt);
    if (stmt->kind == JumpStmt::Goto) {
-      Token tok = _lexer.read_id();
+      Token tok = _lexer.read_ident();
       stmt->label = _lexer.SubStr(tok);
       _skip(stmt);
    }
@@ -807,7 +807,7 @@ Expr *Parser::parse_fieldexpr(Expr *x, Token tok) {
    e->pointer = (tok.type == Token::Arrow);
    _lexer.consume(tok.type == Token::Arrow ? "->" : ".");
    _skip(e);
-   Token id = _lexer.read_id();
+   Token id = _lexer.read_ident();
    e->field = new SimpleIdent(_lexer.SubStr(id));
    e->fin = _lexer.pos();
    return e;
@@ -1156,7 +1156,7 @@ StructDecl *Parser::parse_struct(AstNode *parent) {
    decl->parent = parent;
    _skip(decl);
 
-   Token id = _lexer.read_id();
+   Token id = _lexer.read_ident();
    decl->id = new SimpleIdent(_lexer.SubStr(id));
    _skip(decl);
    

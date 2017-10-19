@@ -280,7 +280,7 @@ Token Lexer::read_token() {
       case '5': case '6': case '7': case '8': case '9':
          return read_number_literal();
       default:
-         return read_id();
+         return read_ident();
       }
 
    case '"':
@@ -290,7 +290,7 @@ Token Lexer::read_token() {
       return read_string_or_char_literal('\'');
 
    default: {
-      return read_id();
+      return read_ident();
    }
    }
 }
@@ -384,7 +384,7 @@ inline bool IsUpper(char c) { return c >= 'A' and c <= 'Z'; }
 inline bool IsLower(char c) { return c >= 'a' and c <= 'z'; }
 inline bool IsDigit(char c) { return c >= '0' and c <= '9'; }
 
-Token Lexer::read_id() {
+Token Lexer::read_ident() {
    Token t;
    t.pos = _pos;
    int ini = _curr;

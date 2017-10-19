@@ -65,7 +65,7 @@ public:
 
          Token  read_token();
          Token  peek_token();
-         Token  read_id();
+         Token  read_ident();
          Token  read_number_literal();
          Token  read_real_literal(Token t, int ini);
          Token  read_string_or_char_literal(char delim);

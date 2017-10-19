@@ -12,7 +12,7 @@ struct TokenInfo {
    int         k;
 };
 
-/*
+#if 0
 bool Token::IsIdent() const {
    switch (type) {
    case Token::String: 
@@ -21,7 +21,7 @@ bool Token::IsIdent() const {
    }
    return false;
 }
-*/
+#endif
 
 bool Token::IsTypeSpec() const {
    switch (type) {
