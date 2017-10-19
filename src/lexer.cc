@@ -506,14 +506,14 @@ Token Lexer::read_number_literal() {
    int ini = _curr;
    if (curr() == '.') {
       next();
-      return read_real_literal(t, ini);
+      return read_float_literal(t, ini);
    }
    while (isdigit(curr())) {
       next();
    }
    if (curr() == '.') {
       next();
-      return read_real_literal(t, ini);
+      return read_float_literal(t, ini);
    }
    // t.fin = _curr;
    t.len = _curr - ini;
@@ -521,7 +521,7 @@ Token Lexer::read_number_literal() {
    return t;
 }
 
-Token Lexer::read_real_literal(Token t, int ini) {
+Token Lexer::read_float_literal(Token t, int ini) {
    while (isdigit(curr())) {
       next();
    }
