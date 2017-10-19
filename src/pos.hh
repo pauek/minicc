@@ -13,17 +13,17 @@ struct Pos {
    void to_json(std::ostream& o) const;
 };
 
-struct Range {
+struct Span {
    Pos ini, fin;
-   Range() {}
-   Range(Pos i, Pos f) : ini(i), fin(f) {}
+   Span() {}
+   Span(Pos i, Pos f) : ini(i), fin(f) {}
 };
 
 inline std::ostream& operator<<(std::ostream& o, const Pos& pos) {
    return o << pos.lin << ":" << pos.col;
 }
 
-inline std::ostream& operator<<(std::ostream& o, const Range& rng) {
+inline std::ostream& operator<<(std::ostream& o, const Span& rng) {
    return o << rng.ini << "-" << rng.fin;
 }
 

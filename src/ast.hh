@@ -33,7 +33,7 @@ struct AstNode {
    virtual    AstNode* child(int n)   const { return 0; }
    virtual        bool has_errors()   const { return !errors.empty(); }
    virtual std::string describe()     const { return "UNIMPLEMENTED"; }
-                 Range span()         const { return Range(ini, fin); }
+                  Span span()         const { return Span(ini, fin); }
 
    template<typename X>
                   bool is()           const { return dynamic_cast<const X*>(this) != 0; }

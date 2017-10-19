@@ -121,7 +121,7 @@ AstNode* Parser::parse() {
 
 AstNode* Parser::parse_macro(AstNode *parent) {
    Pos ini = _lexer.pos();
-   _lexer.consume('#');
+   _lexer.consume(Token::Sharp);
    _lexer.skip(Lexer::Skip::SpaceTab); // comments between '#' and the macro name are gobbled up...
    Pos macro_ini = _lexer.pos();
    if (!_lexer.expect("include")) {

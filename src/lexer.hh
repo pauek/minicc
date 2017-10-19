@@ -50,7 +50,7 @@ public:
 
    std::string  SubStr(const Token& t);
    std::string  SubStr(const Pos& ini, const Pos& fin) const;
-   std::string  SubStr(const Range& r) const { return SubStr(r.ini, r.fin); }
+   std::string  SubStr(const Span& r) const { return SubStr(r.ini, r.fin); }
 
           void  save();
           void  restore();
@@ -60,8 +60,10 @@ public:
 
           bool  expect(Token::Type type);
           bool  expect(std::string word);
+
           void  consume(char c)       { assert(curr() == c); next(); }
           void  consume(std::string word);
+          void  consume(Token::Type type);
 
    enum class Skip {
       SpaceTabNewline, SpaceTab

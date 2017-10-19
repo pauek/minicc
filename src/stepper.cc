@@ -61,15 +61,15 @@ void Stepper::visit_program(Program *x) {
    push(new ProgramVisitState(main));
 }
 
-Range Stepper::ProgramVisitState::span() const {
+Span Stepper::ProgramVisitState::span() const {
    if (at == ProgramVisitState::Begin) {
       return x->id->span(); 
    } else if (at == ProgramVisitState::Finished) {
       Pos ini = x->block->fin, fin = x->block->fin;
       ini.col--;
-      return Range(ini, fin);
+      return Span(ini, fin);
    }
-   return Range();
+   return Span();
 }
 
 Todo Stepper::ProgramVisitState::step(Stepper *S) {
@@ -253,7 +253,7 @@ void Stepper::visit_exprstmt(ExprStmt *x) {
    }
 }
 
-Range Stepper::WriteExprVisitState::span() const {
+Span Stepper::WriteExprVisitState::span() const {
    return curr->span();
 }
 
@@ -299,11 +299,11 @@ void Stepper::visit_assignment(BinaryExpr *e) {
    push(new EqmentVisitState(e, right));
 }
 
-Range Stepper::EqmentVisitState::span() const {
+Span Stepper::EqmentVisitState::span() const {
    if (left.is_null()) {
       return x->right->span();
    } else {
-      return Range(x->left->span().ini, x->right->span().ini);
+      return Span(x->left->span().ini, x->right->span().ini);
    }
 }
 
@@ -356,7 +356,7 @@ void Stepper::visit_callexpr(CallExpr *x) {
 const int Stepper::CallExprVisitState::Block  = -1;
 const int Stepper::CallExprVisitState::Return = -2;
 
-Range Stepper::CallExprVisitState::span() const {
+Span Stepper::CallExprVisitState::span() const {
    if (curr == CallExprVisitState::Return) {
       return x->span();
    } else if (curr == CallExprVisitState::Block) {
@@ -418,7 +418,7 @@ string Stepper::state2json() const {
    json << "{";
    json << "\"env\":" << I.env2json() << ",";
    json << "\"status\":" << "\"" << json_encode(_status) << "\",";
-   Range s = span();
+   Span s = span();
    json << "\"span\":" << "{";
    // -1 for codemirror!
    json << "\"ini\":{" << "\"line\":" <<  s.ini.lin-1 << ",\"ch\":" << s.ini.col << "},";

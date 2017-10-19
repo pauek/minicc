@@ -16,6 +16,11 @@ void Lexer::consume(string word) {
       consume(c);
 }
 
+void Lexer::consume(Token::Type type) {
+   auto tok = read_token();
+   assert(tok.type == type);
+}
+
 string Lexer::SubStr(const Token& t) {
    return _text.substr(_pos_to_idx(t.pos), t.len);
 }
@@ -23,9 +28,7 @@ string Lexer::SubStr(const Token& t) {
 string Lexer::SubStr(const Pos& ini, const Pos& fin) const {
    const int i = _pos_to_idx(ini);
    const int j = _pos_to_idx(fin);
-   if (i == -1 || j == -1) {
-      return "";
-   }
+   assert(j > i and i != -1 and j != -1);
    return _text.substr(i, j - i);
 }
 
