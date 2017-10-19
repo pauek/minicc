@@ -413,20 +413,6 @@ Token Lexer::read_operator() {
       }
       break;
 
-   case 'o':
-      if (curr(1) == 'r') {
-         next(), next();
-         op = "or";
-      }
-      break;
-
-   case 'a':
-      if (curr(1) == 'n' and curr(2) == 'd') {
-         next(), next(), next();
-         op = "and";
-      }
-      break;
-      
    default:
       break;
    }
