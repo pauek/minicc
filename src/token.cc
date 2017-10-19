@@ -117,33 +117,6 @@ struct TokenInfo {
 // Hay que dejarla antes que el _table...
 //
 TokenInfo toktab[] = {
-   { "switch",   Token::Switch,   Token::Control },
-   { "continue", Token::Continue, Token::Control },
-   { "return",   Token::Return,   Token::Control },
-
-   { "struct",   Token::Struct,   Token::None },
-   { "typedef",  Token::Typedef,  Token::None },
-
-   // simple_type_specifier
-   { "double",   Token::Double,   Token::TypeSpec | Token::BasicType },
-   { "string",   Token::String,   Token::TypeSpec | Token::BasicType | Token::Ident },
-
-   { "signed",   Token::Signed,   Token::TypeSpec },
-   { "unsigned", Token::Unsigned, Token::TypeSpec },
-
-   { "volatile", Token::Volatile, Token::TypeSpec | Token::TypeQual },
-
-   // storage_class_specifier
-   { "register", Token::Register, Token::TypeSpec | Token::TypeQual },
-   { "static",   Token::Static,   Token::TypeSpec | Token::TypeQual },
-   { "extern",   Token::Extern,   Token::TypeSpec | Token::TypeQual },
-   { "mutable",  Token::Mutable,  Token::TypeSpec | Token::TypeQual },
-
-   // function_specifier
-   { "inline",   Token::Inline,   Token::TypeSpec },
-   { "virtual",  Token::Virtual,  Token::TypeSpec },
-   { "explicit", Token::Explicit, Token::TypeSpec },
-
    { "END",      Token::Unknown,  Token::None }
 };
 
