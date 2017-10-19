@@ -416,22 +416,22 @@ void Lexer::read_multiline_comment(Comment& c) {
    return;
 }
 
-inline bool _isupper(char c) { return c >= 'A' and c <= 'Z'; }
-inline bool _islower(char c) { return c >= 'a' and c <= 'z'; }
-inline bool _isdigit(char c) { return c >= '0' and c <= '9'; }
+inline bool IsUpper(char c) { return c >= 'A' and c <= 'Z'; }
+inline bool IsLower(char c) { return c >= 'a' and c <= 'z'; }
+inline bool IsDigit(char c) { return c >= '0' and c <= '9'; }
 
 Token Lexer::read_id() {
    Token t;
    t.pos = _pos;
    t.ini = _curr;
    char c = curr();
-   if (!_isupper(c) and !_islower(c) and c != '_') {
+   if (!IsUpper(c) and !IsLower(c) and c != '_') {
       return Token();
    }
    t.str += c;
    next();
    c = curr();
-   while (_isupper(c) or _islower(c) or _isdigit(c) or c == '_') {
+   while (IsUpper(c) or IsLower(c) or IsDigit(c) or c == '_') {
       t.str += c;
       next();
       c = curr();
