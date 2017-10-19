@@ -45,10 +45,10 @@ public:
    int   group;
 
    bool IsIdent()     const { return group & Ident; }
-   bool IsTypeSpec()  const { return group & TypeSpec; }
+   bool IsTypeSpec()  const; // { return group & TypeSpec; }
    bool IsBasicType() const { return group & BasicType; }
    bool IsTypeQual()  const { return group & TypeQual; }
-   bool IsOperator()  const; // { return group & Operator; }
+   bool IsOperator()  const;
 
    Token(Type t = Token::Unknown, int _g = Group::None) 
       : type(t), group(_g) {}

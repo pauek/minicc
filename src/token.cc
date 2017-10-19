@@ -21,6 +21,7 @@ bool Token::IsIdent() const {
    }
    return false;
 }
+*/
 
 bool Token::IsTypeSpec() const {
    switch (type) {
@@ -49,7 +50,6 @@ bool Token::IsTypeSpec() const {
    }
    return false;
 }
-*/
 
 bool Token::IsOperator() const {
    switch (type) {
