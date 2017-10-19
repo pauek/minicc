@@ -6,64 +6,34 @@
 struct Token 
 {
    enum Type {
-      Empty,
-      Int, 
-      Void, 
-      Char, 
-      Double, 
-      Float, 
-      Bool, 
-      String,
-      
-      True, 
-      False,
-
-      Sharp, 
-      Not, 
-      Amp, 
-      Bar,
-      Star, 
-      Slash, 
-      Div,
-
-      Plus, 
-      Minus, 
-      PlusPlus, 
-      MinusMinus,
-
-      LBrace, 
-      RBrace, 
-      LParen, 
-      RParen, 
-      LBracket, 
-      RBracket, 
-      Dot, 
-      Arrow,
-
+      Empty, 
+      Ident,
+      True, False,
+      Void, Bool, Char, Int, Double, Float, String,
+      Sharp, Not, Amp, Bar, Star, Slash, Div,
+      Plus, Minus, PlusPlus, MinusMinus,
+      RBrace, LBrace, LParen, RParen, LBracket, RBracket, Dot, Arrow,
       If, Else, While, For, Switch, 
       Break, Continue, Goto, Return,
       Typedef, Class, Struct, Enum,
       Using,
-      
       StarEq, SlashEq, DivEq, LShiftEq, RShiftEq,
       Or, BarBar, And, AmpAmp, Xor,
       Comma, Eq, PlusEq, MinusEq,
+      Colon, ColonColon, SemiColon, QMark,
       AmpEq, BarEq, XorEq, 
-      EqEq, NotEq, LT, GT, LE, GE, LShift, RShift,
-      IntLiteral, CharLiteral, StringLiteral, 
-      FloatLiteral, DoubleLiteral,
+      EqEq, NotEq, LT, GT, LE, GE, 
+      LShift, RShift,
+      IntLiteral, CharLiteral, StringLiteral, FloatLiteral, DoubleLiteral,
       Signed, Unsigned, Volatile, Const, Short, Long,
       Inline, Virtual, Explicit,
       Auto, Register, Static, Extern, Mutable,
-      Colon, ColonColon, SemiColon, QMark,
-      Ident,
       Unknown
    };
    
    Type  type;
    Pos   pos;
    uint  len;
-   int   group;
 
    Token(Type t = Token::Unknown) : type(t) {}
 
