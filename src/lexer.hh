@@ -57,8 +57,8 @@ public:
           void  mark()                { _seen_endl = false; }
 
           bool  expect(std::string word);
-          void  consume(char c);
-          void  consume(std::string s);
+          void  consume(char c)       { assert(curr() == c); next(); }
+          void  consume(std::string word);
     CommentSeq *skip(std::string skip_set);
    std::string  skip_to(std::string stop_set);
 

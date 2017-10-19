@@ -30,15 +30,9 @@ void Lexer::error(string msg) {
    exit(1);
 }
 
-void Lexer::consume(char c) {
-   assert(curr() == c);
-   next();
-}
-
 void Lexer::consume(string word) {
-   for (int i = 0; i < word.size(); i++) {
-      consume(word[i]);
-   }
+   for (char c : word)
+      consume(c);
 }
 
 string Lexer::substr(const Token& t) {
