@@ -132,7 +132,7 @@ bool Lexer::next() {
 
 Token Lexer::read_token() {
 
-#define RESULT1(type, group, s) do {\
+#define RESULT1(type, group) do {\
    Token tok(Token::type, Token::group); \
    int ini = _curr; \
    tok.pos = _pos; \
@@ -141,7 +141,7 @@ Token Lexer::read_token() {
    return tok; \
 } while(0)
 
-#define RESULT2(type, group, s) do {\
+#define RESULT2(type, group) do {\
    Token tok(Token::type, Token::group); \
    int ini = _curr; \
    tok.pos = _pos; \
@@ -150,55 +150,55 @@ Token Lexer::read_token() {
    return tok; \
 } while(0)
 
-#define RESULT_1_2(ch, type1, group1, s1, type2, group2, s2) \
-   if (curr(1) == ch) RESULT2(type2, group2, s2); \
-   else RESULT1(type1, group1, s1); \
+#define RESULT_1_2(ch, type1, group1, type2, group2) \
+   if (curr(1) == ch) RESULT2(type2, group2); \
+   else RESULT1(type1, group1); \
 
-#define RESULT_OP_EQUALS(ch, str, type1, type2, type3) \
-   if (curr(1) == ch) RESULT2(type2, Operator, str str); \
-   else if (curr(1) == '=') RESULT2(type3, Operator, str "="); \
-   else RESULT1(type1, Operator, str);
+#define RESULT_OP_EQUALS(ch, type1, type2, type3) \
+   if (curr(1) == ch) RESULT2(type2, Operator); \
+   else if (curr(1) == '=') RESULT2(type3, Operator); \
+   else RESULT1(type1, Operator);
 
 
    switch (curr()) {
-   case '(': RESULT1(LParen, None, "(");
-   case ')': RESULT1(Unknown, Ident, ")");
-   case '[': RESULT1(LBrack, None, "[");
-   case ']': RESULT1(RBrack, None, "]");
-   case '{': RESULT1(LCurly, None, "{");
-   case '}': RESULT1(RCurly, None, "}");
-   case ';': RESULT1(SemiColon, None, ";");
-   case '#': RESULT1(Sharp, None, "#");
-   case ',': RESULT1(Comma, Operator, ",");
-   case '?': RESULT1(QMark, Operator, "?");
+   case '(': RESULT1(LParen, None);
+   case ')': RESULT1(Unknown, Ident);
+   case '[': RESULT1(LBrack, None);
+   case ']': RESULT1(RBrack, None);
+   case '{': RESULT1(LCurly, None);
+   case '}': RESULT1(RCurly, None);
+   case ';': RESULT1(SemiColon, None);
+   case '#': RESULT1(Sharp, None);
+   case ',': RESULT1(Comma, Operator);
+   case '?': RESULT1(QMark, Operator);
 
    // TODO: Add '~'
    // case '~': RESULT1(Tilde, Operator, "~");
 
-   case ':': RESULT_1_2(':', Colon,      None,     ":", 
-                             ColonColon, None,     "::");
-   case '=': RESULT_1_2('=', Assign,     Operator, "=", 
-                             EqEq,       Operator, "==");
-   case '!': RESULT_1_2('=', Not,        Operator, "!",
-                             NotEq,      Operator, "!=");
-   case '*': RESULT_1_2('=', Star,       Operator, "*",
-                             StarAssign, Operator, "*=");
-   case '/': RESULT_1_2('=', Slash,       Operator, "/",
-                             SlashAssign, Operator, "/=");
-   case '%': RESULT_1_2('=', Percent,     Operator, "%",
-                             DivAssign,   Operator, "%=");
-   case '^': RESULT_1_2('=', Circum,      Operator, "^",
-                             XorAssign,   Operator, "^=");
+   case ':': RESULT_1_2(':', Colon,      None,
+                             ColonColon, None);
+   case '=': RESULT_1_2('=', Assign,     Operator,
+                             EqEq,       Operator);
+   case '!': RESULT_1_2('=', Not,        Operator,
+                             NotEq,      Operator);
+   case '*': RESULT_1_2('=', Star,       Operator,
+                             StarAssign, Operator);
+   case '/': RESULT_1_2('=', Slash,       Operator,
+                             SlashAssign, Operator);
+   case '%': RESULT_1_2('=', Percent,     Operator,
+                             DivAssign,   Operator);
+   case '^': RESULT_1_2('=', Circum,      Operator,
+                             XorAssign,   Operator);
 
-   case '+': RESULT_OP_EQUALS('+', "+", Plus, PlusPlus, PlusAssign);
-   case '|': RESULT_OP_EQUALS('|', "|", Pipe, BarBar,   OrAssign);
-   case '&': RESULT_OP_EQUALS('&', "&", Amp,  AmpAmp,   AndAssign);
+   case '+': RESULT_OP_EQUALS('+', Plus, PlusPlus, PlusAssign);
+   case '|': RESULT_OP_EQUALS('|', Pipe, BarBar,   OrAssign);
+   case '&': RESULT_OP_EQUALS('&', Amp,  AmpAmp,   AndAssign);
 
    case '.': {
       if (isdigit(curr(1))) {
          return read_number_literal();
       }
-      RESULT1(Dot, Operator, ".");
+      RESULT1(Dot, Operator);
    }
 
    case '<': { // < <= << <<= > >= >> >>=
