@@ -419,17 +419,9 @@ Token Lexer::read_string_or_char_literal(char delim) {
       if (curr() == '\\') {
          next();
          switch (curr()) {
-         case 'a':  /* t.str += '\a'; */ break;
-         case 'b':  /* t.str += '\b'; */ break;
-         case 'f':  /* t.str += '\f'; */ break;
-         case 'n':  /* t.str += '\n'; */ break;
-         case 'r':  /* t.str += '\r'; */ break;
-         case 't':  /* t.str += '\t'; */ break;
-         case 'v':  /* t.str += '\v'; */ break;
-         case '\'': /* t.str += '\''; */ break;
-         case '\"': /* t.str += '\"'; */ break;
-         case '\?': /* t.str += '\?'; */ break;
-         case '\\': /* t.str += '\\'; */ break;
+         case 'a': case 'b': case 'f': case 'n': case 'r': case 't': case 'v': 
+         case '\'': case '\"': case '\?': case '\\': 
+            break;
          default: 
             cerr << "warning: unknown escape sequence '\\" 
                  << curr() << "'" << endl;
