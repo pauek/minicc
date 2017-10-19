@@ -395,7 +395,7 @@ Token Lexer::read_operator() {
       }
       break;
 
-   case '*': case '/': case '%': // * *= / /= % %= = == ! != ^ ^=
+   case '/': case '%': //  / /= % %= = == ! != ^ ^=
    case '=': case '!': case '^': 
       op += curr(); next();
       if (curr() == '=') {
