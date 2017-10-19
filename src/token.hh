@@ -46,7 +46,7 @@ struct Token
       Using,
       
       StarEq, SlashEq, DivEq, LShiftEq, RShiftEq,
-      Or, BarBar, And, AmpAmp, Circum,
+      Or, BarBar, And, AmpAmp, Xor,
       Comma, Eq, PlusEq, MinusEq,
       AmpEq, BarEq, XorEq, 
       EqEq, NotEq, LT, GT, LE, GE, LShift, RShift,

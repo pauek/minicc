@@ -181,7 +181,7 @@ Token Lexer::read_token() {
    case '*': RESULT_1_2('=', Star,    StarEq);
    case '/': RESULT_1_2('=', Slash,   SlashEq);
    case '%': RESULT_1_2('=', Div,     DivEq);
-   case '^': RESULT_1_2('=', Circum,  XorEq);
+   case '^': RESULT_1_2('=', Xor,  XorEq);
 
    case '+': RESULT_OP_EQUALS('+', Plus, PlusPlus, PlusEq);
    case '|': RESULT_OP_EQUALS('|', Bar, BarBar,   BarEq);

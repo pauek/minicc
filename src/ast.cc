@@ -56,7 +56,7 @@ struct {
    { "&&",  Token::AmpAmp,       Expr::LogicalAnd },
 
    { "|",   Token::Bar,          Expr::BitOr },
-   { "^",   Token::Circum,       Expr::BitXor },
+   { "^",   Token::Xor,       Expr::BitXor },
    { "&",   Token::Amp,          Expr::BitAnd },
 
    { "==",  Token::EqEq,         Expr::Equality },

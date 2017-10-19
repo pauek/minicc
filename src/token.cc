@@ -62,7 +62,7 @@ bool Token::IsOperator() const {
    case Token::Not:
    case Token::Amp:
    case Token::Bar:
-   case Token::Circum:
+   case Token::Xor:
    case Token::Plus:
    case Token::Minus:
    case Token::Star:
