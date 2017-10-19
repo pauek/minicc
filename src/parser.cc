@@ -458,7 +458,7 @@ Stmt *Parser::parse_jumpstmt(AstNode *parent) {
       stmt->label = _lexer.SubStr(tok);
       _skip(stmt);
    }
-   if (!_lexer.expect(";")) {
+   if (!_lexer.expect(Token::SemiColon)) {
       error(stmt, _lexer.pos().str() + ": " 
             + _T("Esperaba un ';' después de '%s'.", _lexer.SubStr(tok).c_str()));
       _lexer.skip_to(";\n"); // resync...
