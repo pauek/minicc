@@ -30,7 +30,7 @@ void static_analysis(Program *program) {
 }
 
 int show_ast(string filename) {
-   ifstream codefile(filename.c_str());
+   ifstream codefile(filename);
    Parser P(&codefile);
    AstNode *program = P.parse();
    AstVisitor *v = new AstPrinter(&cout);
@@ -45,7 +45,7 @@ int show_ast(string filename) {
 
 int prettyprint(string filename) {
    try {
-      ifstream codefile(filename.c_str());
+      ifstream codefile(filename);
       Parser P(&codefile);
       AstNode *program = P.parse();
       PrettyPrinter PP(&cout);
@@ -65,7 +65,7 @@ int prettyprint(string filename) {
 
 int step(string filename) {
    try {
-      ifstream codefile(filename.c_str());
+      ifstream codefile(filename);
       Parser P(&codefile);
       AstNode *program = P.parse();
 
@@ -98,7 +98,7 @@ int step(string filename) {
 
 int interpret(string filename) {
    try {
-      ifstream codefile(filename.c_str());
+      ifstream codefile(filename);
       Parser P(&codefile);
       AstNode *program = P.parse();
 
@@ -122,10 +122,23 @@ int interpret(string filename) {
    }
 }
 
+int tokenize(string filename) {
+   ifstream codefile(filename);
+   Lexer L(&codefile);
+   L.next();
+   L.skip("\n\t ");
+   while (!L.end()) {
+      Token tok = L.next_token();
+      cout << tok.ini << ' ' << tok.str << endl;
+      L.skip("\n\t ");
+   }
+}
+
 string filename, cmd;
 
 typedef int (*CmdFunc)(string);
 map<string, CmdFunc> funcs = {
+   {"tok",              tokenize},
    {"ast",              show_ast},
    {"pprint",           prettyprint},
    {"step",             step},
