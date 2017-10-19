@@ -110,7 +110,8 @@ AstNode* Parser::parse() {
             prog->add(parse_func_or_var(prog));
             break;
          }
-         error(prog, _T("Unexpected '%s' here.", tok.str.c_str()));
+         string s = _lexer.SubStr(tok);
+         error(prog, _T("Unexpected '%s' here.", s.c_str()));
          _lexer.read_token();
          break;
       }
@@ -126,7 +127,7 @@ AstNode* Parser::parse_macro(AstNode *parent) {
    Pos macro_ini = _lexer.pos();
    if (!_lexer.expect("include")) {
       Token tok = _lexer.read_id();
-      string macro_name = tok.str;
+      string macro_name = _lexer.SubStr(tok);
       _lexer.skip_to("\n");
       Pos macro_fin = _lexer.pos();
       _lexer.next();
@@ -186,7 +187,7 @@ AstNode* Parser::parse_using_declaration(AstNode *parent) {
    }
    _skip(u);
    Token tok = _lexer.read_id();
-   u->namespc = tok.str;
+   u->namespc = _lexer.SubStr(tok);
    _skip(u);
    u->fin = _lexer.pos();
    if (!_lexer.expect(";")) {
@@ -196,7 +197,7 @@ AstNode* Parser::parse_using_declaration(AstNode *parent) {
 }
 
 FullIdent *Parser::parse_ident(AstNode *parent, Token tok, Pos ini) {
-   FullIdent *id = new FullIdent(tok.str);
+   FullIdent *id = new FullIdent(_lexer.SubStr(tok));
    Pos fin = _lexer.pos();
    while (true) {
       tok = _lexer.peek_token();
@@ -224,7 +225,7 @@ FullIdent *Parser::parse_ident(AstNode *parent, Token tok, Pos ini) {
       if (!(tok.group & Token::Ident)) {
          error(id, _T("Expected an identifier here"));
       }
-      id->shift(tok.str);
+      id->shift(_lexer.SubStr(tok));
       fin = _lexer.pos();
    }
    id->ini = ini;
@@ -237,7 +238,7 @@ bool Parser::_parse_type_process_token(TypeSpec *type, Token tok, Pos p) {
       if (type->id != 0) {
          error(type, _T("Basic types are not templates"));
       }
-      type->id = new FullIdent(tok.str);
+      type->id = new FullIdent(_lexer.SubStr(tok));
       return true;
    } 
    if (tok.group & Token::TypeQual) {
@@ -325,7 +326,7 @@ void Parser::parse_function(FuncDecl *fn) {
       p->typespec = parse_typespec(fn);
       _skip(fn);
       Token tok = _lexer.read_id();
-      p->name = tok.str;
+      p->name = _lexer.SubStr(tok);
       _skip(fn);
       fn->params.push_back(p);
       p->fin = _lexer.pos();
@@ -455,12 +456,12 @@ Stmt *Parser::parse_jumpstmt(AstNode *parent) {
    _skip(stmt);
    if (stmt->kind == JumpStmt::Goto) {
       Token tok = _lexer.read_id();
-      stmt->label = tok.str;
+      stmt->label = _lexer.SubStr(tok);
       _skip(stmt);
    }
    if (!_lexer.expect(";")) {
       error(stmt, _lexer.pos().str() + ": " 
-            + _T("Esperaba un ';' después de '%s'.", tok.str.c_str()));
+            + _T("Esperaba un ';' después de '%s'.", _lexer.SubStr(tok).c_str()));
       _lexer.skip_to(";\n"); // resync...
    }
    return stmt;
@@ -533,7 +534,7 @@ Expr *Parser::parse_primary_expr(AstNode *parent) {
    case Token::CharLiteral: {
       Literal* lit = new Literal(Literal::Char);
       lit->parent = parent;
-      lit->val.as_char = tok.str[0];
+      lit->val.as_char = _translate_escapes(_lexer.SubStr(tok))[0];
       lit->ini = ini;
       lit->fin = _lexer.pos();
       _skip(lit);
@@ -548,7 +549,7 @@ Expr *Parser::parse_primary_expr(AstNode *parent) {
          typ = Literal::Float;
       }
       Literal* lit = new Literal(typ);
-      istringstream S(tok.str);
+      istringstream S(_lexer.SubStr(tok));
       S >> lit->val.as_double;
       lit->parent = parent;
       lit->ini = ini;
@@ -560,7 +561,7 @@ Expr *Parser::parse_primary_expr(AstNode *parent) {
    case Token::StringLiteral: {
       Literal* lit = new Literal(Literal::String);
       lit->parent = parent;
-      lit->val.as_string.s = new string(tok.str);
+      lit->val.as_string.s = new string(_translate_escapes(_lexer.SubStr(tok))); // FIXME: Shouldn't copy string
       lit->ini = ini;
       lit->fin = _lexer.pos();
       _skip(lit);
@@ -574,6 +575,36 @@ Expr *Parser::parse_primary_expr(AstNode *parent) {
    return e;
 }
 
+string Parser::_translate_escapes(string s) {
+   string result;
+   for (int i = 0; i < s.size(); i++) {
+      if (s[i] == '\\') {
+         i++;
+         assert(i < s.size());
+         switch (s[i]) {
+         case 'a':  result += '\a'; break;
+         case 'b':  result += '\b'; break;
+         case 'f':  result += '\f'; break;
+         case 'n':  result += '\n'; break;
+         case 'r':  result += '\r'; break;
+         case 't':  result += '\t'; break;
+         case 'v':  result += '\v'; break;
+         case '\'': result += '\''; break;
+         case '\"': result += '\"'; break;
+         case '\?': result += '\?'; break;
+         case '\\': result += '\\'; break;
+         default: 
+            // FIXME: Don't know where to handle this error...
+            cerr << "warning: unknown escape sequence '\\" 
+                 << s[i] << "'" << endl;
+            assert(false);
+         }
+      } else {
+         result += s[i];
+      }
+   }
+   return result;
+}
 
 Expr *Parser::parse_postfix_expr(AstNode *parent, Expr *e = 0) {
    if (e == 0) {
@@ -778,7 +809,7 @@ Expr *Parser::parse_fieldexpr(Expr *x, Token tok) {
    _lexer.consume(tok.type == Token::Arrow ? "->" : ".");
    _skip(e);
    Token id = _lexer.read_id();
-   e->field = new SimpleIdent(id.str);
+   e->field = new SimpleIdent(_lexer.SubStr(id));
    e->fin = _lexer.pos();
    return e;
 }
@@ -1001,13 +1032,13 @@ DeclStmt *Parser::parse_declstmt(AstNode *parent, bool is_typedef) {
    while (true) {
       Pos item_ini = _lexer.pos();
       Token id = _lexer.read_token();
-      string name = id.str;
+      string name = _lexer.SubStr(id);
       Decl::Kind kind = Decl::Normal;
       if (id.type == Token::Star) {
          kind = Decl::Pointer;
          _skip(stmt);
          id = _lexer.read_token();
-         name = id.str;
+         name = _lexer.SubStr(id);
       }
       if (id.group != Token::Ident) {
          stopper_error(stmt, _T("Expected a variable name here."));
@@ -1058,7 +1089,7 @@ EnumDecl *Parser::parse_enum(AstNode *parent) {
       _lexer.skip_to(";");
       return decl;
    }
-   decl->name = tok.str;
+   decl->name = _lexer.SubStr(tok);
    _skip(decl);
    if (!_lexer.expect("{")) {
       error(decl, _lexer.pos().str() + ": " + _T("Expected '%s' here.", "{"));
@@ -1072,7 +1103,7 @@ EnumDecl *Parser::parse_enum(AstNode *parent) {
          _lexer.skip_to(",}");
          break;
       }
-      EnumDecl::Value v(tok.str);
+      EnumDecl::Value v(_lexer.SubStr(tok));
       _skip(decl);
       if (_lexer.curr() == '=') {
          _lexer.next();
@@ -1083,7 +1114,7 @@ EnumDecl *Parser::parse_enum(AstNode *parent) {
             _lexer.skip_to(",};");
          }
          v.has_val = true;
-         istringstream S(num.str);
+         istringstream S(_lexer.SubStr(num));
          S >> v.val;
          _skip(decl);
       }
@@ -1126,7 +1157,8 @@ StructDecl *Parser::parse_struct(AstNode *parent) {
    decl->parent = parent;
    _skip(decl);
 
-   decl->id = new SimpleIdent(_lexer.read_id().str);
+   Token id = _lexer.read_id();
+   decl->id = new SimpleIdent(_lexer.SubStr(id));
    _skip(decl);
    
    tok = _lexer.read_token();

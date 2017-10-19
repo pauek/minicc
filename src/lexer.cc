@@ -138,7 +138,6 @@ Token Lexer::read_token() {
    tok.pos = _pos; \
    next(); \
    tok.len = _curr - ini; \
-   tok.str = s; \
    return tok; \
 } while(0)
 
@@ -148,7 +147,6 @@ Token Lexer::read_token() {
    tok.pos = _pos; \
    next(), next(); \
    tok.len = _curr - ini; \
-   tok.str = s; \
    return tok; \
 } while(0)
 
@@ -211,7 +209,6 @@ Token Lexer::read_token() {
       if (curr(1) == '<') { 
          if (curr(2) == '=') { // <<=
             tok.type = Token::LShiftAssign;
-            tok.str = "<<=";
             next(), next(), next();
          } else { // <<
             tok.type = Token::LShift;
@@ -219,11 +216,9 @@ Token Lexer::read_token() {
          }
       } else if (curr(1) == '=') { // <=
          tok.type = Token::LE;
-         tok.str = "<=";
          next(), next();
       } else {
          tok.type = Token::LT;
-         tok.str = "<";
          next();
       }
       tok.len = _curr - ini;
@@ -238,7 +233,6 @@ Token Lexer::read_token() {
       if (curr(1) == '>') { 
          if (curr(2) == '=') { // >>=
             tok.type = Token::RShiftAssign;
-            tok.str = ">>=";
             next(), next(), next();
          } else { // >>
             tok.type = Token::RShift;
@@ -246,11 +240,9 @@ Token Lexer::read_token() {
          }
       } else if (curr(1) == '=') { // >=
          tok.type = Token::GE;
-         tok.str = ">=";
          next(), next();
       } else {
          tok.type = Token::GT;
-         tok.str = ">";
          next();
       }
       tok.len = _curr - ini;
@@ -264,10 +256,10 @@ Token Lexer::read_token() {
       tok.group = Token::Operator;
       next();
       switch (curr()) {
-      case '=': tok.type = Token::MinusAssign; tok.str = "-="; next(); break;
-      case '-': tok.type = Token::MinusMinus;  tok.str = "--"; next(); break;
-      case '>': tok.type = Token::Arrow;       tok.str = "->"; next(); break;
-      default:  tok.type = Token::Minus;       tok.str = "-"; break;
+      case '=': tok.type = Token::MinusAssign; next(); break;
+      case '-': tok.type = Token::MinusMinus;  next(); break;
+      case '>': tok.type = Token::Arrow;       next(); break;
+      default:  tok.type = Token::Minus;       break;
       }
       tok.len = _curr - ini;
       return tok;
@@ -400,11 +392,9 @@ Token Lexer::read_id() {
    if (!IsUpper(c) and !IsLower(c) and c != '_') {
       return Token();
    }
-   t.str += c;
    next();
    c = curr();
    while (IsUpper(c) or IsLower(c) or IsDigit(c) or c == '_') {
-      t.str += c;
       next();
       c = curr();
    }
@@ -419,37 +409,34 @@ Token Lexer::read_id() {
 Token Lexer::read_string_or_char_literal(char delim) {
    string str;
    Token t;
-   t.pos = _pos;
    int ini = _curr + 1;
    if (curr() == 'L') {
       next(); // TODO: Handle 'L'
    }
    consume(delim);
+   t.pos = _pos;
    while (curr() != delim) {
       if (curr() == '\\') {
          next();
          switch (curr()) {
-         case 'a':  t.str += '\a'; break;
-         case 'b':  t.str += '\b'; break;
-         case 'f':  t.str += '\f'; break;
-         case 'n':  t.str += '\n'; break;
-         case 'r':  t.str += '\r'; break;
-         case 't':  t.str += '\t'; break;
-         case 'v':  t.str += '\v'; break;
-         case '\'': t.str += '\''; break;
-         case '\"': t.str += '\"'; break;
-         case '\?': t.str += '\?'; break;
-         case '\\': t.str += '\\'; break;
+         case 'a':  /* t.str += '\a'; */ break;
+         case 'b':  /* t.str += '\b'; */ break;
+         case 'f':  /* t.str += '\f'; */ break;
+         case 'n':  /* t.str += '\n'; */ break;
+         case 'r':  /* t.str += '\r'; */ break;
+         case 't':  /* t.str += '\t'; */ break;
+         case 'v':  /* t.str += '\v'; */ break;
+         case '\'': /* t.str += '\''; */ break;
+         case '\"': /* t.str += '\"'; */ break;
+         case '\?': /* t.str += '\?'; */ break;
+         case '\\': /* t.str += '\\'; */ break;
          default: 
             cerr << "warning: unknown escape sequence '\\" 
                  << curr() << "'" << endl;
-            t.str += curr();
          }
       } else if (curr() == '\n') {
          error("string inacabado");
          break;
-      } else {
-         t.str += curr();
       }
       next();
    }
@@ -467,16 +454,13 @@ Token Lexer::read_number_literal() {
    int ini = _curr;
    if (curr() == '.') {
       next();
-      t.str += '.';
       return read_real_literal(t, ini);
    }
    while (isdigit(curr())) {
-      t.str += curr();
       next();
    }
    if (curr() == '.') {
       next();
-      t.str += '.';
       return read_real_literal(t, ini);
    }
    // t.fin = _curr;
@@ -487,7 +471,6 @@ Token Lexer::read_number_literal() {
 
 Token Lexer::read_real_literal(Token t, int ini) {
    while (isdigit(curr())) {
-      t.str += curr();
       next();
    }
    bool isfloat = false;

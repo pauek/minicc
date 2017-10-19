@@ -49,6 +49,8 @@ class Parser {
    Decl *_parse_arraydecl(AstNode *parent, std::string name, Decl::Kind kind, CommentSeq *comm);
    Decl *_parse_objdecl(AstNode *parent, std::string name, CommentSeq *comm);
 
+   std::string _translate_escapes(std::string s);
+
 public:
              Parser(std::istream *in, std::ostream* err = &std::cerr);
 

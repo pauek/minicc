@@ -43,7 +43,6 @@ public:
    uint len;
    Type type;
    int  group;
-   std::string str;
 
    Token(Type t = Token::Unknown, int _g = None) 
       : type(t), group(_g) {}
