@@ -30,7 +30,7 @@ void Interpreter::invoke_func_prepare(FuncDecl *fn, const vector<Value>& args) {
 void Interpreter::visit_program_prepare(Program *x) {
    prepare_global_environment();
 
-   for (AstNode *n : x->nodes) {
+   for (Ast *n : x->nodes) {
       n->accept(this);
    }
 }

@@ -27,22 +27,22 @@ class Parser {
       n->comments.push_back(_lexer.skip());
    }
 
-   void error(AstNode *n, std::string msg);
-   void error(AstNode *n, Pos ini, Pos fin, std::string msg);
-   void stopper_error(AstNode *n, std::string msg);
-   void stopper_error(AstNode *n, Pos ini, Pos fin, std::string msg);
+   void error(Ast *n, std::string msg);
+   void error(Ast *n, Pos ini, Pos fin, std::string msg);
+   void stopper_error(Ast *n, std::string msg);
+   void stopper_error(Ast *n, Pos ini, Pos fin, std::string msg);
    void fatal_error(Pos p, std::string msg);
 
    template<class Node>
    typename Node::Error *error(std::string msg);
 
-   void parse_expr_seq(AstNode *n, std::vector<Expr*>& v);
-   void parse_type_seq(AstNode *n, std::vector<TypeSpec*>& v);
+   void parse_expr_seq(Ast *n, std::vector<Expr*>& v);
+   void parse_type_seq(Ast *n, std::vector<TypeSpec*>& v);
    bool _parse_type_process_token(TypeSpec *type, Token tok, Pos p);
 
-   Decl *_parse_vardecl(AstNode *parent, std::string name, Decl::Kind kind, CommentSeq *comm);
-   Decl *_parse_arraydecl(AstNode *parent, std::string name, Decl::Kind kind, CommentSeq *comm);
-   Decl *_parse_objdecl(AstNode *parent, std::string name, CommentSeq *comm);
+   Decl *_parse_vardecl(Ast *parent, std::string name, Decl::Kind kind, CommentSeq *comm);
+   Decl *_parse_arraydecl(Ast *parent, std::string name, Decl::Kind kind, CommentSeq *comm);
+   Decl *_parse_objdecl(Ast *parent, std::string name, CommentSeq *comm);
 
    std::string _translate_escapes(std::string s);
 
@@ -51,39 +51,39 @@ public:
 
 const Lexer& lexer() const { return _lexer; }
 
-    AstNode *parse();
-    AstNode *parse_macro(AstNode *parent);
-    AstNode *parse_using_declaration(AstNode *parent);
-    AstNode *parse_func_or_var(AstNode *parent);
+        Ast *parse();
+        Ast *parse_macro(Ast *parent);
+        Ast *parse_using_declaration(Ast *parent);
+        Ast *parse_func_or_var(Ast *parent);
        void  parse_function(FuncDecl *fn);
-      Block *parse_block(AstNode *parent);
-       Stmt *parse_stmt(AstNode *parent);
-       Stmt *parse_iterstmt(AstNode *parent, string which);
-       Stmt *parse_while(AstNode *parent);
-       Stmt *parse_for(AstNode *parent);
-       Stmt *parse_ifstmt(AstNode *parent);
-       Stmt *parse_switch(AstNode *parent);
-   ExprStmt *parse_exprstmt(AstNode *parent, bool is_return = false);
-   DeclStmt *parse_declstmt(AstNode *parent, bool is_typedef = false);
-       Stmt *parse_decl_or_expr_stmt(AstNode *parent);
-       Stmt *parse_jumpstmt(AstNode *parent);
+      Block *parse_block(Ast *parent);
+       Stmt *parse_stmt(Ast *parent);
+       Stmt *parse_iterstmt(Ast *parent, string which);
+       Stmt *parse_while(Ast *parent);
+       Stmt *parse_for(Ast *parent);
+       Stmt *parse_ifstmt(Ast *parent);
+       Stmt *parse_switch(Ast *parent);
+   ExprStmt *parse_exprstmt(Ast *parent, bool is_return = false);
+   DeclStmt *parse_declstmt(Ast *parent, bool is_typedef = false);
+       Stmt *parse_decl_or_expr_stmt(Ast *parent);
+       Stmt *parse_jumpstmt(Ast *parent);
 
-   TypeSpec *parse_typespec(AstNode *parent);
-  FullIdent *parse_ident(AstNode *parent, Token tok, Pos ini);
+   TypeSpec *parse_typespec(Ast *parent);
+  FullIdent *parse_ident(Ast *parent, Token tok, Pos ini);
 
- StructDecl *parse_struct(AstNode *parent);
-TypedefDecl *parse_typedef(AstNode *parent);
-   EnumDecl *parse_enum(AstNode *parent);
+ StructDecl *parse_struct(Ast *parent);
+TypedefDecl *parse_typedef(Ast *parent);
+   EnumDecl *parse_enum(Ast *parent);
 
-       Expr *parse_expr(AstNode *parent, Expr::Kind max = Expr::Comma);
-       Expr *parse_primary_expr(AstNode *parent);
-       Expr *parse_postfix_expr(AstNode *, Expr *);
-       Expr *parse_unary_expr(AstNode *parent);
+       Expr *parse_expr(Ast *parent, Expr::Kind max = Expr::Comma);
+       Expr *parse_primary_expr(Ast *parent);
+       Expr *parse_postfix_expr(Ast *, Expr *);
+       Expr *parse_unary_expr(Ast *parent);
        Expr *parse_callexpr(Expr *);
        Expr *parse_indexexpr(Expr *);
        Expr *parse_fieldexpr(Expr *, Token);
        Expr *parse_increxpr(Expr *, Token);
-       Expr *parse_exprlist(AstNode *parent);
+       Expr *parse_exprlist(Ast *parent);
 };
 
 #endif

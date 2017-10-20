@@ -567,7 +567,7 @@ Vector::Vector(Type *celltype)
          }
          return Reference::mkref(the_vector[k]);
       }
-      bool call_abstract(AstNode *x, Value self, const vector<Value>& args) {
+      bool call_abstract(Ast *x, Value self, const vector<Value>& args) {
          Value the_index = Reference::deref(args[0]);
          if (!the_index.is<Int>()) {
             x->add_error(_T("El índice a una casilla de un vector debe ser un 'int' (no '%s').",
@@ -1928,7 +1928,7 @@ void IStream::_add_istream_methods() {
          in >> holder;
          return self; 
       }
-      bool call_abstract(AstNode *x, Value self, const vector<Value>& args) {
+      bool call_abstract(Ast *x, Value self, const vector<Value>& args) {
          Value holder = args[0];
          if (holder.is_unknown()) {
             holder.to_abstract();

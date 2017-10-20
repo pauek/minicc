@@ -17,11 +17,9 @@ struct Error {
    std::string msg;
    bool stopper;     // this error should eclipse the following errors
                      // (probably an avalanche of parsing errors)
-   
    Error(std::string m)               : stopper(false), msg(m) {}
    Error(Pos p, std::string m)        : stopper(false), ini(p), msg(m) {}
    Error(Pos i, Pos f, std::string m) : stopper(false), ini(i), fin(f), msg(m) {}
-
    void to_json(std::ostream& o) const;
 };
 
@@ -34,7 +32,7 @@ struct Comment {
 
 struct CommentSeq {
    std::vector<Comment> items;
-   
+
    bool has_endl() const;
    bool starts_with_endl()  const { return !items.empty() and items.front().kind == Comment::endline; }
    bool ends_with_endl()    const { return !items.empty() and items.back().kind  == Comment::endline; }
@@ -46,19 +44,21 @@ struct CommentSeq {
 class AstVisitor;
 struct TypeSpec;
 
-struct AstNode {
+
+
+struct Ast {
                       Pos ini, fin;
       std::vector<Error*> errors;
  std::vector<CommentSeq*> comments;
-                 AstNode *parent;
+                 Ast *parent;
 
                   void add_error(std::string msg);
                   void add_error(Pos ini, Pos fin, std::string msg);
 
-   virtual            ~AstNode() {}
+   virtual            ~Ast() {}
    virtual        void accept(AstVisitor* v) = 0;
    virtual         int num_children() const { return 0; }
-   virtual    AstNode* child(int n)   const { return 0; }
+   virtual    Ast* child(int n)   const { return 0; }
    virtual        bool has_errors()   const { return !errors.empty(); }
    virtual std::string describe()     const { return "UNIMPLEMENTED"; }
                   Span span()         const { return Span(ini, fin); }
@@ -71,18 +71,18 @@ struct AstNode {
                     X *as()                 { return dynamic_cast<X*>(this); }
 };
 
-struct Program : public AstNode {
-   std::vector<AstNode*> nodes;
+struct Program : public Ast {
+   std::vector<Ast*> nodes;
 
-   int      num_children() const { return nodes.size(); }
-   AstNode* child(int n)         { return nodes[n]; }
-   void     add(AstNode* n)      { nodes.push_back(n), n->parent = this; }
-   void     accept(AstVisitor* v);
+   int  num_children() const { return nodes.size(); }
+   Ast* child(int n)         { return nodes[n]; }
+   void add(Ast* n)      { nodes.push_back(n), n->parent = this; }
+   void accept(AstVisitor* v);
 
-   bool     has_errors() const;
+   bool has_errors() const;
 };
 
-struct Include : public AstNode {
+struct Include : public Ast {
    std::string filename;
    bool global;
 
@@ -92,13 +92,13 @@ struct Include : public AstNode {
    void accept(AstVisitor* v);
 };
 
-struct Macro : public AstNode {
+struct Macro : public Ast {
    std::string macro;
    Macro(std::string _macro) : macro(_macro) {}
    void accept(AstVisitor *v);
 };
 
-struct Using : public AstNode {
+struct Using : public Ast {
    std::string namespc;
    void accept(AstVisitor *v);
 };
@@ -107,7 +107,7 @@ struct Using : public AstNode {
 
 struct Expr;
 
-struct Stmt : public AstNode {
+struct Stmt : public Ast {
    void accept(AstVisitor *v);
    struct Error;
 };
@@ -154,7 +154,7 @@ struct WhileStmt : public Stmt { // while + for
    bool has_errors() const;
 };
 
-struct Decl : public AstNode {
+struct Decl : public Ast {
    enum Kind { Normal, Pointer };
    TypeSpec *typespec;
    std::string name;
@@ -214,7 +214,7 @@ struct Block : public Stmt {
 
 // Expressions /////////////////////////////////////////////
 
-struct Expr : public AstNode {
+struct Expr : public Ast {
    enum Kind { 
       Unknown,
       // pm_expression 
@@ -395,7 +395,7 @@ struct ExprList : public Expr {
    bool has_errors() const;
 };
 
-struct TypeSpec : public AstNode {
+struct TypeSpec : public Ast {
    static const std::string QualifiersNames[];
 
    enum Qualifiers {
@@ -420,7 +420,7 @@ struct TypeSpec : public AstNode {
 
 // Declarations ////////////////////////////////////////////
 
-struct FuncDecl : public AstNode {
+struct FuncDecl : public Ast {
    struct Param {
       Pos ini, fin;
       TypeSpec *typespec;
@@ -440,7 +440,7 @@ struct FuncDecl : public AstNode {
    bool has_errors() const;
 };
 
-struct StructDecl : public AstNode {
+struct StructDecl : public Ast {
    SimpleIdent *id;
    std::vector<DeclStmt*> decls;
    
@@ -452,14 +452,14 @@ struct StructDecl : public AstNode {
    int num_fields() const;
 };
 
-struct TypedefDecl : public AstNode {
+struct TypedefDecl : public Ast {
    Decl *decl;
    TypedefDecl() : decl(0) {}
    void accept(AstVisitor *v);
    bool has_errors() const;
 };
 
-struct EnumDecl : public AstNode {
+struct EnumDecl : public Ast {
    struct Value {
       std::string id;
       bool has_val;
@@ -517,7 +517,7 @@ public:
 
 class AstVisitor {
 public:
-   void visit(AstNode *x) { x->accept(this); }
+   void visit(Ast *x) { x->accept(this); }
 
    virtual void visit_program(Program*)              { assert(false); }
    virtual void visit_include(Include*)              { assert(false); }

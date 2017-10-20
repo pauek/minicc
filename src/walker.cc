@@ -33,7 +33,7 @@ void Walker::visit_fullident(FullIdent *x) {
 
 void Walker::visit_program(Program* x) {
    walk(x);
-   for (AstNode* n : x->nodes) {
+   for (Ast* n : x->nodes) {
       n->accept(this);
    }
 }

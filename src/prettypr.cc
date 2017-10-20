@@ -23,7 +23,7 @@ using namespace std;
 
 
 class CommentPrinter {
-   AstNode *x;
+   Ast *x;
    int i;
    bool was_empty, had_endl;
    PrettyPrinter *pr;
@@ -37,7 +37,7 @@ class CommentPrinter {
    }
    string CMT(bool pre, bool post, bool _endl, bool missing);
 public:
-   CommentPrinter(AstNode *_x, PrettyPrinter *_pr) 
+   CommentPrinter(Ast *_x, PrettyPrinter *_pr) 
       : x(_x), pr(_pr), i(0), had_endl(false), was_empty(true) {}
 
    CommentSeq *next()    const { return (i < x->comments.size() ? x->comments[i] : 0); }
@@ -106,7 +106,7 @@ void PrettyPrinter::visit_program(Program* x) {
    int i;
    for (i = 0; i < x->nodes.size(); i++) {
       out() << cp.cmt();
-      AstNode *n = x->nodes[i];
+      Ast *n = x->nodes[i];
       if ((!cp.last_was_empty() and !cp.last_had_endl()) or
           (i > 0 and n->is<FuncDecl>() and 
            (x->comments[i] and !x->comments[i]->ends_with_empty_line()))) {

@@ -7,7 +7,7 @@ using namespace std;
 void AstPrinter::visit_program(Program* x) {
    out() << "Program{" << endl;
    indent(+1);
-   for (AstNode* n : x->nodes) {
+   for (Ast* n : x->nodes) {
       out(beginl);
       n->accept(this);
       out() << endl;

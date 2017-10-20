@@ -122,7 +122,7 @@ int test_visitor(string filename, VisitorType vtype) {
    ostringstream Sout, Saux, Serr;
    istringstream Scode(code), Sin(in);
    Parser P(&Scode, &Serr);
-   AstNode *program;
+   Ast *program;
    try {
       program = P.parse();
    }
@@ -195,7 +195,7 @@ int _test_parser_and_semantic(string filename, bool do_semantic) {
    ostringstream Sout, Saux, Serr;
    istringstream Scode(code), Sin(in);
    Parser P(&Scode, &Serr);
-   AstNode *program;
+   Ast *program;
    try {
       program = P.parse();
       if (do_semantic) {

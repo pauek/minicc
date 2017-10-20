@@ -30,9 +30,9 @@ class Stepper : public AstVisitor {
           void prepare_funcall(FuncDecl *, std::vector<Value>&);
           void _error(std::string msg) { _errors.push_back(msg); }
 
-          void eval(AstNode *x) { x->accept(&I); }
+          void eval(Ast *x) { x->accept(&I); }
 
-          void generic_visit(AstNode *x);
+          void generic_visit(Ast *x);
           void visit_assignment(BinaryExpr *x);
 
    std::stringstream _out;

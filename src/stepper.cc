@@ -35,7 +35,7 @@ Todo Stepper::PopState::step(Stepper *S) {
    return Next; 
 }
 
-void Stepper::generic_visit(AstNode *x) {
+void Stepper::generic_visit(Ast *x) {
    x->accept(&I);
    status(x->describe());
    push(new PopState(x->span()));

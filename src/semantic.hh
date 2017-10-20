@@ -13,9 +13,9 @@
 class SemanticAnalyzer : 
    public AstVisitor, public WithEnvironment
 {
-     std::string _curr_varname;
-   AstNode *_curr_node;
-     Value _curr, _ret;
+    std::string  _curr_varname;
+            Ast *_curr_node;
+          Value  _curr, _ret;
 
      void  visit_binaryexpr_assignment(BinaryExpr *x, Value left, Value right);
      void  visit_binaryexpr_op_assignment(char, Value left, Value right);
@@ -25,7 +25,7 @@ class SemanticAnalyzer :
      bool  bind_field(Value obj, string method_name);
      bool  call_operator(string op, const std::vector<Value>& args = std::vector<Value>());
      void  check_condition(Expr *cond, std::string who);
-     void  check_unknown(Value v, AstNode *x, string varname);
+     void  check_unknown(Value v, Ast *x, string varname);
      void  eval_arguments(const std::vector<Expr *>& args,
                           std::vector<Value>& argvals);
    

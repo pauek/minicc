@@ -7,7 +7,7 @@ using namespace std;
 void SemanticAnalyzer::visit_program(Program* x) {
    _curr_node = x;
    prepare_global_environment();
-   for (AstNode *n : x->nodes) {
+   for (Ast *n : x->nodes) {
       n->accept(this);
    }
 }
@@ -297,7 +297,7 @@ bool SemanticAnalyzer::visit_comparison(Value left, Value right) {
    return false;
 }
 
-void SemanticAnalyzer::check_unknown(Value v, AstNode *x, string varname) {
+void SemanticAnalyzer::check_unknown(Value v, Ast *x, string varname) {
    if (v.is_unknown()) {
       x->add_error(_T("Utilizas la variable '%s' sin haberla inicializado.", 
                       varname.c_str()));
@@ -983,7 +983,7 @@ void SemanticAnalyzer::visit_fieldexpr(FieldExpr *x) {
    
    if (!bind_field(obj, x->field->name)) {
       if (obj.type()->is(Type::Class)) {
-         AstNode *parent = x->parent;
+         Ast *parent = x->parent;
          const char *msg;
          if (parent->is<CallExpr>()) {
             msg = "La clase '%s' no tiene método '%s'.";

@@ -44,11 +44,11 @@ void CommentSeq::only_one_endl_at_end() {
 }
 
 
-void AstNode::add_error(string msg) {
+void Ast::add_error(string msg) {
    errors.push_back(new Error(ini, fin, msg));
 }
 
-void AstNode::add_error(Pos _ini, Pos _fin, string msg) {
+void Ast::add_error(Pos _ini, Pos _fin, string msg) {
    errors.push_back(new Error(_ini, _fin, msg));
 }
 
@@ -206,30 +206,30 @@ string Literal::escape(string s, char delim) {
    if (x and x->has_errors()) return true;
 
 bool Program::has_errors() const {
-   for (AstNode *n : nodes) {
+   for (Ast *n : nodes) {
       _ERRORS(n);
    }
-   return AstNode::has_errors();
+   return Ast::has_errors();
 }
 
 bool ExprStmt::has_errors() const {
    _ERRORS(expr);
-   return AstNode::has_errors();
+   return Ast::has_errors();
 }
 
 bool IfStmt::has_errors() const {
    _ERRORS(cond); _ERRORS(then); _ERRORS(els);
-   return AstNode::has_errors();
+   return Ast::has_errors();
 }
 
 bool ForStmt::has_errors() const {
    _ERRORS(init); _ERRORS(cond); _ERRORS(post); _ERRORS(substmt);
-   return AstNode::has_errors();
+   return Ast::has_errors();
 }
 
 bool WhileStmt::has_errors() const {
    _ERRORS(cond); _ERRORS(substmt);
-   return AstNode::has_errors();
+   return Ast::has_errors();
 }
 
 bool DeclStmt::has_errors() const {
@@ -238,58 +238,58 @@ bool DeclStmt::has_errors() const {
       _ERRORS(i.decl);
       _ERRORS(i.init);
    } 
-   return AstNode::has_errors();
+   return Ast::has_errors();
 }
 
 bool Block::has_errors() const {
    for (Stmt *s : stmts) {
       _ERRORS(s);
    }
-   return AstNode::has_errors();
+   return Ast::has_errors();
 }
 
 bool TemplateIdent::has_errors() const {
    for (TypeSpec *t : subtypes) {
       _ERRORS(t);
    }
-   return AstNode::has_errors();
+   return Ast::has_errors();
 }
 
 bool FullIdent::has_errors() const {
    for (TemplateIdent *id : prefix) {
       _ERRORS(id);
    }
-   return TemplateIdent::has_errors() || AstNode::has_errors();
+   return TemplateIdent::has_errors() || Ast::has_errors();
 }
 
 bool BinaryExpr::has_errors() const {
    _ERRORS(left); _ERRORS(right);
-   return AstNode::has_errors();
+   return Ast::has_errors();
 }
 
 bool UnaryExpr::has_errors() const {
    _ERRORS(expr);
-   return AstNode::has_errors();
+   return Ast::has_errors();
 }
 
 bool CallExpr::has_errors() const {
    _ERRORS(func);
-   return AstNode::has_errors();
+   return Ast::has_errors();
 }
 
 bool IndexExpr::has_errors() const {
    _ERRORS(base); _ERRORS(index);
-   return AstNode::has_errors();
+   return Ast::has_errors();
 }
 
 bool FieldExpr::has_errors() const {
    _ERRORS(base); _ERRORS(field);
-   return AstNode::has_errors();
+   return Ast::has_errors();
 }
 
 bool CondExpr::has_errors() const {
    _ERRORS(cond); _ERRORS(then); _ERRORS(els);
-   return AstNode::has_errors();
+   return Ast::has_errors();
 }
 
 bool ExprList::has_errors() const {
@@ -303,7 +303,7 @@ bool ExprList::has_errors() const {
 
 bool TypeSpec::has_errors() const {
    _ERRORS(id);
-   return AstNode::has_errors();
+   return Ast::has_errors();
 }
 
 bool FuncDecl::has_errors() const {
@@ -311,7 +311,7 @@ bool FuncDecl::has_errors() const {
    for (Param* p : params) {
       _ERRORS(p->typespec);
    }
-   return AstNode::has_errors();
+   return Ast::has_errors();
 }
 
 bool StructDecl::has_errors() const {
@@ -319,12 +319,12 @@ bool StructDecl::has_errors() const {
    for (DeclStmt *d : decls) {
       _ERRORS(d);
    }
-   return AstNode::has_errors();
+   return Ast::has_errors();
 }
 
 bool TypedefDecl::has_errors() const {
    _ERRORS(decl);
-   return AstNode::has_errors();
+   return Ast::has_errors();
 }
 
 string TemplateIdent::typestr() const {

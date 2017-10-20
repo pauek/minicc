@@ -10,7 +10,7 @@ class Walker : public AstVisitor, public ReadWriter {
 public:
    Walker(std::ostream *o = &std::cout) : ReadWriter(o) {}
 
-   virtual void walk(AstNode *n) = 0;
+   virtual void walk(Ast *n) = 0;
 
    void visit_include(Include *x);
    void visit_macro(Macro *x);
@@ -56,14 +56,14 @@ struct ErrorCollector : public Walker {
    
    ErrorCollector(std::vector<Error*>& v) : errors(v) {}
    
-   void walk(AstNode *n) {
+   void walk(Ast *n) {
       const std::vector<Error*>& ve = n->errors;
       errors.insert(errors.end(), ve.begin(), ve.end());
       n->errors.clear();
    }
 };
 
-inline void collect_errors(AstNode *x, std::vector<Error*>& v) {
+inline void collect_errors(Ast *x, std::vector<Error*>& v) {
    if (x != 0) {
       ErrorCollector e(v);
       x->accept(&e);

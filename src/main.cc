@@ -14,7 +14,7 @@ using namespace std;
 #include "translator.hh"
 #include "walker.hh"
 
-int semantic_analysis(AstNode *program, string filename) {
+int semantic_analysis(Ast *program, string filename) {
    SemanticAnalyzer A;
    program->accept(&A);
    vector<Error*> ve;
@@ -32,7 +32,7 @@ void static_analysis(Program *program) {
 int show_ast(string filename) {
    ifstream codefile(filename);
    Parser P(&codefile);
-   AstNode *program = P.parse();
+   Ast *program = P.parse();
    AstVisitor *v = new AstPrinter(&cout);
    program->accept(v);
    vector<Error*> ve;
@@ -47,7 +47,7 @@ int prettyprint(string filename) {
    try {
       ifstream codefile(filename);
       Parser P(&codefile);
-      AstNode *program = P.parse();
+      Ast *program = P.parse();
       PrettyPrinter PP(&cout);
       program->accept(&PP);
       vector<Error*> ve;
@@ -67,7 +67,7 @@ int step(string filename) {
    try {
       ifstream codefile(filename);
       Parser P(&codefile);
-      AstNode *program = P.parse();
+      Ast *program = P.parse();
 
       int nerrors = semantic_analysis(program, filename);
       if (nerrors > 0) {
@@ -100,7 +100,7 @@ int interpret(string filename) {
    try {
       ifstream codefile(filename);
       Parser P(&codefile);
-      AstNode *program = P.parse();
+      Ast *program = P.parse();
 
       int nerrors = semantic_analysis(program, filename);
       if (nerrors > 0) {
