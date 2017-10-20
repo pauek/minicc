@@ -49,8 +49,8 @@ public:
           bool  curr_one_of(std::string set) const;
 
    std::string  SubStr(const Token& t);
-   std::string  SubStr(const Pos& ini, const Pos& fin) const;
-   std::string  SubStr(const Span& r) const { return SubStr(r.ini, r.fin); }
+   std::string  SubStr(const Pos& begin, const Pos& end) const;
+   std::string  SubStr(const Span& r) const { return SubStr(r.begin, r.end); }
 
           void  save();
           void  restore();

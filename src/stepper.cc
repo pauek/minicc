@@ -65,8 +65,8 @@ Span Stepper::ProgramVisitState::span() const {
    if (at == ProgramVisitState::Begin) {
       return x->id->span; 
    } else if (at == ProgramVisitState::Finished) {
-      Span span(x->block->span.fin, x->block->span.fin);
-      span.ini.col--;
+      Span span(x->block->span.end, x->block->span.end);
+      span.begin.col--;
       return span;
    }
    return Span();
@@ -303,7 +303,7 @@ Span Stepper::EqmentVisitState::span() const {
    if (left.is_null()) {
       return x->right->span;
    } else {
-      return Span(x->left->span.ini, x->right->span.ini);
+      return Span(x->left->span.begin, x->right->span.begin);
    }
 }
 
@@ -421,8 +421,8 @@ string Stepper::state2json() const {
    Span s = span();
    json << "\"span\":" << "{";
    // -1 for codemirror!
-   json << "\"ini\":{" << "\"line\":" <<  s.ini.lin-1 << ",\"ch\":" << s.ini.col << "},";
-   json << "\"fin\":{" << "\"line\":" <<  s.fin.lin-1 << ",\"ch\":" << s.fin.col << "}";
+   json << "\"ini\":{" << "\"line\":" <<  s.begin.lin-1 << ",\"ch\":" << s.begin.col << "},";
+   json << "\"fin\":{" << "\"line\":" <<  s.end.lin-1 << ",\"ch\":" << s.end.col << "}";
    json << "}}";
    return json.str();
 }

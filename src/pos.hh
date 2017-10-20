@@ -14,10 +14,10 @@ struct Pos {
 };
 
 struct Span {
-   Pos ini, fin;
+   Pos begin, end;
    Span() {}
-   explicit Span(Pos p) : ini(p), fin(p) {}
-   explicit Span(Pos i, Pos f) : ini(i), fin(f) {}
+   explicit Span(Pos p) : begin(p), end(p) {}
+   explicit Span(Pos b, Pos e) : begin(b), end(e) {}
 };
 
 inline std::ostream& operator<<(std::ostream& o, const Pos& pos) {
@@ -25,7 +25,7 @@ inline std::ostream& operator<<(std::ostream& o, const Pos& pos) {
 }
 
 inline std::ostream& operator<<(std::ostream& o, const Span& rng) {
-   return o << rng.ini << "-" << rng.fin;
+   return o << rng.begin << "-" << rng.end;
 }
 
 inline std::string Pos::str() const {

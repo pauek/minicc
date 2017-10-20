@@ -296,7 +296,7 @@ Ast *Parser::parse_func_or_var(Ast *parent) {
       fn->comments.assign(c, c+2);
       fn->return_typespec = typespec;
       typespec->parent = fn;
-      fn->span.ini = ini;
+      fn->span.begin = ini;
       parse_function(fn);
       return fn;
    } else {
@@ -344,7 +344,7 @@ void Parser::parse_function(FuncDecl *fn) {
    } else {
       fn->block = parse_block(fn);
    }
-   fn->span.fin = _lexer.pos();
+   fn->span.end = _lexer.pos();
 }
 
 Block *Parser::parse_block(Ast *parent) {
@@ -440,7 +440,7 @@ Stmt *Parser::parse_decl_or_expr_stmt(Ast *parent) {
 Stmt *Parser::parse_jumpstmt(Ast *parent) {
    JumpStmt *stmt = new JumpStmt();
    stmt->parent = parent;
-   stmt->span.ini = _lexer.pos();
+   stmt->span.begin = _lexer.pos();
    Token tok = _lexer.read_token();
    switch (tok.type) {
    case Token::Break:    stmt->kind = JumpStmt::Break; break;
@@ -466,7 +466,7 @@ Stmt *Parser::parse_jumpstmt(Ast *parent) {
 ExprStmt *Parser::parse_exprstmt(Ast *parent, bool is_return) {
    ExprStmt *stmt = new ExprStmt();
    stmt->parent = parent;
-   stmt->span.ini = _lexer.pos();
+   stmt->span.begin = _lexer.pos();
    if (is_return) {
       Token tok = _lexer.read_token();
       assert(tok.type == Token::Return);
@@ -479,7 +479,7 @@ ExprStmt *Parser::parse_exprstmt(Ast *parent, bool is_return) {
       stmt->expr->span = Span(eini, efin);
    }
    _skip(stmt);
-   stmt->span.fin = _lexer.pos();
+   stmt->span.end = _lexer.pos();
    if (!_lexer.expect(Token::SemiColon)) {
       error(stmt, _lexer.pos().str() + ": " + _T("Expected ';' after expression"));
       _lexer.skip_to(";\n"); // resync...
@@ -648,7 +648,7 @@ Expr *Parser::parse_unary_expr(Ast *parent) {
       _lexer.next();
       _skip(se);
       se->expr = parse_unary_expr(se);
-      se->span = Span(ini, se->expr->span.fin);
+      se->span = Span(ini, se->expr->span.end);
       e = se;
       break;
    }
@@ -657,7 +657,7 @@ Expr *Parser::parse_unary_expr(Ast *parent) {
       _lexer.next();
       _skip(ae);
       ae->expr = parse_unary_expr(ae);
-      ae->span = Span(ini, ae->expr->span.fin);
+      ae->span = Span(ini, ae->expr->span.end);
       e = ae;
       break;
    }      
@@ -666,7 +666,7 @@ Expr *Parser::parse_unary_expr(Ast *parent) {
       _lexer.next();
       _skip(de);
       de->expr = parse_unary_expr(de);
-      de->span = Span(ini, de->expr->span.fin);
+      de->span = Span(ini, de->expr->span.end);
       e = de;
       break;
    }      
@@ -679,7 +679,7 @@ Expr *Parser::parse_unary_expr(Ast *parent) {
       CommentSeq *comm = _lexer.skip();
       ie->expr = parse_unary_expr(ie);
       ie->preincr = true;
-      ie->span = Span(ini, ie->expr->span.fin);
+      ie->span = Span(ini, ie->expr->span.end);
       ie->comments.insert(ie->comments.begin(), comm);
       e = ie;
       break;
@@ -737,7 +737,7 @@ Expr *Parser::parse_expr(Ast *parent, BinaryExpr::Kind max) {
          Expr *right = parse_expr(e, submax);
          e->left = left;
          e->right = right;
-         e->span = Span(left->span.ini, right->span.fin);
+         e->span = Span(left->span.begin, right->span.end);
          left = e;
       }
    } 
@@ -765,7 +765,7 @@ Expr *Parser::parse_callexpr(Expr *x) {
    if (!_lexer.expect(Token::RParen)) {
       error(e, _lexer.pos().str() + ": " + _T("Expected '%s' here.", ")"));
    }
-   e->span = Span(x->span.ini, _lexer.pos());
+   e->span = Span(x->span.begin, _lexer.pos());
    return e;
 }
 
@@ -782,7 +782,7 @@ Expr *Parser::parse_indexexpr(Expr *x) {
       fatal_error(_lexer.pos(), _T("Debe haber una expresión entre los corchetes."));
       _lexer.consume(']');
    }
-   e->span = Span(x->span.ini, _lexer.pos());
+   e->span = Span(x->span.begin, _lexer.pos());
    _skip(e);
    return e;
 }
@@ -795,7 +795,7 @@ Expr *Parser::parse_fieldexpr(Expr *x, Token tok) {
    _skip(e);
    Token id = _lexer.read_ident();
    e->field = new SimpleIdent(_lexer.SubStr(id));
-   e->span = Span(x->span.ini, _lexer.pos());
+   e->span = Span(x->span.begin, _lexer.pos());
    return e;
 }
 
@@ -805,7 +805,7 @@ Expr *Parser::parse_increxpr(Expr *x, Token tok) {
                               : IncrExpr::Negative);
    e->expr = x;
    _lexer.consume(tok.type == Token::PlusPlus ? "++" : "--");
-   e->span = Span(x->span.ini, _lexer.pos());
+   e->span = Span(x->span.begin, _lexer.pos());
    return e;
 }
 
@@ -834,9 +834,9 @@ Stmt *Parser::parse_for(Ast *parent) {
    } else {
       stmt->init = parse_decl_or_expr_stmt(stmt);
       if (stmt->init == 0) {
-         stmt->span.ini = _lexer.pos();
+         stmt->span.begin = _lexer.pos();
          string wrong_code = _lexer.skip_to(")");
-         stmt->span.fin = _lexer.pos();
+         stmt->span.end = _lexer.pos();
          if (wrong_for_with_commas(wrong_code)) {
             error(stmt, _T("El 'for' debe tener como separador el caracter ';' (y no ',')."));
          } else {
@@ -1010,7 +1010,7 @@ Decl *Parser::_parse_objdecl(Ast *parent, string name, CommentSeq *comm) {
 DeclStmt *Parser::parse_declstmt(Ast *parent, bool is_typedef) {
    DeclStmt *stmt = new DeclStmt();
    stmt->parent = parent;
-   stmt->span.ini = _lexer.pos();
+   stmt->span.begin = _lexer.pos();
    TypeSpec *typespec = parse_typespec(stmt);
    stmt->typespec = typespec;
    _skip(stmt); // before identifier
@@ -1039,7 +1039,7 @@ DeclStmt *Parser::parse_declstmt(Ast *parent, bool is_typedef) {
       } else {
          item.decl = _parse_vardecl(stmt, name, kind, comm);
       }
-      item.decl->span.ini = item_ini;
+      item.decl->span.begin = item_ini;
       if (_lexer.curr() == '=') {
          _lexer.next();
          _skip(stmt);
@@ -1048,7 +1048,7 @@ DeclStmt *Parser::parse_declstmt(Ast *parent, bool is_typedef) {
                       : parse_expr(item.decl, Expr::Eqment));
       }
       item.decl->typespec = stmt->typespec;
-      item.decl->span.fin = _lexer.pos();
+      item.decl->span.end = _lexer.pos();
       stmt->items.push_back(item);
       if (_lexer.curr() != ',' or is_typedef) {
          break;
@@ -1057,7 +1057,7 @@ DeclStmt *Parser::parse_declstmt(Ast *parent, bool is_typedef) {
       after_comma = _lexer.pos();
       _skip(stmt); // before identifier
    }
-   stmt->span.fin = _lexer.pos();
+   stmt->span.end = _lexer.pos();
    if (!_lexer.expect(Token::SemiColon)) {
       stopper_error(stmt, _T("Expected '%s' here.", ";"));
    }

@@ -55,8 +55,8 @@ void Ast::add_error(Pos _ini, Pos _fin, string msg) {
 void Error::to_json(ostream& o) const {
    ostringstream oss;
    o << "{";
-   o << "\"ini\": "; span.ini.to_json(o); o << ", ";
-   o << "\"fin\": "; span.fin.to_json(o); o << ", ";
+   o << "\"ini\": "; span.begin.to_json(o); o << ", ";
+   o << "\"fin\": "; span.end.to_json(o); o << ", ";
    o << "\"msg\": \"" << msg << "\"";
    o << "}";
 }

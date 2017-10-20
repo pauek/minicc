@@ -20,7 +20,7 @@ int semantic_analysis(Ast *program, string filename) {
    vector<Error*> ve;
    collect_errors(program, ve);
    for (Error *e : ve) {
-      cerr << filename << ":" << e->span.ini << ": " << e->msg << endl;
+      cerr << filename << ":" << e->span.begin << ": " << e->msg << endl;
    }
    return ve.size();
 }
