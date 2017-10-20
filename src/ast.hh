@@ -44,13 +44,51 @@ struct CommentSeq {
 class AstVisitor;
 struct TypeSpec;
 
-
+enum class AstType {
+   Program,
+   Include,
+   Macro,
+   Using,
+   Stmt,
+   ExprStmt,
+   IfStmt,
+   ForStmt,
+   WhileStmt,
+   Decl,
+   VarDecl,
+   ArrayDecl,
+   ObjDecl,
+   DeclStmt,
+   JumpStmt,
+   Block,
+   Expr,
+   Literal,
+   SimpleIdent,
+   TemplateIdent,
+   FullIdent,
+   BinaryExpr,
+   UnaryExpr,
+   SignExpr,
+   IncrExpr,
+   NegExpr,
+   AddrExpr,
+   DerefExpr,
+   IndexExpr,
+   CondExpr,
+   ExprList,
+   TypeSpec,
+   FuncDecl,
+   StructDecl,
+   TypedefDecl,
+   EnumDecl
+};
 
 struct Ast {
-                      Pos ini, fin;
-      std::vector<Error*> errors;
- std::vector<CommentSeq*> comments;
-                 Ast *parent;
+                  AstType  type;
+                      Pos  ini, fin;
+      std::vector<Error*>  errors;
+ std::vector<CommentSeq*>  comments;
+                      Ast *parent;
 
                   void add_error(std::string msg);
                   void add_error(Pos ini, Pos fin, std::string msg);
@@ -58,7 +96,7 @@ struct Ast {
    virtual            ~Ast() {}
    virtual        void accept(AstVisitor* v) = 0;
    virtual         int num_children() const { return 0; }
-   virtual    Ast* child(int n)   const { return 0; }
+   virtual        Ast* child(int n)   const { return 0; }
    virtual        bool has_errors()   const { return !errors.empty(); }
    virtual std::string describe()     const { return "UNIMPLEMENTED"; }
                   Span span()         const { return Span(ini, fin); }
@@ -69,6 +107,12 @@ struct Ast {
               const X *as()           const { return dynamic_cast<const X*>(this); }
    template<typename X>
                     X *as()                 { return dynamic_cast<X*>(this); }
+};
+
+template<AstType Type>
+struct AstDerived : Ast {
+   static bool classof(Ast *ast) { return ast->type == Type; }
+   AstDerived() { type = Type; }
 };
 
 struct Program : public Ast {
