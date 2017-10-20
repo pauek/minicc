@@ -310,7 +310,7 @@ void PrettyPrinter::visit_literal(Literal *x) {
    if (x->paren) {
       out() << "(";
    }
-   switch (x->type) {
+   switch (x->kind) {
    case Literal::Bool:   out() << (x->val.as_bool ? "true" : "false"); break;
    case Literal::Int:    out() << x->val.as_int; break;
    case Literal::Double: out() << x->val.as_double; break;
@@ -639,7 +639,7 @@ void PrettyPrinter::visit_errorstmt(StmtError *x) {
    out() << "/* ErrorStmt: \"" << x->code << "\" */";
 }
 
-void PrettyPrinter::visit_errorexpr(Expr::Error *x) {
+void PrettyPrinter::visit_errorexpr(ExprError *x) {
    out() << "/* ErrorExpr: \"" << x->code << "\" */";
 }
 

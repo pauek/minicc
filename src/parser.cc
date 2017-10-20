@@ -542,11 +542,11 @@ Expr *Parser::parse_primary_expr(Ast *parent) {
    case Token::Dot:
    case Token::FloatLiteral:
    case Token::DoubleLiteral: {
-      Literal::Type typ = Literal::Double;
+      Literal::Kind kind = Literal::Double;
       if (tok.type == Token::FloatLiteral) {
-         typ = Literal::Float;
+         kind = Literal::Float;
       }
-      Literal* lit = new Literal(typ);
+      Literal* lit = new Literal(kind);
       istringstream S(_lexer.SubStr(tok));
       S >> lit->val.as_double;
       lit->parent = parent;

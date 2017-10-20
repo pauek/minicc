@@ -49,6 +49,10 @@ enum class AstType {
    Include,
    Macro,
    Using,
+   FuncDecl,
+   StructDecl,
+   TypedefDecl,
+   EnumDecl,
 
    StmtError,
    ExprStmt,
@@ -56,6 +60,32 @@ enum class AstType {
    ForStmt,
    WhileStmt,
    DeclStmt,
+   JumpStmt,
+
+   TypeSpec,
+   VarDecl,
+   ArrayDecl,
+   ObjDecl,
+
+   ExprError,
+   Literal,
+   SimpleIdent,
+   TemplateIdent,
+   FullIdent,
+   BinaryExpr,
+   UnaryExpr,
+   SignExpr,
+   IncrExpr,
+   NegExpr,
+   AddrExpr,
+   DerefExpr,
+   CallExpr,
+   IndexExpr,
+   FieldExpr,
+   CondExpr,
+   ExprList,
+
+   Block,
 };
 
 struct Ast {
@@ -140,7 +170,7 @@ struct StmtError : public StmtDerived<AstType::StmtError> {
    void accept(AstVisitor *v);
 };
 
-struct ExprStmt : public Stmt {
+struct ExprStmt : public StmtDerived<AstType::ExprStmt> {
    Expr *expr;
    bool is_return;
    ExprStmt() : expr(0), is_return(false) {}
@@ -149,7 +179,7 @@ struct ExprStmt : public Stmt {
    std::string describe() const;
 };
 
-struct IfStmt : public Stmt {
+struct IfStmt : public StmtDerived<AstType::IfStmt> {
    Expr *cond;
    Stmt *then, *els;
 
@@ -158,7 +188,7 @@ struct IfStmt : public Stmt {
    bool has_errors() const;
 };
 
-struct ForStmt : public Stmt { // while + for
+struct ForStmt : public StmtDerived<AstType::ForStmt> { // while + for
    Stmt *init;
    Expr *cond, *post;
    Stmt *substmt;
@@ -168,7 +198,7 @@ struct ForStmt : public Stmt { // while + for
    bool has_errors() const;
 };
 
-struct WhileStmt : public Stmt { // while + for
+struct WhileStmt : public StmtDerived<AstType::WhileStmt> { // while + for
    Expr *cond;
    Stmt *substmt;
 
@@ -184,13 +214,19 @@ struct Decl : public Ast {
    Decl() : typespec(0) {}
 };
 
-struct VarDecl : public Decl {
+template<AstType Type>
+struct DeclDerived : Decl {
+   static bool classof(Stmt *stmt) { return stmt->type == Type; }
+   DeclDerived() { type = Type; }
+};
+
+struct VarDecl : public DeclDerived<AstType::VarDecl> {
    Kind kind;
    VarDecl() : kind(Normal) {}
    void accept(AstVisitor *v);
 };
 
-struct ArrayDecl : public Decl {
+struct ArrayDecl : public DeclDerived<AstType::ArrayDecl> {
    std::vector<Expr*> sizes;
    Kind kind;
    ArrayDecl() : kind(Normal) {}
@@ -198,12 +234,12 @@ struct ArrayDecl : public Decl {
    std::string typestr() const;
 };
 
-struct ObjDecl : public Decl {
+struct ObjDecl : public DeclDerived<AstType::ObjDecl> {
    std::vector<Expr *> args;
    void accept(AstVisitor *v);
 };
 
-struct DeclStmt : public Stmt {
+struct DeclStmt : public StmtDerived<AstType::DeclStmt> {
    TypeSpec *typespec;
    struct Item {
       Decl *decl;
@@ -217,7 +253,7 @@ struct DeclStmt : public Stmt {
    std::string describe() const;
 };
 
-struct JumpStmt : public Stmt {
+struct JumpStmt : public StmtDerived<AstType::JumpStmt> {
    enum Kind { Unknown = -1, Break = 0, Continue = 1, Goto = 2 };
 
    Kind kind;
@@ -229,7 +265,7 @@ struct JumpStmt : public Stmt {
    static Kind keyword2type(std::string s);
 };
 
-struct Block : public Stmt {
+struct Block : public StmtDerived<AstType::Block> {
    std::vector<Stmt*> stmts;
    void accept(AstVisitor *v);
    bool has_errors() const;
@@ -266,13 +302,20 @@ struct Expr : public Ast {
    struct Error;
 };
 
-struct Expr::Error : public Expr {
+template<AstType Type>
+struct ExprDerived : Expr {
+   static bool classof(Expr *e) { e->type == Type; }
+   ExprDerived() { type = Type; }
+};
+
+struct ExprError : public ExprDerived<AstType::ExprError> {
    std::string code;
    void accept(AstVisitor *v);
 };
 
-struct Literal : public Expr {
-   enum Type { Bool, Int, String, Char, Float, Double };
+struct Literal : public ExprDerived<AstType::Literal> 
+{
+   enum Kind { Bool, Int, String, Char, Float, Double };
    struct StringData {
       std::string *s;
       bool L;
@@ -284,40 +327,47 @@ struct Literal : public Expr {
       char       as_char;
       StringData as_string;
    };
-   Type type;
+   Kind kind;
    Data val;
    bool L; // for strings
 
-   Literal(Type t) : type(t) {}
+   Literal(Kind k) : kind(k) {}
    void accept(AstVisitor *v);
 
    static std::string escape(std::string s, char delim);
 };
 
-struct SimpleIdent : public Expr {
+struct SimpleIdent : ExprDerived<AstType::SimpleIdent> {
    std::string name;
-   bool is_namespace; // this is 'true' if this SimpleIdent is a namespace 
-                      // (used by the interpreter)
+   bool is_namespace = false; // this is 'true' if this SimpleIdent is a namespace 
+                              // (used by the interpreter)
 
    SimpleIdent(std::string _name = "") : name(_name), is_namespace(false) {}
    void accept(AstVisitor *v);
    virtual bool is_template() const { return false; }
 };
 
-struct TemplateIdent : public SimpleIdent {
+struct TemplateIdent : SimpleIdent {
    std::vector<TypeSpec*> subtypes;
-public:
-   TemplateIdent(std::string name) : SimpleIdent(name) {}
+
+   TemplateIdent(std::string name_) : SimpleIdent(name_) { 
+      // overwrite!
+      type = AstType::TemplateIdent;
+   } 
    bool is_template() const { return !subtypes.empty(); }
    std::string typestr() const;
    void accept(AstVisitor *v);
    bool has_errors() const;
+
+   static bool classof(Expr *e) { e->type == AstType::TemplateIdent; }
 };
 
-struct FullIdent : public TemplateIdent {
+struct FullIdent : TemplateIdent {
    std::vector<TemplateIdent*> prefix;  // for classes & namespaces;
-public:
-   FullIdent(std::string name) : TemplateIdent(name) {}
+
+   FullIdent(std::string name_) : TemplateIdent(name_) {
+      type = AstType::FullIdent;
+   }
    std::string typestr() const;
    void accept(AstVisitor *v);
    bool has_errors() const;
@@ -325,9 +375,11 @@ public:
    void shift(std::string new_id);
    SimpleIdent *get_potential_namespace_or_class() const;
    std::vector<TemplateIdent*> get_non_namespaces();
+
+   static bool classof(Expr *e) { e->type == AstType::FullIdent; }
 };
 
-struct BinaryExpr : public Expr {
+struct BinaryExpr : public ExprDerived<AstType::BinaryExpr> {
    Kind kind;
    std::string op;
    std::string str;
@@ -352,14 +404,20 @@ struct UnaryExpr : public Expr {
    bool has_errors() const;
 };
 
-struct SignExpr : public UnaryExpr {
+template<AstType Type>
+struct UnaryExprDerived : UnaryExpr {
+   UnaryExprDerived() { type = Type; }
+   static bool classof(Expr *e) { return e->type == Type; }
+};
+
+struct SignExpr : public UnaryExprDerived<AstType::SignExpr> {
    enum Kind { Positive, Negative };
    Kind kind;
    SignExpr(Kind k) : kind(k) {}
    void accept(AstVisitor *v);
 };
 
-struct IncrExpr : public UnaryExpr {
+struct IncrExpr : public UnaryExprDerived<AstType::IncrExpr> {
    enum Kind { Positive, Negative };
    Kind kind;
    bool preincr;
@@ -368,19 +426,19 @@ struct IncrExpr : public UnaryExpr {
    std::string describe() const;
 };
 
-struct NegExpr : public UnaryExpr { 
+struct NegExpr : public UnaryExprDerived<AstType::NegExpr> { 
    void accept(AstVisitor *v);
 };
 
-struct AddrExpr : public UnaryExpr { 
+struct AddrExpr : public UnaryExprDerived<AstType::AddrExpr> { 
    void accept(AstVisitor *v);
 };
 
-struct DerefExpr : public UnaryExpr { 
+struct DerefExpr : public UnaryExprDerived<AstType::DerefExpr> { 
    void accept(AstVisitor *v);
 };
 
-struct CallExpr : public Expr {
+struct CallExpr : public ExprDerived<AstType::CallExpr> {
    Expr *func;
    std::vector<Expr *> args;
    CallExpr() : func(0) {}
@@ -388,14 +446,14 @@ struct CallExpr : public Expr {
    bool has_errors() const;
 };
 
-struct IndexExpr : public Expr {
+struct IndexExpr : public ExprDerived<AstType::IndexExpr> {
    Expr *base, *index;
    IndexExpr() : base(0), index(0) {}
    void accept(AstVisitor *v);
    bool has_errors() const;
 };
 
-struct FieldExpr : public Expr {
+struct FieldExpr : public ExprDerived<AstType::FieldExpr> {
    Expr *base;
    SimpleIdent *field;
    bool pointer;
@@ -405,20 +463,20 @@ struct FieldExpr : public Expr {
    bool has_errors() const;
 };
 
-struct CondExpr : public Expr {
+struct CondExpr : public ExprDerived<AstType::CondExpr> {
    Expr *cond, *then, *els;
    CondExpr() : cond(0), then(0), els(0) {}
    void accept(AstVisitor *v);
    bool has_errors() const;
 };
 
-struct ExprList : public Expr {
+struct ExprList : public ExprDerived<AstType::ExprList> {
    std::vector<Expr*> exprs;
    void accept(AstVisitor *v);
    bool has_errors() const;
 };
 
-struct TypeSpec : public Ast {
+struct TypeSpec : public AstDerived<AstType::TypeSpec> {
    static const std::string QualifiersNames[];
 
    enum Qualifiers {
@@ -443,7 +501,7 @@ struct TypeSpec : public Ast {
 
 // Declarations ////////////////////////////////////////////
 
-struct FuncDecl : public Ast {
+struct FuncDecl : public AstDerived<AstType::FuncDecl> {
    struct Param {
       Pos ini, fin;
       TypeSpec *typespec;
@@ -463,7 +521,7 @@ struct FuncDecl : public Ast {
    bool has_errors() const;
 };
 
-struct StructDecl : public Ast {
+struct StructDecl : public AstDerived<AstType::StructDecl> {
    SimpleIdent *id;
    std::vector<DeclStmt*> decls;
    
@@ -475,14 +533,14 @@ struct StructDecl : public Ast {
    int num_fields() const;
 };
 
-struct TypedefDecl : public Ast {
+struct TypedefDecl : public AstDerived<AstType::TypedefDecl> {
    Decl *decl;
    TypedefDecl() : decl(0) {}
    void accept(AstVisitor *v);
    bool has_errors() const;
 };
 
-struct EnumDecl : public Ast {
+struct EnumDecl : public AstDerived<AstType::EnumDecl> {
    struct Value {
       std::string id;
       bool has_val;
@@ -577,8 +635,8 @@ public:
    virtual void visit_derefexpr(DerefExpr *)         { assert(false); }
    virtual void visit_literal(Literal *)             { assert(false); }
 
-   virtual void visit_errorstmt(StmtError *)       { assert(false); }
-   virtual void visit_errorexpr(Expr::Error *)       { assert(false); }
+   virtual void visit_errorstmt(StmtError *)         { assert(false); }
+   virtual void visit_errorexpr(ExprError *)         { assert(false); }
 };   
 
 // Visit implementations
@@ -617,8 +675,8 @@ inline void AddrExpr::accept(AstVisitor *v)      { v->visit_addrexpr(this); }
 inline void DerefExpr::accept(AstVisitor *v)     { v->visit_derefexpr(this); }
 inline void Literal::accept(AstVisitor *v)       { v->visit_literal(this); }
 
-inline void StmtError::accept(AstVisitor *v)   { v->visit_errorstmt(this); }
-inline void Expr::Error::accept(AstVisitor *v)   { v->visit_errorexpr(this); }
+inline void StmtError::accept(AstVisitor *v)     { v->visit_errorstmt(this); }
+inline void ExprError::accept(AstVisitor *v)     { v->visit_errorexpr(this); }
 
 inline void Stmt::accept(AstVisitor *v)          { assert(false); }
 

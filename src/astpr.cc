@@ -168,7 +168,7 @@ void AstPrinter::visit_literal(Literal *x) {
    if (x->paren) { 
       out() << "("; 
    }
-   switch (x->type) {
+   switch (x->kind) {
    case Literal::Int:
       out() << "Int<" << x->val.as_int << ">"; 
       break;
@@ -450,6 +450,6 @@ void AstPrinter::visit_errorstmt(StmtError *x) {
    out() << "ErrorStmt(\"" << x->code << "\")";
 }
 
-void AstPrinter::visit_errorexpr(Expr::Error *x) {
+void AstPrinter::visit_errorexpr(ExprError *x) {
    out() << "ErrorExpr(\"" << x->code << "\")";
 }

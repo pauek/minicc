@@ -48,7 +48,7 @@ public:
    void visit_derefexpr(DerefExpr *x);
 
    void visit_errorstmt(StmtError *x);
-   void visit_errorexpr(Expr::Error *x);
+   void visit_errorexpr(ExprError *x);
 };
 
 struct ErrorCollector : public Walker {

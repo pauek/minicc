@@ -90,7 +90,7 @@ void Interpreter::visit_structdecl(StructDecl *x) {
             Expr *size_expr = dynamic_cast<ArrayDecl*>(item.decl)->sizes[0];
             Literal *size_lit = dynamic_cast<Literal*>(size_expr);
             assert(size_lit != 0);
-            assert(size_lit->type == Literal::Int);
+            assert(size_lit->kind == Literal::Int);
             const int sz = size_lit->val.as_int;
             // TODO: don't create new Array type every time?
             type->add_field(item.decl->name, new Array(field_type, sz)); 
@@ -143,7 +143,7 @@ void Interpreter::visit_fullident(FullIdent *x) {
 }
 
 void Interpreter::visit_literal(Literal *x) {
-   switch (x->type) {
+   switch (x->kind) {
    case Literal::String: _curr = Value(*x->val.as_string.s); break;
    case Literal::Int:    _curr = Value(x->val.as_int);       break;
    case Literal::Double: _curr = Value(x->val.as_double);    break;

@@ -156,7 +156,7 @@ void SemanticAnalyzer::visit_fullident(FullIdent *x) {
 
 void SemanticAnalyzer::visit_literal(Literal *x) {
    _curr_node = x;
-   switch (x->type) {
+   switch (x->kind) {
    case Literal::String: _curr = Value(*x->val.as_string.s); break;
    case Literal::Int:    _curr = Value(x->val.as_int);       break;
    case Literal::Double: _curr = Value(x->val.as_double);    break;
