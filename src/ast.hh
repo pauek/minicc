@@ -13,13 +13,13 @@
 std::ostream& operator<<(std::ostream& o, CommentSeq* C);
 
 struct Error {
-   Pos ini, fin;
+   Span span;
    std::string msg;
    bool stopper;     // this error should eclipse the following errors
                      // (probably an avalanche of parsing errors)
-   Error(std::string m)               : stopper(false), msg(m) {}
-   Error(Pos p, std::string m)        : stopper(false), ini(p), msg(m) {}
-   Error(Pos i, Pos f, std::string m) : stopper(false), ini(i), fin(f), msg(m) {}
+   Error(std::string m)         : stopper(false), msg(m) {}
+   Error(Pos p, std::string m)  : stopper(false), span(p), msg(m) {}
+   Error(Span s, std::string m) : stopper(false), span(s), msg(m) {}
    void to_json(std::ostream& o) const;
 };
 
@@ -85,7 +85,7 @@ enum class AstType {
 
 struct Ast {
                   AstType  type;
-                      Pos  ini, fin;
+                     Span  span;
       std::vector<Error*>  errors;
  std::vector<CommentSeq*>  comments;
                       Ast *parent;
@@ -99,7 +99,6 @@ struct Ast {
    virtual        Ast* child(int n)   const { return 0; }
    virtual        bool has_errors()   const { return !errors.empty(); }
    virtual std::string describe()     const { return "UNIMPLEMENTED"; }
-                  Span span()         const { return Span(ini, fin); }
 
    template<typename X>
                   bool is()           const { return dynamic_cast<const X*>(this) != 0; }

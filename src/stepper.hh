@@ -57,7 +57,7 @@ public:
           void replace(StepperState *s) { _e(); _stack.top() = s;            }
           void pop()                    { _e(); _stack.pop();                }
           bool finished()         const {       return _stack.empty();       }
-          Span span()     const         { _e(); return _stack.top()->span(); }
+          Span span()             const { _e(); return _stack.top()->span(); }
           bool step();
    std::string state2json()       const;
 
@@ -99,7 +99,7 @@ public:
       int curr;
       BlockVisitState(Block *_x) : x(_x), curr(0) {}
       Todo step(Stepper *S);      
-      Span span() const { return x->span(); }
+      Span span() const { return x->span; }
    };
 
    struct EqmentVisitState : public StepperState {
@@ -125,7 +125,7 @@ public:
       bool cond;
       ForVisitState(ForStmt *_x) : x(_x), at(Cond) {}
       Todo step(Stepper *S);
-      Span span() const { return x->span(); }
+      Span span() const { return x->span; }
    };
 
    struct WhileVisitState : public StepperState {
@@ -134,7 +134,7 @@ public:
       WhileStmt *x;
       WhileVisitState(WhileStmt *_x) : x(_x), at(Cond) {}
       Todo step(Stepper *S);
-      Span span() const { return x->cond->span(); }
+      Span span() const { return x->cond->span; }
    };
 
    struct CallExprVisitState : public StepperState {

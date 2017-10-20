@@ -28,9 +28,9 @@ class Parser {
    }
 
    void error(Ast *n, std::string msg);
-   void error(Ast *n, Pos ini, Pos fin, std::string msg);
+   void error(Ast *n, Span span, std::string msg);
    void stopper_error(Ast *n, std::string msg);
-   void stopper_error(Ast *n, Pos ini, Pos fin, std::string msg);
+   void stopper_error(Ast *n, Span span, std::string msg);
    void fatal_error(Pos p, std::string msg);
 
    template<class Node>

@@ -38,7 +38,7 @@ Todo Stepper::PopState::step(Stepper *S) {
 void Stepper::generic_visit(Ast *x) {
    x->accept(&I);
    status(x->describe());
-   push(new PopState(x->span()));
+   push(new PopState(x->span));
 }
 
 void Stepper::visit_declstmt(DeclStmt *x)     { generic_visit(x); }
@@ -63,11 +63,11 @@ void Stepper::visit_program(Program *x) {
 
 Span Stepper::ProgramVisitState::span() const {
    if (at == ProgramVisitState::Begin) {
-      return x->id->span(); 
+      return x->id->span; 
    } else if (at == ProgramVisitState::Finished) {
-      Pos ini = x->block->fin, fin = x->block->fin;
-      ini.col--;
-      return Span(ini, fin);
+      Span span(x->block->span.fin, x->block->span.fin);
+      span.ini.col--;
+      return span;
    }
    return Span();
 }
@@ -137,7 +137,7 @@ void Stepper::visit_ifstmt(IfStmt *x) {
          next = 0;
       }
    }
-   push(new IfVisitState(x->cond->span(), next));
+   push(new IfVisitState(x->cond->span, next));
 }
 
 Todo Stepper::IfVisitState::step(Stepper *S) {
@@ -249,12 +249,12 @@ void Stepper::visit_exprstmt(ExprStmt *x) {
       } else {
          status(x->expr->describe());
       }
-      push(new PopState(x->span()));
+      push(new PopState(x->span));
    }
 }
 
 Span Stepper::WriteExprVisitState::span() const {
-   return curr->span();
+   return curr->span;
 }
 
 Todo Stepper::WriteExprVisitState::step_waiting(Stepper* S) {
@@ -301,9 +301,9 @@ void Stepper::visit_assignment(BinaryExpr *e) {
 
 Span Stepper::EqmentVisitState::span() const {
    if (left.is_null()) {
-      return x->right->span();
+      return x->right->span;
    } else {
-      return Span(x->left->span().ini, x->right->span().ini);
+      return Span(x->left->span.ini, x->right->span.ini);
    }
 }
 
@@ -329,7 +329,7 @@ void Stepper::visit_callexpr(CallExpr *x) {
    I.eval_arguments(x->args, args);
 
    if (I.visit_type_conversion(x, args)) {
-      push(new PopState(x->span()));
+      push(new PopState(x->span));
       return;
    }
 
@@ -342,7 +342,7 @@ void Stepper::visit_callexpr(CallExpr *x) {
    const UserFunc *userfunc = dynamic_cast<const UserFunc*>(fptr);
    if (userfunc == 0) {
       I.visit_callexpr_call(I._curr, args);
-      push(new PopState(x->span()));
+      push(new PopState(x->span));
       return;
    }
    FuncDecl *fn = userfunc->decl;
@@ -358,11 +358,11 @@ const int Stepper::CallExprVisitState::Return = -2;
 
 Span Stepper::CallExprVisitState::span() const {
    if (curr == CallExprVisitState::Return) {
-      return x->span();
+      return x->span;
    } else if (curr == CallExprVisitState::Block) {
-      return fn->id->span();
+      return fn->id->span;
    } else {
-      return x->args[curr-1]->span();
+      return x->args[curr-1]->span;
    }
 }
 

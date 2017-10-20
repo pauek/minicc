@@ -205,8 +205,7 @@ int _test_parser_and_semantic(string filename, bool do_semantic) {
       vector<Error*> ve;
       collect_errors(program, ve);
       for (Error *e : ve) {
-         Serr << filename << "[" << e->ini << "-" << e->fin << "]: " 
-              << e->msg << endl;
+         Serr << filename << "[" << e->span.ini << "-" << e->span.fin << "]: " << e->msg << endl;
       }
    }
    catch (ParseError& e) {

@@ -45,18 +45,18 @@ void CommentSeq::only_one_endl_at_end() {
 
 
 void Ast::add_error(string msg) {
-   errors.push_back(new Error(ini, fin, msg));
+   errors.push_back(new Error(span, msg));
 }
 
 void Ast::add_error(Pos _ini, Pos _fin, string msg) {
-   errors.push_back(new Error(_ini, _fin, msg));
+   errors.push_back(new Error(Span(_ini, _fin), msg));
 }
 
 void Error::to_json(ostream& o) const {
    ostringstream oss;
    o << "{";
-   o << "\"ini\": "; ini.to_json(o); o << ", ";
-   o << "\"fin\": "; fin.to_json(o); o << ", ";
+   o << "\"ini\": "; span.ini.to_json(o); o << ", ";
+   o << "\"fin\": "; span.fin.to_json(o); o << ", ";
    o << "\"msg\": \"" << msg << "\"";
    o << "}";
 }

@@ -115,7 +115,7 @@ bool Lexer::next() {
       return false;
    }
    if (_curr == -1) {
-      _pos = {1, 1};
+      _pos = Pos(1, 1);
       _linepos.push_back(0);
    } else if (_curr < _text.size() && _text[_curr] == '\n') {
       _pos.lin++;
