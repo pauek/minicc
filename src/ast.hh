@@ -10,38 +10,7 @@
 #include <algorithm>
 #include "lexer.hh"
 
-class AstVisitor;
-
-struct Error;
-struct CommentSeq;
-struct TypeSpec;
-
 std::ostream& operator<<(std::ostream& o, CommentSeq* C);
-
-struct AstNode {
-                      Pos ini, fin;
-      std::vector<Error*> errors;
- std::vector<CommentSeq*> comments;
-                 AstNode *parent;
-
-                  void add_error(std::string msg);
-                  void add_error(Pos ini, Pos fin, std::string msg);
-
-   virtual            ~AstNode() {}
-   virtual        void accept(AstVisitor* v) = 0;
-   virtual         int num_children() const { return 0; }
-   virtual    AstNode* child(int n)   const { return 0; }
-   virtual        bool has_errors()   const { return !errors.empty(); }
-   virtual std::string describe()     const { return "UNIMPLEMENTED"; }
-                  Span span()         const { return Span(ini, fin); }
-
-   template<typename X>
-                  bool is()           const { return dynamic_cast<const X*>(this) != 0; }
-   template<typename X>
-              const X *as()           const { return dynamic_cast<const X*>(this); }
-   template<typename X>
-                    X *as()                 { return dynamic_cast<X*>(this); }
-};
 
 struct Error {
    Pos ini, fin;
@@ -102,6 +71,34 @@ struct CommentSeq {
       }
       items.resize(i+1);
    }
+};
+
+class AstVisitor;
+struct TypeSpec;
+
+struct AstNode {
+                      Pos ini, fin;
+      std::vector<Error*> errors;
+ std::vector<CommentSeq*> comments;
+                 AstNode *parent;
+
+                  void add_error(std::string msg);
+                  void add_error(Pos ini, Pos fin, std::string msg);
+
+   virtual            ~AstNode() {}
+   virtual        void accept(AstVisitor* v) = 0;
+   virtual         int num_children() const { return 0; }
+   virtual    AstNode* child(int n)   const { return 0; }
+   virtual        bool has_errors()   const { return !errors.empty(); }
+   virtual std::string describe()     const { return "UNIMPLEMENTED"; }
+                  Span span()         const { return Span(ini, fin); }
+
+   template<typename X>
+                  bool is()           const { return dynamic_cast<const X*>(this) != 0; }
+   template<typename X>
+              const X *as()           const { return dynamic_cast<const X*>(this); }
+   template<typename X>
+                    X *as()                 { return dynamic_cast<X*>(this); }
 };
 
 struct Program : public AstNode {
