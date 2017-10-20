@@ -47,7 +47,7 @@ public:
    void visit_addrexpr(AddrExpr *x);
    void visit_derefexpr(DerefExpr *x);
 
-   void visit_errorstmt(Stmt::Error *x);
+   void visit_errorstmt(StmtError *x);
    void visit_errorexpr(Expr::Error *x);
 };
 

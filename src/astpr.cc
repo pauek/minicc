@@ -446,7 +446,7 @@ void AstPrinter::visit_derefexpr(DerefExpr *x) {
    out() << ")";
 }
 
-void AstPrinter::visit_errorstmt(Stmt::Error *x) {
+void AstPrinter::visit_errorstmt(StmtError *x) {
    out() << "ErrorStmt(\"" << x->code << "\")";
 }
 

@@ -9,7 +9,7 @@ void Walker::visit_using(Using* x)                 { walk(x); }
 void Walker::visit_simpleident(SimpleIdent *x)     { walk(x); }
 void Walker::visit_literal(Literal *x)             { walk(x); }
 void Walker::visit_jumpstmt(JumpStmt *x)           { walk(x); }
-void Walker::visit_errorstmt(Stmt::Error *x)       { walk(x); }
+void Walker::visit_errorstmt(StmtError *x)       { walk(x); }
 void Walker::visit_errorexpr(Expr::Error *x)       { walk(x); }
 void Walker::visit_vardecl(VarDecl *x)             { walk(x); }
 void Walker::visit_arraydecl(ArrayDecl *x)         { walk(x); }

@@ -635,7 +635,7 @@ void PrettyPrinter::visit_derefexpr(DerefExpr *x) {
    }
 }
 
-void PrettyPrinter::visit_errorstmt(Stmt::Error *x) {
+void PrettyPrinter::visit_errorstmt(StmtError *x) {
    out() << "/* ErrorStmt: \"" << x->code << "\" */";
 }
 

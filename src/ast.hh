@@ -49,38 +49,13 @@ enum class AstType {
    Include,
    Macro,
    Using,
-   Stmt,
+
+   StmtError,
    ExprStmt,
    IfStmt,
    ForStmt,
    WhileStmt,
-   Decl,
-   VarDecl,
-   ArrayDecl,
-   ObjDecl,
    DeclStmt,
-   JumpStmt,
-   Block,
-   Expr,
-   Literal,
-   SimpleIdent,
-   TemplateIdent,
-   FullIdent,
-   BinaryExpr,
-   UnaryExpr,
-   SignExpr,
-   IncrExpr,
-   NegExpr,
-   AddrExpr,
-   DerefExpr,
-   IndexExpr,
-   CondExpr,
-   ExprList,
-   TypeSpec,
-   FuncDecl,
-   StructDecl,
-   TypedefDecl,
-   EnumDecl
 };
 
 struct Ast {
@@ -114,7 +89,7 @@ struct AstDerived : Ast {
    AstDerived() { type = Type; }
 };
 
-struct Program : public Ast {
+struct Program : public AstDerived<AstType::Program> {
    std::vector<Ast*> nodes;
 
    int  num_children() const { return nodes.size(); }
@@ -125,7 +100,7 @@ struct Program : public Ast {
    bool has_errors() const;
 };
 
-struct Include : public Ast {
+struct Include : public AstDerived<AstType::Include> {
    std::string filename;
    bool global;
 
@@ -135,13 +110,13 @@ struct Include : public Ast {
    void accept(AstVisitor* v);
 };
 
-struct Macro : public Ast {
+struct Macro : public AstDerived<AstType::Macro> {
    std::string macro;
    Macro(std::string _macro) : macro(_macro) {}
    void accept(AstVisitor *v);
 };
 
-struct Using : public Ast {
+struct Using : public AstDerived<AstType::Using> {
    std::string namespc;
    void accept(AstVisitor *v);
 };
@@ -152,10 +127,15 @@ struct Expr;
 
 struct Stmt : public Ast {
    void accept(AstVisitor *v);
-   struct Error;
 };
 
-struct Stmt::Error : public Stmt {
+template<AstType Type>
+struct StmtDerived : Stmt {
+   static bool classof(Stmt *stmt) { return stmt->type == Type; }
+   StmtDerived() { type = Type; }
+};
+
+struct StmtError : public StmtDerived<AstType::StmtError> {
    std::string code;
    void accept(AstVisitor *v);
 };
@@ -597,7 +577,7 @@ public:
    virtual void visit_derefexpr(DerefExpr *)         { assert(false); }
    virtual void visit_literal(Literal *)             { assert(false); }
 
-   virtual void visit_errorstmt(Stmt::Error *)       { assert(false); }
+   virtual void visit_errorstmt(StmtError *)       { assert(false); }
    virtual void visit_errorexpr(Expr::Error *)       { assert(false); }
 };   
 
@@ -637,7 +617,7 @@ inline void AddrExpr::accept(AstVisitor *v)      { v->visit_addrexpr(this); }
 inline void DerefExpr::accept(AstVisitor *v)     { v->visit_derefexpr(this); }
 inline void Literal::accept(AstVisitor *v)       { v->visit_literal(this); }
 
-inline void Stmt::Error::accept(AstVisitor *v)   { v->visit_errorstmt(this); }
+inline void StmtError::accept(AstVisitor *v)   { v->visit_errorstmt(this); }
 inline void Expr::Error::accept(AstVisitor *v)   { v->visit_errorexpr(this); }
 
 inline void Stmt::accept(AstVisitor *v)          { assert(false); }

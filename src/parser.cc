@@ -43,6 +43,13 @@ void Parser::stopper_error(Ast *n, Span span, string msg) {
    n->errors.push_back(err);
 }
 
+StmtError *Parser::stmt_error(string msg) {
+   StmtError *s = new StmtError();
+   s->code = _lexer.skip_to(";");
+   error(s, msg);
+   return s;
+}  
+
 template<class Node>
 typename Node::Error *Parser::error(string msg) {
    typename Node::Error *s = new typename Node::Error();
@@ -93,14 +100,14 @@ Ast* Parser::parse() {
          break;
       }
       case Token::Class: {
-         prog->add(error<Stmt>(_T("UNIMPLEMENTED")));
+         prog->add(stmt_error(_T("UNIMPLEMENTED")));
          _lexer.skip_to(";");
          break;
       }
       case Token::Empty: {
          ostringstream msg;
          msg << pos << ": " << _T("Unexpected character '%c'", _lexer.curr());
-         prog->add(error<Stmt>(msg.str()));
+         prog->add(stmt_error(msg.str()));
          _lexer.read_token();
          break;
       }
@@ -921,7 +928,7 @@ Stmt *Parser::parse_ifstmt(Ast *parent) {
 }
 
 Stmt *Parser::parse_switch(Ast *parent) {
-   return error<Stmt>(_T("UNIMPLEMENTED"));
+   return stmt_error(_T("UNIMPLEMENTED"));
 }
 
 void Parser::parse_expr_seq(Ast *parent, vector<Expr*>& exprs) {

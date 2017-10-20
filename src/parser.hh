@@ -36,6 +36,8 @@ class Parser {
    template<class Node>
    typename Node::Error *error(std::string msg);
 
+   StmtError *stmt_error(std::string msg);
+
    void parse_expr_seq(Ast *n, std::vector<Expr*>& v);
    void parse_type_seq(Ast *n, std::vector<TypeSpec*>& v);
    bool _parse_type_process_token(TypeSpec *type, Token tok, Pos p);
