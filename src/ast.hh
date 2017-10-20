@@ -34,43 +34,13 @@ struct Comment {
 
 struct CommentSeq {
    std::vector<Comment> items;
-   bool has_endl() {
-      for (Comment& c : items) {
-         if (c.kind == Comment::endline) {
-            return true;
-         }
-      }
-      return false;
-   }
+   
+   bool has_endl() const;
    bool starts_with_endl()  const { return !items.empty() and items.front().kind == Comment::endline; }
    bool ends_with_endl()    const { return !items.empty() and items.back().kind  == Comment::endline; }
-   bool ends_with_empty_line() const { 
-      const int sz = items.size();
-      return sz >= 2 and 
-         (items[sz-2].kind == Comment::endline and items[sz-1].kind == Comment::endline);
-   }
-
-   void remove_endls() {
-      items.erase(std::remove_if(items.begin(), items.end(), 
-                                 [](Comment& c) {
-                                    return c.kind == Comment::endline; 
-                                 }),
-                  items.end());
-   }
-
-   void only_one_endl_at_end() {
-      if (items.empty() or items.back().kind != Comment::endline) {
-         return;
-      }
-      int i = items.size()-1;
-      while (true) {
-         if (items[i-1].kind != Comment::endline) {
-            break;
-         }
-         i--;
-      }
-      items.resize(i+1);
-   }
+   bool ends_with_empty_line() const;
+   void remove_endls();
+   void only_one_endl_at_end();
 };
 
 class AstVisitor;

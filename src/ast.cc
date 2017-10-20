@@ -6,6 +6,44 @@ using namespace std;
 #include "ast.hh"
 #include "translator.hh"
 
+bool CommentSeq::has_endl() const {
+   for (const Comment& c : items) {
+      if (c.kind == Comment::endline) {
+         return true;
+      }
+   }
+   return false;
+}
+
+bool CommentSeq::ends_with_empty_line() const { 
+   const int sz = items.size();
+   return sz >= 2 and 
+      (items[sz-2].kind == Comment::endline and items[sz-1].kind == Comment::endline);
+}
+
+void CommentSeq::remove_endls() {
+   items.erase(std::remove_if(items.begin(), items.end(), 
+                              [](Comment& c) {
+                                 return c.kind == Comment::endline; 
+                              }),
+               items.end());
+}
+
+void CommentSeq::only_one_endl_at_end() {
+   if (items.empty() or items.back().kind != Comment::endline) {
+      return;
+   }
+   int i = items.size()-1;
+   while (true) {
+      if (items[i-1].kind != Comment::endline) {
+         break;
+      }
+      i--;
+   }
+   items.resize(i+1);
+}
+
+
 void AstNode::add_error(string msg) {
    errors.push_back(new Error(ini, fin, msg));
 }
