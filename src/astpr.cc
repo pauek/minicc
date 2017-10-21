@@ -14,6 +14,14 @@ struct OutputWriter {
    template<typename T>
    void Write(const T& t) { out_ << t; }
 
+   template<typename T1, typename T2>
+   void Write(const T1& t1, const T2& t2) { out_ << t1 << t2; }
+
+   template<typename T1, typename T2, typename T3>
+   void Write(const T1& t1, const T2& t2, const T3& t3) { 
+      out_ << t1 << t2 << t3; 
+   }
+
    void EndLine() { out_ << endl; }
    void BeginLine() { out_ << string(indent_, ' '); }
 
@@ -58,16 +66,12 @@ void AstPrinter::Print(Ast* ast) {
    }
    case AstType::Macro: {
       Macro *X = cast<Macro>(ast);
-      out.Write("Macro(");
-      out.Write(X->macro);
-      out.Write(")");
+      out.Write("Macro(", X->macro, ")");
       break;
    }
    case AstType::Using: {
       Using *X = cast<Using>(ast);
-      out.Write("Using(");
-      out.Write(X->namespc);
-      out.Write(")");
+      out.Write("Using(", X->namespc, ")");
       break;
    }
    case AstType::TypeSpec: {
@@ -99,18 +103,14 @@ void AstPrinter::Print(Ast* ast) {
    }
    case AstType::EnumDecl: {
       EnumDecl *X = cast<EnumDecl>(ast);
-      out.Write("EnumDecl(\"");
-      out.Write(X->name);
-      out.Write("\", {");
+      out.Write("EnumDecl(\"", X->name, "\", {");
       for (int i = 0; i < X->values.size(); i++) {
-         if (i > 0)
+         if (i > 0) {
             out.Write(", ");
-         out.Write('"');
-         out.Write(X->values[i].id);
-         out.Write('"');
+         }
+         out.Write('"', X->values[i].id, '"');
          if (X->values[i].has_val) {
-            out.Write(" = ");
-            out.Write(X->values[i].val);
+            out.Write(" = ", X->values[i].val);
          }
       }
       out.Write("})");
@@ -118,9 +118,7 @@ void AstPrinter::Print(Ast* ast) {
    }
    case AstType::TypedefDecl: {
       TypedefDecl *X = cast<TypedefDecl>(ast);
-      out.Write("TypedefDecl(\"");
-      out.Write(X->decl->name);
-      out.Write("\" = ");
+      out.Write("TypedefDecl(\"", X->decl->name, "\" = ");
       Print(X->decl->typespec);
       out.Write(")");
       break;
@@ -153,9 +151,7 @@ void AstPrinter::Print(Ast* ast) {
          if (i > 0) {
             out.Write(", ");
          }
-         out.Write('"');
-         out.Write(X->params[i]->name);
-         out.Write("\": ");
+         out.Write('"', X->params[i]->name, "\": ");
          Print(X->params[i]->typespec);
       }
       if (X->block) {
@@ -193,16 +189,12 @@ void AstPrinter::Print(Ast* ast) {
    }
    case AstType::SimpleIdent: {
       SimpleIdent *X = cast<SimpleIdent>(ast);
-      out.Write("id:'");
-      out.Write(X->name);
-      out.Write("'");
+      out.Write("id:'", X->name, "'");
       break;
    }
    case AstType::TemplateIdent: {
       TemplateIdent *X = cast<TemplateIdent>(ast);
-      out.Write("id:'");
-      out.Write(X->name);
-      out.Write("'");
+      out.Write("id:'", X->name, "'");
       if (!X->subtypes.empty()) {
          out.Write("<");
          for (int i = 0; i < X->subtypes.size(); i++) {
@@ -228,9 +220,7 @@ void AstPrinter::Print(Ast* ast) {
          }
          out.Write("]");
       }
-      out.Write("'");
-      out.Write(X->name);
-      out.Write("'");
+      out.Write("'", X->name, "'");
       if (!X->subtypes.empty()) {
          out.Write("<");
          for (int i = 0; i < X->subtypes.size(); i++) {
@@ -248,34 +238,22 @@ void AstPrinter::Print(Ast* ast) {
       if (X->paren) out.Write("(");
       switch (X->kind) {
       case Literal::Bool: 
-         out.Write("Bool<");
-         out.Write(X->val.as_bool ? "true" : "false");
-         out.Write(">");
+         out.Write("Bool<", X->val.as_bool ? "true" : "false", ">");
          break;
       case Literal::Char: 
-         out.Write("Char<");
-         out.Write(Literal::escape(X->val.as_char));
-         out.Write(">");
+         out.Write("Char<", Literal::escape(X->val.as_char), ">");
          break;
       case Literal::Int: 
-         out.Write("Int<");
-         out.Write(X->val.as_int);
-         out.Write(">");
+         out.Write("Int<", X->val.as_int, ">");
          break;
       case Literal::Float:
-         out.Write("Float<");
-         out.Write(X->val.as_double);
-         out.Write(">");
+         out.Write("Float<", X->val.as_double, ">");
          break;
       case Literal::Double:
-         out.Write("Double<");
-         out.Write(X->val.as_double);
-         out.Write(">");
+         out.Write("Double<", X->val.as_double, ">");
          break;
       case Literal::String:
-         out.Write("String<");
-         out.Write(Literal::escape(*(X->val.as_string.s), '"'));
-         out.Write(">");
+         out.Write("String<", Literal::escape(*(X->val.as_string.s), '"'), ">");
          break;
       default:
          out.Write("Literal<>");
@@ -287,8 +265,7 @@ void AstPrinter::Print(Ast* ast) {
    case AstType::BinaryExpr: {
       BinaryExpr *X = cast<BinaryExpr>(ast);
       if (X->paren) out.Write("(");
-      out.Write(X->op);
-      out.Write("(");
+      out.Write(X->op, "(");
       Print(X->left);
       out.Write(", ");
       Print(X->right);
@@ -301,9 +278,7 @@ void AstPrinter::Print(Ast* ast) {
       if (X->kind == Decl::Pointer) {
          out.Write("*");
       }
-      out.Write('"');
-      out.Write(X->name);
-      out.Write('"');
+      out.Write('"', X->name, '"');
       break;
    }
    case AstType::ArrayDecl: {
@@ -341,9 +316,7 @@ void AstPrinter::Print(Ast* ast) {
    }
    case AstType::ObjDecl: {
       ObjDecl *X = cast<ObjDecl>(ast);
-      out.Write('"');
-      out.Write(X->name);
-      out.Write("\"(");
+      out.Write('"', X->name, "\"(");
       if (!X->args.empty()) {
          out.Write("Args = {");
          for (int i = 0; i < X->args.size(); i++) {
@@ -442,9 +415,7 @@ void AstPrinter::Print(Ast* ast) {
       out.Write(keyword[X->kind]);
       out.Write(">(");
       if (X->kind == JumpStmt::Goto) {
-         out.Write('"');
-         out.Write(X->label);
-         out.Write('"');
+         out.Write('"', X->label, '"');
       }
       out.Write(")");
       break;
@@ -500,9 +471,7 @@ void AstPrinter::Print(Ast* ast) {
    }
    case AstType::SignExpr: {
       SignExpr *X = cast<SignExpr>(ast);
-      out.Write("SignExpr<");
-      out.Write(X->kind == SignExpr::Positive ? '+' : '-');
-      out.Write(">(");
+      out.Write("SignExpr<", (X->kind == SignExpr::Positive ? '+' : '-'), ">(");
       Print(X->expr);
       out.Write(")");
       break;
@@ -516,11 +485,8 @@ void AstPrinter::Print(Ast* ast) {
    }
    case AstType::IncrExpr: {
       IncrExpr *X = cast<IncrExpr>(ast);
-      out.Write("IncrExpr<");
-      out.Write(X->kind == IncrExpr::Positive ? "++" : "--");
-      out.Write(", ");
-      out.Write(X->preincr ? "pre" : "post");
-      out.Write(">(");
+      out.Write("IncrExpr<", X->kind == IncrExpr::Positive ? "++" : "--");
+      out.Write(", ", (X->preincr ? "pre" : "post"), ">(");
       Print(X->expr);
       out.Write(")");
       break;
@@ -541,16 +507,12 @@ void AstPrinter::Print(Ast* ast) {
    }
    case AstType::StmtError: {
       StmtError *X = cast<StmtError>(ast);
-      out.Write("ErrorStmt(\"");
-      out.Write(X->code);
-      out.Write("\")");
+      out.Write("ErrorStmt(\"", X->code, "\")");
       break;
    }
    case AstType::ExprError: {
       ExprError *X = cast<ExprError>(ast);
-      out.Write("ErrorExpr(\"");
-      out.Write(X->code);
-      out.Write("\")");
+      out.Write("ErrorExpr(\"", X->code, "\")");
       break;
    }
    default:
