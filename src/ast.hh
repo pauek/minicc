@@ -34,11 +34,16 @@ struct CommentSeq {
    std::vector<Comment> items;
 
    bool has_endl() const;
-   bool starts_with_endl()  const { return !items.empty() and items.front().kind == Comment::endline; }
-   bool ends_with_endl()    const { return !items.empty() and items.back().kind  == Comment::endline; }
    bool ends_with_empty_line() const;
    void remove_endls();
    void only_one_endl_at_end();
+
+   bool starts_with_endl() const { 
+      return !items.empty() and items.front().kind == Comment::endline; 
+   }
+   bool ends_with_endl() const { 
+      return !items.empty() and items.back().kind  == Comment::endline; 
+   }
 };
 
 class AstVisitor;
@@ -89,7 +94,6 @@ enum class AstType {
 };
 
 struct Ast {
-                  AstType  type;
                      Span  span;
       std::vector<Error*>  errors;
  std::vector<CommentSeq*>  comments;
@@ -97,6 +101,8 @@ struct Ast {
 
                   void add_error(std::string msg);
                   void add_error(Pos ini, Pos fin, std::string msg);
+
+               AstType type() const { return type_; }
 
    virtual            ~Ast() {}
    virtual        void accept(AstVisitor* v) = 0;
@@ -106,17 +112,19 @@ struct Ast {
    virtual std::string describe()     const { return "UNIMPLEMENTED"; }
 
    template<typename X>
-                  bool is()           const { return dynamic_cast<const X*>(this) != 0; }
+                  bool is() const { return dynamic_cast<const X*>(this) != 0; }
    template<typename X>
-              const X *as()           const { return dynamic_cast<const X*>(this); }
+              const X *as() const { return dynamic_cast<const X*>(this); }
    template<typename X>
-                    X *as()                 { return dynamic_cast<X*>(this); }
+                    X *as()       { return dynamic_cast<X*>(this); }
+protected:
+   AstType  type_;
 };
 
 template<AstType Type>
 struct AstDerived : Ast {
-   static bool classof(Ast *ast) { return ast->type == Type; }
-   AstDerived() { type = Type; }
+   static bool classof(const Ast *ast) { return ast->type() == Type; }
+   AstDerived() { type_ = Type; }
 };
 
 struct Program : public AstDerived<AstType::Program> {
@@ -161,8 +169,8 @@ struct Stmt : public Ast {
 
 template<AstType Type>
 struct StmtDerived : Stmt {
-   static bool classof(Stmt *stmt) { return stmt->type == Type; }
-   StmtDerived() { type = Type; }
+   static bool classof(const Ast *ast) { return ast->type() == Type; }
+   StmtDerived() { type_ = Type; }
 };
 
 struct StmtError : public StmtDerived<AstType::StmtError> {
@@ -216,8 +224,8 @@ struct Decl : public Ast {
 
 template<AstType Type>
 struct DeclDerived : Decl {
-   static bool classof(Stmt *stmt) { return stmt->type == Type; }
-   DeclDerived() { type = Type; }
+   static bool classof(const Ast *ast) { return ast->type() == Type; }
+   DeclDerived() { type_ = Type; }
 };
 
 struct VarDecl : public DeclDerived<AstType::VarDecl> {
@@ -304,8 +312,8 @@ struct Expr : public Ast {
 
 template<AstType Type>
 struct ExprDerived : Expr {
-   static bool classof(Expr *e) { e->type == Type; }
-   ExprDerived() { type = Type; }
+   static bool classof(const Ast *ast) { ast->type() == Type; }
+   ExprDerived() { type_ = Type; }
 };
 
 struct ExprError : public ExprDerived<AstType::ExprError> {
@@ -334,13 +342,13 @@ struct Literal : public ExprDerived<AstType::Literal>
    Literal(Kind k) : kind(k) {}
    void accept(AstVisitor *v);
 
+   static std::string escape(char c);
    static std::string escape(std::string s, char delim);
 };
 
 struct SimpleIdent : ExprDerived<AstType::SimpleIdent> {
    std::string name;
-   bool is_namespace = false; // this is 'true' if this SimpleIdent is a namespace 
-                              // (used by the interpreter)
+   bool is_namespace = false; // (used by the interpreter)
 
    SimpleIdent(std::string _name = "") : name(_name), is_namespace(false) {}
    void accept(AstVisitor *v);
@@ -352,21 +360,21 @@ struct TemplateIdent : SimpleIdent {
 
    TemplateIdent(std::string name_) : SimpleIdent(name_) { 
       // overwrite!
-      type = AstType::TemplateIdent;
+      type_ = AstType::TemplateIdent;
    } 
    bool is_template() const { return !subtypes.empty(); }
    std::string typestr() const;
    void accept(AstVisitor *v);
    bool has_errors() const;
 
-   static bool classof(Expr *e) { e->type == AstType::TemplateIdent; }
+   static bool classof(const Ast *ast) { ast->type() == AstType::TemplateIdent; }
 };
 
 struct FullIdent : TemplateIdent {
    std::vector<TemplateIdent*> prefix;  // for classes & namespaces;
 
    FullIdent(std::string name_) : TemplateIdent(name_) {
-      type = AstType::FullIdent;
+      type_ = AstType::FullIdent;
    }
    std::string typestr() const;
    void accept(AstVisitor *v);
@@ -376,7 +384,7 @@ struct FullIdent : TemplateIdent {
    SimpleIdent *get_potential_namespace_or_class() const;
    std::vector<TemplateIdent*> get_non_namespaces();
 
-   static bool classof(Expr *e) { e->type == AstType::FullIdent; }
+   static bool classof(const Ast *ast) { ast->type() == AstType::FullIdent; }
 };
 
 struct BinaryExpr : public ExprDerived<AstType::BinaryExpr> {
@@ -406,8 +414,8 @@ struct UnaryExpr : public Expr {
 
 template<AstType Type>
 struct UnaryExprDerived : UnaryExpr {
-   UnaryExprDerived() { type = Type; }
-   static bool classof(Expr *e) { return e->type == Type; }
+   UnaryExprDerived() { type_ = Type; }
+   static bool classof(const Ast *ast) { return ast->type() == Type; }
 };
 
 struct SignExpr : public UnaryExprDerived<AstType::SignExpr> {
@@ -585,8 +593,9 @@ protected:
    }
 
 public:
-   ReadWriter(std::ostream *o)                          : _indent(0),         _out(o) {}
-   ReadWriter(std::istream *i = 0, std::ostream *o = 0) : _indent(0), _in(i), _out(o) {}
+   ReadWriter(std::ostream *o)     : _indent(0),         _out(o) {}
+   ReadWriter(std::istream *i = 0, 
+              std::ostream *o = 0) : _indent(0), _in(i), _out(o) {}
 
    std::string indentation() const { 
       return std::string(_indent * TAB_WIDTH, ' '); 

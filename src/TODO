@@ -1,0 +1,14 @@
+
+- Porqué queremos tener los errores en el AST??
+  Eso fue una idea mala... ahora se crean los errores 'adjuntos'
+  al AST y luego hay que recuperarlos... una currada innecesaria.
+  Arreglar eso.
+
+- En algún momento el Stepper se quedará en la cuneta.
+
+- El sistema de tipos es un gran embrollo ahora mismo.
+
+- Hay que traducir todos los visitors para usar el sistema de type-tags.
+
+
+  

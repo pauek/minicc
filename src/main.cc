@@ -43,6 +43,13 @@ int show_ast(string filename) {
    return (ve.empty() ? 0 : 1);
 }
 
+int show_ast_new(string filename) {
+   ifstream codefile(filename);
+   Parser P(&codefile);
+   Ast *program = P.parse();
+   AstPrint(program);
+}
+
 int prettyprint(string filename) {
    try {
       ifstream codefile(filename);
@@ -140,12 +147,13 @@ typedef int (*CmdFunc)(string);
 map<string, CmdFunc> funcs = {
    {"tok",              tokenize},
    {"ast",              show_ast},
+   {"ast2",             show_ast_new},
    {"pprint",           prettyprint},
    {"step",             step},
    {"eval",             interpret},
 
    {"test-parser",      test_parser},
-   {"test-ast",         test_ast},
+   {"test-ast",         test_ast2},
    {"test-print",       test_print},
    {"test-semantic",    test_semantic},
    {"test-interpreter", test_eval},

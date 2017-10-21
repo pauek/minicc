@@ -227,3 +227,37 @@ int test_ast(string filename)   { return test_visitor(filename, ast_printer); }
 int test_print(string filename) { return test_visitor(filename, pretty_printer); }
 int test_eval(string filename)  { return test_visitor(filename, interpreter); }
 int test_step(string filename)  { return test_visitor(filename, stepper); }
+
+int test_ast2(string filename) {
+   string code, in, out, err;
+   parse_test_file(filename, code, in, out, err);
+   
+   ostringstream Sout, Saux, Serr;
+   istringstream Scode(code), Sin(in);
+   Parser P(&Scode, &Serr);
+   Ast *program;
+   try {
+      program = P.parse();
+   }
+   catch (ParseError& e) {
+      Serr << filename << "[" << e.pos << "]: " << e.msg << endl;
+      goto compare;
+   }
+
+   try {
+      Translator::translator.set_language("es");
+      vector<Error*> ve;
+      AstPrint(program, Sout);
+      collect_errors(program, ve);
+      for (Error *e : ve) {
+         Serr << e->msg << endl;
+      }
+   } 
+   catch (Error* e) {
+      Serr << "Error de ejecución: " << e->msg << endl;
+   }
+
+ compare:
+   compare_result(filename, Sout.str(), Serr.str(), out, err);
+   return 0;
+}

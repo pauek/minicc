@@ -19,7 +19,7 @@ depend: .depend
 .depend: $(SRCS) $(HEADERS)
 	@rm -f ./.depend
 	@echo "Computing dependencies..."
-	@$(CC) $(CFLAGS) -MM $^>>./.depend;
+	@$(CC) $(CXXFLAGS) -MM $^>>./.depend;
 
 -include .depend
 

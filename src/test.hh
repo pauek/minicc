@@ -8,4 +8,6 @@ int test_print(std::string filename);
 int test_eval(std::string filename);
 int test_step(std::string filename);
 
+int test_ast2(std::string filename);
+
 #endif

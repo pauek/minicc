@@ -55,4 +55,6 @@ public:
    void visit_errorexpr(ExprError *x);
 };
 
+void AstPrint(Ast* ast, std::ostream& o = std::cout);
+
 #endif

@@ -181,22 +181,31 @@ JumpStmt::Kind JumpStmt::keyword2type(string s) {
    }
 }
 
+string Literal::escape(char c) {
+   switch (c) {
+   case '\a': return "\\a";
+   case '\b': return "\\b";
+   case '\f': return "\\f";
+   case '\n': return "\\n";
+   case '\r': return "\\r";
+   case '\t': return "\\t";
+   case '\v': return "\\v";
+   case '\?': return "\\?";
+   case '\\': return "\\\\";
+   case '\"': return "\\\"";
+   case '\'': return "\\\'";
+   default: 
+      return string(1, c);
+   }
+}
+
 string Literal::escape(string s, char delim) {
    string r;
    for (char c : s) {
-      switch (c) {
-      case '\a': r += "\\a"; break;
-      case '\b': r += "\\b"; break;
-      case '\f': r += "\\f"; break;
-      case '\n': r += "\\n"; break;
-      case '\r': r += "\\r"; break;
-      case '\t': r += "\\t"; break;
-      case '\v': r += "\\v"; break;
-      case '\?': r += "\\?"; break;
-      case '\\': r += "\\\\"; break;
-      case '\"': r += (delim == '"' ? "\\\"" : "\""); break;
-      case '\'': r += (delim == '\'' ? "\\'" : "'"); break;
-      default:   r += c; break;
+      if ((c == '"' or c == '\'') and c != delim) {
+         r += c;
+      } else {
+         r += escape(c);
       }
    }
    return r;

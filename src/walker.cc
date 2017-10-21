@@ -1,6 +1,7 @@
 #include <sstream>
 #include "ast.hh"
 #include "walker.hh"
+#include "cast.h"
 using namespace std;
 
 void Walker::visit_include(Include* x)             { walk(x); }
@@ -234,5 +235,27 @@ void Walker::visit_derefexpr(DerefExpr *x) {
    walk(x);
    if (x->expr) {
       x->expr->accept(this);
+   }
+}
+
+void ast_walk(Ast *ast, AstVisitor* visitor) {
+   switch (ast->type()) {
+   case AstType::Program: {
+      Program *program = cast<Program>(ast);
+      visitor->visit_program(program);
+      for (Ast *n : program->nodes) {
+         ast_walk(n, visitor);
+      }
+      break;
+   }
+   case AstType::Include: {
+      Include *include = cast<Include>(ast);
+      visitor->visit_include(include);
+      break;
+   }
+   case AstType::TypeSpec: {
+      TypeSpec *typespec = cast<TypeSpec>(ast);
+      visitor->visit_typespec(typespec);
+   }
    }
 }
