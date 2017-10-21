@@ -76,4 +76,6 @@ inline void collect_errors(Ast *x, std::vector<Error*>& v) {
    }
 }
 
+void ast_walk(Ast *ast, AstVisitor* visitor);
+
 #endif

@@ -147,7 +147,6 @@ int test_visitor(string filename, VisitorType vtype) {
    AstVisitor *v;
    switch (vtype) {
    case pretty_printer: v = new PrettyPrinter(&Sout); break;
-   case ast_printer:    v = new AstPrinter(&Sout); break;
    case interpreter:    v = new Interpreter(&Sin, &Sout); break;
    default: break;
    }
@@ -223,12 +222,11 @@ int test_parser(string filename) {
    return _test_parser_and_semantic(filename, false);
 }
 
-int test_ast(string filename)   { return test_visitor(filename, ast_printer); }
 int test_print(string filename) { return test_visitor(filename, pretty_printer); }
 int test_eval(string filename)  { return test_visitor(filename, interpreter); }
 int test_step(string filename)  { return test_visitor(filename, stepper); }
 
-int test_ast2(string filename) {
+int test_ast(string filename) {
    string code, in, out, err;
    parse_test_file(filename, code, in, out, err);
    
