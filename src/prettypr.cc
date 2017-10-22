@@ -2,7 +2,7 @@
 #include <algorithm>
 #include <sstream>
 #include "ast.hh"
-#include "prettypr2.hh"
+#include "prettypr.hh"
 #include "cast.h"
 using namespace std;
 

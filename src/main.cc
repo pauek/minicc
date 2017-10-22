@@ -6,7 +6,7 @@ using namespace std;
 
 #include "parser.hh"
 #include "astpr.hh"
-#include "prettypr2.hh"
+#include "prettypr.hh"
 #include "stepper.hh"
 #include "semantic.hh"
 #include "interpreter.hh"
