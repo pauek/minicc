@@ -331,7 +331,8 @@ int _test_parser_and_semantic(string filename, bool do_semantic) {
       vector<Error*> ve;
       collect_errors(program, ve);
       for (Error *e : ve) {
-         Serr << filename << "[" << e->span.begin << "-" << e->span.end << "]: " << e->msg << endl;
+         Serr << filename << "[" << e->span.begin << "-" << e->span.end << "]: " 
+              << e->msg << endl;
       }
    }
    catch (ParseError& e) {
@@ -349,9 +350,9 @@ int test_parser(string filename) {
    return _test_parser_and_semantic(filename, false);
 }
 
-int test_print(string filename) { return test_visitor(filename, pretty_printer); }
-int test_eval(string filename)  { return test_visitor(filename, interpreter); }
-int test_step(string filename)  { return test_visitor(filename, stepper); }
+int test_print(string fname) { return test_visitor(fname, pretty_printer); }
+int test_eval(string fname)  { return test_visitor(fname, interpreter); }
+int test_step(string fname)  { return test_visitor(fname, stepper); }
 
 int test_ast(string filename) {
    string code, in, out, err;

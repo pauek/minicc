@@ -39,7 +39,9 @@ public:
    CommentPrinter(Ast *_x, PrettyPrinter *_pr) 
       : x(_x), pr(_pr), i(0), had_endl(false), was_empty(true) {}
 
-   CommentSeq *next()    const { return (i < x->comments.size() ? x->comments[i] : 0); }
+   CommentSeq *next()    const { 
+      return (i < x->comments.size() ? x->comments[i] : 0); 
+   }
    bool last_had_endl()  const { return had_endl; }
    bool last_was_empty() const { return was_empty; }
 
@@ -50,7 +52,8 @@ public:
    string _cmtl()  { return CMT(1, 0, 1, 0); }
 };
 
-static ostream& print_comment_seq(ostream& o, CommentSeq* C, string indentation) {
+static 
+ostream& print_comment_seq(ostream& o, CommentSeq* C, string indentation) {
    if (C == 0) {
       return o;
    }
@@ -313,7 +316,9 @@ void PrettyPrinter::visit_literal(Literal *x) {
    case Literal::Bool:   out() << (x->val.as_bool ? "true" : "false"); break;
    case Literal::Int:    out() << x->val.as_int; break;
    case Literal::Double: out() << x->val.as_double; break;
-   case Literal::String: out() << '"' << Literal::escape(*x->val.as_string.s, '"') << '"'; break;
+   case Literal::String: 
+      out() << '"' << Literal::escape(*x->val.as_string.s, '"') << '"'; 
+      break;
    case Literal::Char:   {
       string ch(1, x->val.as_char);
       out() << "'" << Literal::escape(ch, '\'') << "'"; 
@@ -551,14 +556,14 @@ void PrettyPrinter::visit_condexpr(CondExpr *x) {
    }
    x->cond->accept(this);
 
-   // WARNING: g++ here optimizes in such a way that changes order of instructions!!!
+   // WARNING: g++ here optimizes and that changes order of instructions!!!
    out() << cp._cmt();
    out() << " ? ";
    out() << cp.cmt_();
    
    x->then->accept(this);
 
-   // WARNING: g++ here optimizes in such a way that changes order of instructions!!!
+   // WARNING: g++ here optimizes and that changes order of instructions!!!
    out() << cp._cmt();
    out() << " : ";
    out() << cp.cmt_();
