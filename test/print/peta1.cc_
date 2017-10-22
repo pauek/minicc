@@ -1,0 +1,11 @@
+#include /* bla bla */<string>
+
+void fac() {
+   int a = 2;
+   a += "hola";
+   std::string s = "hi";
+   s += 3;
+   int x = 0, b = 1;
+   x |= s;
+   b &= s;
+}
