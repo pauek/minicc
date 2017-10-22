@@ -6,7 +6,6 @@ using namespace std;
 
 #include "parser.hh"
 #include "astpr.hh"
-#include "prettypr.hh"
 #include "prettypr2.hh"
 #include "stepper.hh"
 #include "semantic.hh"
@@ -34,26 +33,6 @@ int show_ast(string filename) {
    Parser P(&codefile);
    Ast *program = P.parse();
    AstPrint(program);
-}
-
-int prettyprint(string filename) {
-   try {
-      ifstream codefile(filename);
-      Parser P(&codefile);
-      Ast *program = P.parse();
-      PrettyPrinter PP(&cout);
-      program->accept(&PP);
-      vector<Error*> ve;
-      collect_errors(program, ve);
-      for (Error *e : ve) {
-         cerr << e->msg << endl;
-      }
-      return (ve.empty() ? 0 : 1);
-   } 
-   catch (Error* e) {
-      cerr << _T("Pretty Print Error") << ": " << e->msg << endl;
-      return 1;
-   }
 }
 
 int prettyprint2(string filename) {
@@ -273,7 +252,6 @@ int test_visitor(string filename, VisitorType vtype) {
 
    AstVisitor *v;
    switch (vtype) {
-   case pretty_printer: v = new PrettyPrinter(&Sout); break;
    case interpreter:    v = new Interpreter(&Sin, &Sout); break;
    default: break;
    }
@@ -383,7 +361,6 @@ int test_print2(string filename) {
    return 0;
 }
 
-int test_print(string fname) { return test_visitor(fname, pretty_printer); }
 int test_eval(string fname)  { return test_visitor(fname, interpreter); }
 int test_step(string fname)  { return test_visitor(fname, stepper); }
 
@@ -427,8 +404,7 @@ typedef int (*CmdFunc)(string);
 map<string, CmdFunc> funcs = {
    {"tok",              tokenize},
    {"ast",              show_ast},
-   {"pprint",           prettyprint},
-   {"pp2",              prettyprint2},
+   {"pprint",           prettyprint2},
    {"step",             step},
    {"eval",             interpret},
 
