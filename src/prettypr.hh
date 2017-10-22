@@ -54,4 +54,7 @@ public:
    void visit_errorexpr(ExprError *x);
 };
 
+void PrettyPrint(Ast *ast, std::ostream& out = std::cout);
+
 #endif
+

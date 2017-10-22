@@ -21,7 +21,6 @@ using namespace std;
 
 **/
 
-
 class CommentPrinter {
    Ast *x;
    int i;
@@ -51,7 +50,7 @@ public:
    string _cmtl()  { return CMT(1, 0, 1, 0); }
 };
 
-ostream& print_comment_seq(ostream& o, CommentSeq* C, string indentation) {
+static ostream& print_comment_seq(ostream& o, CommentSeq* C, string indentation) {
    if (C == 0) {
       return o;
    }
