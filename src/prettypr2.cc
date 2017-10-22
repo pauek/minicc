@@ -168,7 +168,7 @@ void PrettyPrinter2::Print(Ast* ast) {
       CommentPrinter2 cp(X, out);
       string delim = (X-> global ? "<>" : "\"\"");
       out.Write("#include ");
-      cp.cmt_();
+      out.Write(cp.cmt_());
       out.Write(delim[0], X->filename, delim[1]);
       break;
    }
@@ -180,10 +180,15 @@ void PrettyPrinter2::Print(Ast* ast) {
    case AstType::Using: {
       Using *X = cast<Using>(ast);
       CommentPrinter2 cp(X, out);
-      out.Write("using ", cp.cmt_());
-      out.Write("namespace ", cp.cmt_());
-      out.Write(X->namespc, cp._cmt());
-      out.Write(";", cp.cmt());
+      // WARNING: g++ here optimizes and changes order of instructions!!!
+      out.Write("using ");
+      out.Write(cp.cmt_());
+      out.Write("namespace "); 
+      out.Write(cp.cmt_());
+      out.Write(X->namespc);
+      out.Write(cp._cmt());
+      out.Write(";");
+      out.Write(cp.cmt());
       break;
    }
    case AstType::TypeSpec: {
@@ -230,9 +235,13 @@ void PrettyPrinter2::Print(Ast* ast) {
    case AstType::StructDecl: {
       StructDecl *X = cast<StructDecl>(ast);
       CommentPrinter2 cp(X, out);
-      out.Write("struct ", cp.cmt_());
+      // WARNING: g++ here optimizes and changes order of instructions!!!
+      out.Write("struct ");
+      out.Write(cp.cmt_());
       Print(X->id);
-      out.Write(cp._cmt(), " {");
+      // WARNING: g++ here optimizes and changes order of instructions!!!
+      out.Write(cp._cmt());
+      out.Write(" {");
       out.Indent();
       vector<string> decl_strings;
       // TODO: Alinear comentarios y nombres de variable verticalmente!
@@ -241,7 +250,11 @@ void PrettyPrinter2::Print(Ast* ast) {
          Print(decl);
       }
       out.Dedent();
-      out.Write(cp._cmtl(), "}", cp._cmt(), ";");
+      // WARNING: g++ here optimizes and changes order of instructions!!!
+      out.Write(cp._cmtl());
+      out.Write("}");
+      out.Write(cp._cmt());
+      out.Write(";");
       break;
    }
    case AstType::FuncDecl: {
@@ -249,11 +262,16 @@ void PrettyPrinter2::Print(Ast* ast) {
       CommentPrinter2 cp(X, out);
 
       Print(X->return_typespec);
-      out.Write(" ", cp.cmt_());
+      // WARNING: g++ here optimizes and changes order of instructions!!!
+      out.Write(" ");
+      out.Write(cp.cmt_());
       Print(X->id);
       out.Write(cp._cmt_());
       if (X->params.empty()) {
-         out.Write("(", cp.cmt(), ")");
+         // WARNING: g++ here optimizes and changes order of instructions!!!
+         out.Write("(");
+         out.Write(cp.cmt());
+         out.Write(")");
       } else {
          out.Write("(");
          for (int i = 0; i < X->params.size(); i++) {
@@ -262,18 +280,26 @@ void PrettyPrinter2::Print(Ast* ast) {
             }
             out.Write(cp.cmt_());
             Print(X->params[i]->typespec);
-            out.Write(" ", cp.cmt_(), X->params[i]->name, cp._cmt());
+            // WARNING: g++ here optimizes and changes order of instructions!!!
+            out.Write(" ");
+            out.Write(cp.cmt_());
+            out.Write(X->params[i]->name);
+            out.Write(cp._cmt());
          }
-         out.Write("(");
+         out.Write(")");
       }
       if (cp.next()) {
          cp.next()->remove_endls();
       }
       if (X->block) {
-         out.Write(" ", cp.cmt_());
+         // WARNING: g++ here optimizes and changes order of instructions!!!
+         out.Write(" ");
+         out.Write(cp.cmt_());
          Print(X->block);
       } else {
-         out.Write(cp._cmt(), ";");
+         // WARNING: g++ here optimizes and changes order of instructions!!!
+         out.Write(cp._cmt());
+         out.Write(";");
       }
       break;
    }
@@ -297,7 +323,9 @@ void PrettyPrinter2::Print(Ast* ast) {
          Print(stmt);
       }
       out.Dedent();
-      out.Write(cp._cmtl(), "}", cp._cmt());
+      out.Write(cp._cmtl());
+      out.Write("}");
+      out.Write(cp._cmt());
       break;
    }
    case AstType::SimpleIdent: {
@@ -310,7 +338,10 @@ void PrettyPrinter2::Print(Ast* ast) {
       CommentPrinter2 cp(X, out);
       for (TemplateIdent *pre : X->prefix) {
          Print(pre);
-         out.Write(cp._cmt_(), "::", cp._cmt_());
+         // WARNING: g++ here optimizes and changes order of instructions!!!
+         out.Write(cp._cmt_());
+         out.Write("::");
+         out.Write(cp._cmt_());
       }
       // ----> FALLTHROUGH!!!! <-----
       // ----> FALLTHROUGH!!!! <-----
@@ -321,10 +352,15 @@ void PrettyPrinter2::Print(Ast* ast) {
       CommentPrinter2 cp(X, out);
       out.Write(X->name);
       if (!X->subtypes.empty()) {
-         out.Write(cp._cmt_(), "<", cp.cmt_());
+         // WARNING: g++ here optimizes and changes order of instructions!!!
+         out.Write(cp._cmt_());
+         out.Write("<");
+         out.Write(cp.cmt_());
          for (int i = 0; i < X->subtypes.size(); i++) {
             if (i > 0) {
-               out.Write(", ", cp.cmt_());
+               // WARNING: g++ here optimizes and changes order of instructions!!!
+               out.Write(", ");
+               out.Write(cp.cmt_());
             }
             Print(X->subtypes[i]);
             out.Write(cp._cmt());
@@ -365,16 +401,23 @@ void PrettyPrinter2::Print(Ast* ast) {
       BinaryExpr *X = cast<BinaryExpr>(ast);
       CommentPrinter2 cp(X, out);
       if (X->paren) {
-         out.Write("(", cp.cmt_());
+         // WARNING: g++ here optimizes and changes order of instructions!!!
+         out.Write("(");
+         out.Write(cp.cmt_());
       }
       Print(X->left);
       if (X->op != ",") {
-         out.Write(cp._cmt(), " ");
+         // WARNING: g++ here optimizes and changes order of instructions!!!
+         out.Write(cp._cmt());
+         out.Write(" ");
       }
-      out.Write(X->op, " ", cp.cmt_());
+      // WARNING: g++ here optimizes and changes order of instructions!!!
+      out.Write(X->op, " ");
+      out.Write(cp.cmt_());
       Print(X->right);
       if (X->paren) {
-         out.Write(cp._cmt(), ")");
+         out.Write(cp._cmt());
+         out.Write(")");
       }
       out.Write(cp._cmt());
       break;
@@ -385,7 +428,9 @@ void PrettyPrinter2::Print(Ast* ast) {
       if (X->kind == Decl::Pointer) {
          out.Write("*");
       }
-      out.Write(X->name, cp._cmt());
+      // WARNING: g++ here optimizes and changes order of instructions!!!
+      out.Write(X->name);
+      out.Write(cp._cmt());
       break;
    }
    case AstType::ExprList: {
@@ -433,15 +478,18 @@ void PrettyPrinter2::Print(Ast* ast) {
       DeclStmt *X = cast<DeclStmt>(ast);
       CommentPrinter2 cp(X, out);
       Print(X->typespec);
-      out.Write(" ", cp.cmt_());
+      out.Write(" ");
+      out.Write(cp.cmt_());
       for (int i = 0; i < X->items.size(); i++) {
          if (i > 0) {
-            out.Write(", ", cp.cmt_());
+            out.Write(", ");
+            out.Write(cp.cmt_());
          }
          DeclStmt::Item& item = X->items[i];
          Print(item.decl);
          if (item.init) {
-            out.Write(" = ", cp.cmt_());
+            out.Write(" = ");
+            out.Write(cp.cmt_());
             Print(item.init);
          }
       }
@@ -463,7 +511,9 @@ void PrettyPrinter2::Print(Ast* ast) {
    case AstType::IfStmt: {
       IfStmt *X = cast<IfStmt>(ast);
       CommentPrinter2 cp(X, out);
-      out.Write("if ", cp.cmt_(), "(", cp.cmt_());
+      out.Write("if ");
+      out.Write(cp.cmt_());
+      out.Write("(", cp.cmt_());
       Print(X->cond);
       out.Write(") ", cp.cmt_());
       Print(X->then);
@@ -506,10 +556,16 @@ void PrettyPrinter2::Print(Ast* ast) {
    case AstType::WhileStmt: {
       WhileStmt *X = cast<WhileStmt>(ast);
       CommentPrinter2 cp(X, out);
-      out.Write("while ", cp.cmt_());
-      out.Write("(", cp.cmt_());
+      // WARNING: g++ here optimizes and changes order of instructions!!!
+      out.Write("while ");
+      out.Write(cp.cmt_());
+      out.Write("(");
+      out.Write(cp.cmt_());
       Print(X->cond);
-      out.Write(cp._cmt(), ")", cp._cmt());
+      // WARNING: g++ here optimizes and changes order of instructions!!!
+      out.Write(cp._cmt());
+      out.Write(")");
+      out.Write(cp._cmt());
       if (!cp.last_had_endl()) {
          out.Write(" ");
       }
@@ -525,9 +581,13 @@ void PrettyPrinter2::Print(Ast* ast) {
       string keyword[3] = { "break", "continue", "goto" };
       out.Write(keyword[X->kind], cp._cmt());
       if (X->kind == JumpStmt::Goto) {
-         out.Write(" ", X->label, cp._cmt());
+         // WARNING: g++ here optimizes and changes order of instructions!!!
+         out.Write(" ", X->label);
+         out.Write(cp._cmt());
       }
-      out.Write(";", cp._cmt());
+      // WARNING: g++ here optimizes and changes order of instructions!!!
+      out.Write(";");
+      out.Write(cp._cmt());
       break;
    }
    case AstType::CallExpr: {
@@ -543,7 +603,8 @@ void PrettyPrinter2::Print(Ast* ast) {
       out.Write(cp._cmt_(), "(");
       for (int i = 0; i < X->args.size(); i++) {
          if (i > 0) {
-            out.Write(", ", cp.cmt_());
+            out.Write(", ");
+            out.Write(cp.cmt_());
          }
          out.Write(cp.cmt_());
          Print(X->args[i]);
@@ -588,9 +649,15 @@ void PrettyPrinter2::Print(Ast* ast) {
          out.Write("(");
       }
       Print(X->cond);
-      out.Write(cp._cmt(), " ? ", cp.cmt_());
+      // WARNING: g++ here optimizes and changes order of instructions!!!
+      out.Write(cp._cmt());
+      out.Write(" ? ");
+      out.Write(cp.cmt_());
       Print(X->then);
-      out.Write(cp._cmt(), " : ", cp.cmt_());
+      // WARNING: g++ here optimizes and changes order of instructions!!!
+      out.Write(cp._cmt());
+      out.Write(" : ");
+      out.Write(cp.cmt_());
       Print(X->els);
       if (X->paren) {
          out.Write(")");
@@ -645,8 +712,11 @@ void PrettyPrinter2::Print(Ast* ast) {
       CommentPrinter2 cp(X, out);
       if (X->paren) {
          out.Write("(");
+         out.Write(cp.cmt_());
       }
-      out.Write("&", cp._cmt_());
+      // WARNING: g++ here optimizes and changes order of instructions!!!
+      out.Write("&");
+      out.Write(cp._cmt_());
       Print(X->expr);
       if (X->paren) {
          out.Write(")");

@@ -350,6 +350,39 @@ int test_parser(string filename) {
    return _test_parser_and_semantic(filename, false);
 }
 
+int test_print2(string filename) {
+   string code, in, out, err;
+   parse_test_file(filename, code, in, out, err);
+   
+   ostringstream Sout, Saux, Serr;
+   istringstream Scode(code), Sin(in);
+   Parser P(&Scode, &Serr);
+   Ast *program;
+   try {
+      program = P.parse();
+   }
+   catch (ParseError& e) {
+      Serr << filename << "[" << e.pos << "]: " << e.msg << endl;
+      goto compare;
+   }
+   try {
+      Translator::translator.set_language("es");
+      vector<Error*> ve;
+      PrettyPrint(program, Sout);
+      collect_errors(program, ve);
+      for (Error *e : ve) {
+         Serr << e->msg << endl;
+      }
+   } 
+   catch (Error* e) {
+      Serr << "Error de ejecución: " << e->msg << endl;
+   }
+
+ compare:
+   compare_result(filename, Sout.str(), Serr.str(), out, err);
+   return 0;
+}
+
 int test_print(string fname) { return test_visitor(fname, pretty_printer); }
 int test_eval(string fname)  { return test_visitor(fname, interpreter); }
 int test_step(string fname)  { return test_visitor(fname, stepper); }
@@ -401,7 +434,7 @@ map<string, CmdFunc> funcs = {
 
    {"test-parser",      test_parser},
    {"test-ast",         test_ast},
-   {"test-print",       test_print},
+   {"test-print",       test_print2},
    {"test-semantic",    test_semantic},
    {"test-interpreter", test_eval},
    {"test-stepper",     test_step}

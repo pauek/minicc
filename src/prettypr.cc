@@ -556,14 +556,14 @@ void PrettyPrinter::visit_condexpr(CondExpr *x) {
    }
    x->cond->accept(this);
 
-   // WARNING: g++ here optimizes and that changes order of instructions!!!
+   // WARNING: g++ here optimizes and changes order of instructions!!!
    out() << cp._cmt();
    out() << " ? ";
    out() << cp.cmt_();
    
    x->then->accept(this);
 
-   // WARNING: g++ here optimizes and that changes order of instructions!!!
+   // WARNING: g++ here optimizes and changes order of instructions!!!
    out() << cp._cmt();
    out() << " : ";
    out() << cp.cmt_();
@@ -616,7 +616,6 @@ void PrettyPrinter::visit_negexpr(NegExpr *x) {
 
 void PrettyPrinter::visit_addrexpr(AddrExpr *x) {
    CommentPrinter cp(x, this);
-   int nc = 0;
    if (x->paren) {
       out() << "(" << cp.cmt_();
    }
