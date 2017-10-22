@@ -8,6 +8,7 @@ using namespace std;
 #include "test.hh"
 #include "astpr.hh"
 #include "prettypr.hh"
+#include "prettypr2.hh"
 #include "stepper.hh"
 #include "semantic.hh"
 #include "interpreter.hh"
@@ -54,6 +55,19 @@ int prettyprint(string filename) {
       cerr << _T("Pretty Print Error") << ": " << e->msg << endl;
       return 1;
    }
+}
+
+int prettyprint2(string filename) {
+   try {
+      ifstream codefile(filename);
+      Parser P(&codefile);
+      Ast *program = P.parse();
+      PrettyPrint(program);
+   } 
+   catch (Error* e) {
+      cerr << _T("Pretty Print Error") << ": " << e->msg << endl;
+      return 1;
+   }   
 }
 
 int step(string filename) {
@@ -134,6 +148,7 @@ map<string, CmdFunc> funcs = {
    {"tok",              tokenize},
    {"ast",              show_ast},
    {"pprint",           prettyprint},
+   {"pp2",              prettyprint2},
    {"step",             step},
    {"eval",             interpret},
 

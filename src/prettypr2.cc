@@ -23,6 +23,18 @@ struct OutputWriter {
       out_ << t1 << t2 << t3; 
    }
 
+   template<typename T1, typename T2, typename T3, typename T4>
+   void Write(const T1& t1, const T2& t2, const T3& t3, const T4& t4) { 
+      out_ << t1 << t2 << t3 << t4; 
+   }
+
+   template<typename T1, typename T2, typename T3, typename T4, typename T5>
+   void Write(const T1& t1, const T2& t2, const T3& t3, const T4& t4, 
+              const T5& t5) 
+   {
+      out_ << t1 << t2 << t3 << t4 < t5; 
+   }
+
    void EndLine() { out_ << endl; }
    void BeginLine() { out_ << string(indent_, ' '); }
 
@@ -117,7 +129,6 @@ string CommentPrinter2::CMT(bool pre, bool post, bool _endl, bool missing) {
 struct PrettyPrinter2 {
    OutputWriter out;
 
-
    PrettyPrinter2(ostream& o) : out(o) {}
    void Print(Ast *ast);
 };
@@ -152,6 +163,508 @@ void PrettyPrinter2::Print(Ast* ast) {
       }      
       break;
       
+   }
+   case AstType::Include: {
+      Include *X = cast<Include>(ast);
+      CommentPrinter2 cp(X, out);
+      string delim = (X-> global ? "<>" : "\"\"");
+      out.Write("#include ");
+      cp.cmt_();
+      out.Write(delim[0], X->filename, delim[1]);
+      break;
+   }
+   case AstType::Macro: {
+      Macro *X = cast<Macro>(ast);
+      out.Write("#", X->macro);
+      break;
+   }
+   case AstType::Using: {
+      Using *X = cast<Using>(ast);
+      CommentPrinter2 cp(X, out);
+      out.Write("using ", cp.cmt_());
+      out.Write("namespace ", cp.cmt_());
+      out.Write(X->namespc, cp._cmt());
+      out.Write(";", cp.cmt());
+      break;
+   }
+   case AstType::TypeSpec: {
+      TypeSpec *X = cast<TypeSpec>(ast);
+      CommentPrinter2 cp(X, out);
+      for (int q : X->qual) {
+         out.Write(TypeSpec::QualifiersNames[q], " ", cp.cmt_());
+      }
+      Print(X->id);
+      if (X->reference) {
+         out.Write(cp._cmt_(), "&");
+      }
+      break;
+   }
+   case AstType::EnumDecl: {
+      EnumDecl *X = cast<EnumDecl>(ast);
+      CommentPrinter2 cp(X, out);
+      out.Write("enum ", cp.cmt_());
+      out.Write(X->name, cp._cmt());
+      out.Write(" { ", cp.cmt_());
+      for (int i = 0; i < X->values.size(); i++) {
+         if (i > 0) {
+            out.Write(", ", cp.cmt_());
+         }
+         out.Write(X->values[i].id, cp._cmt());
+         if (X->values[i].has_val) {
+            out.Write(" = ", cp.cmt_());
+            out.Write(X->values[i].val, cp._cmt());
+         }
+      }
+      out.Write(" };");
+      break;
+   }
+   case AstType::TypedefDecl: {
+      TypedefDecl *X = cast<TypedefDecl>(ast);
+      CommentPrinter2 cp(X, out);
+      out.Write("typedef ", cp.cmt_());
+      Print(X->decl->typespec);
+      out.Write(" ", cp.cmt_());
+      Print(X->decl);
+      out.Write(";", cp._cmt());
+      break;
+   }
+   case AstType::StructDecl: {
+      StructDecl *X = cast<StructDecl>(ast);
+      CommentPrinter2 cp(X, out);
+      out.Write("struct ", cp.cmt_());
+      Print(X->id);
+      out.Write(cp._cmt(), " {");
+      out.Indent();
+      vector<string> decl_strings;
+      // TODO: Alinear comentarios y nombres de variable verticalmente!
+      for (DeclStmt *decl : X->decls) {
+         out.Write(cp._cmtl());
+         Print(decl);
+      }
+      out.Dedent();
+      out.Write(cp._cmtl(), "}", cp._cmt(), ";");
+      break;
+   }
+   case AstType::FuncDecl: {
+      FuncDecl *X = cast<FuncDecl>(ast);
+      CommentPrinter2 cp(X, out);
+
+      Print(X->return_typespec);
+      out.Write(" ", cp.cmt_());
+      Print(X->id);
+      out.Write(cp._cmt_());
+      if (X->params.empty()) {
+         out.Write("(", cp.cmt(), ")");
+      } else {
+         out.Write("(");
+         for (int i = 0; i < X->params.size(); i++) {
+            if (i > 0) {
+               out.Write(", ");
+            }
+            out.Write(cp.cmt_());
+            Print(X->params[i]->typespec);
+            out.Write(" ", cp.cmt_(), X->params[i]->name, cp._cmt());
+         }
+         out.Write("(");
+      }
+      if (cp.next()) {
+         cp.next()->remove_endls();
+      }
+      if (X->block) {
+         out.Write(" ", cp.cmt_());
+         Print(X->block);
+      } else {
+         out.Write(cp._cmt(), ";");
+      }
+      break;
+   }
+   case AstType::Block: {
+      Block *X = cast<Block>(ast);
+      CommentPrinter2 cp(X, out);
+      if (X->stmts.empty()) {
+         out.Write("{");
+         if (cp.next() and cp.next()->has_endl()) {
+            out.Write(cp._cmt());
+         } else {
+            out.Write(cp._cmt_());
+         }
+         out.Write("}");
+         return;
+      }
+      out.Indent();
+      out.Write("{");
+      for (Stmt *stmt : X->stmts) {
+         out.Write(cp._cmtl());
+         Print(stmt);
+      }
+      out.Dedent();
+      out.Write(cp._cmtl(), "}", cp._cmt());
+      break;
+   }
+   case AstType::SimpleIdent: {
+      SimpleIdent *X = cast<SimpleIdent>(ast);
+      out.Write(X->name);
+      break;
+   }
+   case AstType::FullIdent: {
+      FullIdent *X = cast<FullIdent>(ast);
+      CommentPrinter2 cp(X, out);
+      for (TemplateIdent *pre : X->prefix) {
+         Print(pre);
+         out.Write(cp._cmt_(), "::", cp._cmt_());
+      }
+      // ----> FALLTHROUGH!!!! <-----
+      // ----> FALLTHROUGH!!!! <-----
+      // ----> FALLTHROUGH!!!! <-----
+   }   
+   case AstType::TemplateIdent: {
+      TemplateIdent *X = cast<TemplateIdent>(ast);
+      CommentPrinter2 cp(X, out);
+      out.Write(X->name);
+      if (!X->subtypes.empty()) {
+         out.Write(cp._cmt_(), "<", cp.cmt_());
+         for (int i = 0; i < X->subtypes.size(); i++) {
+            if (i > 0) {
+               out.Write(", ", cp.cmt_());
+            }
+            Print(X->subtypes[i]);
+            out.Write(cp._cmt());
+         }
+         out.Write(">");
+      }
+      break;
+   }
+   case AstType::Literal: {
+      Literal *X = cast<Literal>(ast);
+      CommentPrinter2 cp(X, out);
+      if (X->paren) {
+         out.Write("(");
+      } 
+      switch (X->kind) {
+      case Literal::Bool:   out.Write(X->val.as_bool ? "true" : "false"); break;
+      case Literal::Int:    out.Write(X->val.as_int); break;
+      case Literal::Double: out.Write(X->val.as_double); break;
+      case Literal::String: 
+         out.Write('"', Literal::escape(*X->val.as_string.s, '"'), '"'); 
+         break;
+      case Literal::Char: {
+         string ch(1, X->val.as_char);
+         out.Write("'", Literal::escape(ch, '\''), "'"); 
+         break;
+      }
+      default:
+         out.Write("<literal>"); 
+         break;
+      }
+      out.Write(cp._cmt());
+      if (X->paren) {
+         out.Write(")");
+      }
+   }
+   case AstType::BinaryExpr: {
+      BinaryExpr *X = cast<BinaryExpr>(ast);
+      CommentPrinter2 cp(X, out);
+      if (X->paren) {
+         out.Write("(", cp.cmt_());
+      }
+      Print(X->left);
+      if (X->op != ",") {
+         out.Write(cp._cmt(), " ");
+      }
+      out.Write(X->op, " ", cp.cmt_());
+      Print(X->right);
+      if (X->paren) {
+         out.Write(cp._cmt(), ")");
+      }
+      out.Write(cp._cmt());
+      break;
+   }
+   case AstType::VarDecl: {
+      VarDecl *X = cast<VarDecl>(ast);
+      CommentPrinter2 cp(X, out);
+      if (X->kind == Decl::Pointer) {
+         out.Write("*");
+      }
+      out.Write(X->name, cp._cmt());
+      break;
+   }
+   case AstType::ExprList: {
+      ExprList *X = cast<ExprList>(ast);
+      CommentPrinter2 cp(X, out);
+      out.Write("{");
+      for (int i = 0; i < X->exprs.size(); i++) {
+         if (i > 0) {
+            out.Write(", ");
+         }
+         Print(X->exprs[i]);
+      }
+      out.Write("}");
+      break;
+   }
+   case AstType::ArrayDecl: {
+      ArrayDecl *X = cast<ArrayDecl>(ast);
+      CommentPrinter2 cp(X, out);
+      out.Write(X->name, cp._cmt_());
+      for (int i = 0; i < X->sizes.size(); i++) {
+         out.Write("[", cp.cmt_());
+         Print(X->sizes[i]);
+         out.Write("]", cp._cmt());
+      }
+      break;
+   }
+   case AstType::ObjDecl: {
+      ObjDecl *X = cast<ObjDecl>(ast);
+      CommentPrinter2 cp(X, out);
+      out.Write(X->name, cp._cmt());
+      if (!X->args.empty()) {
+         out.Write("(");
+         for (int i = 0; i < X->args.size(); i++) {
+            if (i > 0) {
+               out.Write(", ");
+            }
+            out.Write(cp.cmt_());
+            Print(X->args[i]);
+         }
+         out.Write(")");
+      }
+      break;
+   }
+   case AstType::DeclStmt: {
+      DeclStmt *X = cast<DeclStmt>(ast);
+      CommentPrinter2 cp(X, out);
+      Print(X->typespec);
+      out.Write(" ", cp.cmt_());
+      for (int i = 0; i < X->items.size(); i++) {
+         if (i > 0) {
+            out.Write(", ", cp.cmt_());
+         }
+         DeclStmt::Item& item = X->items[i];
+         Print(item.decl);
+         if (item.init) {
+            out.Write(" = ", cp.cmt_());
+            Print(item.init);
+         }
+      }
+      out.Write(";");
+      break;
+   }
+   case AstType::ExprStmt: {
+      ExprStmt *X = cast<ExprStmt>(ast);
+      CommentPrinter2 cp(X, out);
+      if (X->is_return) {
+         out.Write("return ", cp.cmt_());
+      }
+      if (X->expr) {
+         Print(X->expr);
+      }
+      out.Write(cp._cmt(), ";");
+      break;
+   }
+   case AstType::IfStmt: {
+      IfStmt *X = cast<IfStmt>(ast);
+      CommentPrinter2 cp(X, out);
+      out.Write("if ", cp.cmt_(), "(", cp.cmt_());
+      Print(X->cond);
+      out.Write(") ", cp.cmt_());
+      Print(X->then);
+      if (X->els) {
+         out.Write(cp._cmt());
+         if (!cp.last_had_endl()) {
+            out.Write(" ");
+         }
+         out.Write("else ", cp.cmt_());
+         Print(X->els);
+      }
+      break;
+   }
+   case AstType::ForStmt: {
+      ForStmt *X = cast<ForStmt>(ast);
+      CommentPrinter2 cp(X, out);
+      out.Write("for ", cp.cmt_(), "(");
+      if (X->init) {
+         Print(X->init);
+      }
+      out.Write(" ");
+      if (X->cond) {
+         Print(X->cond);
+      }
+      out.Write("; ");
+      if (X->post) {
+         Print(X->post);
+      }
+      out.Write(")", cp._cmt());
+      if (!cp.last_had_endl()) {
+         out.Write(" ");
+      }
+
+      if (!isa<Block>(X->substmt) and cp.last_had_endl()) {
+         out.Write(out.Indentation());
+      }
+      Print(X->substmt);
+      break;
+   }
+   case AstType::WhileStmt: {
+      WhileStmt *X = cast<WhileStmt>(ast);
+      CommentPrinter2 cp(X, out);
+      out.Write("while ", cp.cmt_());
+      out.Write("(", cp.cmt_());
+      Print(X->cond);
+      out.Write(cp._cmt(), ")", cp._cmt());
+      if (!cp.last_had_endl()) {
+         out.Write(" ");
+      }
+      if (!isa<Block>(X->substmt) and cp.last_had_endl()) {
+         out.Write(out.Indentation());
+      }
+      Print(X->substmt);
+      break;
+   }
+   case AstType::JumpStmt: {
+      JumpStmt *X = cast<JumpStmt>(ast);
+      CommentPrinter2 cp(X, out);
+      string keyword[3] = { "break", "continue", "goto" };
+      out.Write(keyword[X->kind], cp._cmt());
+      if (X->kind == JumpStmt::Goto) {
+         out.Write(" ", X->label, cp._cmt());
+      }
+      out.Write(";", cp._cmt());
+      break;
+   }
+   case AstType::CallExpr: {
+      CallExpr *X = cast<CallExpr>(ast);
+      CommentPrinter2 cp(X, out);
+      if (X->paren) {
+         out.Write("(");
+      }
+      Print(X->func);
+      if (cp.next() and cp.next()->ends_with_endl()) {
+         out.Write(" ");
+      }
+      out.Write(cp._cmt_(), "(");
+      for (int i = 0; i < X->args.size(); i++) {
+         if (i > 0) {
+            out.Write(", ", cp.cmt_());
+         }
+         out.Write(cp.cmt_());
+         Print(X->args[i]);
+      }
+      out.Write(")");
+      if (X->paren) {
+         out.Write(")");
+      }
+      break;
+   }
+   case AstType::IndexExpr: {
+      IndexExpr *X = cast<IndexExpr>(ast);
+      if (X->paren) {
+         out.Write("(");
+      }
+      Print(X->base);
+      out.Write("[");
+      Print(X->index);
+      out.Write("]");
+      if (X->paren) {
+         out.Write(")");
+      }
+      break;
+   }
+   case AstType::FieldExpr: {
+      FieldExpr *X = cast<FieldExpr>(ast);
+      if (X->paren) {
+         out.Write("(");
+      }
+      Print(X->base);
+      out.Write(X->pointer ? "->" : ".");
+      Print(X->field);
+      if (X->paren) {
+         out.Write(")");
+      }
+      break;
+   }
+   case AstType::CondExpr: {
+      CondExpr *X = cast<CondExpr>(ast);
+      CommentPrinter2 cp(X, out);
+      if (X->paren) {
+         out.Write("(");
+      }
+      Print(X->cond);
+      out.Write(cp._cmt(), " ? ", cp.cmt_());
+      Print(X->then);
+      out.Write(cp._cmt(), " : ", cp.cmt_());
+      Print(X->els);
+      if (X->paren) {
+         out.Write(")");
+      }
+      break;
+   }
+   case AstType::SignExpr: {
+      SignExpr *X = cast<SignExpr>(ast);
+      if (X->paren) {
+         out.Write("(");
+      }
+      out.Write(X->kind == SignExpr::Positive ? "+" : "-");
+      Print(X->expr);
+      if (X->paren) {
+         out.Write(")");
+      }
+      break;
+   }
+   case AstType::IncrExpr: {
+      IncrExpr *X = cast<IncrExpr>(ast);
+      CommentPrinter2 cp(X, out);
+      if (X->paren) {
+         out.Write("(");
+      }
+      if (X->preincr) {
+         out.Write((X->kind == IncrExpr::Positive ? "++" : "--"), cp._cmt_());
+         Print(X->expr);
+      } else {
+         Print(X->expr);
+         out.Write((X->kind == IncrExpr::Positive ? "++" : "--"), cp._cmt_());
+      }
+      if (X->paren) {
+         out.Write(")");
+      }
+      break;
+   }
+   case AstType::NegExpr: {
+      NegExpr *X = cast<NegExpr>(ast);
+      CommentPrinter2 cp(X, out);
+      if (X->paren) {
+         out.Write("(");
+      }
+      out.Write("!", cp._cmt_());
+      Print(X->expr);
+      if (X->paren) {
+         out.Write(")");
+      }
+      break;
+   }
+   case AstType::AddrExpr: {
+      AddrExpr *X = cast<AddrExpr>(ast);
+      CommentPrinter2 cp(X, out);
+      if (X->paren) {
+         out.Write("(");
+      }
+      out.Write("&", cp._cmt_());
+      Print(X->expr);
+      if (X->paren) {
+         out.Write(")");
+      }
+      break;
+   }
+   case AstType::DerefExpr: {
+      DerefExpr *X = cast<DerefExpr>(ast);
+      CommentPrinter2 cp(X, out);
+      if (X->paren) {
+         out.Write("(");
+      }
+      out.Write("*", cp._cmt_());
+      Print(X->expr);
+      if (X->paren) {
+         out.Write(")");
+      }
+      break;
    }
    default:
       out.Write("<node>");
