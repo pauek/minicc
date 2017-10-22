@@ -144,7 +144,7 @@ void PrettyPrinter2::Print(Ast* ast) {
          out.Write(cp.cmt());
          Ast *n = X->nodes[i];
          if ((!cp.last_was_empty() and !cp.last_had_endl()) or
-             (i > 0 and n->is<FuncDecl>() and 
+             (i > 0 and isa<FuncDecl>(n) and 
               (X->comments[i] and !X->comments[i]->ends_with_empty_line()))) {
             out.EndLine();
          }
@@ -162,7 +162,6 @@ void PrettyPrinter2::Print(Ast* ast) {
          out.EndLine();
       }      
       break;
-      
    }
    case AstType::Include: {
       Include *X = cast<Include>(ast);
@@ -360,6 +359,7 @@ void PrettyPrinter2::Print(Ast* ast) {
       if (X->paren) {
          out.Write(")");
       }
+      break;
    }
    case AstType::BinaryExpr: {
       BinaryExpr *X = cast<BinaryExpr>(ast);
