@@ -62,7 +62,7 @@ class CommentPrinter2 {
       i++;
       return c;
    }
-   string CMT(bool pre, bool post, bool _endl, bool missing);
+   string CMT(bool pre, bool post, bool _endl);
 public:
    CommentPrinter2(Ast *_x, OutputWriter& wr) 
       : x(_x), writer(wr), i(0), had_endl(false), was_empty(true) {}
@@ -71,11 +71,11 @@ public:
    bool last_had_endl()  const { return had_endl; }
    bool last_was_empty() const { return was_empty; }
 
-   string _cmt ()  { return CMT(1, 0, 0, 0); }
-   string _cmt_()  { return CMT(1, 1, 0, 0); }
-   string  cmt_()  { return CMT(0, 1, 0, 0); }
-   string  cmt ()  { return CMT(0, 0, 0, 0); }
-   string _cmtl()  { return CMT(1, 0, 1, 0); }
+   string _cmt ()  { return CMT(1, 0, 0); }
+   string _cmt_()  { return CMT(1, 1, 0); }
+   string  cmt_()  { return CMT(0, 1, 0); }
+   string  cmt ()  { return CMT(0, 0, 0); }
+   string _cmtl()  { return CMT(1, 0, 1); }
 };
 
 static ostream& print_comment_seq(ostream& o, CommentSeq* C, string indentation) {
@@ -103,7 +103,7 @@ static ostream& print_comment_seq(ostream& o, CommentSeq* C, string indentation)
    return o;
 }
 
-string CommentPrinter2::CMT(bool pre, bool post, bool _endl, bool missing) {
+string CommentPrinter2::CMT(bool pre, bool post, bool _endl) {
    CommentSeq *cn = commseq();
    ostringstream out;
    if (cn != 0 and !cn->items.empty()) {
@@ -119,8 +119,6 @@ string CommentPrinter2::CMT(bool pre, bool post, bool _endl, bool missing) {
    } else {
       if (_endl) {
          out << endl << writer.Indentation();
-      } else if (missing) {
-         out << ' ';
       }
    }
    return out.str();
