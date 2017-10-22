@@ -2,7 +2,7 @@ ifndef CXX
 	CXX=clang++ # TODO: Fix bug compiling with G++!!
 endif
 
-OBJECTS=main.o test.o lexer.o parser.o ast.o token.o value.o types.o \
+OBJECTS=main.o lexer.o parser.o ast.o token.o value.o types.o \
 	prettypr.o prettypr2.o astpr.o \
 	interpreter.o stepper.o walker.o translator.o semantic.o
 
