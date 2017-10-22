@@ -49,7 +49,7 @@ private:
    ostream& out_;
 };
 
-class CommentPrinter2 {
+class CommentPrinter {
    Ast *x;
    int i;
    bool was_empty, had_endl;
@@ -64,7 +64,7 @@ class CommentPrinter2 {
    }
    string CMT(bool pre, bool post, bool _endl);
 public:
-   CommentPrinter2(Ast *_x, OutputWriter& wr) 
+   CommentPrinter(Ast *_x, OutputWriter& wr) 
       : x(_x), writer(wr), i(0), had_endl(false), was_empty(true) {}
 
    CommentSeq *next()    const { return (i < x->comments.size() ? x->comments[i] : 0); }
@@ -103,7 +103,7 @@ static ostream& print_comment_seq(ostream& o, CommentSeq* C, string indentation)
    return o;
 }
 
-string CommentPrinter2::CMT(bool pre, bool post, bool _endl) {
+string CommentPrinter::CMT(bool pre, bool post, bool _endl) {
    CommentSeq *cn = commseq();
    ostringstream out;
    if (cn != 0 and !cn->items.empty()) {
@@ -136,7 +136,7 @@ void PrettyPrinter2::Print(Ast* ast) {
    switch (ast->type()) {
    case AstType::Program: {
       Program *X = cast<Program>(ast);
-      CommentPrinter2 cp(X, out);
+      CommentPrinter cp(X, out);
       int i;
       for (i = 0; i < X->nodes.size(); i++) {
          out.Write(cp.cmt());
@@ -163,7 +163,7 @@ void PrettyPrinter2::Print(Ast* ast) {
    }
    case AstType::Include: {
       Include *X = cast<Include>(ast);
-      CommentPrinter2 cp(X, out);
+      CommentPrinter cp(X, out);
       string delim = (X-> global ? "<>" : "\"\"");
       out.Write("#include ");
       out.Write(cp.cmt_());
@@ -177,7 +177,7 @@ void PrettyPrinter2::Print(Ast* ast) {
    }
    case AstType::Using: {
       Using *X = cast<Using>(ast);
-      CommentPrinter2 cp(X, out);
+      CommentPrinter cp(X, out);
       // WARNING: g++ here optimizes and changes order of instructions!!!
       out.Write("using ");
       out.Write(cp.cmt_());
@@ -191,7 +191,7 @@ void PrettyPrinter2::Print(Ast* ast) {
    }
    case AstType::TypeSpec: {
       TypeSpec *X = cast<TypeSpec>(ast);
-      CommentPrinter2 cp(X, out);
+      CommentPrinter cp(X, out);
       for (int q : X->qual) {
          out.Write(TypeSpec::QualifiersNames[q], " ", cp.cmt_());
       }
@@ -203,7 +203,7 @@ void PrettyPrinter2::Print(Ast* ast) {
    }
    case AstType::EnumDecl: {
       EnumDecl *X = cast<EnumDecl>(ast);
-      CommentPrinter2 cp(X, out);
+      CommentPrinter cp(X, out);
       out.Write("enum ", cp.cmt_());
       out.Write(X->name, cp._cmt());
       out.Write(" { ", cp.cmt_());
@@ -222,7 +222,7 @@ void PrettyPrinter2::Print(Ast* ast) {
    }
    case AstType::TypedefDecl: {
       TypedefDecl *X = cast<TypedefDecl>(ast);
-      CommentPrinter2 cp(X, out);
+      CommentPrinter cp(X, out);
       out.Write("typedef ", cp.cmt_());
       Print(X->decl->typespec);
       out.Write(" ", cp.cmt_());
@@ -232,7 +232,7 @@ void PrettyPrinter2::Print(Ast* ast) {
    }
    case AstType::StructDecl: {
       StructDecl *X = cast<StructDecl>(ast);
-      CommentPrinter2 cp(X, out);
+      CommentPrinter cp(X, out);
       // WARNING: g++ here optimizes and changes order of instructions!!!
       out.Write("struct ");
       out.Write(cp.cmt_());
@@ -257,7 +257,7 @@ void PrettyPrinter2::Print(Ast* ast) {
    }
    case AstType::FuncDecl: {
       FuncDecl *X = cast<FuncDecl>(ast);
-      CommentPrinter2 cp(X, out);
+      CommentPrinter cp(X, out);
 
       Print(X->return_typespec);
       // WARNING: g++ here optimizes and changes order of instructions!!!
@@ -303,7 +303,7 @@ void PrettyPrinter2::Print(Ast* ast) {
    }
    case AstType::Block: {
       Block *X = cast<Block>(ast);
-      CommentPrinter2 cp(X, out);
+      CommentPrinter cp(X, out);
       if (X->stmts.empty()) {
          out.Write("{");
          if (cp.next() and cp.next()->has_endl()) {
@@ -333,7 +333,7 @@ void PrettyPrinter2::Print(Ast* ast) {
    }
    case AstType::FullIdent: {
       FullIdent *X = cast<FullIdent>(ast);
-      CommentPrinter2 cp(X, out);
+      CommentPrinter cp(X, out);
       for (TemplateIdent *pre : X->prefix) {
          Print(pre);
          // WARNING: g++ here optimizes and changes order of instructions!!!
@@ -347,7 +347,7 @@ void PrettyPrinter2::Print(Ast* ast) {
    }   
    case AstType::TemplateIdent: {
       TemplateIdent *X = cast<TemplateIdent>(ast);
-      CommentPrinter2 cp(X, out);
+      CommentPrinter cp(X, out);
       out.Write(X->name);
       if (!X->subtypes.empty()) {
          // WARNING: g++ here optimizes and changes order of instructions!!!
@@ -369,7 +369,7 @@ void PrettyPrinter2::Print(Ast* ast) {
    }
    case AstType::Literal: {
       Literal *X = cast<Literal>(ast);
-      CommentPrinter2 cp(X, out);
+      CommentPrinter cp(X, out);
       if (X->paren) {
          out.Write("(");
       } 
@@ -397,7 +397,7 @@ void PrettyPrinter2::Print(Ast* ast) {
    }
    case AstType::BinaryExpr: {
       BinaryExpr *X = cast<BinaryExpr>(ast);
-      CommentPrinter2 cp(X, out);
+      CommentPrinter cp(X, out);
       if (X->paren) {
          // WARNING: g++ here optimizes and changes order of instructions!!!
          out.Write("(");
@@ -422,7 +422,7 @@ void PrettyPrinter2::Print(Ast* ast) {
    }
    case AstType::VarDecl: {
       VarDecl *X = cast<VarDecl>(ast);
-      CommentPrinter2 cp(X, out);
+      CommentPrinter cp(X, out);
       if (X->kind == Decl::Pointer) {
          out.Write("*");
       }
@@ -433,7 +433,7 @@ void PrettyPrinter2::Print(Ast* ast) {
    }
    case AstType::ExprList: {
       ExprList *X = cast<ExprList>(ast);
-      CommentPrinter2 cp(X, out);
+      CommentPrinter cp(X, out);
       out.Write("{");
       for (int i = 0; i < X->exprs.size(); i++) {
          if (i > 0) {
@@ -446,7 +446,7 @@ void PrettyPrinter2::Print(Ast* ast) {
    }
    case AstType::ArrayDecl: {
       ArrayDecl *X = cast<ArrayDecl>(ast);
-      CommentPrinter2 cp(X, out);
+      CommentPrinter cp(X, out);
       out.Write(X->name, cp._cmt_());
       for (int i = 0; i < X->sizes.size(); i++) {
          out.Write("[", cp.cmt_());
@@ -457,7 +457,7 @@ void PrettyPrinter2::Print(Ast* ast) {
    }
    case AstType::ObjDecl: {
       ObjDecl *X = cast<ObjDecl>(ast);
-      CommentPrinter2 cp(X, out);
+      CommentPrinter cp(X, out);
       out.Write(X->name, cp._cmt());
       if (!X->args.empty()) {
          out.Write("(");
@@ -474,7 +474,7 @@ void PrettyPrinter2::Print(Ast* ast) {
    }
    case AstType::DeclStmt: {
       DeclStmt *X = cast<DeclStmt>(ast);
-      CommentPrinter2 cp(X, out);
+      CommentPrinter cp(X, out);
       Print(X->typespec);
       out.Write(" ");
       out.Write(cp.cmt_());
@@ -496,7 +496,7 @@ void PrettyPrinter2::Print(Ast* ast) {
    }
    case AstType::ExprStmt: {
       ExprStmt *X = cast<ExprStmt>(ast);
-      CommentPrinter2 cp(X, out);
+      CommentPrinter cp(X, out);
       if (X->is_return) {
          out.Write("return ", cp.cmt_());
       }
@@ -508,7 +508,7 @@ void PrettyPrinter2::Print(Ast* ast) {
    }
    case AstType::IfStmt: {
       IfStmt *X = cast<IfStmt>(ast);
-      CommentPrinter2 cp(X, out);
+      CommentPrinter cp(X, out);
       out.Write("if ");
       out.Write(cp.cmt_());
       out.Write("(", cp.cmt_());
@@ -527,7 +527,7 @@ void PrettyPrinter2::Print(Ast* ast) {
    }
    case AstType::ForStmt: {
       ForStmt *X = cast<ForStmt>(ast);
-      CommentPrinter2 cp(X, out);
+      CommentPrinter cp(X, out);
       out.Write("for ", cp.cmt_(), "(");
       if (X->init) {
          Print(X->init);
@@ -553,7 +553,7 @@ void PrettyPrinter2::Print(Ast* ast) {
    }
    case AstType::WhileStmt: {
       WhileStmt *X = cast<WhileStmt>(ast);
-      CommentPrinter2 cp(X, out);
+      CommentPrinter cp(X, out);
       // WARNING: g++ here optimizes and changes order of instructions!!!
       out.Write("while ");
       out.Write(cp.cmt_());
@@ -575,7 +575,7 @@ void PrettyPrinter2::Print(Ast* ast) {
    }
    case AstType::JumpStmt: {
       JumpStmt *X = cast<JumpStmt>(ast);
-      CommentPrinter2 cp(X, out);
+      CommentPrinter cp(X, out);
       string keyword[3] = { "break", "continue", "goto" };
       out.Write(keyword[X->kind], cp._cmt());
       if (X->kind == JumpStmt::Goto) {
@@ -590,7 +590,7 @@ void PrettyPrinter2::Print(Ast* ast) {
    }
    case AstType::CallExpr: {
       CallExpr *X = cast<CallExpr>(ast);
-      CommentPrinter2 cp(X, out);
+      CommentPrinter cp(X, out);
       if (X->paren) {
          out.Write("(");
       }
@@ -642,7 +642,7 @@ void PrettyPrinter2::Print(Ast* ast) {
    }
    case AstType::CondExpr: {
       CondExpr *X = cast<CondExpr>(ast);
-      CommentPrinter2 cp(X, out);
+      CommentPrinter cp(X, out);
       if (X->paren) {
          out.Write("(");
       }
@@ -676,7 +676,7 @@ void PrettyPrinter2::Print(Ast* ast) {
    }
    case AstType::IncrExpr: {
       IncrExpr *X = cast<IncrExpr>(ast);
-      CommentPrinter2 cp(X, out);
+      CommentPrinter cp(X, out);
       if (X->paren) {
          out.Write("(");
       }
@@ -694,7 +694,7 @@ void PrettyPrinter2::Print(Ast* ast) {
    }
    case AstType::NegExpr: {
       NegExpr *X = cast<NegExpr>(ast);
-      CommentPrinter2 cp(X, out);
+      CommentPrinter cp(X, out);
       if (X->paren) {
          out.Write("(");
       }
@@ -707,7 +707,7 @@ void PrettyPrinter2::Print(Ast* ast) {
    }
    case AstType::AddrExpr: {
       AddrExpr *X = cast<AddrExpr>(ast);
-      CommentPrinter2 cp(X, out);
+      CommentPrinter cp(X, out);
       if (X->paren) {
          out.Write("(");
          out.Write(cp.cmt_());
@@ -723,7 +723,7 @@ void PrettyPrinter2::Print(Ast* ast) {
    }
    case AstType::DerefExpr: {
       DerefExpr *X = cast<DerefExpr>(ast);
-      CommentPrinter2 cp(X, out);
+      CommentPrinter cp(X, out);
       if (X->paren) {
          out.Write("(");
       }
