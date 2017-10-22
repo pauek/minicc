@@ -113,13 +113,11 @@ string CommentPrinter::CMT(bool pre, bool post, bool _endl) {
       print_comment_seq(out, cn, writer.Indentation());
       if (_endl and !cn->has_endl()) {
          out << endl << writer.Indentation();
-      } else if (!_endl) {
-         out << (post ? " " : "");
+      } else if (!_endl and post) {
+         out << " ";
       }
-   } else {
-      if (_endl) {
-         out << endl << writer.Indentation();
-      }
+   } else if (_endl) {
+      out << endl << writer.Indentation();
    }
    return out.str();
 }
