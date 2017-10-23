@@ -47,7 +47,6 @@ public:
    std::string Indentation() const { 
       return std::string(indent_, ' ');
    }
-
 };
 
 class CommentPrinter {
@@ -394,8 +393,7 @@ void PrettyPrinter::Print(Ast* ast) {
          out.Write('"', Literal::escape(*X->val.as_string.s, '"'), '"'); 
          break;
       case Literal::Char: {
-         string ch(1, X->val.as_char);
-         out.Write("'", Literal::escape(ch, '\''), "'"); 
+         out.Write("'", Literal::escape(X->val.as_char, '\''), "'"); 
          break;
       }
       default:

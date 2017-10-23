@@ -342,7 +342,7 @@ struct Literal : public ExprDerived<AstType::Literal>
    Literal(Kind k) : kind(k) {}
    void accept(AstVisitor *v);
 
-   static std::string escape(char c);
+   static std::string escape(char c, char delim);
    static std::string escape(std::string s, char delim);
 };
 

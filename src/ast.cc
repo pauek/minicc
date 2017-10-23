@@ -181,7 +181,7 @@ JumpStmt::Kind JumpStmt::keyword2type(string s) {
    }
 }
 
-string Literal::escape(char c) {
+string Literal::escape(char c, char delim) {
    switch (c) {
    case '\a': return "\\a";
    case '\b': return "\\b";
@@ -192,8 +192,10 @@ string Literal::escape(char c) {
    case '\v': return "\\v";
    case '\?': return "\\?";
    case '\\': return "\\\\";
-   case '\"': return "\\\"";
-   case '\'': return "\\\'";
+   case '\"': 
+      return (c == delim ? "\\\"" : "\"");
+   case '\'': 
+      return (c == delim ? "\\\'" : "\'");
    default: 
       return string(1, c);
    }
@@ -202,11 +204,7 @@ string Literal::escape(char c) {
 string Literal::escape(string s, char delim) {
    string r;
    for (char c : s) {
-      if ((c == '"' or c == '\'') and c != delim) {
-         r += c;
-      } else {
-         r += escape(c);
-      }
+      r += escape(c, delim);
    }
    return r;
 }
