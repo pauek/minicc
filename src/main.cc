@@ -328,7 +328,7 @@ int test_parser(string filename) {
    return _test_parser_and_semantic(filename, false);
 }
 
-int test_print2(string filename) {
+int test_print(string filename) {
    string code, in, out, err;
    parse_test_file(filename, code, in, out, err);
    
@@ -410,7 +410,7 @@ map<string, CmdFunc> funcs = {
 
    {"test-parser",      test_parser},
    {"test-ast",         test_ast},
-   {"test-print",       test_print2},
+   {"test-print",       test_print},
    {"test-semantic",    test_semantic},
    {"test-interpreter", test_eval},
    {"test-stepper",     test_step}
