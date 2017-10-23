@@ -6,7 +6,11 @@
 #include "cast.h"
 using namespace std;
 
-struct OutputWriter {
+class OutputWriter {
+   int indent_;
+   ostream& out_;
+
+public:
    OutputWriter(ostream& out = std::cout) : indent_(0), out_(out) {}
 
    void Indent() { indent_ += 3; }
@@ -44,9 +48,6 @@ struct OutputWriter {
       return std::string(indent_, ' ');
    }
 
-private:
-   int indent_;
-   ostream& out_;
 };
 
 class CommentPrinter {
@@ -63,6 +64,7 @@ class CommentPrinter {
       return c;
    }
    void CMT(bool pre, bool post, bool _endl);
+
 public:
    CommentPrinter(Ast *ast, OutputWriter& out) 
       : ast_(ast), out_(out), index_(0), had_endl_(false), was_empty_(true) {}
