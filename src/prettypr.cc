@@ -48,10 +48,10 @@ public:
 };
 
 class CommentPrinter {
+   OutputWriter& out_;
    Ast *ast_;
    int index_;
    bool was_empty_, had_endl_;
-   OutputWriter& out_;
 
    CommentSeq *get_comment_seq() { 
       CommentSeq *c = (index_ < ast_->comments.size() ? ast_->comments[index_] : 0);
@@ -60,7 +60,7 @@ class CommentPrinter {
       index_++;
       return c;
    }
-   void CMT(bool pre, bool post, bool _endl);
+   void WriteComment(bool pre, bool post, bool _endl);
 
 public:
    CommentPrinter(Ast *ast, OutputWriter& out) 
@@ -73,14 +73,14 @@ public:
    bool LastHadEndl()  const { return had_endl_; }
    bool LastWasEmpty() const { return was_empty_; }
 
-   void SpaceComment()      { return CMT(1, 0, 0); }
-   void SpaceCommentSpace() { return CMT(1, 1, 0); }
-   void CommentSpace()      { return CMT(0, 1, 0); }
-   void Comment()           { return CMT(0, 0, 0); }
-   void SpaceCommentEndl()  { return CMT(1, 0, 1); }
+   void SpaceComment()      { return WriteComment(1, 0, 0); }
+   void SpaceCommentSpace() { return WriteComment(1, 1, 0); }
+   void CommentSpace()      { return WriteComment(0, 1, 0); }
+   void Comment()           { return WriteComment(0, 0, 0); }
+   void SpaceCommentEndl()  { return WriteComment(1, 0, 1); }
 };
 
-void CommentPrinter::CMT(bool pre, bool post, bool _endl) {
+void CommentPrinter::WriteComment(bool pre, bool post, bool _endl) {
    CommentSeq *comm_seq = get_comment_seq();
    ostringstream out;
    if (comm_seq != 0 and !comm_seq->items.empty()) {
