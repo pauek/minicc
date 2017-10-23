@@ -15,6 +15,7 @@ public:
 
    void Indent() { indent_ += 3; }
    void Dedent() { indent_ -= 3; }
+   void Indentation() { out_ << std::string(indent_, ' '); }
 
    template<typename T>
    void Write(const T& t) { out_ << t; }
@@ -44,9 +45,6 @@ public:
 
    void Line(string s) { BeginLine(); Write(s); EndLine(); }
 
-   std::string Indentation() const { 
-      return std::string(indent_, ' ');
-   }
 };
 
 class CommentPrinter {
@@ -569,7 +567,7 @@ void PrettyPrinter::Print(Ast* ast) {
       }
 
       if (!isa<Block>(X->substmt) and cp.LastHadEndl()) {
-         out.Write(out.Indentation());
+         out.Indentation();
       }
       Print(X->substmt);
       break;
@@ -591,7 +589,7 @@ void PrettyPrinter::Print(Ast* ast) {
          out.Write(" ");
       }
       if (!isa<Block>(X->substmt) and cp.LastHadEndl()) {
-         out.Write(out.Indentation());
+         out.Indentation();
       }
       Print(X->substmt);
       break;
