@@ -55,7 +55,7 @@ class CommentPrinter {
    bool was_empty, had_endl;
    OutputWriter& writer;
 
-   CommentSeq *commseq() { 
+   CommentSeq *get_comment_seq() { 
       CommentSeq *c = (i < x->comments.size() ? x->comments[i] : 0);
       was_empty = (c == 0);
       had_endl = (c != 0 ? c->has_endl() : false);
@@ -78,39 +78,34 @@ public:
    string _cmtl()  { return CMT(1, 0, 1); }
 };
 
-static void print_comment_seq(ostream& o, CommentSeq* C, string indentation) {
-   if (C == 0) {
-      return;
-   }
-   for (int i = 0; i < C->items.size(); i++) {
-      const Comment& c = C->items[i];
-      switch (c.kind) {
-      case Comment::none:
-         break;
-      case Comment::multiline:
-         if (i > 0 and C->items[i-1].kind != Comment::endline) {
-            o << ' ';
-         }
-         o << "/*" << c.text << "*/";
-         break;
-      case Comment::singleline:
-         o << "//" << c.text;
-         break;
-      case Comment::endline:
-         o << endl << indentation;
-      }
-   }
-}
-
 string CommentPrinter::CMT(bool pre, bool post, bool _endl) {
-   CommentSeq *cn = commseq();
+   CommentSeq *comm_seq = get_comment_seq();
    ostringstream out;
-   if (cn != 0 and !cn->items.empty()) {
-      if (pre and !cn->starts_with_endl()) {
+   if (comm_seq != 0 and !comm_seq->items.empty()) {
+      if (pre and !comm_seq->starts_with_endl()) {
          out << " ";
       }
-      print_comment_seq(out, cn, writer.Indentation());
-      if (_endl and !cn->has_endl()) {
+      if (comm_seq != 0) {
+         for (int i = 0; i < comm_seq->items.size(); i++) {
+            const Comment& c = comm_seq->items[i];
+            switch (c.kind) {
+            case Comment::none:
+               break;
+            case Comment::multiline:
+               if (i > 0 and comm_seq->items[i-1].kind != Comment::endline) {
+                  out << ' ';
+               }
+               out << "/*" << c.text << "*/";
+               break;
+            case Comment::singleline:
+               out << "//" << c.text;
+               break;
+            case Comment::endline:
+               out << endl << writer.Indentation();
+            }
+         }
+      }
+      if (_endl and !comm_seq->has_endl()) {
          out << endl << writer.Indentation();
       } else if (!_endl and post) {
          out << " ";
