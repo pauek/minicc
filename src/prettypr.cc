@@ -53,13 +53,6 @@ class CommentPrinter {
    int index_;
    bool was_empty_, had_endl_;
 
-   CommentSeq *get_comment_seq() { 
-      CommentSeq *c = (index_ < ast_->comments.size() ? ast_->comments[index_] : 0);
-      was_empty_ = (c == 0);
-      had_endl_ = (c != 0 ? c->has_endl() : false);
-      index_++;
-      return c;
-   }
    void WriteComment(bool pre, bool post, bool _endl);
 
 public:
@@ -81,8 +74,11 @@ public:
 };
 
 void CommentPrinter::WriteComment(bool pre, bool post, bool _endl) {
-   CommentSeq *comm_seq = get_comment_seq();
-   ostringstream out;
+   CommentSeq *comm_seq = (index_ < ast_->comments.size() ? ast_->comments[index_] : 0);
+   was_empty_ = (comm_seq == 0);
+   had_endl_  = (comm_seq != 0 ? comm_seq->has_endl() : false);
+   index_++;
+
    if (comm_seq != 0 and !comm_seq->items.empty()) {
       if (pre and !comm_seq->starts_with_endl()) {
          out_.Write(' ');
