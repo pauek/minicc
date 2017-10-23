@@ -78,9 +78,9 @@ public:
    string _cmtl()  { return CMT(1, 0, 1); }
 };
 
-static ostream& print_comment_seq(ostream& o, CommentSeq* C, string indentation) {
+static void print_comment_seq(ostream& o, CommentSeq* C, string indentation) {
    if (C == 0) {
-      return o;
+      return;
    }
    for (int i = 0; i < C->items.size(); i++) {
       const Comment& c = C->items[i];
@@ -100,7 +100,6 @@ static ostream& print_comment_seq(ostream& o, CommentSeq* C, string indentation)
          o << endl << indentation;
       }
    }
-   return o;
 }
 
 string CommentPrinter::CMT(bool pre, bool post, bool _endl) {

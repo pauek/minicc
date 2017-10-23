@@ -58,6 +58,7 @@ CommentSeq* Lexer::skip(Skip skip) {
          if (cs == 0) {
             cs = new CommentSeq();
          }
+         // WTF! Fix this shit...
          if (endls_in_a_row < 3) {
             cs->items.push_back(Comment(Comment::endline));
          }

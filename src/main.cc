@@ -35,7 +35,7 @@ int show_ast(string filename) {
    AstPrint(program);
 }
 
-int prettyprint2(string filename) {
+int prettyprint(string filename) {
    try {
       ifstream codefile(filename);
       Parser P(&codefile);
@@ -166,7 +166,7 @@ string visible_spaces(string output, string compare = "") {
    return res;
 }
 
-enum VisitorType { pretty_printer, ast_printer, interpreter, stepper };
+enum VisitorType { interpreter, stepper };
 
 void exec_visitor(Program *P, VisitorType vtype) {
 }
@@ -404,7 +404,7 @@ typedef int (*CmdFunc)(string);
 map<string, CmdFunc> funcs = {
    {"tok",              tokenize},
    {"ast",              show_ast},
-   {"pprint",           prettyprint2},
+   {"pprint",           prettyprint},
    {"step",             step},
    {"eval",             interpret},
 
