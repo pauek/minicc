@@ -42,9 +42,6 @@ public:
 
    void EndLine() { out_ << endl; }
    void BeginLine() { out_ << string(indent_, ' '); }
-
-   void Line(string s) { BeginLine(); Write(s); EndLine(); }
-
 };
 
 class CommentPrinter {
