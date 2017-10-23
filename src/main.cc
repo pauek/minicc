@@ -237,19 +237,6 @@ int test_visitor(string filename, VisitorType vtype) {
       goto compare;
    }
 
-   /*
-   // parse errors
-   vector<Error*> ve;
-   collect_errors(program, ve);
-   if (!ve.empty()) {
-      for (Error *e : ve) {
-         Serr << filename << "[" << e->ini << "-" << e->fin << "]: " 
-              << e->msg << endl;
-      }
-      goto compare;
-   }
-   */
-
    AstVisitor *v;
    switch (vtype) {
    case interpreter:    v = new Interpreter(&Sin, &Sout); break;
@@ -440,5 +427,6 @@ void parse_args(int argc, char *argv[]) {
 int main(int argc, char *argv[]) {
    Translator::translator.set_language("es");
    parse_args(argc, argv);
+   // FIXME: Esto peta si no pones el comando que toca...
    (*funcs[cmd])(filename);
 }
