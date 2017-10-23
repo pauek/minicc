@@ -74,7 +74,10 @@ public:
 };
 
 void CommentPrinter::WriteComment(bool pre, bool post, bool _endl) {
-   CommentSeq *comm_seq = (index_ < ast_->comments.size() ? ast_->comments[index_] : 0);
+   CommentSeq *comm_seq = 0;
+   if (index_ < ast_->comments.size()) {
+      comm_seq = ast_->comments[index_];
+   }
    was_empty_ = (comm_seq == 0);
    had_endl_  = (comm_seq != 0 ? comm_seq->has_endl() : false);
    index_++;
