@@ -50,26 +50,29 @@ private:
 };
 
 class CommentPrinter {
-   Ast *x;
-   int i;
-   bool was_empty, had_endl;
+   Ast *ast_;
+   int index_;
+   bool was_empty_, had_endl_;
    OutputWriter& out_;
 
    CommentSeq *get_comment_seq() { 
-      CommentSeq *c = (i < x->comments.size() ? x->comments[i] : 0);
-      was_empty = (c == 0);
-      had_endl = (c != 0 ? c->has_endl() : false);
-      i++;
+      CommentSeq *c = (index_ < ast_->comments.size() ? ast_->comments[index_] : 0);
+      was_empty_ = (c == 0);
+      had_endl_ = (c != 0 ? c->has_endl() : false);
+      index_++;
       return c;
    }
    void CMT(bool pre, bool post, bool _endl);
 public:
-   CommentPrinter(Ast *_x, OutputWriter& wr) 
-      : x(_x), out_(wr), i(0), had_endl(false), was_empty(true) {}
+   CommentPrinter(Ast *ast, OutputWriter& out) 
+      : ast_(ast), out_(out), index_(0), had_endl_(false), was_empty_(true) {}
 
-   CommentSeq *next()    const { return (i < x->comments.size() ? x->comments[i] : 0); }
-   bool last_had_endl()  const { return had_endl; }
-   bool last_was_empty() const { return was_empty; }
+   CommentSeq *next() const { 
+      return (index_ < ast_->comments.size() ? ast_->comments[index_] : 0); 
+   }
+
+   bool last_had_endl()  const { return had_endl_; }
+   bool last_was_empty() const { return was_empty_; }
 
    void _cmt ()  { return CMT(1, 0, 0); }
    void _cmt_()  { return CMT(1, 1, 0); }
