@@ -100,8 +100,8 @@ struct Ast {
                       Ast *parent;
 
  virtual ~Ast() {}
-    void add_error(std::string msg);
-    void add_error(Pos ini, Pos fin, std::string msg);
+    void AddError(std::string msg);
+    void AddError(Pos ini, Pos fin, std::string msg);
  AstType type() const { return type_; }
     bool HasErrors()   const { return !errors.empty(); }
 

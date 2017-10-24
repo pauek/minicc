@@ -45,11 +45,11 @@ void CommentSeq::only_one_endl_at_end() {
 }
 
 
-void Ast::add_error(string msg) {
+void Ast::AddError(string msg) {
    errors.push_back(new Error(span, msg));
 }
 
-void Ast::add_error(Pos _ini, Pos _fin, string msg) {
+void Ast::AddError(Pos _ini, Pos _fin, string msg) {
    errors.push_back(new Error(Span(_ini, _fin), msg));
 }
 
