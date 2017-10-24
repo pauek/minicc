@@ -2041,7 +2041,7 @@ void WithEnvironment::prepare_global_environment() {
 }
 
 Type *WithEnvironment::get_type(TypeSpec *spec) {
-   Identifier *namespc = spec->get_potential_namespace_or_class();
+   Identifier *namespc = spec->GetPotentialNamespaceOrClass();
    if (namespc != 0) {
       auto it = _namespaces.find(namespc->name);
       if (it != _namespaces.end()) {

@@ -26,7 +26,7 @@ void Interpreter::InvokeFuncPrepareArg(FuncDecl *fn, Value arg, int i) {
 void Interpreter::InvokeFuncPrepare(FuncDecl *fn, const vector<Value>& args) {
    if (fn->params.size() != args.size()) {
       _error(_T("Error en el número de argumentos al llamar a '%s'", 
-                fn->funcname().c_str()));
+                fn->FuncName().c_str()));
    }
    for (int i = 0; i < args.size(); i++) {
       InvokeFuncPrepareArg(fn, args[i], i);
@@ -223,7 +223,7 @@ bool Interpreter::CallOperator(string op, const vector<Value>& args) {
 }
 
 void Interpreter::InvokeUserFunc(FuncDecl *decl, const vector<Value>& args) {
-   pushenv(decl->funcname());
+   pushenv(decl->FuncName());
    InvokeFuncPrepare(decl, args);
    Eval(decl->block);
    popenv();
@@ -357,7 +357,7 @@ void Interpreter::Eval(Ast* ast) {
    }
    case AstType::FuncDecl: {
       FuncDecl *X = cast<FuncDecl>(ast);
-      string funcname = X->funcname();
+      string funcname = X->FuncName();
       Type *return_type = get_type(X->return_typespec);  // return_type == 0 means 'void'
       Function *functype = new Function(return_type);
       for (auto p : X->params) {
@@ -398,7 +398,7 @@ void Interpreter::Eval(Ast* ast) {
       Identifier *X = cast<Identifier>(ast);
       Value v;
       // Try a namespace
-      Identifier *namespc_or_class = X->get_potential_namespace_or_class();
+      Identifier *namespc_or_class = X->GetPotentialNamespaceOrClass();
       if (namespc_or_class != 0) {
          Environment *namespc = get_namespace(namespc_or_class->name);
          if (namespc != 0) {

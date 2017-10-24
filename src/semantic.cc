@@ -469,7 +469,7 @@ void SemanticAnalyzer::Analyze(Ast *ast) {
    case AstType::FuncDecl: {
       FuncDecl *X = cast<FuncDecl>(ast);
       _curr_node = X;
-      string funcname = X->funcname();
+      string funcname = X->FuncName();
       Type *return_type = get_type(X->return_typespec);  // return_type == 0 means 'void'
       Function *functype = new Function(return_type);
 
@@ -480,7 +480,7 @@ void SemanticAnalyzer::Analyze(Ast *ast) {
          _ret = Value::null;
       }
     
-      pushenv(X->funcname());
+      pushenv(X->FuncName());
       for (int i = 0; i < X->params.size(); i++) {
          auto p = X->params[i];
          Value v;
@@ -716,7 +716,7 @@ void SemanticAnalyzer::Analyze(Ast *ast) {
       Value v;
       
       // Try a namespace
-      Identifier *namespc_or_class = X->get_potential_namespace_or_class();
+      Identifier *namespc_or_class = X->GetPotentialNamespaceOrClass();
       if (namespc_or_class != 0) {
          Environment *namespc = get_namespace(namespc_or_class->name);
          if (namespc != 0) {

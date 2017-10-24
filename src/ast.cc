@@ -353,7 +353,7 @@ string Identifier::TypeStr() const {
    return _id;
 }
 
-Identifier *Identifier::get_potential_namespace_or_class() const {
+Identifier *Identifier::GetPotentialNamespaceOrClass() const {
    if (prefix.size() == 1 and !prefix[0]->IsTemplate()) {
       return prefix[0];
    }
@@ -370,8 +370,8 @@ vector<Identifier*> Identifier::get_non_namespaces() {
    return result;
 }
 
-Identifier *TypeSpec::get_potential_namespace_or_class() const {
-   return id->get_potential_namespace_or_class();
+Identifier *TypeSpec::GetPotentialNamespaceOrClass() const {
+   return id->GetPotentialNamespaceOrClass();
 }
 
 bool TypeSpec::is(TypeSpec::Qualifiers q) const {
@@ -421,14 +421,6 @@ string StructDecl::TypeStr() const {
    }
    S << "}";
    return S.str();
-}
-
-int StructDecl::num_fields() const {
-   int num = 0;
-   for (int i = 0; i < decls.size(); i++) {
-      num += decls[i]->items.size();
-   }
-   return num;
 }
 
 void CollectRights(Ast *ast, list<Expr*>& L) {

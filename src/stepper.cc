@@ -169,7 +169,7 @@ void Stepper::Step(Ast *ast) {
       FuncDecl *fn = userfunc->decl;
       assert(fn != 0);
       CallExprVisitState *s = new CallExprVisitState(X, fn);
-      I.pushenv(fn->funcname());
+      I.pushenv(fn->FuncName());
       s->step(this);
       push(s);
       break;
@@ -430,7 +430,7 @@ Todo Stepper::CallExprVisitState::step(Stepper *S) {
       ++curr;
       return Stop;
    } else {
-      S->status(_T("We jump to function '%s'.", fn->funcname().c_str()));
+      S->status(_T("We jump to function '%s'.", fn->FuncName().c_str()));
       S->I.actenv();
       curr = Block;
       return Stop;

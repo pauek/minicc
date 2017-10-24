@@ -286,7 +286,7 @@ struct Identifier : ExprDerived<AstType::Identifier> {
    bool IsTemplate() const { return !subtypes.empty(); }
    std::string TypeStr() const;
    void shift(std::string new_id);
-   Identifier *get_potential_namespace_or_class() const;
+   Identifier *GetPotentialNamespaceOrClass() const;
    std::vector<Identifier*> get_non_namespaces();
 
    static bool classof(const Ast *ast) { 
@@ -372,7 +372,7 @@ struct TypeSpec : public AstDerived<AstType::TypeSpec> {
    std::string TypeStr() const;
 
    bool IsTemplate() const { return !id->subtypes.empty(); }
-   Identifier *get_potential_namespace_or_class() const;
+   Identifier *GetPotentialNamespaceOrClass() const;
 };
 
 // Declarations ////////////////////////////////////////////
@@ -391,7 +391,7 @@ struct FuncDecl : public AstDerived<AstType::FuncDecl> {
    
    FuncDecl(Identifier *_id) : id(_id) {}
 
-   std::string funcname() const { return id->name; }
+   std::string FuncName() const { return id->name; }
 };
 
 struct StructDecl : public AstDerived<AstType::StructDecl> {
@@ -399,7 +399,6 @@ struct StructDecl : public AstDerived<AstType::StructDecl> {
    std::vector<DeclStmt*> decls;
    
    std::string TypeStr() const;
-   int num_fields() const;
 };
 
 struct TypedefDecl : public AstDerived<AstType::TypedefDecl> {
