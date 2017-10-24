@@ -159,35 +159,30 @@ struct StmtError : public StmtDerived<AstType::StmtError> {
 };
 
 struct ExprStmt : public StmtDerived<AstType::ExprStmt> {
-   Expr *expr;
-   bool is_return;
-   ExprStmt() : expr(0), is_return(false) {}
+   Expr *expr = 0;
+   bool is_return = false;
 };
 
 struct IfStmt : public StmtDerived<AstType::IfStmt> {
-   Expr *cond;
-   Stmt *then, *els;
-   IfStmt() : cond(0), then(0), els(0) {}
+   Expr *cond = 0;
+   Stmt *then = 0, *els = 0;
 };
 
 struct ForStmt : public StmtDerived<AstType::ForStmt> { // while + for
-   Stmt *init;
-   Expr *cond, *post;
-   Stmt *substmt;
-   ForStmt() : cond(0), init(0), substmt(0), post(0) {}
+   Stmt *init = 0;
+   Expr *cond = 0, *post = 0;
+   Stmt *substmt = 0;
 };
 
 struct WhileStmt : public StmtDerived<AstType::WhileStmt> { // while + for
-   Expr *cond;
-   Stmt *substmt;
-   WhileStmt() : cond(0), substmt(0) {}
+   Expr *cond = 0;
+   Stmt *substmt = 0;
 };
 
 struct Decl : public Ast {
    enum Kind { Normal, Pointer };
-   TypeSpec *typespec;
+   TypeSpec *typespec = 0;
    std::string name;
-   Decl() : typespec(0) {}
 };
 
 template<AstType Type>
@@ -197,14 +192,12 @@ struct DeclDerived : Decl {
 };
 
 struct VarDecl : public DeclDerived<AstType::VarDecl> {
-   Kind kind;
-   VarDecl() : kind(Normal) {}
+   Kind kind = Normal;
 };
 
 struct ArrayDecl : public DeclDerived<AstType::ArrayDecl> {
    std::vector<Expr*> sizes;
-   Kind kind;
-   ArrayDecl() : kind(Normal) {}
+   Kind kind = Normal;
    std::string typestr() const;
 };
 
@@ -215,9 +208,8 @@ struct ObjDecl : public DeclDerived<AstType::ObjDecl> {
 struct DeclStmt : public StmtDerived<AstType::DeclStmt> {
    TypeSpec *typespec;
    struct Item {
-      Decl *decl;
-      Expr *init;
-      Item() : decl(0), init(0) {}
+      Decl *decl = 0;
+      Expr *init = 0;
    };
    std::vector<Item> items;
 };
@@ -225,10 +217,8 @@ struct DeclStmt : public StmtDerived<AstType::DeclStmt> {
 struct JumpStmt : public StmtDerived<AstType::JumpStmt> {
    enum Kind { Unknown = -1, Break = 0, Continue = 1, Goto = 2 };
 
-   Kind kind;
+   Kind kind = Unknown;
    std::string label;
-
-   JumpStmt() : kind(Unknown) {}
 
    static Kind keyword2type(std::string s);
 };
@@ -387,26 +377,22 @@ struct AddrExpr  : public UnaryExprDerived<AstType::AddrExpr>  {};
 struct DerefExpr : public UnaryExprDerived<AstType::DerefExpr> {};
 
 struct CallExpr : public ExprDerived<AstType::CallExpr> {
-   Expr *func;
+   Expr *func = 0;
    std::vector<Expr *> args;
-   CallExpr() : func(0) {}
 };
 
 struct IndexExpr : public ExprDerived<AstType::IndexExpr> {
-   Expr *base, *index;
-   IndexExpr() : base(0), index(0) {}
+   Expr *base = 0, *index = 0;
 };
 
 struct FieldExpr : public ExprDerived<AstType::FieldExpr> {
-   Expr *base;
-   SimpleIdent *field;
+   Expr *base = 0;
+   SimpleIdent *field = 0;
    bool pointer;
-   FieldExpr() : base(0), field(0) {}
 };
 
 struct CondExpr : public ExprDerived<AstType::CondExpr> {
-   Expr *cond, *then, *els;
-   CondExpr() : cond(0), then(0), els(0) {}
+   Expr *cond = 0, *then = 0, *els = 0;
 };
 
 struct ExprList : public ExprDerived<AstType::ExprList> {
@@ -421,11 +407,11 @@ struct TypeSpec : public AstDerived<AstType::TypeSpec> {
       Register = 3, Auto     = 4, Extern  = 5
    };
 
-   bool                    reference;
+   bool                    reference = false;
    std::vector<Qualifiers> qual;
-   FullIdent              *id;
+   FullIdent              *id = 0;
 
-   TypeSpec() : id(0), reference(false) {}
+   TypeSpec() = default;
    TypeSpec(FullIdent *_id) : id(_id), reference(false) {}
    bool is(Qualifiers q) const;
    std::string typestr() const;
@@ -439,9 +425,8 @@ struct TypeSpec : public AstDerived<AstType::TypeSpec> {
 struct FuncDecl : public AstDerived<AstType::FuncDecl> {
    struct Param {
       Pos ini, fin;
-      TypeSpec *typespec;
+      TypeSpec *typespec = 0;
       std::string name;
-      Param() : typespec(0) {}
    };
 
    TypeSpec *return_typespec;
@@ -455,18 +440,16 @@ struct FuncDecl : public AstDerived<AstType::FuncDecl> {
 };
 
 struct StructDecl : public AstDerived<AstType::StructDecl> {
-   SimpleIdent *id;
+   SimpleIdent *id = 0;
    std::vector<DeclStmt*> decls;
    
-   StructDecl() : id(0) {}
    std::string struct_name() const { return id->name; }
    std::string typestr() const;
    int num_fields() const;
 };
 
 struct TypedefDecl : public AstDerived<AstType::TypedefDecl> {
-   Decl *decl;
-   TypedefDecl() : decl(0) {}
+   Decl *decl = 0;
 };
 
 struct EnumDecl : public AstDerived<AstType::EnumDecl> {
