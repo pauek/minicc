@@ -210,129 +210,174 @@ string Literal::escape(string s, char delim) {
    return r;
 }
 
-#define _ERRORS(x) \
-   if (x and x->has_errors()) return true;
+bool HasErrors(Ast *ast) {
 
-bool Program::has_errors() const {
-   for (Ast *n : nodes) {
-      _ERRORS(n);
+#define CHECK_ERRORS(n) if (HasErrors(n)) return true
+
+   if (ast == 0) {
+      return false;
    }
-   return Ast::has_errors();
-}
-
-bool ExprStmt::has_errors() const {
-   _ERRORS(expr);
-   return Ast::has_errors();
-}
-
-bool IfStmt::has_errors() const {
-   _ERRORS(cond); _ERRORS(then); _ERRORS(els);
-   return Ast::has_errors();
-}
-
-bool ForStmt::has_errors() const {
-   _ERRORS(init); _ERRORS(cond); _ERRORS(post); _ERRORS(substmt);
-   return Ast::has_errors();
-}
-
-bool WhileStmt::has_errors() const {
-   _ERRORS(cond); _ERRORS(substmt);
-   return Ast::has_errors();
-}
-
-bool DeclStmt::has_errors() const {
-   _ERRORS(typespec);
-   for (Item i : items) {
-      _ERRORS(i.decl);
-      _ERRORS(i.init);
-   } 
-   return Ast::has_errors();
-}
-
-bool Block::has_errors() const {
-   for (Stmt *s : stmts) {
-      _ERRORS(s);
-   }
-   return Ast::has_errors();
-}
-
-bool TemplateIdent::has_errors() const {
-   for (TypeSpec *t : subtypes) {
-      _ERRORS(t);
-   }
-   return Ast::has_errors();
-}
-
-bool FullIdent::has_errors() const {
-   for (TemplateIdent *id : prefix) {
-      _ERRORS(id);
-   }
-   return TemplateIdent::has_errors() || Ast::has_errors();
-}
-
-bool BinaryExpr::has_errors() const {
-   _ERRORS(left); _ERRORS(right);
-   return Ast::has_errors();
-}
-
-bool UnaryExpr::has_errors() const {
-   _ERRORS(expr);
-   return Ast::has_errors();
-}
-
-bool CallExpr::has_errors() const {
-   _ERRORS(func);
-   return Ast::has_errors();
-}
-
-bool IndexExpr::has_errors() const {
-   _ERRORS(base); _ERRORS(index);
-   return Ast::has_errors();
-}
-
-bool FieldExpr::has_errors() const {
-   _ERRORS(base); _ERRORS(field);
-   return Ast::has_errors();
-}
-
-bool CondExpr::has_errors() const {
-   _ERRORS(cond); _ERRORS(then); _ERRORS(els);
-   return Ast::has_errors();
-}
-
-bool ExprList::has_errors() const {
-   for (Expr *e : exprs) {
-      if (e->has_errors()) {
-         return true;
+   switch (ast->type()) {
+   case AstType::Program: {
+      Program *X = cast<Program>(ast);
+      for (Ast *n : X->nodes) {
+         if (HasErrors(n)) {
+            return true;
+         }
       }
+      return X->HasErrors();
    }
-   return false;
-}
-
-bool TypeSpec::has_errors() const {
-   _ERRORS(id);
-   return Ast::has_errors();
-}
-
-bool FuncDecl::has_errors() const {
-   _ERRORS(return_typespec); _ERRORS(block);
-   for (Param* p : params) {
-      _ERRORS(p->typespec);
+   case AstType::ExprStmt: {
+      ExprStmt *X = cast<ExprStmt>(ast);
+      CHECK_ERRORS(X->expr);
+      return X->HasErrors();
    }
-   return Ast::has_errors();
-}
-
-bool StructDecl::has_errors() const {
-   _ERRORS(id);
-   for (DeclStmt *d : decls) {
-      _ERRORS(d);
+   case AstType::IfStmt: {
+      IfStmt *X = cast<IfStmt>(ast);
+      CHECK_ERRORS(X->cond); 
+      CHECK_ERRORS(X->then); 
+      CHECK_ERRORS(X->els);
+      return X->HasErrors();
    }
-   return Ast::has_errors();
-}
-
-bool TypedefDecl::has_errors() const {
-   _ERRORS(decl);
-   return Ast::has_errors();
+   case AstType::ForStmt: {
+      ForStmt *X = cast<ForStmt>(ast);
+      CHECK_ERRORS(X->init); 
+      CHECK_ERRORS(X->cond); 
+      CHECK_ERRORS(X->post); 
+      CHECK_ERRORS(X->substmt);
+      return X->HasErrors();
+   }
+   case AstType::WhileStmt: {
+      WhileStmt *X = cast<WhileStmt>(ast);
+      CHECK_ERRORS(X->cond); 
+      CHECK_ERRORS(X->substmt);
+      return X->HasErrors();
+   }
+   case AstType::DeclStmt: {
+      DeclStmt *X = cast<DeclStmt>(ast);
+      CHECK_ERRORS(X->typespec);
+      for (DeclStmt::Item i : X->items) {
+         CHECK_ERRORS(i.decl);
+         CHECK_ERRORS(i.init);
+      } 
+      return X->HasErrors();
+   }
+   case AstType::Block: {
+      Block *X = cast<Block>(ast);
+      for (Stmt *s : X->stmts) {
+         CHECK_ERRORS(s);
+      }
+      return X->HasErrors();
+   }
+   case AstType::TemplateIdent: {
+      TemplateIdent *X = cast<TemplateIdent>(ast);
+      for (TypeSpec *t : X->subtypes) {
+         CHECK_ERRORS(t);
+      }
+      return X->HasErrors();
+   }
+   case AstType::FullIdent: {
+      FullIdent *X = cast<FullIdent>(ast);
+      for (TemplateIdent *id : X->prefix) {
+         CHECK_ERRORS(id);
+      }
+      for (TypeSpec *t : X->subtypes) {
+         CHECK_ERRORS(t);
+      }
+      return X->HasErrors();
+   }
+   case AstType::BinaryExpr: {
+      BinaryExpr *X = cast<BinaryExpr>(ast);
+      CHECK_ERRORS(X->left); 
+      CHECK_ERRORS(X->right);
+      return X->HasErrors();
+   }
+   case AstType::CallExpr: {
+      CallExpr *X = cast<CallExpr>(ast);
+      CHECK_ERRORS(X->func);
+      return X->HasErrors();
+   }
+   case AstType::IndexExpr: {
+      IndexExpr *X = cast<IndexExpr>(ast);
+      CHECK_ERRORS(X->base); 
+      CHECK_ERRORS(X->index);
+      return X->HasErrors();
+   }
+   case AstType::FieldExpr: {
+      FieldExpr *X = cast<FieldExpr>(ast);
+      CHECK_ERRORS(X->base); 
+      CHECK_ERRORS(X->field);
+      return X->HasErrors();
+   }
+   case AstType::CondExpr: {
+      CondExpr *X = cast<CondExpr>(ast);
+      CHECK_ERRORS(X->cond);
+      CHECK_ERRORS(X->then);
+      CHECK_ERRORS(X->els);
+      return X->HasErrors();
+   }   
+   case AstType::ExprList: {
+      ExprList *X = cast<ExprList>(ast);
+      for (Expr *e : X->exprs) {
+         CHECK_ERRORS(e);
+      }
+      return X->HasErrors();
+   }   
+   case AstType::TypeSpec: {
+      TypeSpec *X = cast<TypeSpec>(ast);
+      CHECK_ERRORS(X->id);
+      return X->HasErrors();
+   }   
+   case AstType::FuncDecl: {
+      FuncDecl *X = cast<FuncDecl>(ast);
+      CHECK_ERRORS(X->return_typespec); 
+      CHECK_ERRORS(X->block);
+      for (FuncDecl::Param* p : X->params) {
+         CHECK_ERRORS(p->typespec);
+      }
+      return X->HasErrors();
+   }   
+   case AstType::StructDecl: {
+      StructDecl *X = cast<StructDecl>(ast);
+      CHECK_ERRORS(X->id);
+      for (DeclStmt *d : X->decls) {
+         CHECK_ERRORS(d);
+      }
+      return X->HasErrors();
+   }   
+   case AstType::TypedefDecl: {
+      TypedefDecl *X = cast<TypedefDecl>(ast);
+      CHECK_ERRORS(X->decl);
+      return X->HasErrors();
+   }   
+   case AstType::SignExpr: {
+      SignExpr *X = cast<SignExpr>(ast);
+      CHECK_ERRORS(X->expr);
+      return X->HasErrors();
+   }
+   case AstType::IncrExpr: {
+      IncrExpr *X = cast<IncrExpr>(ast);
+      CHECK_ERRORS(X->expr);
+      return X->HasErrors();
+   }
+   case AstType::NegExpr: {
+      NegExpr *X = cast<NegExpr>(ast);
+      CHECK_ERRORS(X->expr);
+      return X->HasErrors();
+   }
+   case AstType::AddrExpr: {
+      AddrExpr *X = cast<AddrExpr>(ast);
+      CHECK_ERRORS(X->expr);
+      return X->HasErrors();
+   }
+   case AstType::DerefExpr: {
+      DerefExpr *X = cast<DerefExpr>(ast);
+      CHECK_ERRORS(X->expr);
+      return X->HasErrors();
+   }
+   default:
+      return ast->HasErrors();
+   }
 }
 
 string TemplateIdent::typestr() const {

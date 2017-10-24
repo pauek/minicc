@@ -426,14 +426,14 @@ Stmt *Parser::parse_decl_or_expr_stmt(Ast *parent) {
    _lexer.save();
    DeclStmt *declstmt;
    declstmt = parse_declstmt(parent);
-   if (!declstmt->has_errors()) {
+   if (!HasErrors(declstmt)) {
       _lexer.discard();
       return declstmt;
    }
    _lexer.restore();
    _lexer.save();
    ExprStmt *exprstmt = parse_exprstmt(parent);
-   if (!exprstmt->has_errors()) {
+   if (!HasErrors(exprstmt)) {
       delete declstmt;
       _lexer.discard();
       return exprstmt;

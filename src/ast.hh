@@ -99,13 +99,11 @@ struct Ast {
  std::vector<CommentSeq*>  comments;
                       Ast *parent;
 
-                  void add_error(std::string msg);
-                  void add_error(Pos ini, Pos fin, std::string msg);
-
-               AstType type() const { return type_; }
-
-   virtual            ~Ast() {}
-   virtual        bool has_errors()   const { return !errors.empty(); }
+ virtual ~Ast() {}
+    void add_error(std::string msg);
+    void add_error(Pos ini, Pos fin, std::string msg);
+ AstType type() const { return type_; }
+    bool HasErrors()   const { return !errors.empty(); }
 
    template<typename X>
                   bool is() const { return dynamic_cast<const X*>(this) != 0; }
@@ -129,8 +127,6 @@ struct Program : public AstDerived<AstType::Program> {
    int  num_children() const { return nodes.size(); }
    Ast* child(int n)         { return nodes[n]; }
    void add(Ast* n)      { nodes.push_back(n), n->parent = this; }
-
-   bool has_errors() const;
 };
 
 struct Include : public AstDerived<AstType::Include> {
@@ -171,7 +167,6 @@ struct ExprStmt : public StmtDerived<AstType::ExprStmt> {
    Expr *expr;
    bool is_return;
    ExprStmt() : expr(0), is_return(false) {}
-   bool has_errors() const;
 };
 
 struct IfStmt : public StmtDerived<AstType::IfStmt> {
@@ -179,7 +174,6 @@ struct IfStmt : public StmtDerived<AstType::IfStmt> {
    Stmt *then, *els;
 
    IfStmt() : cond(0), then(0), els(0) {}
-   bool has_errors() const;
 };
 
 struct ForStmt : public StmtDerived<AstType::ForStmt> { // while + for
@@ -188,7 +182,6 @@ struct ForStmt : public StmtDerived<AstType::ForStmt> { // while + for
    Stmt *substmt;
 
    ForStmt() : cond(0), init(0), substmt(0), post(0) {}
-   bool has_errors() const;
 };
 
 struct WhileStmt : public StmtDerived<AstType::WhileStmt> { // while + for
@@ -196,7 +189,6 @@ struct WhileStmt : public StmtDerived<AstType::WhileStmt> { // while + for
    Stmt *substmt;
 
    WhileStmt() : cond(0), substmt(0) {}
-   bool has_errors() const;
 };
 
 struct Decl : public Ast {
@@ -236,8 +228,6 @@ struct DeclStmt : public StmtDerived<AstType::DeclStmt> {
       Item() : decl(0), init(0) {}
    };
    std::vector<Item> items;
-
-   bool has_errors() const;
 };
 
 struct JumpStmt : public StmtDerived<AstType::JumpStmt> {
@@ -253,7 +243,6 @@ struct JumpStmt : public StmtDerived<AstType::JumpStmt> {
 
 struct Block : public StmtDerived<AstType::Block> {
    std::vector<Stmt*> stmts;
-   bool has_errors() const;
 };
 
 // Expressions /////////////////////////////////////////////
@@ -338,7 +327,6 @@ struct TemplateIdent : SimpleIdent {
    } 
    bool is_template() const { return !subtypes.empty(); }
    std::string typestr() const;
-   bool has_errors() const;
 
    static bool classof(const Ast *ast) { ast->type() == AstType::TemplateIdent; }
 };
@@ -350,7 +338,6 @@ struct FullIdent : TemplateIdent {
       type_ = AstType::FullIdent;
    }
    std::string typestr() const;
-   bool has_errors() const;
 
    void shift(std::string new_id);
    SimpleIdent *get_potential_namespace_or_class() const;
@@ -368,7 +355,6 @@ struct BinaryExpr : public ExprDerived<AstType::BinaryExpr> {
    BinaryExpr(Kind k = Unknown) : kind(k), op("") {}
 
    void set(Expr::Kind _kind);
-   bool has_errors() const;
 
    bool is_read_expr()  const;
    bool is_write_expr() const;
@@ -379,7 +365,6 @@ struct BinaryExpr : public ExprDerived<AstType::BinaryExpr> {
 struct UnaryExpr : public Expr {
    Expr *expr;
    UnaryExpr() : expr(0) {}
-   bool has_errors() const;
 };
 
 template<AstType Type>
@@ -414,13 +399,11 @@ struct CallExpr : public ExprDerived<AstType::CallExpr> {
    Expr *func;
    std::vector<Expr *> args;
    CallExpr() : func(0) {}
-   bool has_errors() const;
 };
 
 struct IndexExpr : public ExprDerived<AstType::IndexExpr> {
    Expr *base, *index;
    IndexExpr() : base(0), index(0) {}
-   bool has_errors() const;
 };
 
 struct FieldExpr : public ExprDerived<AstType::FieldExpr> {
@@ -429,18 +412,15 @@ struct FieldExpr : public ExprDerived<AstType::FieldExpr> {
    bool pointer;
 
    FieldExpr() : base(0), field(0) {}
-   bool has_errors() const;
 };
 
 struct CondExpr : public ExprDerived<AstType::CondExpr> {
    Expr *cond, *then, *els;
    CondExpr() : cond(0), then(0), els(0) {}
-   bool has_errors() const;
 };
 
 struct ExprList : public ExprDerived<AstType::ExprList> {
    std::vector<Expr*> exprs;
-   bool has_errors() const;
 };
 
 struct TypeSpec : public AstDerived<AstType::TypeSpec> {
@@ -457,7 +437,6 @@ struct TypeSpec : public AstDerived<AstType::TypeSpec> {
 
    TypeSpec() : id(0), reference(false) {}
    TypeSpec(FullIdent *_id) : id(_id), reference(false) {}
-   bool has_errors() const;
    bool is(Qualifiers q) const;
    std::string typestr() const;
 
@@ -483,7 +462,6 @@ struct FuncDecl : public AstDerived<AstType::FuncDecl> {
    FuncDecl(SimpleIdent *_id) : id(_id) {}
 
    std::string funcname() const { return id->name; }
-   bool has_errors() const;
 };
 
 struct StructDecl : public AstDerived<AstType::StructDecl> {
@@ -491,7 +469,6 @@ struct StructDecl : public AstDerived<AstType::StructDecl> {
    std::vector<DeclStmt*> decls;
    
    StructDecl() : id(0) {}
-   bool has_errors() const;
    std::string struct_name() const { return id->name; }
    std::string typestr() const;
    int num_fields() const;
@@ -500,7 +477,6 @@ struct StructDecl : public AstDerived<AstType::StructDecl> {
 struct TypedefDecl : public AstDerived<AstType::TypedefDecl> {
    Decl *decl;
    TypedefDecl() : decl(0) {}
-   bool has_errors() const;
 };
 
 struct EnumDecl : public AstDerived<AstType::EnumDecl> {
@@ -516,6 +492,7 @@ struct EnumDecl : public AstDerived<AstType::EnumDecl> {
 };
 
 std::string Describe(Ast *ast);
+bool HasErrors(Ast *ast);
 
 // AstVisitor
 

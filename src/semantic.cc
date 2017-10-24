@@ -259,8 +259,7 @@ void SemanticAnalyzer::check_arguments(const Function *func_type,
    }
    for (int i = 0; i < argvals.size(); i++) {
       Type *param_type = func_type->param(i);
-      if ((args != 0 and (*args)[i]->has_errors()) or
-          param_type == Any) {
+      if ((args != 0 and HasErrors((*args)[i])) or param_type == Any) {
          continue;
       }
       string t1 = param_type->typestr();
@@ -273,7 +272,7 @@ void SemanticAnalyzer::check_arguments(const Function *func_type,
          (*args)[i]->add_error(_T("En el %s parámetro se requiere una variable.", cual.c_str()));
       }
       string t2 = arg_i.type()->typestr();
-      if (t1 != t2 and !(*args)[i]->has_errors()) {
+      if (t1 != t2 and !HasErrors((*args)[i])) {
          _curr_node->add_error(_T("El argumento %d no es compatible con el tipo del parámetro "
                                   "(%s vs %s)", i+1, t1.c_str(), t2.c_str()));
       }
@@ -525,7 +524,7 @@ void SemanticAnalyzer::Analyze(Ast *ast) {
       right = Reference::deref(right);
       string right_varname = _curr_varname;
 
-      if (X->left->has_errors() or X->right->has_errors()) {
+      if (HasErrors(X->left) or HasErrors(X->right)) {
          return; // avoid more errors
       }
       
@@ -540,7 +539,7 @@ void SemanticAnalyzer::Analyze(Ast *ast) {
          return; // already evaluated
       }
       if (X->op == "=") {
-         if (!X->left->has_errors()) {
+         if (!HasErrors(X->left)) {
             visit_binaryexpr_assignment(X, left, right);
          }
          return;
