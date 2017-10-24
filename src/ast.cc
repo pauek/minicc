@@ -124,10 +124,6 @@ Expr::Kind Expr::TokenToKind(Token::Type tokkind) {
    }
 }
 
-bool Expr::RightAssociative(Expr::Kind t) {
-   return t == Expr::Eq;
-}
-
 JumpStmt::Kind JumpStmt::KeywordToType(string s) {
    if (s == "break") { 
       return JumpStmt::Break; 
@@ -169,23 +165,23 @@ string Literal::Escape(string s, char delim) {
 }
 
 string Identifier::TypeStr() const {
-   string _id;
+   string typestr;
    for (int i = 0; i < prefix.size(); i++) {
-      _id += prefix[i]->TypeStr();
-      _id += "::";
+      typestr += prefix[i]->TypeStr();
+      typestr += "::";
    }
-   _id += name;
+   typestr += name;
    if (!subtypes.empty()) {
-      _id += "<";
+      typestr += "<";
       for (int i = 0; i < subtypes.size(); i++) {
          if (i > 0) {
-            _id += ",";
+            typestr += ",";
          }
-         _id += subtypes[i]->TypeStr();
+         typestr += subtypes[i]->TypeStr();
       }
-      _id += ">";
+      typestr += ">";
    }
-   return _id;
+   return typestr;
 }
 
 Identifier *Identifier::GetPotentialNamespaceOrClass() const {
@@ -214,7 +210,7 @@ bool TypeSpec::HasQualifier(TypeSpec::Qualifier q) const {
 }
 
 string TypeSpec::TypeStr() const {
-   string _id;
+   string typestr;
    int i = 0, numquals = 0;
    static const string names[] = { 
       "const", "volatile", "mutable", "register", "auto", "extern"
@@ -223,18 +219,18 @@ string TypeSpec::TypeStr() const {
       int q = TypeSpec::Qualifier(1 << i);
       if (find(qual.begin(), qual.end(), q) != qual.end()) {
          if (numquals > 0) {
-            _id += " ";
+            typestr += " ";
          }
-         _id += names[i];
+         typestr += names[i];
          numquals++;
       }
       i++;
    }
-   _id += id->TypeStr();
+   typestr += id->TypeStr();
    if (reference) {
-      _id += "&";
+      typestr += "&";
    }
-   return _id;
+   return typestr;
 }
 
 string ArrayDecl::TypeStr() const { 
@@ -246,16 +242,16 @@ string ArrayDecl::TypeStr() const {
 }
 
 string StructDecl::TypeStr() const {
-   ostringstream S;
-   S << "struct{";
+   string typestr;
+   typestr += "struct{";
    for (int i = 0; i < decls.size(); i++) {
       if (i > 0) {
-         S << ";";
+         typestr += ";";
       }
-      S << decls[i]->typespec->TypeStr();
+      typestr += decls[i]->typespec->TypeStr();
    }
-   S << "}";
-   return S.str();
+   typestr += "}";
+   return typestr;
 }
 
 void Identifier::Shift(string new_id) {

@@ -94,7 +94,7 @@ struct Ast {
       std::vector<Error*>  errors;
  std::vector<CommentSeq*>  comments;
                       Ast *parent;
-// virtual ~Ast() {} // <-- Do we need this???
+
     void AddError(std::string msg);
     void AddError(Pos ini, Pos fin, std::string msg);
     bool HasErrors() const { return !errors.empty(); }
@@ -234,7 +234,8 @@ struct Expr : public Ast {
    bool paren = false; // if this is true, comments will have an extra element!
 
    static Kind TokenToKind(Token::Type toktyp);
-   static bool RightAssociative(Kind t);
+
+   static bool RightAssociative(Kind t) { return t == Expr::Eq; }
 
    struct Error;
 };
