@@ -243,14 +243,14 @@ void Interpreter::CheckArguments(const Function *func_type, const vector<Value>&
       if (param_type == Any) {
          continue;
       }
-      string t1 = param_type->typestr();
+      string t1 = param_type->TypeStr();
       Value arg_i = args[i];
       if (!func_type->param(i)->is<Reference>()) {
          arg_i = Reference::deref(arg_i);
       } else if (!arg_i.type()->is<Reference>()) {
          _error(_T("En el parámetro %d se requiere una variable.", i+1));
       }
-      string t2 = arg_i.type()->typestr();
+      string t2 = arg_i.type()->TypeStr();
       if (t1 != t2) {
          _error(_T("El argumento %d no es compatible con el tipo del parámetro "
                    "(%s vs %s)", i+1, t1.c_str(), t2.c_str()));
@@ -271,7 +271,7 @@ void Interpreter::CheckResult(Binding& fn, const Function *func_type) {
       const Type *return_type = func_type->return_type();
       _error(_T("La función '%s' debería devolver un '%s'", 
                 name.c_str(),
-                return_type->typestr().c_str()));
+                return_type->TypeStr().c_str()));
    }
 }
 
@@ -287,7 +287,7 @@ bool Interpreter::TypeConversion(CallExpr *X, const vector<Value>& args) {
          _curr = type->convert(args[0]);
          if (_curr == Value::null) {
             _curr = args[0];
-            CallOperator(id->typestr());
+            CallOperator(id->TypeStr());
          }
          return true;
       }
@@ -527,7 +527,7 @@ void Interpreter::Eval(Ast* ast) {
             _curr = left;
             if (!CallOperator(X->op, vector<Value>(1, right))) {
                _error(_T("El tipo '%s' no tiene 'operator%s'", 
-                         _curr.type()->typestr().c_str(), X->op.c_str()));
+                         _curr.type()->TypeStr().c_str(), X->op.c_str()));
             }
             ret = true;
          }
@@ -577,7 +577,7 @@ void Interpreter::Eval(Ast* ast) {
             _curr = left;
             if (!CallOperator(X->op, vector<Value>(1, right))) {
                _error(_T("El tipo '%s' no tiene 'operator%s'", 
-                         _curr.type()->typestr().c_str(), X->op.c_str()));
+                         _curr.type()->TypeStr().c_str(), X->op.c_str()));
             }
             ret = true;
          }
@@ -604,7 +604,7 @@ void Interpreter::Eval(Ast* ast) {
    }
    case AstType::VarDecl: {
       VarDecl *X = cast<VarDecl>(ast);
-      string type_name = X->typespec->typestr();
+      string type_name = X->typespec->TypeStr();
       Type *type = get_type(X->typespec);
       if (type == 0) {
          _error(_T("El tipo '%s' no existe.", type_name.c_str()));
@@ -641,7 +641,7 @@ void Interpreter::Eval(Ast* ast) {
       }
       Type *celltype = get_type(X->typespec);
       if (celltype == 0) {
-         _error(_T("El tipo '%s' no existe", X->typespec->typestr().c_str()));
+         _error(_T("El tipo '%s' no existe", X->typespec->TypeStr().c_str()));
       }
       // TODO: don't create new Array type every time?
       Type *arraytype = Array::mkarray(celltype, sizes);
@@ -660,7 +660,7 @@ void Interpreter::Eval(Ast* ast) {
          string constructor_name = type->name();
          Value new_obj = type->create();
          if (!BindField(new_obj, constructor_name)) {
-            _error(_T("El tipo '%s' no tiene constructor", type->typestr().c_str()));
+            _error(_T("El tipo '%s' no tiene constructor", type->TypeStr().c_str()));
          }
          if (_curr.is<Overloaded>()) {
             _curr = _curr.as<Overloaded>().resolve(args);
@@ -675,7 +675,7 @@ void Interpreter::Eval(Ast* ast) {
          return;
       }
       _error(_T("The type '%s' is not implemented in MiniCC", 
-                X->typespec->typestr().c_str()));
+                X->typespec->TypeStr().c_str()));
       break;
    }
    case AstType::DeclStmt: {
@@ -805,7 +805,7 @@ void Interpreter::Eval(Ast* ast) {
       if (X->pointer) {
          if (!CallOperator("*")) {
             _error(_T("El tipo '%s' no tiene 'operator*'", 
-                      _curr.type()->typestr().c_str()));
+                      _curr.type()->TypeStr().c_str()));
          }
          _curr = Reference::deref(_curr);
       }
@@ -893,7 +893,7 @@ void Interpreter::Eval(Ast* ast) {
          string op = (X->kind == IncrExpr::Positive ? "++" : "--");
          if (!CallOperator(op)) {
             _error(_T("El tipo '%s' no tiene 'operator%s'", 
-                      _curr.type()->typestr().c_str(), op.c_str()));
+                      _curr.type()->TypeStr().c_str(), op.c_str()));
          }
       }
       _curr = (X->preincr ? before : after);
@@ -940,7 +940,7 @@ void Interpreter::Eval(Ast* ast) {
       _curr = Reference::deref(_curr);
       if (!CallOperator("*")) {
          _error(_T("El tipo '%s' no tiene 'operator*'", 
-                   _curr.type()->typestr().c_str()));
+                   _curr.type()->TypeStr().c_str()));
       }
       break;
    }

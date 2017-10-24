@@ -333,10 +333,10 @@ bool HasErrors(Ast *ast) {
    }
 }
 
-string Identifier::typestr() const {
+string Identifier::TypeStr() const {
    string _id;
    for (int i = 0; i < prefix.size(); i++) {
-      _id += prefix[i]->typestr();
+      _id += prefix[i]->TypeStr();
       _id += "::";
    }
    _id += name;
@@ -346,7 +346,7 @@ string Identifier::typestr() const {
          if (i > 0) {
             _id += ",";
          }
-         _id += subtypes[i]->typestr();
+         _id += subtypes[i]->TypeStr();
       }
       _id += ">";
    }
@@ -378,7 +378,7 @@ bool TypeSpec::is(TypeSpec::Qualifiers q) const {
    return find(qual.begin(), qual.end(), q) != qual.end();
 }
 
-string TypeSpec::typestr() const {
+string TypeSpec::TypeStr() const {
    string _id;
    int i = 0, numquals = 0;
    static const string names[] = { 
@@ -395,29 +395,29 @@ string TypeSpec::typestr() const {
       }
       i++;
    }
-   _id += id->typestr();
+   _id += id->TypeStr();
    if (reference) {
       _id += "&";
    }
    return _id;
 }
 
-string ArrayDecl::typestr() const { 
+string ArrayDecl::TypeStr() const { 
    string brackets;
    for (int i = 0; i < sizes.size(); i++) {
       brackets += "[]";
    }
-   return typespec->typestr() + brackets; 
+   return typespec->TypeStr() + brackets; 
 }
 
-string StructDecl::typestr() const {
+string StructDecl::TypeStr() const {
    ostringstream S;
    S << "struct{";
    for (int i = 0; i < decls.size(); i++) {
       if (i > 0) {
          S << ";";
       }
-      S << decls[i]->typespec->typestr();
+      S << decls[i]->typespec->TypeStr();
    }
    S << "}";
    return S.str();

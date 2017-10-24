@@ -75,7 +75,7 @@ bool Value::same_type_as(const Value& v) const {
    // for every type. But in the case of chars, for instance, there 
    // are two 'char' types, one for references (which are not destroyed)
    // and one for normal 'char' variables.
-   return _box->type->typestr() == v._box->type->typestr(); 
+   return _box->type->TypeStr() == v._box->type->TypeStr(); 
 }
 
 Value Value::clone() const {
@@ -170,7 +170,7 @@ bool Value::less_than(const Value& v) const {
 
 string Value::type_name() const {
    assert(_box != 0);
-   return _box->type->typestr();
+   return _box->type->TypeStr();
 }
 
 bool Value::contains_unknowns() const {

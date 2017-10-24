@@ -53,7 +53,7 @@ public:
    virtual        bool  contains_unknowns(void *data)      const { return false; }
 
    virtual std::string  name()                             const { return _name; }
-   virtual std::string  typestr()                          const { return _name; }
+   virtual std::string  TypeStr()                          const { return _name; }
    virtual         int  properties()                       const = 0;
    virtual         int  get_field(Value self,
                                   std::string, 
@@ -203,7 +203,7 @@ public:
          Value  create_abstract()   const;
 
     const Type *subtype()           const { return _subtype; }
-   std::string  typestr()           const { return _subtype->typestr() + "&"; }
+   std::string  TypeStr()           const { return _subtype->TypeStr() + "&"; }
            int  properties()        const { return Basic; }
 
           void *alloc(Value& x)     const;
@@ -345,7 +345,7 @@ const Type *return_type()     const { return _return_type; }
    bool is_void()          const { return _return_type == 0; }
     int check_signature(const std::vector<Value>& args) const;
 
-   std::string typestr() const;
+   std::string TypeStr() const;
 
    Value mkvalue(Func *f) { 
       // FIXME: Too many boxes, I should be able to call
@@ -443,7 +443,7 @@ public:
                    : BaseType<std::vector<Value>>("<array>"), _celltype(celltype), _sz(sz) {}
    static Type *mkarray(Type *celltype, const std::vector<int>& sizes); // use this as constructor for 2D and up...
            int  properties() const { return Basic | Composite; }
-   std::string  typestr()    const { return _celltype->typestr() + "[]"; }
+   std::string  TypeStr()    const { return _celltype->TypeStr() + "[]"; }
           Type *celltype()   const { return _celltype; }
          Value  create();
          Value  create_abstract()   const;
@@ -471,7 +471,7 @@ public:
 
    void  clear_touched(void *data) const;
    
-   std::string typestr() const;
+   std::string TypeStr() const;
    std::string to_json(void *data) const;
 
    static Vector *self;
@@ -498,7 +498,7 @@ public:
    Type *instantiate(std::vector<Type*>& args) const;
    Type *celltype() const { return _celltype; }
 
-   std::string typestr() const;
+   std::string TypeStr() const;
    std::string to_json(void *data) const;
 
    static List *self;
@@ -530,7 +530,7 @@ public:
    bool less_than(void *a, void *b) const;
     int get_field(Value self, std::string name, std::vector<Value>& result) const;
 
-   std::string typestr() const;
+   std::string TypeStr() const;
    std::string to_json(void *data) const;
 
    static Pair *self;
@@ -558,7 +558,7 @@ public:
    Type *value()    const { return _value; }
    Type *celltype() const { return _pair_type; }
 
-   std::string typestr() const;
+   std::string TypeStr() const;
    std::string to_json(void *data) const;
 
    static Map *self;
@@ -576,7 +576,7 @@ class Iterator : public Class<BaseType<typename C::cpp_iterator>> {
 public:
    Iterator(C *type);
 
-   std::string typestr() const { return _container_type->typestr() + "::iterator"; }
+   std::string TypeStr() const { return _container_type->TypeStr() + "::iterator"; }
    std::string to_json(void *data) const;
 
    typedef typename C::cpp_iterator cpp_type;

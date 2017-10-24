@@ -54,7 +54,7 @@ Type *TypeMap::instantiate_template(const vector<TypeSpec*>& subtypespecs,
 Type *TypeMap::get_type(TypeSpec *spec, Environment *topmost) {
    // 1. If typestr already registered, return the type
    {
-      auto it = _typecache.find(spec->typestr());
+      auto it = _typecache.find(spec->TypeStr());
       if (it != _typecache.end()) {
          return it->second;
       }
@@ -67,7 +67,7 @@ Type *TypeMap::get_type(TypeSpec *spec, Environment *topmost) {
       // find first type
       Type *T;
       Identifier *spec0 = path[0];
-      auto it = _typecache.find(spec0->typestr());
+      auto it = _typecache.find(spec0->TypeStr());
       if (it != _typecache.end()) {
          T = it->second;
       } else {
@@ -91,16 +91,16 @@ Type *TypeMap::get_type(TypeSpec *spec, Environment *topmost) {
       if (spec->reference) {
          T = new Reference(T);
       }
-      _typecache[spec->typestr()] = T;
+      _typecache[spec->TypeStr()] = T;
       return T;
    }
 }
 
 void TypeMap::register_type(string name, Type *typespec) {
    auto it = _typemap.find(name);
-   assert(it == _typemap.end() or it->second->typestr() == typespec->typestr());
+   assert(it == _typemap.end() or it->second->TypeStr() == typespec->TypeStr());
    _typemap[name] = typespec;
-   _typecache[typespec->typestr()] = typespec;
+   _typecache[typespec->TypeStr()] = typespec;
 }
 
 void TypeMap::clear() {
@@ -109,7 +109,7 @@ void TypeMap::clear() {
 }
 
 const Type *Type::mkref(const Type *t) {
-   const string typestr = t->typestr();
+   const string typestr = t->TypeStr();
    auto it = reference_types.find(typestr);
    if (it == reference_types.end()) {
       auto res = reference_types.insert(make_pair(typestr, new Reference(t)));
@@ -586,8 +586,8 @@ Type *Vector::instantiate(vector<Type *>& subtypes) const {
    return new Vector(subtypes[0]);
 }
 
-string Vector::typestr() const {
-   string subtype = (_celltype != 0 ? _celltype->typestr() : "?");
+string Vector::TypeStr() const {
+   string subtype = (_celltype != 0 ? _celltype->TypeStr() : "?");
    return name() + "<" + subtype + ">";
 }
 
@@ -941,8 +941,8 @@ Type *List::instantiate(vector<Type *>& subtypes) const {
    return new List(subtypes[0]);
 }
 
-string List::typestr() const {
-   string subtype = (_celltype != 0 ? _celltype->typestr() : "?");
+string List::TypeStr() const {
+   string subtype = (_celltype != 0 ? _celltype->TypeStr() : "?");
    return name() + "<" + subtype + ">";
 }
 
@@ -1057,9 +1057,9 @@ Type *Pair::instantiate(vector<Type *>& subtypes) const {
    return new Pair(subtypes[0], subtypes[1]);
 }
 
-std::string Pair::typestr() const {
-   string _1 = (_first != 0  ? _first->typestr() : "?");
-   string _2 = (_second != 0 ? _second->typestr() : "?");
+std::string Pair::TypeStr() const {
+   string _1 = (_first != 0  ? _first->TypeStr() : "?");
+   string _2 = (_second != 0 ? _second->TypeStr() : "?");
    return  string("pair<") + _1 + "," + _2 + ">";
 }
 
@@ -1233,9 +1233,9 @@ Type *Map::instantiate(vector<Type *>& subtypes) const {
    return new Map(subtypes[0], subtypes[1]);
 }
 
-std::string Map::typestr() const {
-   string _1 = (_key   != 0 ? _key->typestr()   : "?");
-   string _2 = (_value != 0 ? _value->typestr() : "?");
+std::string Map::TypeStr() const {
+   string _1 = (_key   != 0 ? _key->TypeStr()   : "?");
+   string _2 = (_value != 0 ? _value->TypeStr() : "?");
    return  string("map<") + _1 + "," + _2 + ">";
 }
 
@@ -1427,18 +1427,18 @@ string Struct::to_json(void *data) const {
    return json.str();
 }
 
-string Function::typestr() const {
+string Function::TypeStr() const {
    ostringstream o;
    o << "func(";
    for (int i = 0; i < _param_types.size(); i++) {
       if (i > 0) {
          o << ",";
       }
-      o << _param_types[i]->typestr();
+      o << _param_types[i]->TypeStr();
    }
    o << ")";
    if (_return_type) {
-      o << ":" << _return_type->typestr();
+      o << ":" << _return_type->TypeStr();
    }
    return o.str();
 }
@@ -1887,7 +1887,7 @@ int Function::check_signature(const std::vector<Value>& args) const {
       // Char_ref! Por eso se usa typestr en vez de comparar los punteros 
       // directamente
       //
-      if (_param_types[i]->typestr() == args[i].type()->typestr()) {
+      if (_param_types[i]->TypeStr() == args[i].type()->TypeStr()) {
          score++;
       }
       if (!_param_types[i]->accepts(args[i].type())) {

@@ -193,7 +193,7 @@ struct VarDecl : public DeclDerived<AstType::VarDecl> {
 struct ArrayDecl : public DeclDerived<AstType::ArrayDecl> {
    std::vector<Expr*> sizes;
    Kind kind = Normal;
-   std::string typestr() const;
+   std::string TypeStr() const;
 };
 
 struct ObjDecl : public DeclDerived<AstType::ObjDecl> {
@@ -284,7 +284,7 @@ struct Identifier : ExprDerived<AstType::Identifier> {
    Identifier(std::string name_) : name(name_) {}
 
    bool is_template() const { return !subtypes.empty(); }
-   std::string typestr() const;
+   std::string TypeStr() const;
    void shift(std::string new_id);
    Identifier *get_potential_namespace_or_class() const;
    std::vector<Identifier*> get_non_namespaces();
@@ -369,7 +369,7 @@ struct TypeSpec : public AstDerived<AstType::TypeSpec> {
    TypeSpec() = default;
    TypeSpec(Identifier *_id) : id(_id), reference(false) {}
    bool is(Qualifiers q) const;
-   std::string typestr() const;
+   std::string TypeStr() const;
 
    bool is_template() const { return !id->subtypes.empty(); }
    Identifier *get_potential_namespace_or_class() const;
@@ -398,7 +398,7 @@ struct StructDecl : public AstDerived<AstType::StructDecl> {
    std::string name;
    std::vector<DeclStmt*> decls;
    
-   std::string typestr() const;
+   std::string TypeStr() const;
    int num_fields() const;
 };
 
