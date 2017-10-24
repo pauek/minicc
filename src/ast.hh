@@ -76,7 +76,7 @@ enum class AstType {
    Literal,
    SimpleIdent,
    TemplateIdent,
-   FullIdent,
+   Identifier,
    BinaryExpr,
    UnaryExpr,
    SignExpr,
@@ -307,11 +307,11 @@ struct TemplateIdent : SimpleIdent {
    }
 };
 
-struct FullIdent : TemplateIdent {
+struct Identifier : TemplateIdent {
    std::vector<TemplateIdent*> prefix;  // for classes & namespaces;
 
-   FullIdent(std::string name_) : TemplateIdent(name_) {
-      type_ = AstType::FullIdent;
+   Identifier(std::string name_) : TemplateIdent(name_) {
+      type_ = AstType::Identifier;
    }
    std::string typestr() const;
 
@@ -320,7 +320,7 @@ struct FullIdent : TemplateIdent {
    std::vector<TemplateIdent*> get_non_namespaces();
 
    static bool classof(const Ast *ast) { 
-      return ast->type() == AstType::FullIdent; 
+      return ast->type() == AstType::Identifier; 
    }
 };
 
@@ -394,10 +394,10 @@ struct TypeSpec : public AstDerived<AstType::TypeSpec> {
 
    bool                    reference = false;
    std::vector<Qualifiers> qual;
-   FullIdent              *id = 0;
+   Identifier              *id = 0;
 
    TypeSpec() = default;
-   TypeSpec(FullIdent *_id) : id(_id), reference(false) {}
+   TypeSpec(Identifier *_id) : id(_id), reference(false) {}
    bool is(Qualifiers q) const;
    std::string typestr() const;
 

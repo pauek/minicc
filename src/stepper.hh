@@ -73,7 +73,7 @@ public:
           void visit_callexpr(CallExpr *x); 
           void visit_literal(Literal *x); 
           void visit_fieldexpr(FieldExpr *x); 
-          void visit_fullident(FullIdent *x);
+          void visit_fullident(Identifier *x);
           void visit_indexexpr(IndexExpr *x);
 
           void Step(Ast *);

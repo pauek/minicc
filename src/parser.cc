@@ -200,8 +200,8 @@ Ast* Parser::parse_using_declaration(Ast *parent) {
    return u;
 }
 
-FullIdent *Parser::parse_ident(Ast *parent, Token tok, Pos ini) {
-   FullIdent *id = new FullIdent(_lexer.SubStr(tok));
+Identifier *Parser::parse_ident(Ast *parent, Token tok, Pos ini) {
+   Identifier *id = new Identifier(_lexer.SubStr(tok));
    Pos fin = _lexer.pos();
    while (true) {
       tok = _lexer.peek_token();
@@ -241,7 +241,7 @@ bool Parser::_parse_type_process_token(TypeSpec *type, Token tok, Pos p) {
       if (type->id != 0) {
          error(type, _T("Basic types are not templates"));
       }
-      type->id = new FullIdent(_lexer.SubStr(tok));
+      type->id = new Identifier(_lexer.SubStr(tok));
       return true;
    } 
    if (tok.IsTypeQual()) {
@@ -293,7 +293,7 @@ Ast *Parser::parse_func_or_var(Ast *parent) {
    c[0] = _lexer.skip();
    Pos id_ini = _lexer.pos();
    Token tok = _lexer.read_ident();
-   FullIdent *id = parse_ident(0, tok, id_ini);
+   Identifier *id = parse_ident(0, tok, id_ini);
    c[1] = _lexer.skip();
    if (_lexer.curr() == '(') {
       _lexer.discard();

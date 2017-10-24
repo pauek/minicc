@@ -276,8 +276,8 @@ void Interpreter::check_result(Binding& fn, const Function *func_type) {
 }
 
 bool Interpreter::visit_type_conversion(CallExpr *X, const vector<Value>& args) {
-   if (isa<FullIdent>(X->func)) {
-      FullIdent *id = cast<FullIdent>(X->func);
+   if (isa<Identifier>(X->func)) {
+      Identifier *id = cast<Identifier>(X->func);
       TypeSpec spec(id);
       Type *type = get_type(&spec);
       if (type != 0) {
@@ -394,8 +394,8 @@ void Interpreter::Eval(Ast* ast) {
       register_type(X->struct_name(), type);      
       break;
    }
-   case AstType::FullIdent: {
-      FullIdent *X = cast<FullIdent>(ast);
+   case AstType::Identifier: {
+      Identifier *X = cast<Identifier>(ast);
       Value v;
       // Try a namespace
       SimpleIdent *namespc_or_class = X->get_potential_namespace_or_class();
@@ -412,7 +412,7 @@ void Interpreter::Eval(Ast* ast) {
       }
       // Try a static variable in a class
       if (namespc_or_class != 0) {
-         FullIdent fid(namespc_or_class->name);
+         Identifier fid(namespc_or_class->name);
          TypeSpec spec(&fid);
          Type *type = get_type(&spec);
          if (type != 0 and !type->get_static(X->name, v)) {

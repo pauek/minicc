@@ -276,8 +276,8 @@ bool HasErrors(Ast *ast) {
       }
       return X->HasErrors();
    }
-   case AstType::FullIdent: {
-      FullIdent *X = cast<FullIdent>(ast);
+   case AstType::Identifier: {
+      Identifier *X = cast<Identifier>(ast);
       for (TemplateIdent *id : X->prefix) {
          CHECK_ERRORS(id);
       }
@@ -395,7 +395,7 @@ string TemplateIdent::typestr() const {
    return _id;
 }
 
-string FullIdent::typestr() const {
+string Identifier::typestr() const {
    string _id;
    for (int i = 0; i < prefix.size(); i++) {
       _id += prefix[i]->typestr();
@@ -405,14 +405,14 @@ string FullIdent::typestr() const {
    return _id;
 }
 
-SimpleIdent *FullIdent::get_potential_namespace_or_class() const {
+SimpleIdent *Identifier::get_potential_namespace_or_class() const {
    if (prefix.size() == 1 and !prefix[0]->is_template()) {
       return prefix[0];
    }
    return 0;
 }
 
-vector<TemplateIdent*> FullIdent::get_non_namespaces() {
+vector<TemplateIdent*> Identifier::get_non_namespaces() {
    vector<TemplateIdent*>::iterator it = prefix.begin();
    while (it != prefix.end() and (*it)->is_namespace) {
       it++;
@@ -495,8 +495,8 @@ bool IsReadExpr(Ast *ast) {
    switch (ast->type()) {
    case AstType::BinaryExpr: {
       BinaryExpr *X = cast<BinaryExpr>(ast);
-      if (isa<FullIdent>(X->left)) {
-         FullIdent *id = cast<FullIdent>(X->left);
+      if (isa<Identifier>(X->left)) {
+         Identifier *id = cast<Identifier>(X->left);
          return id->name == "cin";
       } else {
          return IsReadExpr(X->left) and X->op == ">>";
@@ -511,8 +511,8 @@ bool IsWriteExpr(Ast *ast) {
    switch (ast->type()) {
    case AstType::BinaryExpr: {
       BinaryExpr *X = cast<BinaryExpr>(ast);
-      if (isa<FullIdent>(X->left)) {
-         FullIdent *id = cast<FullIdent>(X->left);
+      if (isa<Identifier>(X->left)) {
+         Identifier *id = cast<Identifier>(X->left);
          return id->name == "cout";
       } else {
          return IsWriteExpr(X->left) and X->op == "<<";
@@ -539,8 +539,8 @@ string Describe(Ast *ast) {
    }
    case AstType::IncrExpr: {
       IncrExpr *X = cast<IncrExpr>(ast);
-      if (isa<FullIdent>(X->expr)) {
-         FullIdent *id = cast<FullIdent>(X->expr);
+      if (isa<Identifier>(X->expr)) {
+         Identifier *id = cast<Identifier>(X->expr);
          return _T("Se incrementa la variable '%s'.", id->name.c_str());
       }
       return _T("UNIMPLEMENTED");
@@ -578,7 +578,7 @@ string Describe(Ast *ast) {
    }
 }
 
-void FullIdent::shift(string new_id) {
+void Identifier::shift(string new_id) {
    TemplateIdent *pre = new TemplateIdent(name);
    pre->subtypes.swap(subtypes);
    pre->comments.swap(comments);

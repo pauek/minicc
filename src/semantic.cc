@@ -225,8 +225,8 @@ void SemanticAnalyzer::visit_callexpr_getfunc(CallExpr *X) {
 bool SemanticAnalyzer::visit_type_conversion(CallExpr *X, const vector<Value>& args) {
    _curr_node = X;
    _curr_varname = "";
-   if (isa<FullIdent>(X->func)) {
-      FullIdent *id = cast<FullIdent>(X->func);
+   if (isa<Identifier>(X->func)) {
+      Identifier *id = cast<Identifier>(X->func);
       TypeSpec spec(id);
       Type *type = get_type(&spec);
       if (type != 0) {
@@ -710,8 +710,8 @@ void SemanticAnalyzer::Analyze(Ast *ast) {
       register_type(X->struct_name(), type);
       break;
    }
-   case AstType::FullIdent: {
-      FullIdent *X = cast<FullIdent>(ast);
+   case AstType::Identifier: {
+      Identifier *X = cast<Identifier>(ast);
       _curr_node = X;
       Value v;
       
@@ -731,7 +731,7 @@ void SemanticAnalyzer::Analyze(Ast *ast) {
 
       // Try a static variable in a class
       if (namespc_or_class != 0) {
-         FullIdent fid(namespc_or_class->name);
+         Identifier fid(namespc_or_class->name);
          TypeSpec spec(&fid);
          Type *type = get_type(&spec);
          if (type != 0 and !type->get_static(X->name, v)) {

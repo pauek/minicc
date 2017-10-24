@@ -93,8 +93,8 @@ void Walker<Delegate>::Walk(Ast *ast) {
          }
          break;
       }
-      case AstType::FullIdent: {
-         FullIdent *X = cast<FullIdent>(ast);
+      case AstType::Identifier: {
+         Identifier *X = cast<Identifier>(ast);
          D.Walk(X);
          for (TemplateIdent *pre : X->prefix) {
             Walk(pre);

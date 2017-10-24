@@ -337,8 +337,8 @@ void PrettyPrinter::Print(Ast* ast) {
       out.Write(X->name);
       break;
    }
-   case AstType::FullIdent: {
-      FullIdent *X = cast<FullIdent>(ast);
+   case AstType::Identifier: {
+      Identifier *X = cast<Identifier>(ast);
       CommentPrinter cp(X, out);
       for (TemplateIdent *pre : X->prefix) {
          Print(pre);

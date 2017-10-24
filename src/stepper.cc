@@ -184,8 +184,8 @@ void Stepper::Step(Ast *ast) {
       eval(X);
       break;
    }
-   case AstType::FullIdent: {
-      FullIdent *X = cast<FullIdent>(ast);
+   case AstType::Identifier: {
+      Identifier *X = cast<Identifier>(ast);
       eval(X);
       break;
    }

@@ -207,8 +207,8 @@ void AstPrinter::Print(Ast* ast) {
       }
       break;
    }
-   case AstType::FullIdent: {
-      FullIdent *X = cast<FullIdent>(ast);
+   case AstType::Identifier: {
+      Identifier *X = cast<Identifier>(ast);
       out.Write("id:");
       if (!X->prefix.empty()) {
          out.Write("[");

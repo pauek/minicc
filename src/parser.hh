@@ -71,7 +71,7 @@ const Lexer& lexer() const { return _lexer; }
        Stmt *parse_jumpstmt(Ast *parent);
 
    TypeSpec *parse_typespec(Ast *parent);
-  FullIdent *parse_ident(Ast *parent, Token tok, Pos ini);
+  Identifier *parse_ident(Ast *parent, Token tok, Pos ini);
 
  StructDecl *parse_struct(Ast *parent);
 TypedefDecl *parse_typedef(Ast *parent);
