@@ -105,7 +105,6 @@ struct Ast {
                AstType type() const { return type_; }
 
    virtual            ~Ast() {}
-   virtual        Ast* child(int n)   const { return 0; }
    virtual        bool has_errors()   const { return !errors.empty(); }
    virtual std::string describe()     const { return "UNIMPLEMENTED"; }
 
