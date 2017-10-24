@@ -390,8 +390,12 @@ int test_step(string filename) {
    return 0;
 }
 
+struct Args {
+   string filename;
+   string cmd;
+};
 
-string filename, cmd;
+int help(string filename);
 
 typedef int (*CmdFunc)(string);
 map<string, CmdFunc> funcs = {
@@ -409,30 +413,60 @@ map<string, CmdFunc> funcs = {
    {"test-stepper",     test_step}
 };
 
-void parse_args(int argc, char *argv[]) {
-   cmd = "eval";
-   if (argc > 1) {
-      string argv1 = argv[1];
-      if (argv1.substr(0, 2) == "--") {
-         if (argc >= 3) {
-            filename = argv[2];
-         } else {
-            cerr << argv1.substr(2) << ": missing filename" << endl;
-            exit(1);
-         }
-         cmd = argv1.substr(2);
-      } else {
-         filename = argv[1];
-      }
-   } else {
-      cerr << _T("You should specify a filename") << endl;
-      exit(1);
+void help() {
+   cout << "usage: minicc [cmd] <filename>" << endl;
+   cout << "Commands: " << endl;
+   cout << "   --help" << endl;
+   for (auto it = funcs.begin(); it != funcs.end(); it++) {
+      cout << "   --" << it->first << endl;
    }
+   cout << endl;
+}
+
+void Usage() {
+   cerr << "usage: minicc [cmd] <filename>" << endl;
+   exit(1);
+}
+
+bool IsOption(string s) {
+   return s.substr(0, 2) == "--";
+}
+
+Args ParseArgs(int argc, char *argv[]) {
+   Args A;
+   switch (argc) {
+   case 2:
+      if (string("--help") == argv[1]) {
+         help();
+         exit(0);
+      }
+      if (IsOption(argv[1])) {
+         Usage();
+      }
+      A.cmd = "eval";
+      A.filename = argv[1];
+      break;
+   case 3:
+      if (!IsOption(argv[1]) or IsOption(argv[2])) {
+         Usage();
+      }
+      A.cmd = argv[1] + 2; // skip '--'
+      A.filename = argv[2];
+      break;
+   default:
+      Usage();
+   }
+   return A;
 }
 
 int main(int argc, char *argv[]) {
    Translator::translator.set_language("es");
-   parse_args(argc, argv);
-   // FIXME: Esto peta si no pones el comando que toca...
-   return (*funcs[cmd])(filename);
+   Args A = ParseArgs(argc, argv);
+   auto it = funcs.find(A.cmd);
+   if (it == funcs.end()) {
+      cerr << "No se reconoce el comando '" << A.cmd << "'" << endl;
+      return 1;
+   } else {
+      return (*it->second)(A.filename);
+   }
 }
