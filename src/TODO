@@ -12,7 +12,7 @@
   [X] AstPrinter
   [X] PrettyPrinter
   [X] SemanticAnalyzer
-  [ ] Interpreter
+  [X] Interpreter
   [ ] Stepper
 
 
