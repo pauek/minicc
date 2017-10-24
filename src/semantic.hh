@@ -4,7 +4,6 @@
 #include <assert.h>
 #include <iostream>
 #include <vector>
-#include <map>
 
 #include "ast.hh"
 #include "value.hh"

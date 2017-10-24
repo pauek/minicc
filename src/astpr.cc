@@ -516,7 +516,7 @@ void AstPrinter::Print(Ast* ast) {
       break;
    }
    default:
-      out.Write("node");
+      out.Write("<error>");
       break;
    }
 }
