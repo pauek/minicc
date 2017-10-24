@@ -332,13 +332,6 @@ void PrettyPrinter::Print(Ast* ast) {
       cp.SpaceComment();
       break;
    }
-#if 0
-   case AstType::SimpleIdent: {
-      SimpleIdent *X = cast<SimpleIdent>(ast);
-      out.Write(X->name);
-      break;
-   }
-#endif
    case AstType::Identifier: {
       Identifier *X = cast<Identifier>(ast);
       CommentPrinter cp(X, out);
@@ -368,30 +361,6 @@ void PrettyPrinter::Print(Ast* ast) {
       }
       break;
    }   
-#if 0
-   case AstType::TemplateIdent: {
-      TemplateIdent *X = cast<TemplateIdent>(ast);
-      CommentPrinter cp(X, out);
-      out.Write(X->name);
-      if (!X->subtypes.empty()) {
-         // WARNING: g++ here optimizes and changes order of instructions!!!
-         cp.SpaceCommentSpace();
-         out.Write("<");
-         cp.CommentSpace();
-         for (int i = 0; i < X->subtypes.size(); i++) {
-            if (i > 0) {
-               // WARNING: g++ here optimizes and changes order of instructions!!!
-               out.Write(", ");
-               cp.CommentSpace();
-            }
-            Print(X->subtypes[i]);
-            cp.SpaceComment();
-         }
-         out.Write(">");
-      }
-      break;
-   }
-#endif
    case AstType::Literal: {
       Literal *X = cast<Literal>(ast);
       CommentPrinter cp(X, out);

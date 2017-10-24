@@ -284,31 +284,6 @@ struct Literal : public ExprDerived<AstType::Literal>
    static std::string escape(std::string s, char delim);
 };
 
-#if 0
-struct SimpleIdent : ExprDerived<AstType::SimpleIdent> {
-   std::string name;
-   bool is_namespace = false; // (used by the interpreter)
-
-   SimpleIdent(std::string _name = "") : name(_name), is_namespace(false) {}
-   virtual bool is_template() const { return false; }
-};
-
-struct TemplateIdent : SimpleIdent {
-   std::vector<TypeSpec*> subtypes;
-
-   TemplateIdent(std::string name_) : SimpleIdent(name_) { 
-      // overwrite!
-      type_ = AstType::TemplateIdent;
-   } 
-   bool is_template() const { return !subtypes.empty(); }
-   std::string typestr() const;
-
-   static bool classof(const Ast *ast) { 
-      return ast->type() == AstType::TemplateIdent; 
-   }
-};
-#endif
-
 struct Identifier : ExprDerived<AstType::Identifier> {
    std::string name;
    std::vector<Identifier*> prefix;

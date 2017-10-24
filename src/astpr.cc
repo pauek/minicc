@@ -185,28 +185,6 @@ void AstPrinter::Print(Ast* ast) {
       out.Write("})");
       break;
    }
-#if 0
-   case AstType::SimpleIdent: {
-      SimpleIdent *X = cast<SimpleIdent>(ast);
-      out.Write("id:'", X->name, "'");
-      break;
-   }
-   case AstType::TemplateIdent: {
-      TemplateIdent *X = cast<TemplateIdent>(ast);
-      out.Write("id:'", X->name, "'");
-      if (!X->subtypes.empty()) {
-         out.Write("<");
-         for (int i = 0; i < X->subtypes.size(); i++) {
-            if (i > 0) {
-               out.Write(", ");
-            }
-            Print(X->subtypes[i]);
-         }
-         out.Write(">");
-      }
-      break;
-   }
-#endif
    case AstType::Identifier: {
       Identifier *X = cast<Identifier>(ast);
       out.Write("id:");

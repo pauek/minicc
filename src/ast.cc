@@ -269,15 +269,6 @@ bool HasErrors(Ast *ast) {
       }
       return X->HasErrors();
    }
-#if 0
-   case AstType::TemplateIdent: {
-      TemplateIdent *X = cast<TemplateIdent>(ast);
-      for (TypeSpec *t : X->subtypes) {
-         CHECK_ERRORS(t);
-      }
-      return X->HasErrors();
-   }
-#endif
    case AstType::Identifier: {
       Identifier *X = cast<Identifier>(ast);
       for (Identifier *id : X->prefix) {
@@ -379,23 +370,6 @@ bool HasErrors(Ast *ast) {
       return ast->HasErrors();
    }
 }
-
-#if 0
-string TemplateIdent::typestr() const {
-   string _id = name;
-   if (!subtypes.empty()) {
-      _id += "<";
-      for (int i = 0; i < subtypes.size(); i++) {
-         if (i > 0) {
-            _id += ",";
-         }
-         _id += subtypes[i]->typestr();
-      }
-      _id += ">";
-   }
-   return _id;
-}
-#endif
 
 string Identifier::typestr() const {
    string _id;

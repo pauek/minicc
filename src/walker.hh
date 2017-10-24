@@ -40,13 +40,6 @@ void Walker<Delegate>::Walk(Ast *ast) {
          D.Walk(X);
          break;
       }
-#if 0
-      case AstType::SimpleIdent: {
-         SimpleIdent *X = cast<SimpleIdent>(ast);
-         D.Walk(X);
-         break;
-      }
-#endif
       case AstType::Literal: {
          Literal *X = cast<Literal>(ast);
          D.Walk(X);
@@ -87,16 +80,6 @@ void Walker<Delegate>::Walk(Ast *ast) {
          D.Walk(X);
          break;
       }
-#if 0
-      case AstType::TemplateIdent: {
-         TemplateIdent *X = cast<TemplateIdent>(ast);
-         D.Walk(X); 
-         for (TypeSpec *spec : X->subtypes) {
-            Walk(spec);
-         }
-         break;
-      }
-#endif      
       case AstType::Identifier: {
          Identifier *X = cast<Identifier>(ast);
          D.Walk(X);
