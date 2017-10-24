@@ -46,8 +46,8 @@ void Stepper::Step(Ast *ast) {
    switch (ast->type()) {
    case AstType::Program: {
       Program *X = cast<Program>(ast);
-      I.visit_program_prepare(X);
-      I.visit_program_find_main();
+      I.ProgramPrepare(X);
+      I.FindMain();
       status(_T("The program begins."));
       I.pushenv("main");
       Func *fn = I._curr.as<Callable>().func.as<Function>().ptr;
@@ -149,12 +149,12 @@ void Stepper::Step(Ast *ast) {
       vector<Value> args;
       I.eval_arguments(X->args, args);
 
-      if (I.visit_type_conversion(X, args)) {
+      if (I.TypeConversion(X, args)) {
          push(new PopState(X->span));
          return;
       }
 
-      I.visit_callexpr_getfunc(X);
+      I.GetFunc(X);
       if (I._curr.is<Overloaded>()) {
          I._curr = I._curr.as<Overloaded>().resolve(args);
          assert(I._curr.is<Callable>());
@@ -162,7 +162,7 @@ void Stepper::Step(Ast *ast) {
       Func *fptr = I._curr.as<Callable>().func.as<Function>().ptr;
       const UserFunc *userfunc = dynamic_cast<const UserFunc*>(fptr);
       if (userfunc == 0) {
-         I.visit_callexpr_call(I._curr, args);
+         I.Call(I._curr, args);
          push(new PopState(X->span));
          return;
       }
@@ -386,9 +386,9 @@ Todo Stepper::AssignVisitState::step(Stepper *S) {
    S->I.Eval(X->left);
    left = S->I._curr;
    if (X->op == "=") {
-      S->I.visit_binaryexpr_assignment(left, right);
+      S->I.EvalBinaryExprAssignment(left, right);
    } else if (X->op.size() == 2 and X->op[1] == '=') {
-      S->I.visit_binaryexpr_op_assignment(X->op[0], left, right);
+      S->I.EvalBinaryExprOpAssignment(X->op[0], left, right);
    }
    S->status(_T("We assign the value."));
    return Stop;

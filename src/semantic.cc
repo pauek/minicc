@@ -22,10 +22,10 @@ struct SemanticAnalyzer : public WithEnvironment
             Ast *_curr_node;
           Value  _curr, _ret;
 
-     void  visit_binaryexpr_assignment(BinaryExpr *x, Value left, Value right);
-     void  visit_binaryexpr_op_assignment(char, Value left, Value right);
-     void  visit_callexpr_getfunc(CallExpr *x);
-     bool  visit_type_conversion(CallExpr *x, const std::vector<Value>& args);
+     void  EvalBinaryExprAssignment(BinaryExpr *x, Value left, Value right);
+     void  EvalBinaryExprOpAssignment(char, Value left, Value right);
+     void  GetFunc(CallExpr *x);
+     bool  TypeConversion(CallExpr *x, const std::vector<Value>& args);
      void  check_arguments(const Function *func_type, 
                            const std::vector<Value>& argvals, 
                            std::vector<Expr*> *args = 0);
@@ -38,19 +38,19 @@ struct SemanticAnalyzer : public WithEnvironment
                           std::vector<Value>& argvals);
    
    template<class Op>
-     bool  visit_op_assignment(Value left, Value right);
+     bool  EvalOpAssignment(Value left, Value right);
 
    template<class Op>
-     bool  visit_bitop_assignment(Value left, Value right);
+     bool  EvalBitopAssignment(Value left, Value right);
 
    template<class Op>
-     bool  visit_sumprod(Value left, Value right, std::string what);
+     bool  EvalSumProd(Value left, Value right, std::string what);
 
    template<class Op>
-     bool  visit_bitop(Value left, Value right);
+     bool  EvalBitop(Value left, Value right);
 
    template<class Op>
-     bool  visit_comparison(Value left, Value right);
+     bool  EvalComparison(Value left, Value right);
 
    void Analyze(Ast *ast);
 };
@@ -99,7 +99,7 @@ void checked_op_assign(Value& left, Value right) {
    }
 }
 
-void SemanticAnalyzer::visit_binaryexpr_assignment(BinaryExpr* X, 
+void SemanticAnalyzer::EvalBinaryExprAssignment(BinaryExpr* X, 
                                                    Value left, Value right) {
    if (!left.is<Reference>()) {
       X->AddError(_T("Intentas asignar sobre algo que no es una variable."));
@@ -132,7 +132,7 @@ void SemanticAnalyzer::visit_binaryexpr_assignment(BinaryExpr* X,
    _curr = left;
 }
 
-void SemanticAnalyzer::visit_binaryexpr_op_assignment(char op, Value left, Value right) {
+void SemanticAnalyzer::EvalBinaryExprOpAssignment(char op, Value left, Value right) {
    if (!left.is<Reference>()) {
       _curr_node->AddError(
          _T("En el operador '%c=' la parte izquierda debe ser una variable.", op)
@@ -152,7 +152,7 @@ void SemanticAnalyzer::visit_binaryexpr_op_assignment(char op, Value left, Value
          left.as<String>() += right.as<Char>();
          ok = true;
       } else {
-         ok = visit_op_assignment<_AAdd>(left, right);
+         ok = EvalOpAssignment<_AAdd>(left, right);
       }
       textual = _T("Intentas sumar un '%s' y un '%s'.",
                    left.type()->typestr().c_str(),
@@ -160,42 +160,42 @@ void SemanticAnalyzer::visit_binaryexpr_op_assignment(char op, Value left, Value
       break;
    }
    case '-': {
-      ok = visit_op_assignment<_ASub>(left, right);
+      ok = EvalOpAssignment<_ASub>(left, right);
       textual = _T("Intentas restar un '%s' y un '%s'.",
                    left.type()->typestr().c_str(),
                    right.type()->typestr().c_str());
       break;
    }
    case '*': {
-      ok = visit_op_assignment<_AMul>(left, right); 
+      ok = EvalOpAssignment<_AMul>(left, right); 
       textual = _T("Intentas multiplicar un '%s' por un '%s'.",
                    left.type()->typestr().c_str(),
                    right.type()->typestr().c_str());
       break;
    }
    case '/': {
-      ok = visit_op_assignment<_ADiv>(left, right); 
+      ok = EvalOpAssignment<_ADiv>(left, right); 
       textual = _T("Intentas dividir un '%s' por un '%s'.",
                    left.type()->typestr().c_str(),
                    right.type()->typestr().c_str());
       break;
    }
    case '&': {
-      ok = visit_bitop_assignment<_AAnd>(left, right); 
+      ok = EvalBitopAssignment<_AAnd>(left, right); 
       textual = _T("Intentas hacer un AND de un '%s' con un '%s'.",
                    left.type()->typestr().c_str(),
                    right.type()->typestr().c_str());
       break;
    }
    case '|': {
-      ok = visit_bitop_assignment<_AOr >(left, right); 
+      ok = EvalBitopAssignment<_AOr >(left, right); 
       textual = _T("Intentas hacer un OR de un '%s' con un '%s'.",
                    left.type()->typestr().c_str(),
                    right.type()->typestr().c_str());
       break;
    }
    case '^': {
-      ok = visit_bitop_assignment<_AXor>(left, right); 
+      ok = EvalBitopAssignment<_AXor>(left, right); 
       textual = _T("Intentas hacer un XOR de un '%s' con un '%s'.",
                    left.type()->typestr().c_str(),
                    right.type()->typestr().c_str());
@@ -209,7 +209,7 @@ void SemanticAnalyzer::visit_binaryexpr_op_assignment(char op, Value left, Value
    }
 }
 
-void SemanticAnalyzer::visit_callexpr_getfunc(CallExpr *X) {
+void SemanticAnalyzer::GetFunc(CallExpr *X) {
    _curr_node = X;
    Analyze(X->func);
    if (_curr.is<UnknownType>()) {
@@ -222,7 +222,7 @@ void SemanticAnalyzer::visit_callexpr_getfunc(CallExpr *X) {
    }
 }
 
-bool SemanticAnalyzer::visit_type_conversion(CallExpr *X, const vector<Value>& args) {
+bool SemanticAnalyzer::TypeConversion(CallExpr *X, const vector<Value>& args) {
    _curr_node = X;
    _curr_varname = "";
    if (isa<Identifier>(X->func)) {
@@ -348,7 +348,7 @@ void SemanticAnalyzer::eval_arguments(const vector<Expr *>& args,
 
 
 template<class Op>
-bool SemanticAnalyzer::visit_op_assignment(Value left, Value _right) {
+bool SemanticAnalyzer::EvalOpAssignment(Value left, Value _right) {
    Value right = left.type()->convert(_right);
    if (left.is<Int>() and right.is<Int>()) {
       checked_op_assign<Op, Int>(left, right);
@@ -366,7 +366,7 @@ bool SemanticAnalyzer::visit_op_assignment(Value left, Value _right) {
 }
 
 template<class Op>
-bool SemanticAnalyzer::visit_bitop_assignment(Value left, Value _right) {
+bool SemanticAnalyzer::EvalBitopAssignment(Value left, Value _right) {
    Value right = left.type()->convert(_right);
    if (left.is<Int>() and right.is<Int>()) {
       Op::eval(left.as<Int>(), right.as<Int>());
@@ -377,7 +377,7 @@ bool SemanticAnalyzer::visit_bitop_assignment(Value left, Value _right) {
 
 
 template<class Op>
-bool SemanticAnalyzer::visit_sumprod(Value left, Value _right, string what) {
+bool SemanticAnalyzer::EvalSumProd(Value left, Value _right, string what) {
    Value right = left.type()->convert(_right);
    if (right.is_null()) {
       _curr_node->AddError(_T("No se puede %s un '%s' con un '%s'.",
@@ -403,7 +403,7 @@ bool SemanticAnalyzer::visit_sumprod(Value left, Value _right, string what) {
 }
 
 template<class Op>
-bool SemanticAnalyzer::visit_bitop(Value left, Value right) {
+bool SemanticAnalyzer::EvalBitop(Value left, Value right) {
    if (left.is<Int>() and right.is<Int>()) {
       _curr = Value(Op::eval(left.as<Int>(), right.as<Int>()));
       return true;
@@ -412,7 +412,7 @@ bool SemanticAnalyzer::visit_bitop(Value left, Value right) {
 }
 
 template<class Op>
-bool SemanticAnalyzer::visit_comparison(Value left, Value right) {
+bool SemanticAnalyzer::EvalComparison(Value left, Value right) {
    if (left.is<Int>() and right.is<Int>()) {
       _curr = Value(Op::eval(left.as<Int>(), right.as<Int>()));
       return true;
@@ -540,7 +540,7 @@ void SemanticAnalyzer::Analyze(Ast *ast) {
       }
       if (X->op == "=") {
          if (!HasErrors(X->left)) {
-            visit_binaryexpr_assignment(X, left, right);
+            EvalBinaryExprAssignment(X, left, right);
          }
          return;
       }
@@ -548,16 +548,16 @@ void SemanticAnalyzer::Analyze(Ast *ast) {
           X->op == "&=" || X->op == "|=" || X->op == "^=") {
          check_unknown(right, X->right, right_varname);
          _curr_node = X; // ugly
-         visit_binaryexpr_op_assignment(X->op[0], left, right);
+         EvalBinaryExprOpAssignment(X->op[0], left, right);
          return;
       } 
       else if (X->op == "&" || X->op == "|" || X->op == "^") {
          check_unknown(right, X->right, right_varname);
          bool ok = false;
          switch (X->op[0]) {
-         case '&': ok = visit_bitop<_And>(left, right); break;
-         case '|': ok = visit_bitop<_Or >(left, right); break;
-         case '^': ok = visit_bitop<_Xor>(left, right); break;
+         case '&': ok = EvalBitop<_And>(left, right); break;
+         case '|': ok = EvalBitop<_Or >(left, right); break;
+         case '^': ok = EvalBitop<_Xor>(left, right); break;
          }
          if (ok) {
             return;
@@ -586,12 +586,12 @@ void SemanticAnalyzer::Analyze(Ast *ast) {
                   _curr = Value(char(left.as<Char>() + right.as<Int>()));
                   return;
                } else {
-                  ret = visit_sumprod<_Add>(left, right, "sumar"); break;
+                  ret = EvalSumProd<_Add>(left, right, "sumar"); break;
                }
             }
-            case '*': ret = visit_sumprod<_Mul>(left, right, "multiplicar"); break;
-            case '-': ret = visit_sumprod<_Sub>(left, right, "restar"); break;
-            case '/': ret = visit_sumprod<_Div>(left, right, "dividir"); break;
+            case '*': ret = EvalSumProd<_Mul>(left, right, "multiplicar"); break;
+            case '-': ret = EvalSumProd<_Sub>(left, right, "restar"); break;
+            case '/': ret = EvalSumProd<_Div>(left, right, "dividir"); break;
             }
          } else {
             _curr = left;
@@ -651,12 +651,12 @@ void SemanticAnalyzer::Analyze(Ast *ast) {
          if (left.type()->is(Type::Basic) and right.type()->is(Type::Basic)) {
             if (X->op[0] == '<') {
                ret = (X->op.size() == 1 
-                      ? visit_comparison<_Lt>(left, right)
-                      : visit_comparison<_Le>(left, right));
+                      ? EvalComparison<_Lt>(left, right)
+                      : EvalComparison<_Le>(left, right));
             } else {
                ret = (X->op.size() == 1 
-                      ? visit_comparison<_Gt>(left, right)
-                      : visit_comparison<_Ge>(left, right));
+                      ? EvalComparison<_Gt>(left, right)
+                      : EvalComparison<_Ge>(left, right));
             }
          }
          if (ret) {
@@ -998,10 +998,10 @@ void SemanticAnalyzer::Analyze(Ast *ast) {
       _curr_node = X;
       vector<Value> argvals;
       eval_arguments(X->args, argvals);
-      if (visit_type_conversion(X, argvals)) {
+      if (TypeConversion(X, argvals)) {
          return;
       }
-      visit_callexpr_getfunc(X);
+      GetFunc(X);
       if (_curr.is<Callable>()) {
          // TODO: Find operator() (method or function)
          Value func = _curr;

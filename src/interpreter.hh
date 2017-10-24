@@ -21,21 +21,21 @@ class Interpreter : WithEnvironment {
    void  invoke_func_prepare_arg(FuncDecl *x, Value args, int i);
    void  invoke_func_prepare(FuncDecl *x, const std::vector<Value>& args);
 
-   void  visit_program_prepare(Program *x);
-   void  visit_program_find_main();
-   void  visit_binaryexpr_assignment(Value left, Value right);
-   void  visit_binaryexpr_op_assignment(char, Value left, Value right);
-   void  visit_callexpr_getfunc(CallExpr *x);
-   bool  visit_type_conversion(CallExpr *x, const std::vector<Value>& args);
-   void  visit_callexpr_call(Value func, const std::vector<Value>& args);
+   void  ProgramPrepare(Program *x);
+   void  FindMain();
+   void  EvalBinaryExprAssignment(Value left, Value right);
+   void  EvalBinaryExprOpAssignment(char, Value left, Value right);
+   void  GetFunc(CallExpr *x);
+   bool  TypeConversion(CallExpr *x, const std::vector<Value>& args);
+   void  Call(Value func, const std::vector<Value>& args);
 
-   void invoke_user_func(FuncDecl *decl, const std::vector<Value>& args);
+   void InvokeUserFunc(FuncDecl *decl, const std::vector<Value>& args);
 
-   template<class Op> bool visit_op_assignment(Value left, Value right);
-   template<class Op> bool visit_bitop_assignment(Value left, Value right);
-   template<class Op> bool visit_sumprod(Value left, Value right);
-   template<class Op> bool visit_bitop(Value left, Value right);
-   template<class Op> bool visit_comparison(Value left, Value right);
+   template<class Op> bool EvalOpAssignment(Value left, Value right);
+   template<class Op> bool EvalBitopAssignment(Value left, Value right);
+   template<class Op> bool EvalSumProd(Value left, Value right);
+   template<class Op> bool EvalBitop(Value left, Value right);
+   template<class Op> bool EvalComparison(Value left, Value right);
 
    friend class Stepper;
 
@@ -62,7 +62,7 @@ struct UserFunc : public Func {
       : Func(n), decl(d), I(_I) {}
 
    Value call(Value self, const std::vector<Value>& args) {
-      I->invoke_user_func(decl, args);
+      I->InvokeUserFunc(decl, args);
       return I->_ret;
    }
 };

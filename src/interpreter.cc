@@ -33,14 +33,14 @@ void Interpreter::invoke_func_prepare(FuncDecl *fn, const vector<Value>& args) {
    }
 }
 
-void Interpreter::visit_program_prepare(Program *X) {
+void Interpreter::ProgramPrepare(Program *X) {
    prepare_global_environment();
    for (Ast *n : X->nodes) {
       Eval(n);
    }
 }
 
-void Interpreter::visit_program_find_main() {
+void Interpreter::FindMain() {
    if (!getenv("main", _curr)) {
       _error(_T("The '%s' function does not exist.", "main"));
    }
@@ -72,7 +72,7 @@ struct _Gt { template<typename T> static bool eval(const T& a, const T& b) { ret
 struct _Ge { template<typename T> static bool eval(const T& a, const T& b) { return a >= b; } };
 
 template<class Op>
-bool Interpreter::visit_op_assignment(Value left, Value _right) {
+bool Interpreter::EvalOpAssignment(Value left, Value _right) {
    Value right = left.type()->convert(_right);
    if (left.is<Int>() and right.is<Int>()) {
       Op::eval(left.as<Int>(), right.as<Int>());
@@ -93,7 +93,7 @@ bool Interpreter::visit_op_assignment(Value left, Value _right) {
 }
 
 template<class Op>
-bool Interpreter::visit_bitop_assignment(Value left, Value _right) {
+bool Interpreter::EvalBitopAssignment(Value left, Value _right) {
    Value right = left.type()->convert(_right);
    if (left.is<Int>() and right.is<Int>()) {
       Op::eval(left.as<Int>(), right.as<Int>());
@@ -104,7 +104,7 @@ bool Interpreter::visit_bitop_assignment(Value left, Value _right) {
 }
 
 template<class Op>
-bool Interpreter::visit_sumprod(Value left, Value _right) {
+bool Interpreter::EvalSumProd(Value left, Value _right) {
    Value right = left.type()->convert(_right);
    if (left.is<Int>()) {
       _curr = Value(Op::eval(left.as<Int>(), right.as<Int>()));
@@ -122,7 +122,7 @@ bool Interpreter::visit_sumprod(Value left, Value _right) {
 }
 
 template<class Op>
-bool Interpreter::visit_bitop(Value left, Value right) {
+bool Interpreter::EvalBitop(Value left, Value right) {
    if (left.is<Int>() and right.is<Int>()) {
       _curr = Value(Op::eval(left.as<Int>(), right.as<Int>()));
       return true;
@@ -131,7 +131,7 @@ bool Interpreter::visit_bitop(Value left, Value right) {
 }
 
 template<class Op>
-bool Interpreter::visit_comparison(Value left, Value right) {
+bool Interpreter::EvalComparison(Value left, Value right) {
    if (left.is<Int>() and right.is<Int>()) {
       _curr = Value(Op::eval(left.as<Int>(), right.as<Int>()));
       return true;
@@ -151,7 +151,7 @@ bool Interpreter::visit_comparison(Value left, Value right) {
    return false;
 }
 
-void Interpreter::visit_binaryexpr_assignment(Value left, Value right) {
+void Interpreter::EvalBinaryExprAssignment(Value left, Value right) {
    if (!left.is<Reference>()) {
       _error(_T("Intentas asignar sobre algo que no es una variable"));
    }
@@ -173,7 +173,7 @@ void Interpreter::visit_binaryexpr_assignment(Value left, Value right) {
    _curr = left;
 }
 
-void Interpreter::visit_binaryexpr_op_assignment(char op, Value left, Value right) {
+void Interpreter::EvalBinaryExprOpAssignment(char op, Value left, Value right) {
    if (!left.is<Reference>()) {
       _error(_T("Para usar '%s=' se debe poner una variable a la izquierda", op));
    }
@@ -189,16 +189,16 @@ void Interpreter::visit_binaryexpr_op_assignment(char op, Value left, Value righ
          left.as<String>() += right.as<Char>();
          ok = true;
       } else {
-         ok = visit_op_assignment<_AAdd>(left, right);
+         ok = EvalOpAssignment<_AAdd>(left, right);
       }
       break;
    }
-   case '-': ok = visit_op_assignment<_ASub>(left, right); break;
-   case '*': ok = visit_op_assignment<_AMul>(left, right); break;
-   case '/': ok = visit_op_assignment<_ADiv>(left, right); break;
-   case '&': ok = visit_bitop_assignment<_AAnd>(left, right); break;
-   case '|': ok = visit_bitop_assignment<_AOr >(left, right); break;
-   case '^': ok = visit_bitop_assignment<_AXor>(left, right); break;
+   case '-': ok = EvalOpAssignment<_ASub>(left, right); break;
+   case '*': ok = EvalOpAssignment<_AMul>(left, right); break;
+   case '/': ok = EvalOpAssignment<_ADiv>(left, right); break;
+   case '&': ok = EvalBitopAssignment<_AAnd>(left, right); break;
+   case '|': ok = EvalBitopAssignment<_AOr >(left, right); break;
+   case '^': ok = EvalBitopAssignment<_AXor>(left, right); break;
    }
    if (!ok) {
       string _op = "?=";
@@ -222,14 +222,14 @@ bool Interpreter::call_operator(string op, const vector<Value>& args) {
    return true;
 }
 
-void Interpreter::invoke_user_func(FuncDecl *decl, const vector<Value>& args) {
+void Interpreter::InvokeUserFunc(FuncDecl *decl, const vector<Value>& args) {
    pushenv(decl->funcname());
    invoke_func_prepare(decl, args);
    Eval(decl->block);
    popenv();
 }
 
-void Interpreter::visit_callexpr_getfunc(CallExpr *X) {
+void Interpreter::GetFunc(CallExpr *X) {
    Eval(X->func);
    _curr = Reference::deref(_curr);
    if (!_curr.is<Callable>() and !_curr.is<Overloaded>()) {
@@ -275,7 +275,7 @@ void Interpreter::check_result(Binding& fn, const Function *func_type) {
    }
 }
 
-bool Interpreter::visit_type_conversion(CallExpr *X, const vector<Value>& args) {
+bool Interpreter::TypeConversion(CallExpr *X, const vector<Value>& args) {
    if (isa<Identifier>(X->func)) {
       Identifier *id = cast<Identifier>(X->func);
       TypeSpec spec(id);
@@ -295,7 +295,7 @@ bool Interpreter::visit_type_conversion(CallExpr *X, const vector<Value>& args) 
    return false;
 }
 
-void Interpreter::visit_callexpr_call(Value func, const vector<Value>& args) {
+void Interpreter::Call(Value func, const vector<Value>& args) {
    // TODO: Find operator() (method or function)
    if (func.is<Overloaded>()) {
       func = func.as<Overloaded>().resolve(args);
@@ -335,8 +335,8 @@ void Interpreter::Eval(Ast* ast) {
    switch (ast->type()) {
    case AstType::Program: {
       Program *X = cast<Program>(ast);
-      visit_program_prepare(X);
-      visit_program_find_main();
+      ProgramPrepare(X);
+      FindMain();
       _curr.as<Callable>().call(vector<Value>());
       break;
    }
@@ -487,20 +487,20 @@ void Interpreter::Eval(Ast* ast) {
          return; // already evaluated
       }
       if (X->op == "=") {
-         visit_binaryexpr_assignment(left, right);
+         EvalBinaryExprAssignment(left, right);
          return;
       }
       if (X->op == "+=" || X->op == "-=" || X->op == "*=" || X->op == "/=" ||
           X->op == "&=" || X->op == "|=" || X->op == "^=") {
-         visit_binaryexpr_op_assignment(X->op[0], left, right);
+         EvalBinaryExprOpAssignment(X->op[0], left, right);
          return;
       } 
       else if (X->op == "&" || X->op == "|" || X->op == "^") {
          bool ret = false;
          switch (X->op[0]) {
-         case '&': ret = visit_bitop<_And>(left, right); break;
-         case '|': ret = visit_bitop<_Or >(left, right); break;
-         case '^': ret = visit_bitop<_Xor>(left, right); break;
+         case '&': ret = EvalBitop<_And>(left, right); break;
+         case '|': ret = EvalBitop<_Or >(left, right); break;
+         case '^': ret = EvalBitop<_Xor>(left, right); break;
          }
          if (ret) {
             return;
@@ -516,12 +516,12 @@ void Interpreter::Eval(Ast* ast) {
                   _curr = Value(char(left.as<Char>() + right.as<Int>()));
                   return;
                } else {
-                  ret = visit_sumprod<_Add>(left, right); break;
+                  ret = EvalSumProd<_Add>(left, right); break;
                }
             }
-            case '*': ret = visit_sumprod<_Mul>(left, right); break;
-            case '-': ret = visit_sumprod<_Sub>(left, right); break;
-            case '/': ret = visit_sumprod<_Div>(left, right); break;
+            case '*': ret = EvalSumProd<_Mul>(left, right); break;
+            case '-': ret = EvalSumProd<_Sub>(left, right); break;
+            case '/': ret = EvalSumProd<_Div>(left, right); break;
             }
          } else {
             _curr = left;
@@ -566,12 +566,12 @@ void Interpreter::Eval(Ast* ast) {
          if (left.type()->is(Type::Basic) and right.type()->is(Type::Basic)) {
             if (X->op[0] == '<') {
                ret = (X->op.size() == 1 
-                      ? visit_comparison<_Lt>(left, right)
-                      : visit_comparison<_Le>(left, right));
+                      ? EvalComparison<_Lt>(left, right)
+                      : EvalComparison<_Le>(left, right));
             } else {
                ret = (X->op.size() == 1 
-                      ? visit_comparison<_Gt>(left, right)
-                      : visit_comparison<_Ge>(left, right));
+                      ? EvalComparison<_Gt>(left, right)
+                      : EvalComparison<_Ge>(left, right));
             }
          } else {
             _curr = left;
@@ -766,11 +766,11 @@ void Interpreter::Eval(Ast* ast) {
       CallExpr *X = cast<CallExpr>(ast);
       vector<Value> args;
       eval_arguments(X->args, args);
-      if (visit_type_conversion(X, args)) {
+      if (TypeConversion(X, args)) {
          return;
       }
-      visit_callexpr_getfunc(X);
-      visit_callexpr_call(_curr, args);
+      GetFunc(X);
+      Call(_curr, args);
       break;
    }
    case AstType::IndexExpr: {
