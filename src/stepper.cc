@@ -52,7 +52,7 @@ void Stepper::Step(Ast *ast) {
       I.pushenv("main");
       Func *fn = I._curr.as<Callable>().func.as<Function>().ptr;
       FuncDecl *main = dynamic_cast<UserFunc*>(fn)->decl;
-      I.invoke_func_prepare(main, vector<Value>());
+      I.InvokeFuncPrepare(main, vector<Value>());
       I.actenv();
       push(new ProgramVisitState(main));
       break;
@@ -426,7 +426,7 @@ Todo Stepper::CallExprVisitState::step(Stepper *S) {
       }
       S->I.Eval(X->args[curr]);
       Value v = S->I._curr;
-      S->I.invoke_func_prepare_arg(fn, v, curr);
+      S->I.InvokeFuncPrepareArg(fn, v, curr);
       ++curr;
       return Stop;
    } else {

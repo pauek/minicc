@@ -16,10 +16,8 @@ class Interpreter : WithEnvironment {
 
     void _error(std::string msg) { throw new EvalError(msg); }
 
-   // Value NewValueFromStructDecl(StructDecl *x);
-
-   void  invoke_func_prepare_arg(FuncDecl *x, Value args, int i);
-   void  invoke_func_prepare(FuncDecl *x, const std::vector<Value>& args);
+   void  InvokeFuncPrepareArg(FuncDecl *x, Value args, int i);
+   void  InvokeFuncPrepare(FuncDecl *x, const std::vector<Value>& args);
 
    void  ProgramPrepare(Program *x);
    void  FindMain();

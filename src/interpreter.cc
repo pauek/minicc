@@ -9,7 +9,7 @@
 #include "interpreter.hh"
 using namespace std;
 
-void Interpreter::invoke_func_prepare_arg(FuncDecl *fn, Value arg, int i) {
+void Interpreter::InvokeFuncPrepareArg(FuncDecl *fn, Value arg, int i) {
    if (arg.is<Reference>()) {
       if (!fn->params[i]->typespec->reference) {
          arg = Reference::deref(arg);
@@ -23,13 +23,13 @@ void Interpreter::invoke_func_prepare_arg(FuncDecl *fn, Value arg, int i) {
    }
 }
 
-void Interpreter::invoke_func_prepare(FuncDecl *fn, const vector<Value>& args) {
+void Interpreter::InvokeFuncPrepare(FuncDecl *fn, const vector<Value>& args) {
    if (fn->params.size() != args.size()) {
       _error(_T("Error en el número de argumentos al llamar a '%s'", 
                 fn->funcname().c_str()));
    }
    for (int i = 0; i < args.size(); i++) {
-      invoke_func_prepare_arg(fn, args[i], i);
+      InvokeFuncPrepareArg(fn, args[i], i);
    }
 }
 
@@ -224,7 +224,7 @@ bool Interpreter::CallOperator(string op, const vector<Value>& args) {
 
 void Interpreter::InvokeUserFunc(FuncDecl *decl, const vector<Value>& args) {
    pushenv(decl->funcname());
-   invoke_func_prepare(decl, args);
+   InvokeFuncPrepare(decl, args);
    Eval(decl->block);
    popenv();
 }
