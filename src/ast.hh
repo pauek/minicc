@@ -33,15 +33,15 @@ struct Comment {
 struct CommentSeq {
    std::vector<Comment> items;
 
-   bool has_endl() const;
-   bool ends_with_empty_line() const;
-   void remove_endls();
-   void only_one_endl_at_end();
+   bool HasEndLine() const;
+   bool EndsWithEmptyLine() const;
+   void RemoveEndLines();
+   void OnlyOneEndLineAtEnd();
 
-   bool starts_with_endl() const { 
+   bool StartsWithEndLine() const { 
       return !items.empty() and items.front().kind == Comment::endline; 
    }
-   bool ends_with_endl() const { 
+   bool EndsWithEndLine() const { 
       return !items.empty() and items.back().kind  == Comment::endline; 
    }
 };

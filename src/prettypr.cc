@@ -76,11 +76,11 @@ void CommentPrinter::WriteComment(bool pre, bool post, bool _endl) {
       comm_seq = ast_->comments[index_];
    }
    was_empty_ = (comm_seq == 0);
-   had_endl_  = (comm_seq != 0 ? comm_seq->has_endl() : false);
+   had_endl_  = (comm_seq != 0 ? comm_seq->HasEndLine() : false);
    index_++;
 
    if (comm_seq != 0 and !comm_seq->items.empty()) {
-      if (pre and !comm_seq->starts_with_endl()) {
+      if (pre and !comm_seq->StartsWithEndLine()) {
          out_.Write(' ');
       }
       if (comm_seq != 0) {
@@ -105,7 +105,7 @@ void CommentPrinter::WriteComment(bool pre, bool post, bool _endl) {
             }
          }
       }
-      if (_endl and !comm_seq->has_endl()) {
+      if (_endl and !comm_seq->HasEndLine()) {
          out_.EndLine();
          out_.BeginLine();
       } else if (!_endl and post) {
@@ -137,20 +137,20 @@ void PrettyPrinter::Print(Ast* ast) {
          Ast *n = X->nodes[i];
          if ((!cp.LastWasEmpty() and !cp.LastHadEndl()) or
              (i > 0 and isa<FuncDecl>(n) and 
-              (X->comments[i] and !X->comments[i]->ends_with_empty_line()))) {
+              (X->comments[i] and !X->comments[i]->EndsWithEmptyLine()))) {
             out.EndLine();
          }
          Print(n);
-         if (cp.Next() and !cp.Next()->starts_with_endl()) {
+         if (cp.Next() and !cp.Next()->StartsWithEndLine()) {
             out.Write(' ');
          }
       }
       CommentSeq *last = cp.Next();
       if (last) {
-         last->only_one_endl_at_end();
+         last->OnlyOneEndLineAtEnd();
       }
       cp.Comment();
-      if (last == 0 or !last->has_endl()) {
+      if (last == 0 or !last->HasEndLine()) {
          out.EndLine();
       }      
       break;
@@ -293,7 +293,7 @@ void PrettyPrinter::Print(Ast* ast) {
          out.Write(")");
       }
       if (cp.Next()) {
-         cp.Next()->remove_endls();
+         cp.Next()->RemoveEndLines();
       }
       if (X->block) {
          // WARNING: g++ here optimizes and changes order of instructions!!!
@@ -312,7 +312,7 @@ void PrettyPrinter::Print(Ast* ast) {
       CommentPrinter cp(X, out);
       if (X->stmts.empty()) {
          out.Write("{");
-         if (cp.Next() and cp.Next()->has_endl()) {
+         if (cp.Next() and cp.Next()->HasEndLine()) {
             cp.SpaceComment();
          } else {
             cp.SpaceCommentSpace();
@@ -601,7 +601,7 @@ void PrettyPrinter::Print(Ast* ast) {
          out.Write("(");
       }
       Print(X->func);
-      if (cp.Next() and cp.Next()->ends_with_endl()) {
+      if (cp.Next() and cp.Next()->EndsWithEndLine()) {
          out.Write(" ");
       }
       cp.SpaceCommentSpace();

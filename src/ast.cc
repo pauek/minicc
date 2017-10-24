@@ -7,7 +7,7 @@ using namespace std;
 #include "ast.hh"
 #include "translator.hh"
 
-bool CommentSeq::has_endl() const {
+bool CommentSeq::HasEndLine() const {
    for (const Comment& c : items) {
       if (c.kind == Comment::endline) {
          return true;
@@ -16,13 +16,13 @@ bool CommentSeq::has_endl() const {
    return false;
 }
 
-bool CommentSeq::ends_with_empty_line() const { 
+bool CommentSeq::EndsWithEmptyLine() const { 
    const int sz = items.size();
    return sz >= 2 and 
       (items[sz-2].kind == Comment::endline and items[sz-1].kind == Comment::endline);
 }
 
-void CommentSeq::remove_endls() {
+void CommentSeq::RemoveEndLines() {
    items.erase(std::remove_if(items.begin(), items.end(), 
                               [](Comment& c) {
                                  return c.kind == Comment::endline; 
@@ -30,7 +30,7 @@ void CommentSeq::remove_endls() {
                items.end());
 }
 
-void CommentSeq::only_one_endl_at_end() {
+void CommentSeq::OnlyOneEndLineAtEnd() {
    if (items.empty() or items.back().kind != Comment::endline) {
       return;
    }
