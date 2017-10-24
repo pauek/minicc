@@ -13,18 +13,16 @@ using namespace std;
 #include "translator.hh"
 #include "walker.hh"
 
-int semantic_analysis(Ast *program, string filename) {
-   AnalyzeSemantics(program);
-   vector<Error*> ve;
-   collect_errors(program, ve);
-   for (Error *e : ve) {
-      cerr << filename << ":" << e->span.begin << ": " << e->msg << endl;
+int tokenize(string filename) {
+   ifstream codefile(filename);
+   Lexer L(&codefile);
+   L.next();
+   L.skip();
+   while (!L.end()) {
+      Token tok = L.read_token();
+      cout << tok.pos << ' ' << L.SubStr(tok) << endl;
+      L.skip();
    }
-   return ve.size();
-}
-
-void static_analysis(Program *program) {
-   // TODO
 }
 
 int show_ast(string filename) {
@@ -47,6 +45,45 @@ int prettyprint(string filename) {
    }   
 }
 
+int semantic_analysis(Ast *program, string filename) {
+   AnalyzeSemantics(program);
+   vector<Error*> ve;
+   collect_errors(program, ve);
+   for (Error *e : ve) {
+      cerr << filename << ":" << e->span.begin << ": " << e->msg << endl;
+   }
+   return ve.size();
+}
+
+Ast *parse_and_analyze(string filename) {
+   ifstream codefile(filename);
+   Parser P(&codefile);
+   Ast *program = P.parse();
+
+   int nerrors = semantic_analysis(program, filename);
+   if (nerrors > 0) {
+      exit(1);
+   }
+   return program;
+}
+
+int interpret(string filename) {
+   try {
+      Ast *program = parse_and_analyze(filename);
+      Eval(program, cin, cout);
+      vector<Error*> ve;
+      collect_errors(program, ve);
+      for (Error *e : ve) {
+         cerr << e->msg << endl;
+      }
+      return (ve.empty() ? 0 : 1);
+   } 
+   catch (Error* e) {
+      cerr << _T("Execution Error") << ": " << e->msg << endl;
+      return 1;
+   }
+}
+
 int step(string filename) {
    try {
       ifstream codefile(filename);
@@ -55,9 +92,8 @@ int step(string filename) {
 
       int nerrors = semantic_analysis(program, filename);
       if (nerrors > 0) {
-         return 1;
+         exit(1);
       }
-
       Stepper S;
       program->accept(&S);
       while (!S.finished()) {
@@ -80,41 +116,6 @@ int step(string filename) {
    }
 }
 
-int interpret(string filename) {
-   try {
-      ifstream codefile(filename);
-      Parser P(&codefile);
-      Ast *program = P.parse();
-
-      int nerrors = semantic_analysis(program, filename);
-      if (nerrors > 0) {
-         return 1;
-      }
-      Eval(program, cin, cout);
-      vector<Error*> ve;
-      collect_errors(program, ve);
-      for (Error *e : ve) {
-         cerr << e->msg << endl;
-      }
-      return (ve.empty() ? 0 : 1);
-   } 
-   catch (Error* e) {
-      cerr << _T("Execution Error") << ": " << e->msg << endl;
-      return 1;
-   }
-}
-
-int tokenize(string filename) {
-   ifstream codefile(filename);
-   Lexer L(&codefile);
-   L.next();
-   L.skip();
-   while (!L.end()) {
-      Token tok = L.read_token();
-      cout << tok.pos << ' ' << L.SubStr(tok) << endl;
-      L.skip();
-   }
-}
 
 // Detect lines like:
 //
@@ -433,5 +434,5 @@ int main(int argc, char *argv[]) {
    Translator::translator.set_language("es");
    parse_args(argc, argv);
    // FIXME: Esto peta si no pones el comando que toca...
-   (*funcs[cmd])(filename);
+   return (*funcs[cmd])(filename);
 }
