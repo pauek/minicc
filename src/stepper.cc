@@ -83,7 +83,7 @@ void Stepper::Step(Ast *ast) {
       else if (IsWriteExpr(X->expr)) {
          BinaryExpr *e = cast<BinaryExpr>(X->expr);
          WriteExprVisitState *ws = new WriteExprVisitState(e);
-         e->collect_rights(ws->exprs);
+         CollectRights(e, ws->exprs);
          push(ws);
          ws->step(this);
       } else if (isa<CallExpr>(X->expr)) {

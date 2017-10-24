@@ -240,8 +240,6 @@ struct Expr : public Ast {
 
    Expr() : paren(false) {}
 
-   virtual void collect_rights(std::list<Expr*>& L) const {}
-
    static std::map<std::string, Kind> _op2kind;
    static std::map<Token::Type, Kind> _tok2kind;
    static Kind op2kind(std::string op);
@@ -335,7 +333,6 @@ struct BinaryExpr : public ExprDerived<AstType::BinaryExpr> {
    BinaryExpr(Kind k = Unknown) : kind(k), op("") {}
 
    void set(Expr::Kind _kind);
-   void collect_rights(std::list<Expr*>& L) const;
 };
 
 struct UnaryExpr : public Expr {
@@ -459,6 +456,7 @@ bool HasErrors(Ast *ast);
 bool IsReadExpr(Ast *ast);
 bool IsWriteExpr(Ast *ast);
 bool IsAssignment(Ast *ast);
+void CollectRights(Ast *ast, std::list<Expr*>& L);
 
 // AstVisitor
 

@@ -483,9 +483,12 @@ int StructDecl::num_fields() const {
    return num;
 }
 
-void BinaryExpr::collect_rights(list<Expr*>& L) const {
-   L.push_front(right);
-   left->collect_rights(L);
+void CollectRights(Ast *ast, list<Expr*>& L) {
+   if (isa<BinaryExpr>(ast)) {
+      BinaryExpr *X = cast<BinaryExpr>(ast);
+      L.push_front(X->right);
+      CollectRights(X->left, L);
+   }
 }
 
 bool IsReadExpr(Ast *ast) {
