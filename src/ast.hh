@@ -98,12 +98,11 @@ struct Ast {
       std::vector<Error*>  errors;
  std::vector<CommentSeq*>  comments;
                       Ast *parent;
-
- virtual ~Ast() {}
+// virtual ~Ast() {} // <-- Do we need this???
     void AddError(std::string msg);
     void AddError(Pos ini, Pos fin, std::string msg);
+    bool HasErrors() const { return !errors.empty(); }
  AstType type() const { return type_; }
-    bool HasErrors()   const { return !errors.empty(); }
 
 protected:
    AstType  type_;
@@ -128,13 +127,13 @@ struct Include : public AstDerived<AstType::Include> {
    std::string filename;
    bool global;
 
-   Include(std::string _filename = "", bool _global = false) 
-      : filename(_filename), global(_global) {}
+   Include(std::string f = "", bool g = false) 
+      : filename(f), global(g) {}
 };
 
 struct Macro : public AstDerived<AstType::Macro> {
    std::string macro;
-   Macro(std::string _macro) : macro(_macro) {}
+   Macro(std::string m) : macro(m) {}
 };
 
 struct Using : public AstDerived<AstType::Using> {
@@ -144,9 +143,7 @@ struct Using : public AstDerived<AstType::Using> {
 // Statements //////////////////////////////////////////////
 
 struct Expr;
-
-struct Stmt : public Ast {
-};
+struct Stmt : public Ast {};
 
 template<AstType Type>
 struct StmtDerived : Stmt {
