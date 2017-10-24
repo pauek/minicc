@@ -31,7 +31,7 @@ struct Comment {
 };
 
 struct CommentSeq {
-   std::vector<Comment> items;
+   std::vector<Comment> comments;
 
    bool HasEndLine() const;
    bool EndsWithEmptyLine() const;
@@ -39,10 +39,10 @@ struct CommentSeq {
    void OnlyOneEndLineAtEnd();
 
    bool StartsWithEndLine() const { 
-      return !items.empty() and items.front().kind == Comment::EndLine; 
+      return !comments.empty() and comments.front().kind == Comment::EndLine; 
    }
    bool EndsWithEndLine() const { 
-      return !items.empty() and items.back().kind  == Comment::EndLine; 
+      return !comments.empty() and comments.back().kind  == Comment::EndLine; 
    }
 };
 
@@ -300,8 +300,6 @@ struct BinaryExpr : public ExprDerived<AstType::BinaryExpr> {
    Expr *left, *right;
 
    BinaryExpr(Kind k = Unknown) : kind(k), op("") {}
-
-   void set(Expr::Kind _kind);
 };
 
 struct UnaryExpr : public Expr {

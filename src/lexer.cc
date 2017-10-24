@@ -42,12 +42,12 @@ CommentSeq* Lexer::skip(Skip skip) {
             cs = new CommentSeq();
          }
          if (curr(1) == '*') {
-            cs->items.push_back(Comment(Comment::MultiLine));
-            read_MultiLine_comment(cs->items.back());
+            cs->comments.push_back(Comment(Comment::MultiLine));
+            read_MultiLine_comment(cs->comments.back());
             endls_in_a_row = 0;
          } else if (curr(1) == '/') {
-            cs->items.push_back(Comment(Comment::SingleLine));
-            read_SingleLine_comment(cs->items.back());
+            cs->comments.push_back(Comment(Comment::SingleLine));
+            read_SingleLine_comment(cs->comments.back());
             endls_in_a_row = 0;
          } else {
             break;
@@ -60,7 +60,7 @@ CommentSeq* Lexer::skip(Skip skip) {
          }
          // WTF! Fix this shit...
          if (endls_in_a_row < 3) {
-            cs->items.push_back(Comment(Comment::EndLine));
+            cs->comments.push_back(Comment(Comment::EndLine));
          }
       } else {
          endls_in_a_row = 0;

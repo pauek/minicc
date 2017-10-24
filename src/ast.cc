@@ -8,7 +8,7 @@ using namespace std;
 #include "translator.hh"
 
 bool CommentSeq::HasEndLine() const {
-   for (const Comment& c : items) {
+   for (const Comment& c : comments) {
       if (c.kind == Comment::EndLine) {
          return true;
       }
@@ -17,33 +17,33 @@ bool CommentSeq::HasEndLine() const {
 }
 
 bool CommentSeq::EndsWithEmptyLine() const { 
-   const int sz = items.size();
+   const int sz = comments.size();
    return sz >= 2 and 
-      (items[sz-2].kind == Comment::EndLine and items[sz-1].kind == Comment::EndLine);
+         (comments[sz-2].kind == Comment::EndLine and 
+          comments[sz-1].kind == Comment::EndLine);
 }
 
 void CommentSeq::RemoveEndLines() {
-   items.erase(std::remove_if(items.begin(), items.end(), 
+   comments.erase(std::remove_if(comments.begin(), comments.end(), 
                               [](Comment& c) {
                                  return c.kind == Comment::EndLine; 
                               }),
-               items.end());
+               comments.end());
 }
 
 void CommentSeq::OnlyOneEndLineAtEnd() {
-   if (items.empty() or items.back().kind != Comment::EndLine) {
+   if (comments.empty() or comments.back().kind != Comment::EndLine) {
       return;
    }
-   int i = items.size()-1;
-   while (true) {
-      if (items[i-1].kind != Comment::EndLine) {
+   int i = comments.size()-1;
+   while (1) {
+      if (comments[i-1].kind != Comment::EndLine) {
          break;
       }
       i--;
    }
-   items.resize(i+1);
+   comments.resize(i+1);
 }
-
 
 void Ast::AddError(string msg) {
    errors.push_back(new Error(span, msg));
@@ -126,10 +126,6 @@ Expr::Kind Expr::tok2kind(Token::Type tokkind) {
 
 bool Expr::RightAssociative(Expr::Kind t) {
    return t == Expr::Eq;
-}
-
-void BinaryExpr::set(Expr::Kind k) {
-   kind = k;
 }
 
 JumpStmt::Kind JumpStmt::keyword2type(string s) {

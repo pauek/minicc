@@ -71,26 +71,26 @@ public:
 };
 
 void CommentPrinter::WriteComment(bool pre, bool post, bool _endl) {
-   CommentSeq *comm_seq = 0;
+   CommentSeq *C = 0;
    if (index_ < ast_->comments.size()) {
-      comm_seq = ast_->comments[index_];
+      C = ast_->comments[index_];
    }
-   was_empty_ = (comm_seq == 0);
-   had_endl_  = (comm_seq != 0 ? comm_seq->HasEndLine() : false);
+   was_empty_ = (C == 0);
+   had_endl_  = (C != 0 ? C->HasEndLine() : false);
    index_++;
 
-   if (comm_seq != 0 and !comm_seq->items.empty()) {
-      if (pre and !comm_seq->StartsWithEndLine()) {
+   if (C != 0 and !C->comments.empty()) {
+      if (pre and !C->StartsWithEndLine()) {
          out_.Write(' ');
       }
-      if (comm_seq != 0) {
-         for (int i = 0; i < comm_seq->items.size(); i++) {
-            const ::Comment& c = comm_seq->items[i]; // UGLY
+      if (C != 0) {
+         for (int i = 0; i < C->comments.size(); i++) {
+            const ::Comment& c = C->comments[i]; // UGLY
             switch (c.kind) {
             case Comment::None:
                break;
             case Comment::MultiLine:
-               if (i > 0 and comm_seq->items[i-1].kind != Comment::EndLine) {
+               if (i > 0 and C->comments[i-1].kind != Comment::EndLine) {
                   out_.Write(' ');
                }
                out_.Write("/*", c.text, "*/");
@@ -105,7 +105,7 @@ void CommentPrinter::WriteComment(bool pre, bool post, bool _endl) {
             }
          }
       }
-      if (_endl and !comm_seq->HasEndLine()) {
+      if (_endl and !C->HasEndLine()) {
          out_.EndLine();
          out_.BeginLine();
       } else if (!_endl and post) {

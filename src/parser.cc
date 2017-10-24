@@ -734,7 +734,7 @@ Expr *Parser::parse_expr(Ast *parent, BinaryExpr::Kind max) {
       } else {
          BinaryExpr *e = new BinaryExpr();
          e->op = _lexer.SubStr(tok);
-         e->set(kind);
+         e->kind = kind;
          e->comments.push_back(c0);
          _skip(e);
          Expr::Kind submax = 
