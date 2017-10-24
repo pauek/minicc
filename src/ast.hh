@@ -338,7 +338,6 @@ struct BinaryExpr : public ExprDerived<AstType::BinaryExpr> {
 
    void set(Expr::Kind _kind);
 
-   bool is_write_expr() const;
    bool is_assignment() const;
    void collect_rights(std::list<Expr*>& L) const;
 };
@@ -461,6 +460,8 @@ struct EnumDecl : public AstDerived<AstType::EnumDecl> {
 
 std::string Describe(Ast *ast);
 bool HasErrors(Ast *ast);
+bool IsReadExpr(Ast *ast);
+bool IsWriteExpr(Ast *ast);
 
 // AstVisitor
 

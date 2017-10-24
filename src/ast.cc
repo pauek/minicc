@@ -483,13 +483,6 @@ int StructDecl::num_fields() const {
    return num;
 }
 
-bool BinaryExpr::is_write_expr() const {
-   FullIdent *id = dynamic_cast<FullIdent*>(left);
-   return 
-      (left->is_write_expr() and op == "<<") or
-      (id != 0 and id->name == "cout");   
-}
-
 bool BinaryExpr::is_assignment() const {
    return kind == Expr::Eq;
 }
@@ -511,7 +504,23 @@ bool IsReadExpr(Ast *ast) {
       }
    }
    default:
-      false;
+      return false;
+   }
+}
+
+bool IsWriteExpr(Ast *ast) {
+   switch (ast->type()) {
+   case AstType::BinaryExpr: {
+      BinaryExpr *X = cast<BinaryExpr>(ast);
+      if (isa<FullIdent>(X->left)) {
+         FullIdent *id = cast<FullIdent>(X->left);
+         return id->name == "cout";
+      } else {
+         return IsWriteExpr(X->left) and X->op == "<<";
+      }
+   }
+   default:
+      return false;
    }
 }
 
@@ -531,7 +540,7 @@ string Describe(Ast *ast) {
    }
    case AstType::BinaryExpr: {
       BinaryExpr *X = cast<BinaryExpr>(ast);
-      if (X->is_write_expr()) {
+      if (IsWriteExpr(X)) {
          return _T("Some output is written.");
       }
       if (IsReadExpr(X)) {

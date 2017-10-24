@@ -80,9 +80,8 @@ void Stepper::Step(Ast *ast) {
       if (X->expr->is_assignment()) {
          visit_assignment(dynamic_cast<BinaryExpr*>(X->expr));
       } 
-      else if (X->expr->is_write_expr()) {
-         BinaryExpr *e = dynamic_cast<BinaryExpr*>(X->expr);
-         assert(e != 0);
+      else if (IsWriteExpr(X->expr)) {
+         BinaryExpr *e = cast<BinaryExpr>(X->expr);
          WriteExprVisitState *ws = new WriteExprVisitState(e);
          e->collect_rights(ws->exprs);
          push(ws);
