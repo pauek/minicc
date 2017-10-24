@@ -10,8 +10,6 @@
 #include <algorithm>
 #include "lexer.hh"
 
-std::ostream& operator<<(std::ostream& o, CommentSeq* C);
-
 struct Error {
    Span span;
    std::string msg;
