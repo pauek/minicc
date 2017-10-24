@@ -20,7 +20,7 @@ struct Error {
    Error(std::string m)         : stopper(false), msg(m) {}
    Error(Pos p, std::string m)  : stopper(false), span(p), msg(m) {}
    Error(Span s, std::string m) : stopper(false), span(s), msg(m) {}
-   void to_json(std::ostream& o) const;
+   void ToJson(std::ostream& o) const;
 };
 
 struct Comment {

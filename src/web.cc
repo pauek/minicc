@@ -23,7 +23,7 @@ string print_errors(const vector<Error*>& errors) {
    bool first = true;
    for (const Error *e : errors) {
       if (!first) E << ", " << endl;
-      e->to_json(E);
+      e->ToJson(E);
       first = false;
       // delete e; // ??
    }
@@ -39,8 +39,8 @@ string compile(string code) {
    } catch (ParseError& e) {
       ostringstream E;
       E << "[{";
-      E << "\"ini\": "; e.pos.to_json(E); E << ", ";
-      E << "\"fin\": "; e.pos.to_json(E); E << ", ";
+      E << "\"ini\": "; e.pos.ToJson(E); E << ", ";
+      E << "\"fin\": "; e.pos.ToJson(E); E << ", ";
       E << "\"msg\": \"" << e.msg << "\"";
       E << "}]";
       return E.str();

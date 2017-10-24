@@ -53,11 +53,11 @@ void Ast::AddError(Pos _ini, Pos _fin, string msg) {
    errors.push_back(new Error(Span(_ini, _fin), msg));
 }
 
-void Error::to_json(ostream& o) const {
+void Error::ToJson(ostream& o) const {
    ostringstream oss;
    o << "{";
-   o << "\"ini\": "; span.begin.to_json(o); o << ", ";
-   o << "\"fin\": "; span.end.to_json(o); o << ", ";
+   o << "\"ini\": "; span.begin.ToJson(o); o << ", ";
+   o << "\"fin\": "; span.end.ToJson(o); o << ", ";
    o << "\"msg\": \"" << msg << "\"";
    o << "}";
 }

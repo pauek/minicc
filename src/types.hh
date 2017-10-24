@@ -48,7 +48,7 @@ public:
    virtual        void *clone(void *data)                  const { assert(false); }
    virtual        void  write(std::ostream& o, void *data) const { assert(false); }
    virtual        void *read(std::istream& i, void *data)  const { assert(false); }
-   virtual      string  to_json(void *data)                const { assert(false); }
+   virtual      string  ToJson(void *data)                const { assert(false); }
    virtual        void  clear_touched(void *data)          const { assert(false); }
    virtual        bool  contains_unknowns(void *data)      const { return false; }
 
@@ -163,7 +163,7 @@ public:
 
 template<typename T>
 class BasicType : public BaseType<T> {
-   std::string to_json(void *data) const {
+   std::string ToJson(void *data) const {
       if (data == Value::unknown or data == Value::abstract) {
          return "null";
       }
@@ -216,7 +216,7 @@ public:
 
           void  clear_touched(void *data) const;
 
-   std::string  to_json(void *data) const;
+   std::string  ToJson(void *data) const;
 
    static Reference *self;
 };
@@ -252,7 +252,7 @@ public:
    Value convert(Value init)       const; 
     bool accepts(const Type *t)    const;
     void destroy(void *data)       const;
-   std::string to_json(void *data) const;
+   std::string ToJson(void *data) const;
    static Char *self;
    static Char *self_ref;
 };
@@ -273,7 +273,7 @@ public:
    Value convert(Value init)    const;
     bool accepts(const Type *t) const; 
   static Bool *self;
-   std::string to_json(void *data) const {
+   std::string ToJson(void *data) const {
       return (*(bool*)data ? "true" : "false");
    }
 };
@@ -309,7 +309,7 @@ public:
    String();
    static String *self;
    int properties() const { return Internal | Class<BasicType<std::string>>::properties(); }
-   std::string to_json(void *data) const;
+   std::string ToJson(void *data) const;
    Value create() { return Value((Type*)this, (void*)(new std::string())); }
 };
 
@@ -424,7 +424,7 @@ public:
    void *clone(void *data)         const;
    void  clear_touched(void *data) const;
 
-   std::string to_json(void *data) const;
+   std::string ToJson(void *data) const;
 
    typedef SimpleTable<Value> cpp_type;
 };
@@ -451,7 +451,7 @@ public:
           void  clear_touched(void *data) const;
           bool  contains_unknowns(void *data) const;
 
-   std::string  to_json(void *) const;
+   std::string  ToJson(void *) const;
 };
 
 class Vector : public Class<BaseType<std::vector<Value>>> {
@@ -472,7 +472,7 @@ public:
    void  clear_touched(void *data) const;
    
    std::string TypeStr() const;
-   std::string to_json(void *data) const;
+   std::string ToJson(void *data) const;
 
    static Vector *self;
 
@@ -499,7 +499,7 @@ public:
    Type *celltype() const { return _celltype; }
 
    std::string TypeStr() const;
-   std::string to_json(void *data) const;
+   std::string ToJson(void *data) const;
 
    static List *self;
 
@@ -531,7 +531,7 @@ public:
     int get_field(Value self, std::string name, std::vector<Value>& result) const;
 
    std::string TypeStr() const;
-   std::string to_json(void *data) const;
+   std::string ToJson(void *data) const;
 
    static Pair *self;
 
@@ -559,7 +559,7 @@ public:
    Type *celltype() const { return _pair_type; }
 
    std::string TypeStr() const;
-   std::string to_json(void *data) const;
+   std::string ToJson(void *data) const;
 
    static Map *self;
 
@@ -577,7 +577,7 @@ public:
    Iterator(C *type);
 
    std::string TypeStr() const { return _container_type->TypeStr() + "::iterator"; }
-   std::string to_json(void *data) const;
+   std::string ToJson(void *data) const;
 
    typedef typename C::cpp_iterator cpp_type;
 };
@@ -698,7 +698,7 @@ public:
       : _name(name), _parent(parent), _hidden(hidden), _active(false) {}
 
        bool  hidden() const { return _hidden; }
-std::string  to_json() const;
+std::string  ToJson() const;
 
 Environment *parent() { return _parent; }
 Environment *pop();

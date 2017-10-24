@@ -103,7 +103,7 @@ public:
 
    void write(std::ostream& o) const;
    void read(std::istream& i);
-   std::string to_json() const;
+   std::string ToJson() const;
 
    friend class Reference;
 };
