@@ -106,7 +106,6 @@ struct Ast {
 
    virtual            ~Ast() {}
    virtual        bool has_errors()   const { return !errors.empty(); }
-   virtual std::string describe()     const { return "UNIMPLEMENTED"; }
 
    template<typename X>
                   bool is() const { return dynamic_cast<const X*>(this) != 0; }
@@ -173,7 +172,6 @@ struct ExprStmt : public StmtDerived<AstType::ExprStmt> {
    bool is_return;
    ExprStmt() : expr(0), is_return(false) {}
    bool has_errors() const;
-   std::string describe() const;
 };
 
 struct IfStmt : public StmtDerived<AstType::IfStmt> {
@@ -240,7 +238,6 @@ struct DeclStmt : public StmtDerived<AstType::DeclStmt> {
    std::vector<Item> items;
 
    bool has_errors() const;
-   std::string describe() const;
 };
 
 struct JumpStmt : public StmtDerived<AstType::JumpStmt> {
@@ -377,7 +374,6 @@ struct BinaryExpr : public ExprDerived<AstType::BinaryExpr> {
    bool is_write_expr() const;
    bool is_assignment() const;
    void collect_rights(std::list<Expr*>& L) const;
-   std::string describe() const;
 };
 
 struct UnaryExpr : public Expr {
@@ -403,7 +399,6 @@ struct IncrExpr : public UnaryExprDerived<AstType::IncrExpr> {
    Kind kind;
    bool preincr;
    IncrExpr(Kind k, bool pre = false) : kind(k), preincr(pre) {}
-   std::string describe() const;
 };
 
 struct NegExpr : public UnaryExprDerived<AstType::NegExpr> { 
@@ -519,6 +514,8 @@ struct EnumDecl : public AstDerived<AstType::EnumDecl> {
    std::string name;
    std::vector<Value> values;
 };
+
+std::string Describe(Ast *ast);
 
 // AstVisitor
 

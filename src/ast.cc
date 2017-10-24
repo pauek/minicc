@@ -3,6 +3,7 @@
 #include <assert.h>
 using namespace std;
 
+#include "cast.h"
 #include "ast.hh"
 #include "translator.hh"
 
@@ -460,44 +461,51 @@ void BinaryExpr::collect_rights(list<Expr*>& L) const {
    left->collect_rights(L);
 }
 
-string ExprStmt::describe() const {
-   return expr->describe();
-}
-
-string IncrExpr::describe() const {
-   FullIdent *id = dynamic_cast<FullIdent*>(expr);
-   if (id != 0) {
-      return _T("Se incrementa la variable '%s'.", id->name.c_str());
+string Describe(Ast *ast) {
+   switch (ast->type()) {
+   case AstType::ExprStmt: {
+      ExprStmt *X = cast<ExprStmt>(ast);
+      return Describe(X->expr);
    }
-   return _T("UNIMPLEMENTED");
-}
-
-string BinaryExpr::describe() const {
-   if (is_write_expr()) {
-      return _T("Some output is written.");
-   }
-   if (is_read_expr()) {
-      return _T("Some input is read.");
-   }
-   return _T("UNIMPLEMENTED");
-}
-
-string DeclStmt::describe() const {
-   if (items.size() == 1) {
-      return _T("Se declara la variable '%s'.", items[0].decl->name.c_str());
-   }
-   ostringstream S;
-   for (int i = 0; i < items.size(); i++) {
-      if (i > 0) {
-         if (i == items.size() - 1) {
-            S << _T(" and ");
-         } else {
-            S << ", ";
-         }
+   case AstType::IncrExpr: {
+      IncrExpr *X = cast<IncrExpr>(ast);
+      if (isa<FullIdent>(X->expr)) {
+         FullIdent *id = cast<FullIdent>(X->expr);
+         return _T("Se incrementa la variable '%s'.", id->name.c_str());
       }
-      S << "'" << items[i].decl->name << "'";
+      return _T("UNIMPLEMENTED");
    }
-   return _T("Variables %s are declared.", S.str().c_str());
+   case AstType::BinaryExpr: {
+      BinaryExpr *X = cast<BinaryExpr>(ast);
+      if (X->is_write_expr()) {
+         return _T("Some output is written.");
+      }
+      if (X->is_read_expr()) {
+         return _T("Some input is read.");
+      }
+      return _T("UNIMPLEMENTED");
+   }
+   case AstType::DeclStmt: {
+      DeclStmt *X = cast<DeclStmt>(ast);
+      if (X->items.size() == 1) {
+         return _T("Se declara la variable '%s'.", X->items[0].decl->name.c_str());
+      }
+      ostringstream S;
+      for (int i = 0; i < X->items.size(); i++) {
+         if (i > 0) {
+            if (i == X->items.size() - 1) {
+               S << _T(" and ");
+            } else {
+               S << ", ";
+            }
+         }
+         S << "'" << X->items[i].decl->name << "'";
+      }
+      return _T("Variables %s are declared.", S.str().c_str());
+   }
+   default:
+      return _T("UNIMPLEMENTED");
+   }
 }
 
 void FullIdent::shift(string new_id) {

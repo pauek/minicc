@@ -38,7 +38,7 @@ Todo Stepper::PopState::step(Stepper *S) {
 
 void Stepper::generic_visit(Ast *X) {
    I.Eval(X);
-   status(X->describe());
+   status(Describe(X));
    push(new PopState(X->span));
 }
 
@@ -96,7 +96,7 @@ void Stepper::Step(Ast *ast) {
             oss << I._curr;
             status(_T("%s is returned.", oss.str().c_str()));
          } else {
-            status(X->expr->describe());
+            status(Describe(X->expr));
          }
          push(new PopState(X->span));
       }
