@@ -124,9 +124,10 @@ struct AstDerived : Ast {
 struct Program : public AstDerived<AstType::Program> {
    std::vector<Ast*> nodes;
 
-   int  num_children() const { return nodes.size(); }
-   Ast* child(int n)         { return nodes[n]; }
-   void add(Ast* n)      { nodes.push_back(n), n->parent = this; }
+   void add(Ast* n) { 
+      nodes.push_back(n);
+      n->parent = this; 
+   }
 };
 
 struct Include : public AstDerived<AstType::Include> {
@@ -172,7 +173,6 @@ struct ExprStmt : public StmtDerived<AstType::ExprStmt> {
 struct IfStmt : public StmtDerived<AstType::IfStmt> {
    Expr *cond;
    Stmt *then, *els;
-
    IfStmt() : cond(0), then(0), els(0) {}
 };
 
@@ -180,14 +180,12 @@ struct ForStmt : public StmtDerived<AstType::ForStmt> { // while + for
    Stmt *init;
    Expr *cond, *post;
    Stmt *substmt;
-
    ForStmt() : cond(0), init(0), substmt(0), post(0) {}
 };
 
 struct WhileStmt : public StmtDerived<AstType::WhileStmt> { // while + for
    Expr *cond;
    Stmt *substmt;
-
    WhileStmt() : cond(0), substmt(0) {}
 };
 
@@ -386,14 +384,9 @@ struct IncrExpr : public UnaryExprDerived<AstType::IncrExpr> {
    IncrExpr(Kind k, bool pre = false) : kind(k), preincr(pre) {}
 };
 
-struct NegExpr : public UnaryExprDerived<AstType::NegExpr> { 
-};
-
-struct AddrExpr : public UnaryExprDerived<AstType::AddrExpr> { 
-};
-
-struct DerefExpr : public UnaryExprDerived<AstType::DerefExpr> { 
-};
+struct NegExpr   : public UnaryExprDerived<AstType::NegExpr>   {};
+struct AddrExpr  : public UnaryExprDerived<AstType::AddrExpr>  {};
+struct DerefExpr : public UnaryExprDerived<AstType::DerefExpr> {};
 
 struct CallExpr : public ExprDerived<AstType::CallExpr> {
    Expr *func;
@@ -410,7 +403,6 @@ struct FieldExpr : public ExprDerived<AstType::FieldExpr> {
    Expr *base;
    SimpleIdent *field;
    bool pointer;
-
    FieldExpr() : base(0), field(0) {}
 };
 
