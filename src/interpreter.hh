@@ -1,5 +1,5 @@
-#ifndef INTERPRETER2_HH
-#define INTERPRETER2_HH
+#ifndef INTERPRETER_HH
+#define INTERPRETER_HH
 
 #include <iostream>
 #include <vector>
@@ -7,14 +7,14 @@
 #include "value.hh"
 #include "types.hh"
 
-struct EvalError2 : public Error {
-   EvalError2(std::string _msg) : Error(_msg) {}
+struct EvalError : public Error {
+   EvalError(std::string _msg) : Error(_msg) {}
 };
 
-class Interpreter2 : public ReadWriter, WithEnvironment {
+class Interpreter : public ReadWriter, WithEnvironment {
     Value _curr, _ret;
 
-    void _error(std::string msg) { throw new EvalError2(msg); }
+    void _error(std::string msg) { throw new EvalError(msg); }
 
    Value new_value_from_structdecl(StructDecl *x);
 
@@ -46,19 +46,19 @@ class Interpreter2 : public ReadWriter, WithEnvironment {
    bool call_operator(std::string op, const std::vector<Value>& args = std::vector<Value>());
 
 public:
-   Interpreter2(std::istream *i, std::ostream *o)
+   Interpreter(std::istream *i, std::ostream *o)
       : ReadWriter(i, o), WithEnvironment(i, o) {}
 
    void Eval(Ast *ast);
 
-   friend class UserFunc2;
+   friend class UserFunc;
 };
 
-struct UserFunc2 : public Func {
+struct UserFunc : public Func {
    FuncDecl *decl;
-   Interpreter2 *I;
+   Interpreter *I;
 
-   UserFunc2(std::string n, FuncDecl *d, Interpreter2 *_I) 
+   UserFunc(std::string n, FuncDecl *d, Interpreter *_I) 
       : Func(n), decl(d), I(_I) {}
 
    Value call(Value self, const std::vector<Value>& args) {

@@ -6,10 +6,10 @@
 #include "semantic.hh"
 using namespace std;
 
-struct UserFunc2 : public Func {
+struct UserFunc : public Func {
    FuncDecl *decl;
 
-   UserFunc2(std::string n, FuncDecl *d) : Func(n), decl(d) {}
+   UserFunc(std::string n, FuncDecl *d) : Func(n), decl(d) {}
 
    Value call(Value self, const std::vector<Value>& args) {
       assert(false);
@@ -501,7 +501,7 @@ void SemanticAnalyzer::Analyze(Ast *ast) {
       Analyze(X->block);
       popenv();
      
-      Value func = functype->mkvalue(new UserFunc2(funcname, X));
+      Value func = functype->mkvalue(new UserFunc(funcname, X));
       Value callable = Callable::self->mkvalue(Value::null, func); // bind with 'null'
       setenv(funcname, callable, Hidden);
       break;

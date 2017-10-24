@@ -8,13 +8,13 @@
 #include <list>
 #include <stack>
 #include <map>
-#include "interpreter2.hh"
+#include "interpreter.hh"
 
 enum Todo { Stop, Next };
 
 class Stepper : public AstVisitor {
 
-   Interpreter2 I;
+   Interpreter I;
 
    struct StepperState {
       virtual Todo  step(Stepper*) = 0;
@@ -24,7 +24,7 @@ class Stepper : public AstVisitor {
                  std::string _status;
    std::stack<StepperState*> _stack;
    std::vector<std::string>  _errors;
-                EvalError2*  _err;
+                EvalError*  _err;
 
           void _e() const { assert(!_stack.empty()); }
           void prepare_funcall(FuncDecl *, std::vector<Value>&);
@@ -47,7 +47,7 @@ public:
 
           void status(std::string s)    { _status = s; }
    std::string status()           const { return _status; }
-    EvalError2 *error()           const { return _err; }
+    EvalError *error()           const { return _err; }
  
           void start(Program *p)        { visit_program(p); }
 

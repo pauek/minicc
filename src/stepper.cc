@@ -17,7 +17,7 @@ bool Stepper::step() {
       }
       return true;
    }
-   catch (EvalError2* e) {
+   catch (EvalError* e) {
       _err = e;
       return false;
    }
@@ -55,7 +55,7 @@ void Stepper::visit_program(Program *x) {
    status(_T("The program begins."));
    I.pushenv("main");
    Func *fn = I._curr.as<Callable>().func.as<Function>().ptr;
-   FuncDecl *main = dynamic_cast<UserFunc2*>(fn)->decl;
+   FuncDecl *main = dynamic_cast<UserFunc*>(fn)->decl;
    I.invoke_func_prepare(main, vector<Value>());
    I.actenv();
    push(new ProgramVisitState(main));
@@ -339,7 +339,7 @@ void Stepper::visit_callexpr(CallExpr *x) {
       assert(I._curr.is<Callable>());
    }
    Func *fptr = I._curr.as<Callable>().func.as<Function>().ptr;
-   const UserFunc2 *userfunc = dynamic_cast<const UserFunc2*>(fptr);
+   const UserFunc *userfunc = dynamic_cast<const UserFunc*>(fptr);
    if (userfunc == 0) {
       I.visit_callexpr_call(I._curr, args);
       push(new PopState(x->span));

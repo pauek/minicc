@@ -9,7 +9,7 @@ using namespace std;
 #include "prettypr.hh"
 #include "stepper.hh"
 #include "semantic.hh"
-#include "interpreter2.hh"
+#include "interpreter.hh"
 #include "translator.hh"
 #include "walker.hh"
 

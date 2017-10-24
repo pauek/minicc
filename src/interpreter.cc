@@ -6,10 +6,10 @@
 #include "value.hh"
 #include "types.hh"
 #include "translator.hh"
-#include "interpreter2.hh"
+#include "interpreter.hh"
 using namespace std;
 
-void Interpreter2::invoke_func_prepare_arg(FuncDecl *fn, Value arg, int i) {
+void Interpreter::invoke_func_prepare_arg(FuncDecl *fn, Value arg, int i) {
    if (arg.is<Reference>()) {
       if (!fn->params[i]->typespec->reference) {
          arg = Reference::deref(arg);
@@ -23,7 +23,7 @@ void Interpreter2::invoke_func_prepare_arg(FuncDecl *fn, Value arg, int i) {
    }
 }
 
-void Interpreter2::invoke_func_prepare(FuncDecl *fn, const vector<Value>& args) {
+void Interpreter::invoke_func_prepare(FuncDecl *fn, const vector<Value>& args) {
    if (fn->params.size() != args.size()) {
       _error(_T("Error en el número de argumentos al llamar a '%s'", 
                 fn->funcname().c_str()));
@@ -33,14 +33,14 @@ void Interpreter2::invoke_func_prepare(FuncDecl *fn, const vector<Value>& args) 
    }
 }
 
-void Interpreter2::visit_program_prepare(Program *X) {
+void Interpreter::visit_program_prepare(Program *X) {
    prepare_global_environment();
    for (Ast *n : X->nodes) {
       Eval(n);
    }
 }
 
-void Interpreter2::visit_program_find_main() {
+void Interpreter::visit_program_find_main() {
    if (!getenv("main", _curr)) {
       _error(_T("The '%s' function does not exist.", "main"));
    }
@@ -72,7 +72,7 @@ struct _Gt { template<typename T> static bool eval(const T& a, const T& b) { ret
 struct _Ge { template<typename T> static bool eval(const T& a, const T& b) { return a >= b; } };
 
 template<class Op>
-bool Interpreter2::visit_op_assignment(Value left, Value _right) {
+bool Interpreter::visit_op_assignment(Value left, Value _right) {
    Value right = left.type()->convert(_right);
    if (left.is<Int>() and right.is<Int>()) {
       Op::eval(left.as<Int>(), right.as<Int>());
@@ -93,7 +93,7 @@ bool Interpreter2::visit_op_assignment(Value left, Value _right) {
 }
 
 template<class Op>
-bool Interpreter2::visit_bitop_assignment(Value left, Value _right) {
+bool Interpreter::visit_bitop_assignment(Value left, Value _right) {
    Value right = left.type()->convert(_right);
    if (left.is<Int>() and right.is<Int>()) {
       Op::eval(left.as<Int>(), right.as<Int>());
@@ -104,7 +104,7 @@ bool Interpreter2::visit_bitop_assignment(Value left, Value _right) {
 }
 
 template<class Op>
-bool Interpreter2::visit_sumprod(Value left, Value _right) {
+bool Interpreter::visit_sumprod(Value left, Value _right) {
    Value right = left.type()->convert(_right);
    if (left.is<Int>()) {
       _curr = Value(Op::eval(left.as<Int>(), right.as<Int>()));
@@ -122,7 +122,7 @@ bool Interpreter2::visit_sumprod(Value left, Value _right) {
 }
 
 template<class Op>
-bool Interpreter2::visit_bitop(Value left, Value right) {
+bool Interpreter::visit_bitop(Value left, Value right) {
    if (left.is<Int>() and right.is<Int>()) {
       _curr = Value(Op::eval(left.as<Int>(), right.as<Int>()));
       return true;
@@ -131,7 +131,7 @@ bool Interpreter2::visit_bitop(Value left, Value right) {
 }
 
 template<class Op>
-bool Interpreter2::visit_comparison(Value left, Value right) {
+bool Interpreter::visit_comparison(Value left, Value right) {
    if (left.is<Int>() and right.is<Int>()) {
       _curr = Value(Op::eval(left.as<Int>(), right.as<Int>()));
       return true;
@@ -151,7 +151,7 @@ bool Interpreter2::visit_comparison(Value left, Value right) {
    return false;
 }
 
-void Interpreter2::visit_binaryexpr_assignment(Value left, Value right) {
+void Interpreter::visit_binaryexpr_assignment(Value left, Value right) {
    if (!left.is<Reference>()) {
       _error(_T("Intentas asignar sobre algo que no es una variable"));
    }
@@ -173,7 +173,7 @@ void Interpreter2::visit_binaryexpr_assignment(Value left, Value right) {
    _curr = left;
 }
 
-void Interpreter2::visit_binaryexpr_op_assignment(char op, Value left, Value right) {
+void Interpreter::visit_binaryexpr_op_assignment(char op, Value left, Value right) {
    if (!left.is<Reference>()) {
       _error(_T("Para usar '%s=' se debe poner una variable a la izquierda", op));
    }
@@ -207,7 +207,7 @@ void Interpreter2::visit_binaryexpr_op_assignment(char op, Value left, Value rig
    }
 }
 
-bool Interpreter2::call_operator(string op, const vector<Value>& args) {
+bool Interpreter::call_operator(string op, const vector<Value>& args) {
    if (!bind_field(_curr, op)) {
       return false;
    }
@@ -222,14 +222,14 @@ bool Interpreter2::call_operator(string op, const vector<Value>& args) {
    return true;
 }
 
-void Interpreter2::invoke_user_func(FuncDecl *decl, const vector<Value>& args) {
+void Interpreter::invoke_user_func(FuncDecl *decl, const vector<Value>& args) {
    pushenv(decl->funcname());
    invoke_func_prepare(decl, args);
    Eval(decl->block);
    popenv();
 }
 
-void Interpreter2::visit_callexpr_getfunc(CallExpr *X) {
+void Interpreter::visit_callexpr_getfunc(CallExpr *X) {
    Eval(X->func);
    _curr = Reference::deref(_curr);
    if (!_curr.is<Callable>() and !_curr.is<Overloaded>()) {
@@ -237,7 +237,7 @@ void Interpreter2::visit_callexpr_getfunc(CallExpr *X) {
    }
 }
 
-void Interpreter2::check_arguments(const Function *func_type, const vector<Value>& args) {
+void Interpreter::check_arguments(const Function *func_type, const vector<Value>& args) {
    for (int i = 0; i < args.size(); i++) {
       Type *param_type = func_type->param(i);
       if (param_type == Any) {
@@ -258,14 +258,14 @@ void Interpreter2::check_arguments(const Function *func_type, const vector<Value
    }
 }
 
-void Interpreter2::eval_arguments(const std::vector<Expr*>& exprs, std::vector<Value>& args) {
+void Interpreter::eval_arguments(const std::vector<Expr*>& exprs, std::vector<Value>& args) {
    for (int i = 0; i < exprs.size(); i++) {
       Eval(exprs[i]);
       args.push_back(_curr);
    }
 }
 
-void Interpreter2::check_result(Binding& fn, const Function *func_type) {
+void Interpreter::check_result(Binding& fn, const Function *func_type) {
    if (_ret == Value::null && !func_type->is_void()) {
       string name = fn.func.as<Function>().ptr->name;
       const Type *return_type = func_type->return_type();
@@ -275,7 +275,7 @@ void Interpreter2::check_result(Binding& fn, const Function *func_type) {
    }
 }
 
-bool Interpreter2::visit_type_conversion(CallExpr *X, const vector<Value>& args) {
+bool Interpreter::visit_type_conversion(CallExpr *X, const vector<Value>& args) {
    FullIdent *id = X->func->as<FullIdent>();
    if (id != 0) {
       TypeSpec spec(id);
@@ -295,7 +295,7 @@ bool Interpreter2::visit_type_conversion(CallExpr *X, const vector<Value>& args)
    return false;
 }
 
-void Interpreter2::visit_callexpr_call(Value func, const vector<Value>& args) {
+void Interpreter::visit_callexpr_call(Value func, const vector<Value>& args) {
    // TODO: Find operator() (method or function)
    if (func.is<Overloaded>()) {
       func = func.as<Overloaded>().resolve(args);
@@ -309,7 +309,7 @@ void Interpreter2::visit_callexpr_call(Value func, const vector<Value>& args) {
    _curr = _ret;
 }
 
-bool Interpreter2::bind_field(Value obj, string method_name) {
+bool Interpreter::bind_field(Value obj, string method_name) {
    vector<Value> candidates;
    int count = obj.type()->get_field(obj, method_name, candidates);
    if (count == 1) {
@@ -330,7 +330,7 @@ bool Interpreter2::bind_field(Value obj, string method_name) {
 
 // Eval
 
-void Interpreter2::Eval(Ast* ast) {
+void Interpreter::Eval(Ast* ast) {
    assert(ast != nullptr);
    switch (ast->type()) {
    case AstType::Program: {
@@ -365,7 +365,7 @@ void Interpreter2::Eval(Ast* ast) {
          assert(param_type != 0);
          functype->add_params(param_type);
       }
-      Value func = functype->mkvalue(new UserFunc2(funcname, X, this));
+      Value func = functype->mkvalue(new UserFunc(funcname, X, this));
       Value callable = Callable::self->mkvalue(Value::null, func); // bind with 'null'
       setenv(funcname, callable, Hidden);
       break;
@@ -440,7 +440,7 @@ void Interpreter2::Eval(Ast* ast) {
       case Literal::Bool:   _curr = Value(X->val.as_bool);      break;
       case Literal::Char:   _curr = Value(X->val.as_char);      break;
       default:
-         _error(_T("Interpreter2::visit_literal: UNIMPLEMENTED"));
+         _error(_T("Interpreter::visit_literal: UNIMPLEMENTED"));
       }
       break;
    }
@@ -591,7 +591,7 @@ void Interpreter2::Eval(Ast* ast) {
       if (call_operator(X->op, vector<Value>(1, right))) {
          return;
       }
-      _error(_T("Interpreter2::visit_binaryexpr: UNIMPLEMENTED (%s)", X->op.c_str()));
+      _error(_T("Interpreter::visit_binaryexpr: UNIMPLEMENTED (%s)", X->op.c_str()));
 
       break;
    }
@@ -943,5 +943,5 @@ void Interpreter2::Eval(Ast* ast) {
 }
 
 void Eval(Ast *ast, std::istream& in, std::ostream& out) {
-   Interpreter2(&in, &out).Eval(ast);
+   Interpreter(&in, &out).Eval(ast);
 }
