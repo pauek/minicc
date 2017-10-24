@@ -23,9 +23,7 @@ class Parser {
    bool _is_type(std::string);
 
    template<typename X> 
-   void _skip(X *n) {
-      n->comments.push_back(_lexer.skip());
-   }
+   void _skip(X *n) { n->comments.push_back(_lexer.skip()); }
 
    void error(Ast *n, std::string msg);
    void error(Ast *n, Span span, std::string msg);
@@ -71,7 +69,7 @@ const Lexer& lexer() const { return _lexer; }
        Stmt *parse_jumpstmt(Ast *parent);
 
    TypeSpec *parse_typespec(Ast *parent);
-  Identifier *parse_ident(Ast *parent, Token tok, Pos ini);
+ Identifier *parse_ident(Ast *parent, Token tok, Pos ini);
 
  StructDecl *parse_struct(Ast *parent);
 TypedefDecl *parse_typedef(Ast *parent);
@@ -79,12 +77,12 @@ TypedefDecl *parse_typedef(Ast *parent);
 
        Expr *parse_expr(Ast *parent, Expr::Kind max = Expr::Comma);
        Expr *parse_primary_expr(Ast *parent);
-       Expr *parse_postfix_expr(Ast *, Expr *);
+       Expr *parse_postfix_expr(Ast *parent, Expr *e);
        Expr *parse_unary_expr(Ast *parent);
-       Expr *parse_callexpr(Expr *);
-       Expr *parse_indexexpr(Expr *);
-       Expr *parse_fieldexpr(Expr *, Token);
-       Expr *parse_increxpr(Expr *, Token);
+       Expr *parse_callexpr(Expr *e);
+       Expr *parse_indexexpr(Expr *e);
+       Expr *parse_fieldexpr(Expr *e, Token);
+       Expr *parse_increxpr(Expr *e, Token);
        Expr *parse_exprlist(Ast *parent);
 };
 

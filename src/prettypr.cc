@@ -548,7 +548,6 @@ void PrettyPrinter::Print(Ast* ast) {
       if (!cp.LastHadEndl()) {
          out.Write(" ");
       }
-
       if (!isa<Block>(X->substmt) and cp.LastHadEndl()) {
          out.Indentation();
       }
