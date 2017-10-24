@@ -77,8 +77,8 @@ public:
          Token  read_number_literal();
          Token  read_float_literal(Token t, int ini);
          Token  read_string_or_char_literal(char delim);
-          void  read_singleline_comment(Comment& c);
-          void  read_multiline_comment(Comment& c);
+          void  read_SingleLine_comment(Comment& c);
+          void  read_MultiLine_comment(Comment& c);
 
           void  error(std::string msg);
 };

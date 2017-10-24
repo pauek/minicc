@@ -9,7 +9,7 @@ using namespace std;
 
 bool CommentSeq::HasEndLine() const {
    for (const Comment& c : items) {
-      if (c.kind == Comment::endline) {
+      if (c.kind == Comment::EndLine) {
          return true;
       }
    }
@@ -19,24 +19,24 @@ bool CommentSeq::HasEndLine() const {
 bool CommentSeq::EndsWithEmptyLine() const { 
    const int sz = items.size();
    return sz >= 2 and 
-      (items[sz-2].kind == Comment::endline and items[sz-1].kind == Comment::endline);
+      (items[sz-2].kind == Comment::EndLine and items[sz-1].kind == Comment::EndLine);
 }
 
 void CommentSeq::RemoveEndLines() {
    items.erase(std::remove_if(items.begin(), items.end(), 
                               [](Comment& c) {
-                                 return c.kind == Comment::endline; 
+                                 return c.kind == Comment::EndLine; 
                               }),
                items.end());
 }
 
 void CommentSeq::OnlyOneEndLineAtEnd() {
-   if (items.empty() or items.back().kind != Comment::endline) {
+   if (items.empty() or items.back().kind != Comment::EndLine) {
       return;
    }
    int i = items.size()-1;
    while (true) {
-      if (items[i-1].kind != Comment::endline) {
+      if (items[i-1].kind != Comment::EndLine) {
          break;
       }
       i--;

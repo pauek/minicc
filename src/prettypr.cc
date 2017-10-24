@@ -87,18 +87,18 @@ void CommentPrinter::WriteComment(bool pre, bool post, bool _endl) {
          for (int i = 0; i < comm_seq->items.size(); i++) {
             const ::Comment& c = comm_seq->items[i]; // UGLY
             switch (c.kind) {
-            case Comment::none:
+            case Comment::None:
                break;
-            case Comment::multiline:
-               if (i > 0 and comm_seq->items[i-1].kind != Comment::endline) {
+            case Comment::MultiLine:
+               if (i > 0 and comm_seq->items[i-1].kind != Comment::EndLine) {
                   out_.Write(' ');
                }
                out_.Write("/*", c.text, "*/");
                break;
-            case Comment::singleline:
+            case Comment::SingleLine:
                out_.Write("//", c.text);
                break;
-            case Comment::endline:
+            case Comment::EndLine:
                out_.EndLine();
                out_.BeginLine();
                break;

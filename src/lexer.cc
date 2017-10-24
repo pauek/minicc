@@ -42,12 +42,12 @@ CommentSeq* Lexer::skip(Skip skip) {
             cs = new CommentSeq();
          }
          if (curr(1) == '*') {
-            cs->items.push_back(Comment(Comment::multiline));
-            read_multiline_comment(cs->items.back());
+            cs->items.push_back(Comment(Comment::MultiLine));
+            read_MultiLine_comment(cs->items.back());
             endls_in_a_row = 0;
          } else if (curr(1) == '/') {
-            cs->items.push_back(Comment(Comment::singleline));
-            read_singleline_comment(cs->items.back());
+            cs->items.push_back(Comment(Comment::SingleLine));
+            read_SingleLine_comment(cs->items.back());
             endls_in_a_row = 0;
          } else {
             break;
@@ -60,7 +60,7 @@ CommentSeq* Lexer::skip(Skip skip) {
          }
          // WTF! Fix this shit...
          if (endls_in_a_row < 3) {
-            cs->items.push_back(Comment(Comment::endline));
+            cs->items.push_back(Comment(Comment::EndLine));
          }
       } else {
          endls_in_a_row = 0;
@@ -366,7 +366,7 @@ bool Lexer::expect(Token::Type type) {
 
 // read_*
 
-void Lexer::read_singleline_comment(Comment& c) {
+void Lexer::read_SingleLine_comment(Comment& c) {
    consume("//");
    while (!end() and curr() != '\n') {
       c.text += curr();
@@ -375,7 +375,7 @@ void Lexer::read_singleline_comment(Comment& c) {
    return;
 }
 
-void Lexer::read_multiline_comment(Comment& c) {
+void Lexer::read_MultiLine_comment(Comment& c) {
    consume("/*");
    while (!end()) {
       if (curr() == '*') {

@@ -24,10 +24,10 @@ struct Error {
 };
 
 struct Comment {
-   enum Kind { none, singleline, multiline, endline };
+   enum Kind { None, SingleLine, MultiLine, EndLine };
    Kind kind;
    std::string text;
-   Comment(Kind k = none) : kind(k) {}
+   Comment(Kind k = None) : kind(k) {}
 };
 
 struct CommentSeq {
@@ -39,10 +39,10 @@ struct CommentSeq {
    void OnlyOneEndLineAtEnd();
 
    bool StartsWithEndLine() const { 
-      return !items.empty() and items.front().kind == Comment::endline; 
+      return !items.empty() and items.front().kind == Comment::EndLine; 
    }
    bool EndsWithEndLine() const { 
-      return !items.empty() and items.back().kind  == Comment::endline; 
+      return !items.empty() and items.back().kind  == Comment::EndLine; 
    }
 };
 
