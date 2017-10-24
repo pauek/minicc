@@ -1097,12 +1097,10 @@ void SemanticAnalyzer::Analyze(Ast *ast) {
          }
          return;
       }
-      
       if (!bind_field(obj, X->field->name)) {
          if (obj.type()->is(Type::Class)) {
-            Ast *parent = X->parent;
             const char *msg;
-            if (parent->is<CallExpr>()) {
+            if (X->parent->is<CallExpr>()) {
                msg = "La clase '%s' no tiene método '%s'.";
             } else {
                msg = "La clase '%s' no tiene campo '%s'.";
