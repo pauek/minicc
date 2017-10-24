@@ -32,8 +32,8 @@ struct SemanticAnalyzer : public WithEnvironment
      bool  BindField(Value obj, string method_name);
      bool  CallOperator(string op, 
                          const std::vector<Value>& args = std::vector<Value>());
-     void  check_condition(Expr *cond, std::string who);
-     void  check_unknown(Value v, Ast *x, string varname);
+     void  CheckCondition(Expr *cond, std::string who);
+     void  CheckUnknown(Value v, Ast *x, string varname);
      void  EvalArguments(const std::vector<Expr *>& args,
                           std::vector<Value>& argvals);
    
@@ -315,7 +315,7 @@ bool SemanticAnalyzer::CallOperator(string op, const vector<Value>& args) {
    return true;
 }
 
-void SemanticAnalyzer::check_condition(Expr *cond, string who) {
+void SemanticAnalyzer::CheckCondition(Expr *cond, string who) {
    Analyze(cond);
    _curr = Reference::deref(_curr);
    if (!_curr.is<Bool>()) {
@@ -331,7 +331,7 @@ void SemanticAnalyzer::check_condition(Expr *cond, string who) {
    }
 }
 
-void SemanticAnalyzer::check_unknown(Value v, Ast *X, string varname) {
+void SemanticAnalyzer::CheckUnknown(Value v, Ast *X, string varname) {
    if (v.is_unknown()) {
       X->AddError(_T("Utilizas la variable '%s' sin haberla inicializado.", 
                       varname.c_str()));
@@ -514,7 +514,7 @@ void SemanticAnalyzer::Analyze(Ast *ast) {
       Value left = _curr;
       if (X->kind != Expr::Eq) {
          left = Reference::deref(left);
-         check_unknown(left, X->left, _curr_varname);
+         CheckUnknown(left, X->left, _curr_varname);
       }
       string left_varname = _curr_varname;
 
@@ -546,13 +546,13 @@ void SemanticAnalyzer::Analyze(Ast *ast) {
       }
       if (X->op == "+=" || X->op == "-=" || X->op == "*=" || X->op == "/=" ||
           X->op == "&=" || X->op == "|=" || X->op == "^=") {
-         check_unknown(right, X->right, right_varname);
+         CheckUnknown(right, X->right, right_varname);
          _curr_node = X; // ugly
          EvalBinaryExprOpAssignment(X->op[0], left, right);
          return;
       } 
       else if (X->op == "&" || X->op == "|" || X->op == "^") {
-         check_unknown(right, X->right, right_varname);
+         CheckUnknown(right, X->right, right_varname);
          bool ok = false;
          switch (X->op[0]) {
          case '&': ok = EvalBitop<_And>(left, right); break;
@@ -576,7 +576,7 @@ void SemanticAnalyzer::Analyze(Ast *ast) {
          return;
       }
       else if (X->op == "+" || X->op == "*" || X->op == "-" || X->op == "/") {
-         check_unknown(right, X->right, right_varname);
+         CheckUnknown(right, X->right, right_varname);
          bool ret = false;
          _curr_node = X;
          if (left.type()->is(Type::Basic) and right.type()->is(Type::Basic)) {
@@ -962,7 +962,7 @@ void SemanticAnalyzer::Analyze(Ast *ast) {
    case AstType::IfStmt: {
       IfStmt *X = cast<IfStmt>(ast);
       _curr_node = X;
-      check_condition(X->cond, "if");
+      CheckCondition(X->cond, "if");
       Analyze(X->then);
       if (X->els) {
          Analyze(X->els);
@@ -976,7 +976,7 @@ void SemanticAnalyzer::Analyze(Ast *ast) {
       if (X->init) {
          Analyze(X->init);
       }
-      check_condition(X->cond, "for");
+      CheckCondition(X->cond, "for");
       Analyze(X->substmt);
       if (X->post) {
          Analyze(X->post);
@@ -988,7 +988,7 @@ void SemanticAnalyzer::Analyze(Ast *ast) {
       WhileStmt *X = cast<WhileStmt>(ast);
       _curr_node = X;
       pushenv("");
-      check_condition(X->cond, "while");
+      CheckCondition(X->cond, "while");
       Analyze(X->substmt);
       popenv();
       break;

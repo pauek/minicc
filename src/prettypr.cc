@@ -131,8 +131,7 @@ void PrettyPrinter::Print(Ast* ast) {
    case AstType::Program: {
       Program *X = cast<Program>(ast);
       CommentPrinter cp(X, out);
-      int i;
-      for (i = 0; i < X->nodes.size(); i++) {
+      for (int i = 0; i < X->nodes.size(); i++) {
          cp.Comment();
          Ast *n = X->nodes[i];
          if ((!cp.LastWasEmpty() and !cp.LastHadEndl()) or
