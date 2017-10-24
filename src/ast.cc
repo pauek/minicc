@@ -483,10 +483,6 @@ int StructDecl::num_fields() const {
    return num;
 }
 
-bool BinaryExpr::is_assignment() const {
-   return kind == Expr::Eq;
-}
-
 void BinaryExpr::collect_rights(list<Expr*>& L) const {
    L.push_front(right);
    left->collect_rights(L);
@@ -522,6 +518,14 @@ bool IsWriteExpr(Ast *ast) {
    default:
       return false;
    }
+}
+
+bool IsAssignment(Ast *ast) {
+   if (isa<BinaryExpr>(ast)) {
+      BinaryExpr *X = cast<BinaryExpr>(ast);
+      return X->kind == Expr::Eq;
+   }
+   return false;
 }
 
 string Describe(Ast *ast) {

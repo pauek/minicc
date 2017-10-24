@@ -77,8 +77,8 @@ void Stepper::Step(Ast *ast) {
    }
    case AstType::ExprStmt: {
       ExprStmt *X = cast<ExprStmt>(ast);
-      if (X->expr->is_assignment()) {
-         visit_assignment(dynamic_cast<BinaryExpr*>(X->expr));
+      if (IsAssignment(X->expr)) {
+         visit_assignment(cast<BinaryExpr>(X->expr));
       } 
       else if (IsWriteExpr(X->expr)) {
          BinaryExpr *e = cast<BinaryExpr>(X->expr);
