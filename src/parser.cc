@@ -738,7 +738,7 @@ Expr *Parser::parse_expr(Ast *parent, BinaryExpr::Kind max) {
          e->comments.push_back(c0);
          _skip(e);
          Expr::Kind submax = 
-            Expr::Kind(Expr::right_associative(kind) 
+            Expr::Kind(Expr::RightAssociative(kind) 
                        ? kind 
                        : kind - 1);
          Expr *right = parse_expr(e, submax);

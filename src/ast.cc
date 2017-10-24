@@ -124,7 +124,7 @@ Expr::Kind Expr::tok2kind(Token::Type tokkind) {
    }
 }
 
-bool Expr::right_associative(Expr::Kind t) {
+bool Expr::RightAssociative(Expr::Kind t) {
    return t == Expr::Eq;
 }
 
@@ -354,7 +354,7 @@ string Identifier::TypeStr() const {
 }
 
 Identifier *Identifier::get_potential_namespace_or_class() const {
-   if (prefix.size() == 1 and !prefix[0]->is_template()) {
+   if (prefix.size() == 1 and !prefix[0]->IsTemplate()) {
       return prefix[0];
    }
    return 0;

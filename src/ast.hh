@@ -236,7 +236,7 @@ struct Expr : public Ast {
    bool paren = false; // if this is true, comments will have an extra element!
 
    static Kind tok2kind(Token::Type toktyp);
-   static bool right_associative(Kind t);
+   static bool RightAssociative(Kind t);
 
    struct Error;
 };
@@ -283,7 +283,7 @@ struct Identifier : ExprDerived<AstType::Identifier> {
 
    Identifier(std::string name_) : name(name_) {}
 
-   bool is_template() const { return !subtypes.empty(); }
+   bool IsTemplate() const { return !subtypes.empty(); }
    std::string TypeStr() const;
    void shift(std::string new_id);
    Identifier *get_potential_namespace_or_class() const;
@@ -371,7 +371,7 @@ struct TypeSpec : public AstDerived<AstType::TypeSpec> {
    bool is(Qualifiers q) const;
    std::string TypeStr() const;
 
-   bool is_template() const { return !id->subtypes.empty(); }
+   bool IsTemplate() const { return !id->subtypes.empty(); }
    Identifier *get_potential_namespace_or_class() const;
 };
 

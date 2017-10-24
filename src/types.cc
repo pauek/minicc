@@ -76,7 +76,7 @@ Type *TypeMap::get_type(TypeSpec *spec, Environment *topmost) {
             return 0;
          }
          T = it->second;
-         if (spec0->is_template()) {
+         if (spec0->IsTemplate()) {
             T = instantiate_template(spec0->subtypes, T, topmost);
          }
       }
