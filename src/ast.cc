@@ -269,6 +269,7 @@ bool HasErrors(Ast *ast) {
       }
       return X->HasErrors();
    }
+#if 0
    case AstType::TemplateIdent: {
       TemplateIdent *X = cast<TemplateIdent>(ast);
       for (TypeSpec *t : X->subtypes) {
@@ -276,9 +277,10 @@ bool HasErrors(Ast *ast) {
       }
       return X->HasErrors();
    }
+#endif
    case AstType::Identifier: {
       Identifier *X = cast<Identifier>(ast);
-      for (TemplateIdent *id : X->prefix) {
+      for (Identifier *id : X->prefix) {
          CHECK_ERRORS(id);
       }
       for (TypeSpec *t : X->subtypes) {
@@ -306,7 +308,6 @@ bool HasErrors(Ast *ast) {
    case AstType::FieldExpr: {
       FieldExpr *X = cast<FieldExpr>(ast);
       CHECK_ERRORS(X->base); 
-      CHECK_ERRORS(X->field);
       return X->HasErrors();
    }
    case AstType::CondExpr: {
@@ -339,7 +340,6 @@ bool HasErrors(Ast *ast) {
    }   
    case AstType::StructDecl: {
       StructDecl *X = cast<StructDecl>(ast);
-      CHECK_ERRORS(X->id);
       for (DeclStmt *d : X->decls) {
          CHECK_ERRORS(d);
       }
@@ -380,6 +380,7 @@ bool HasErrors(Ast *ast) {
    }
 }
 
+#if 0
 string TemplateIdent::typestr() const {
    string _id = name;
    if (!subtypes.empty()) {
@@ -394,6 +395,7 @@ string TemplateIdent::typestr() const {
    }
    return _id;
 }
+#endif
 
 string Identifier::typestr() const {
    string _id;
@@ -401,28 +403,38 @@ string Identifier::typestr() const {
       _id += prefix[i]->typestr();
       _id += "::";
    }
-   _id += TemplateIdent::typestr();
+   _id += name;
+   if (!subtypes.empty()) {
+      _id += "<";
+      for (int i = 0; i < subtypes.size(); i++) {
+         if (i > 0) {
+            _id += ",";
+         }
+         _id += subtypes[i]->typestr();
+      }
+      _id += ">";
+   }
    return _id;
 }
 
-SimpleIdent *Identifier::get_potential_namespace_or_class() const {
+Identifier *Identifier::get_potential_namespace_or_class() const {
    if (prefix.size() == 1 and !prefix[0]->is_template()) {
       return prefix[0];
    }
    return 0;
 }
 
-vector<TemplateIdent*> Identifier::get_non_namespaces() {
-   vector<TemplateIdent*>::iterator it = prefix.begin();
+vector<Identifier*> Identifier::get_non_namespaces() {
+   vector<Identifier*>::iterator it = prefix.begin();
    while (it != prefix.end() and (*it)->is_namespace) {
       it++;
    }
-   vector<TemplateIdent*> result(it, prefix.end());
+   vector<Identifier*> result(it, prefix.end());
    result.push_back(this);
    return result;
 }
 
-SimpleIdent *TypeSpec::get_potential_namespace_or_class() const {
+Identifier *TypeSpec::get_potential_namespace_or_class() const {
    return id->get_potential_namespace_or_class();
 }
 
@@ -579,7 +591,7 @@ string Describe(Ast *ast) {
 }
 
 void Identifier::shift(string new_id) {
-   TemplateIdent *pre = new TemplateIdent(name);
+   Identifier *pre = new Identifier(name);
    pre->subtypes.swap(subtypes);
    pre->comments.swap(comments);
    pre->errors.swap(errors);

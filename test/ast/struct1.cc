@@ -3,7 +3,7 @@ struct X {
 };
 [[out]]--------------------------------------------------
 Program{
-   StructDecl(id:'X', {
+   StructDecl('X', {
       DeclStmt(Type(id:'int'), Vars = {"a", "b"})
    })
 }

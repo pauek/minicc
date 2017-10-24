@@ -242,7 +242,7 @@ void PrettyPrinter::Print(Ast* ast) {
       // WARNING: g++ here optimizes and changes order of instructions!!!
       out.Write("struct ");
       cp.CommentSpace();
-      Print(X->id);
+      out.Write(X->name);
       // WARNING: g++ here optimizes and changes order of instructions!!!
       cp.SpaceComment();
       out.Write(" {");
@@ -332,15 +332,17 @@ void PrettyPrinter::Print(Ast* ast) {
       cp.SpaceComment();
       break;
    }
+#if 0
    case AstType::SimpleIdent: {
       SimpleIdent *X = cast<SimpleIdent>(ast);
       out.Write(X->name);
       break;
    }
+#endif
    case AstType::Identifier: {
       Identifier *X = cast<Identifier>(ast);
       CommentPrinter cp(X, out);
-      for (TemplateIdent *pre : X->prefix) {
+      for (Identifier *pre : X->prefix) {
          Print(pre);
          // WARNING: g++ here optimizes and changes order of instructions!!!
          cp.SpaceCommentSpace();
@@ -366,6 +368,7 @@ void PrettyPrinter::Print(Ast* ast) {
       }
       break;
    }   
+#if 0
    case AstType::TemplateIdent: {
       TemplateIdent *X = cast<TemplateIdent>(ast);
       CommentPrinter cp(X, out);
@@ -388,6 +391,7 @@ void PrettyPrinter::Print(Ast* ast) {
       }
       break;
    }
+#endif
    case AstType::Literal: {
       Literal *X = cast<Literal>(ast);
       CommentPrinter cp(X, out);
@@ -667,8 +671,7 @@ void PrettyPrinter::Print(Ast* ast) {
          out.Write("(");
       }
       Print(X->base);
-      out.Write(X->pointer ? "->" : ".");
-      Print(X->field);
+      out.Write(X->pointer ? "->" : ".", X->field);
       if (X->paren) {
          out.Write(")");
       }

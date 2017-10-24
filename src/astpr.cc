@@ -125,9 +125,7 @@ void AstPrinter::Print(Ast* ast) {
    }
    case AstType::StructDecl: {
       StructDecl *X = cast<StructDecl>(ast);
-      out.Write("StructDecl(");
-      Print(X->id);
-      out.Write(", {");
+      out.Write("StructDecl('", X->name, "', {");
       out.EndLine();
       out.Indent();
       for (DeclStmt *decl : X->decls) {
@@ -187,6 +185,7 @@ void AstPrinter::Print(Ast* ast) {
       out.Write("})");
       break;
    }
+#if 0
    case AstType::SimpleIdent: {
       SimpleIdent *X = cast<SimpleIdent>(ast);
       out.Write("id:'", X->name, "'");
@@ -207,6 +206,7 @@ void AstPrinter::Print(Ast* ast) {
       }
       break;
    }
+#endif
    case AstType::Identifier: {
       Identifier *X = cast<Identifier>(ast);
       out.Write("id:");
@@ -451,9 +451,7 @@ void AstPrinter::Print(Ast* ast) {
       }
       out.Write("(");
       Print(X->base);
-      out.Write(", ");
-      Print(X->field);
-      out.Write(")");
+      out.Write(", '", X->field, "')");
       break;
    }
    case AstType::CondExpr: {

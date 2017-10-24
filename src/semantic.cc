@@ -673,7 +673,7 @@ void SemanticAnalyzer::Analyze(Ast *ast) {
       StructDecl *X = cast<StructDecl>(ast);
       _curr_node = X;
       // Create a new Struct type now
-      Struct *type = new Struct(X->struct_name());
+      Struct *type = new Struct(X->name);
       for (int i = 0; i < X->decls.size(); i++) {
          DeclStmt& decl = *X->decls[i];
          Type *field_type = get_type(decl.typespec);
@@ -707,7 +707,7 @@ void SemanticAnalyzer::Analyze(Ast *ast) {
             }
          }
       }
-      register_type(X->struct_name(), type);
+      register_type(X->name, type);
       break;
    }
    case AstType::Identifier: {
@@ -716,7 +716,7 @@ void SemanticAnalyzer::Analyze(Ast *ast) {
       Value v;
       
       // Try a namespace
-      SimpleIdent *namespc_or_class = X->get_potential_namespace_or_class();
+      Identifier *namespc_or_class = X->get_potential_namespace_or_class();
       if (namespc_or_class != 0) {
          Environment *namespc = get_namespace(namespc_or_class->name);
          if (namespc != 0) {
@@ -1090,14 +1090,14 @@ void SemanticAnalyzer::Analyze(Ast *ast) {
          // FIXME: Move this to 'get_field' in 'Struct' class???
          SimpleTable<Value>& fields = obj.as<Struct>();
          Value v;
-         if (!fields.get(X->field->name, v)) {
-            X->AddError(_T("El campo '%s' no existe.", X->field->name.c_str()));
+         if (!fields.get(X->field, v)) {
+            X->AddError(_T("El campo '%s' no existe.", X->field.c_str()));
          } else {
             _curr = Reference::mkref(v);
          }
          return;
       }
-      if (!bind_field(obj, X->field->name)) {
+      if (!bind_field(obj, X->field)) {
          if (obj.type()->is(Type::Class)) {
             const char *msg;
             if (X->parent and isa<CallExpr>(X->parent)) {
@@ -1107,11 +1107,11 @@ void SemanticAnalyzer::Analyze(Ast *ast) {
             }
             X->AddError(_T(msg, 
                             obj.type()->typestr().c_str(), 
-                            X->field->name.c_str()));
+                            X->field.c_str()));
          } else {
             X->AddError(_T("El tipo '%s' no tiene el campo '%s'", 
                             obj.type()->typestr().c_str(),
-                            X->field->name.c_str()));
+                            X->field.c_str()));
          }
          _curr = UnknownType::self->create_abstract();
       }

@@ -4,7 +4,7 @@ struct X {
 };
 [[out]]--------------------------------------------------
 Program{
-   StructDecl(id:'X', {
+   StructDecl('X', {
       DeclStmt(Type(id:'vector'<Type(id:'int')>), Vars = {"a", "b"})
       DeclStmt(Type(id:'double'), Vars = {"x", "y"})
    })

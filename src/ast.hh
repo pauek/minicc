@@ -74,8 +74,8 @@ enum class AstType {
 
    ExprError,
    Literal,
-   SimpleIdent,
-   TemplateIdent,
+   // SimpleIdent,
+   // TemplateIdent,
    Identifier,
    BinaryExpr,
    UnaryExpr,
@@ -284,6 +284,7 @@ struct Literal : public ExprDerived<AstType::Literal>
    static std::string escape(std::string s, char delim);
 };
 
+#if 0
 struct SimpleIdent : ExprDerived<AstType::SimpleIdent> {
    std::string name;
    bool is_namespace = false; // (used by the interpreter)
@@ -306,18 +307,21 @@ struct TemplateIdent : SimpleIdent {
       return ast->type() == AstType::TemplateIdent; 
    }
 };
+#endif
 
-struct Identifier : TemplateIdent {
-   std::vector<TemplateIdent*> prefix;  // for classes & namespaces;
+struct Identifier : ExprDerived<AstType::Identifier> {
+   std::string name;
+   std::vector<Identifier*> prefix;
+   std::vector<TypeSpec*> subtypes;
+   bool is_namespace = false; // (used by the interpreter)
 
-   Identifier(std::string name_) : TemplateIdent(name_) {
-      type_ = AstType::Identifier;
-   }
+   Identifier(std::string name_) : name(name_) {}
+
+   bool is_template() const { return !subtypes.empty(); }
    std::string typestr() const;
-
    void shift(std::string new_id);
-   SimpleIdent *get_potential_namespace_or_class() const;
-   std::vector<TemplateIdent*> get_non_namespaces();
+   Identifier *get_potential_namespace_or_class() const;
+   std::vector<Identifier*> get_non_namespaces();
 
    static bool classof(const Ast *ast) { 
       return ast->type() == AstType::Identifier; 
@@ -372,7 +376,7 @@ struct IndexExpr : public ExprDerived<AstType::IndexExpr> {
 
 struct FieldExpr : public ExprDerived<AstType::FieldExpr> {
    Expr *base = 0;
-   SimpleIdent *field = 0;
+   std::string field;
    bool pointer;
 };
 
@@ -402,7 +406,7 @@ struct TypeSpec : public AstDerived<AstType::TypeSpec> {
    std::string typestr() const;
 
    bool is_template() const { return !id->subtypes.empty(); }
-   SimpleIdent *get_potential_namespace_or_class() const;
+   Identifier *get_potential_namespace_or_class() const;
 };
 
 // Declarations ////////////////////////////////////////////
@@ -415,20 +419,19 @@ struct FuncDecl : public AstDerived<AstType::FuncDecl> {
    };
 
    TypeSpec *return_typespec;
-   SimpleIdent *id;
+   Identifier *id;
    std::vector<Param*> params;
    Block* block;
    
-   FuncDecl(SimpleIdent *_id) : id(_id) {}
+   FuncDecl(Identifier *_id) : id(_id) {}
 
    std::string funcname() const { return id->name; }
 };
 
 struct StructDecl : public AstDerived<AstType::StructDecl> {
-   SimpleIdent *id = 0;
+   std::string name;
    std::vector<DeclStmt*> decls;
    
-   std::string struct_name() const { return id->name; }
    std::string typestr() const;
    int num_fields() const;
 };

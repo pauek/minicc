@@ -372,7 +372,7 @@ void Interpreter::Eval(Ast* ast) {
    }
    case AstType::StructDecl: {
       StructDecl *X = cast<StructDecl>(ast);
-      Struct *type = new Struct(X->struct_name());
+      Struct *type = new Struct(X->name);
       for (int i = 0; i < X->decls.size(); i++) {
          DeclStmt& decl = *X->decls[i];
          Type *field_type = get_type(decl.typespec);
@@ -391,14 +391,14 @@ void Interpreter::Eval(Ast* ast) {
             }
          }
       }
-      register_type(X->struct_name(), type);      
+      register_type(X->name, type);      
       break;
    }
    case AstType::Identifier: {
       Identifier *X = cast<Identifier>(ast);
       Value v;
       // Try a namespace
-      SimpleIdent *namespc_or_class = X->get_potential_namespace_or_class();
+      Identifier *namespc_or_class = X->get_potential_namespace_or_class();
       if (namespc_or_class != 0) {
          Environment *namespc = get_namespace(namespc_or_class->name);
          if (namespc != 0) {
@@ -814,14 +814,14 @@ void Interpreter::Eval(Ast* ast) {
          // TODO: Move this to 'get_field' in 'Struct' class???
          SimpleTable<Value>& fields = obj.as<Struct>();
          Value v;
-         if (!fields.get(X->field->name, v)) {
-            _error(_T("No existe el campo '%s'", X->field->name.c_str()));
+         if (!fields.get(X->field, v)) {
+            _error(_T("No existe el campo '%s'", X->field.c_str()));
          }
          _curr = Reference::mkref(v);
          return;
       }
-      if (!bind_field(obj, X->field->name)) {
-         _error(_T("Este objeto no tiene un campo '%s'", X->field->name.c_str()));
+      if (!bind_field(obj, X->field)) {
+         _error(_T("Este objeto no tiene un campo '%s'", X->field.c_str()));
       }
       break;
    }

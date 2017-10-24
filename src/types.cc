@@ -61,12 +61,12 @@ Type *TypeMap::get_type(TypeSpec *spec, Environment *topmost) {
    }
    // 2. Construct the Type from the TypeSpec
    {
-      vector<TemplateIdent*> path = spec->id->get_non_namespaces();
+      vector<Identifier*> path = spec->id->get_non_namespaces();
       assert(!path.empty());
 
       // find first type
       Type *T;
-      TemplateIdent *spec0 = path[0];
+      Identifier *spec0 = path[0];
       auto it = _typecache.find(spec0->typestr());
       if (it != _typecache.end()) {
          T = it->second;
@@ -2041,7 +2041,7 @@ void WithEnvironment::prepare_global_environment() {
 }
 
 Type *WithEnvironment::get_type(TypeSpec *spec) {
-   SimpleIdent *namespc = spec->get_potential_namespace_or_class();
+   Identifier *namespc = spec->get_potential_namespace_or_class();
    if (namespc != 0) {
       auto it = _namespaces.find(namespc->name);
       if (it != _namespaces.end()) {

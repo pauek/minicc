@@ -83,7 +83,7 @@ Ast* Parser::parse() {
       }
       case Token::Struct: {
          StructDecl *decl = parse_struct(prog);
-         _types.insert(decl->id->name);
+         _types.insert(decl->name);
          prog->add(decl);
          break;
       }
@@ -801,7 +801,7 @@ Expr *Parser::parse_fieldexpr(Expr *x, Token tok) {
    _lexer.consume(tok.type == Token::Arrow ? "->" : ".");
    _skip(e);
    Token id = _lexer.read_ident();
-   e->field = new SimpleIdent(_lexer.SubStr(id));
+   e->field =_lexer.SubStr(id);
    e->span = Span(x->span.begin, _lexer.pos());
    return e;
 }
@@ -1151,7 +1151,7 @@ StructDecl *Parser::parse_struct(Ast *parent) {
    _skip(decl);
 
    Token id = _lexer.read_ident();
-   decl->id = new SimpleIdent(_lexer.SubStr(id));
+   decl->name = _lexer.SubStr(id);
    _skip(decl);
    
    tok = _lexer.read_token();

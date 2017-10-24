@@ -9,7 +9,7 @@ Program{
       Block({
          ForStmt(DeclStmt(Type(id:'MyType'), Vars = {"x"}), !=(id:'x', Bool<false>), IncrExpr<++, post>(id:'x'), {
             Block({
-               ExprStmt(CallExpr(FieldExpr(IndexExpr(id:'x', id:'i'), id:'set'), Args = {Int<3>}))
+               ExprStmt(CallExpr(FieldExpr(IndexExpr(id:'x', id:'i'), 'set'), Args = {Int<3>}))
             })
          })
       })

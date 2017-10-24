@@ -5,7 +5,7 @@ struct Blah {
 const Bleh& f();
 [[out]]----------------------------------------
 Program{
-   StructDecl(id:'Blah', {
+   StructDecl('Blah', {
       DeclStmt(Type(id:'int'), Vars = {"x", "y"})
    })
    FuncDecl(id:'f', Type<&>(id:'Bleh', {const}), Params = {})

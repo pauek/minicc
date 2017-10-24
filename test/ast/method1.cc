@@ -5,7 +5,7 @@ int f() {
 Program{
    FuncDecl(id:'f', Type(id:'int'), Params = {}, {
       Block({
-         ExprStmt(CallExpr(FieldExpr(id:'map', id:'find'), Args = {String<x>}))
+         ExprStmt(CallExpr(FieldExpr(id:'map', 'find'), Args = {String<x>}))
       })
    })
 }
