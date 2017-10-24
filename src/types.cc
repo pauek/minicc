@@ -34,7 +34,7 @@ OStringStream *OStringStream::self = new OStringStream();
 IStringStream *IStringStream::self = new IStringStream();
 
 string String::ToJson(void *data) const {
-   return string("\"") + Literal::escape(*(string*)data, '"') + "\"";
+   return string("\"") + Literal::Escape(*(string*)data, '"') + "\"";
 }
 
 map<string, const Type*> Type::reference_types;
@@ -300,7 +300,7 @@ string Char::ToJson(void *data) const {
    ostringstream json;
    string ch(1, *(char*)data);
    json << "{\"<type>\":\"char\",\"char\":\"" 
-        << Literal::escape(ch, '"') << "\"}" << endl;
+        << Literal::Escape(ch, '"') << "\"}" << endl;
    return json.str();
 }
 

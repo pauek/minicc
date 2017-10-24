@@ -219,7 +219,7 @@ void AstPrinter::Print(Ast* ast) {
          out.Write("Bool<", X->val.as_bool ? "true" : "false", ">");
          break;
       case Literal::Char: 
-         out.Write("Char<", Literal::escape(X->val.as_char, '\''), ">");
+         out.Write("Char<", Literal::Escape(X->val.as_char, '\''), ">");
          break;
       case Literal::Int: 
          out.Write("Int<", X->val.as_int, ">");
@@ -231,7 +231,7 @@ void AstPrinter::Print(Ast* ast) {
          out.Write("Double<", X->val.as_double, ">");
          break;
       case Literal::String:
-         out.Write("String<", Literal::escape(*(X->val.as_string.s), '"'), ">");
+         out.Write("String<", Literal::Escape(*(X->val.as_string.s), '"'), ">");
          break;
       default:
          out.Write("Literal<>");

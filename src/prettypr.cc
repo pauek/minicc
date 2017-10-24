@@ -372,10 +372,10 @@ void PrettyPrinter::Print(Ast* ast) {
       case Literal::Int:    out.Write(X->val.as_int); break;
       case Literal::Double: out.Write(X->val.as_double); break;
       case Literal::String: 
-         out.Write('"', Literal::escape(*X->val.as_string.s, '"'), '"'); 
+         out.Write('"', Literal::Escape(*X->val.as_string.s, '"'), '"'); 
          break;
       case Literal::Char: {
-         out.Write("'", Literal::escape(X->val.as_char, '\''), "'"); 
+         out.Write("'", Literal::Escape(X->val.as_char, '\''), "'"); 
          break;
       }
       default:

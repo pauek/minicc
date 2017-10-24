@@ -67,7 +67,7 @@ const string TypeSpec::QualifiersNames[] = {
    "register", "auto",     "extern"
 };
 
-Expr::Kind Expr::tok2kind(Token::Type tokkind) {
+Expr::Kind Expr::TokenToKind(Token::Type tokkind) {
    switch (tokkind) {
    case Token::Empty:
       return Expr::Unknown;
@@ -128,7 +128,7 @@ bool Expr::RightAssociative(Expr::Kind t) {
    return t == Expr::Eq;
 }
 
-JumpStmt::Kind JumpStmt::keyword2type(string s) {
+JumpStmt::Kind JumpStmt::KeywordToType(string s) {
    if (s == "break") { 
       return JumpStmt::Break; 
    } else if (s == "continue") {
@@ -140,7 +140,7 @@ JumpStmt::Kind JumpStmt::keyword2type(string s) {
    }
 }
 
-string Literal::escape(char c, char delim) {
+string Literal::Escape(char c, char delim) {
    switch (c) {
    case '\a': return "\\a";
    case '\b': return "\\b";
@@ -160,10 +160,10 @@ string Literal::escape(char c, char delim) {
    }
 }
 
-string Literal::escape(string s, char delim) {
+string Literal::Escape(string s, char delim) {
    string r;
    for (char c : s) {
-      r += escape(c, delim);
+      r += Escape(c, delim);
    }
    return r;
 }

@@ -533,7 +533,7 @@ Expr *Parser::parse_primary_expr(Ast *parent) {
    case Token::CharLiteral: {
       Literal* lit = new Literal(Literal::Char);
       lit->parent = parent;
-      lit->val.as_char = _translate_escapes(_lexer.SubStr(tok))[0];
+      lit->val.as_char = _translate_Escapes(_lexer.SubStr(tok))[0];
       lit->span = Span(ini, _lexer.pos());
       _skip(lit);
       e = lit;
@@ -558,7 +558,7 @@ Expr *Parser::parse_primary_expr(Ast *parent) {
    case Token::StringLiteral: {
       Literal* lit = new Literal(Literal::String);
       lit->parent = parent;
-      lit->val.as_string.s = new string(_translate_escapes(_lexer.SubStr(tok))); // FIXME: Shouldn't copy string
+      lit->val.as_string.s = new string(_translate_Escapes(_lexer.SubStr(tok))); // FIXME: Shouldn't copy string
       lit->span = Span(ini, _lexer.pos());
       _skip(lit);
       e = lit;
@@ -571,7 +571,7 @@ Expr *Parser::parse_primary_expr(Ast *parent) {
    return e;
 }
 
-string Parser::_translate_escapes(string s) {
+string Parser::_translate_Escapes(string s) {
    string result;
    for (int i = 0; i < s.size(); i++) {
       if (s[i] == '\\') {
@@ -591,7 +591,7 @@ string Parser::_translate_escapes(string s) {
          case '\\': result += '\\'; break;
          default: 
             // FIXME: Don't know where to handle this error...
-            cerr << "warning: unknown escape sequence '\\" 
+            cerr << "warning: unknown Escape sequence '\\" 
                  << s[i] << "'" << endl;
             assert(false);
          }
@@ -708,7 +708,7 @@ Expr *Parser::parse_expr(Ast *parent, BinaryExpr::Kind max) {
       if (!tok.IsOperator()) {
          break;
       }
-      BinaryExpr::Kind kind = BinaryExpr::tok2kind(tok.type);
+      BinaryExpr::Kind kind = BinaryExpr::TokenToKind(tok.type);
       if (tok.type == Token::Empty or kind > max) {
          break;
       }

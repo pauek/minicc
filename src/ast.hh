@@ -213,7 +213,7 @@ struct JumpStmt : public StmtDerived<AstType::JumpStmt> {
    Kind kind = Unknown;
    std::string label;
 
-   static Kind keyword2type(std::string s);
+   static Kind KeywordToType(std::string s);
 };
 
 struct Block : public StmtDerived<AstType::Block> {
@@ -233,7 +233,7 @@ struct Expr : public Ast {
 
    bool paren = false; // if this is true, comments will have an extra element!
 
-   static Kind tok2kind(Token::Type toktyp);
+   static Kind TokenToKind(Token::Type toktyp);
    static bool RightAssociative(Kind t);
 
    struct Error;
@@ -269,8 +269,8 @@ struct Literal : public ExprDerived<AstType::Literal>
 
    Literal(Kind k) : kind(k) {}
 
-   static std::string escape(char c, char delim);
-   static std::string escape(std::string s, char delim);
+   static std::string Escape(char c, char delim);
+   static std::string Escape(std::string s, char delim);
 };
 
 struct Identifier : ExprDerived<AstType::Identifier> {
@@ -290,6 +290,27 @@ struct Identifier : ExprDerived<AstType::Identifier> {
    static bool classof(const Ast *ast) { 
       return ast->Type() == AstType::Identifier; 
    }
+};
+
+struct TypeSpec : public AstDerived<AstType::TypeSpec> {
+   static const std::string QualifiersNames[];
+
+   enum Qualifiers {
+      Const    = 0, Volatile = 1, Mutable = 2, 
+      Register = 3, Auto     = 4, Extern  = 5
+   };
+
+   bool                    reference = false;
+   std::vector<Qualifiers> qual;
+   Identifier              *id = 0;
+
+   TypeSpec() = default;
+   TypeSpec(Identifier *_id) : id(_id), reference(false) {}
+   bool is(Qualifiers q) const;
+   std::string TypeStr() const;
+
+   bool IsTemplate() const { return !id->subtypes.empty(); }
+   Identifier *GetPotentialNamespaceOrClass() const;
 };
 
 struct BinaryExpr : public ExprDerived<AstType::BinaryExpr> {
@@ -348,27 +369,6 @@ struct CondExpr : public ExprDerived<AstType::CondExpr> {
 
 struct ExprList : public ExprDerived<AstType::ExprList> {
    std::vector<Expr*> exprs;
-};
-
-struct TypeSpec : public AstDerived<AstType::TypeSpec> {
-   static const std::string QualifiersNames[];
-
-   enum Qualifiers {
-      Const    = 0, Volatile = 1, Mutable = 2, 
-      Register = 3, Auto     = 4, Extern  = 5
-   };
-
-   bool                    reference = false;
-   std::vector<Qualifiers> qual;
-   Identifier              *id = 0;
-
-   TypeSpec() = default;
-   TypeSpec(Identifier *_id) : id(_id), reference(false) {}
-   bool is(Qualifiers q) const;
-   std::string TypeStr() const;
-
-   bool IsTemplate() const { return !id->subtypes.empty(); }
-   Identifier *GetPotentialNamespaceOrClass() const;
 };
 
 // Declarations ////////////////////////////////////////////
