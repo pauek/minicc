@@ -8,14 +8,13 @@ using namespace std;
 #include "astpr.hh"
 #include "prettypr.hh"
 #include "stepper.hh"
-#include "semantic.hh"
+#include "semantic2.hh"
 #include "interpreter.hh"
 #include "translator.hh"
 #include "walker.hh"
 
 int semantic_analysis(Ast *program, string filename) {
-   SemanticAnalyzer A;
-   program->accept(&A);
+   AnalyzeSemantics(program);
    vector<Error*> ve;
    collect_errors(program, ve);
    for (Error *e : ve) {
@@ -290,8 +289,7 @@ int _test_parser_and_semantic(string filename, bool do_semantic) {
    try {
       program = P.parse();
       if (do_semantic) {
-         SemanticAnalyzer A;
-         program->accept(&A);
+         AnalyzeSemantics(program);
       }
       vector<Error*> ve;
       collect_errors(program, ve);

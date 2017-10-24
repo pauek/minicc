@@ -19,6 +19,7 @@
 
 #include <memory>
 #include <type_traits>
+#include <assert.h>
 
 // Modeled after LLVM's dynamic casts:
 // http://llvm.org/docs/ProgrammersManual.html#the-isa-cast-and-dyn-cast-templates
