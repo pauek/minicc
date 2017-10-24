@@ -95,7 +95,7 @@ int step(string filename) {
          exit(1);
       }
       Stepper S;
-      program->accept(&S);
+      S.Step(program);
       while (!S.finished()) {
          cout << S.span() << ": " << P.lexer().SubStr(S.span()) << endl;
          cout << S.status() << endl;
@@ -367,7 +367,7 @@ int test_step(string filename) {
    try {
       Translator::translator.set_language("es");
       Stepper S(&Sin, &Saux);
-      program->accept(&S);
+      S.Step(program);
       while (!S.finished()) {
          Sout << S.span() << ": " << P.lexer().SubStr(S.span()) << endl;
          Sout << S.status() << endl;

@@ -4,6 +4,7 @@
 #include <stdint.h>
 using namespace std;
 
+#include "cast.h"
 #include "stepper.hh"
 #include "translator.hh"
 
@@ -41,31 +42,165 @@ void Stepper::generic_visit(Ast *X) {
    push(new PopState(X->span));
 }
 
-void Stepper::visit_declstmt(DeclStmt *X)     { generic_visit(X); }
-void Stepper::visit_increxpr(IncrExpr *X)     { generic_visit(X); }
-void Stepper::visit_binaryexpr(BinaryExpr *X) { generic_visit(X); }
-void Stepper::visit_literal(Literal *X)       { eval(X); }
-void Stepper::visit_fullident(FullIdent *X)   { eval(X); }
-void Stepper::visit_fieldexpr(FieldExpr *X)   { eval(X); }
-void Stepper::visit_indexexpr(IndexExpr *X)   { eval(X); }
+void Stepper::Step(Ast *ast) {
+   switch (ast->type()) {
+   case AstType::Program: {
+      Program *X = cast<Program>(ast);
+      I.visit_program_prepare(X);
+      I.visit_program_find_main();
+      status(_T("The program begins."));
+      I.pushenv("main");
+      Func *fn = I._curr.as<Callable>().func.as<Function>().ptr;
+      FuncDecl *main = dynamic_cast<UserFunc*>(fn)->decl;
+      I.invoke_func_prepare(main, vector<Value>());
+      I.actenv();
+      push(new ProgramVisitState(main));
+      break;
+   }
+   case AstType::Block: {
+      Block *X = cast<Block>(ast);
+      if (!X->stmts.empty()) {
+         push(new BlockVisitState(X));
+         Step(X->stmts[0]);
+      }
+      break;
+   }
+   case AstType::BinaryExpr: {
+      BinaryExpr *X = cast<BinaryExpr>(ast);
+      generic_visit(X);
+      break;
+   }
+   case AstType::IncrExpr: {
+      IncrExpr *X = cast<IncrExpr>(ast);
+      generic_visit(X); 
+      break;
+   }
+   case AstType::ExprStmt: {
+      ExprStmt *X = cast<ExprStmt>(ast);
+      if (X->expr->is_assignment()) {
+         visit_assignment(dynamic_cast<BinaryExpr*>(X->expr));
+      } 
+      else if (X->expr->is_write_expr()) {
+         BinaryExpr *e = dynamic_cast<BinaryExpr*>(X->expr);
+         assert(e != 0);
+         WriteExprVisitState *ws = new WriteExprVisitState(e);
+         e->collect_rights(ws->exprs);
+         push(ws);
+         ws->step(this);
+      } else if (X->expr->is<CallExpr>()) {
+         Step(X->expr);
+      } else {
+         I.Eval(X->expr);
+         if (X->is_return) {
+            ostringstream oss;
+            oss << I._curr;
+            status(_T("%s is returned.", oss.str().c_str()));
+         } else {
+            status(X->expr->describe());
+         }
+         push(new PopState(X->span));
+      }
+      break;
+   }
+   case AstType::DeclStmt: {
+      DeclStmt *X = cast<DeclStmt>(ast);
+      generic_visit(X);
+      break;
+   }
+   case AstType::IfStmt: {
+      IfStmt *X = cast<IfStmt>(ast);
+      I.Eval(X->cond);
+      Value cond = I._curr;
+      if (!cond.is<Bool>()) {
+         _error(_T("The condition in a '%s' has to be a value of type 'bool'.", "if"));
+      }
+      Stmt *next;
+      if (cond.as<Bool>()) {
+         status(_T("The condition is 'true', we take the first branch."));
+         next = X->then;
+      } else {
+         if (X->els != 0) {
+            status(_T("The condition is 'false', we take the second branch."));
+            next = X->els;
+         } else {
+            status(_T("The condition is 'false', we continue."));
+            next = 0;
+         }
+      }
+      push(new IfVisitState(X->cond->span, next));
+      break;
+   }
+   case AstType::ForStmt: {
+      ForStmt *X = cast<ForStmt>(ast);
+      push(new ForVisitState(X));
+      Step(X->init);
+      break;
+   }
+   case AstType::WhileStmt: {
+      WhileStmt *X = cast<WhileStmt>(ast);
+      WhileVisitState *s = new WhileVisitState(X);
+      s->step(this);
+      push(s);
+      break;
+   }
+   case AstType::CallExpr: {
+      CallExpr *X = cast<CallExpr>(ast);
+      vector<Value> args;
+      I.eval_arguments(X->args, args);
 
-void Stepper::visit_program(Program *x) {
-   I.visit_program_prepare(x);
-   I.visit_program_find_main();
-   status(_T("The program begins."));
-   I.pushenv("main");
-   Func *fn = I._curr.as<Callable>().func.as<Function>().ptr;
-   FuncDecl *main = dynamic_cast<UserFunc*>(fn)->decl;
-   I.invoke_func_prepare(main, vector<Value>());
-   I.actenv();
-   push(new ProgramVisitState(main));
+      if (I.visit_type_conversion(X, args)) {
+         push(new PopState(X->span));
+         return;
+      }
+
+      I.visit_callexpr_getfunc(X);
+      if (I._curr.is<Overloaded>()) {
+         I._curr = I._curr.as<Overloaded>().resolve(args);
+         assert(I._curr.is<Callable>());
+      }
+      Func *fptr = I._curr.as<Callable>().func.as<Function>().ptr;
+      const UserFunc *userfunc = dynamic_cast<const UserFunc*>(fptr);
+      if (userfunc == 0) {
+         I.visit_callexpr_call(I._curr, args);
+         push(new PopState(X->span));
+         return;
+      }
+      FuncDecl *fn = userfunc->decl;
+      assert(fn != 0);
+      CallExprVisitState *s = new CallExprVisitState(X, fn);
+      I.pushenv(fn->funcname());
+      s->step(this);
+      push(s);
+      break;
+   }
+   case AstType::Literal: {
+      Literal *X = cast<Literal>(ast);
+      eval(X);
+      break;
+   }
+   case AstType::FieldExpr: {
+      FieldExpr *X = cast<FieldExpr>(ast);
+      eval(X);
+      break;
+   }
+   case AstType::FullIdent: {
+      FullIdent *X = cast<FullIdent>(ast);
+      eval(X);
+      break;
+   }
+   case AstType::IndexExpr: {
+      IndexExpr *X = cast<IndexExpr>(ast);
+      eval(X);
+      break;
+   }
+   }
 }
 
 Span Stepper::ProgramVisitState::span() const {
    if (at == ProgramVisitState::Begin) {
-      return x->id->span; 
+      return X->id->span; 
    } else if (at == ProgramVisitState::Finished) {
-      Span span(x->block->span.end, x->block->span.end);
+      Span span(X->block->span.end, X->block->span.end);
       span.begin.col--;
       return span;
    }
@@ -75,11 +210,11 @@ Span Stepper::ProgramVisitState::span() const {
 Todo Stepper::ProgramVisitState::step(Stepper *S) {
    switch (at) {
    case Begin: {
-      if (x->block->stmts.empty()) {
+      if (X->block->stmts.empty()) {
          at = End;
          return Next;
       }
-      x->block->accept(S);
+      S->Step(X->block);
       at = End;
       return Stop;
    } 
@@ -99,45 +234,16 @@ Todo Stepper::ProgramVisitState::step(Stepper *S) {
    }
 }
 
-void Stepper::visit_block(Block *x) {
-   if (!x->stmts.empty()) {
-      push(new BlockVisitState(x));
-      x->stmts[0]->accept(this);
-   }
-}
-
 Todo Stepper::BlockVisitState::step(Stepper *S) {
-   const int last = x->stmts.size()-1;
+   const int last = X->stmts.size()-1;
    ++curr;
    if (curr > last) {
       S->pop();
       delete this;
       return Next;
    }
-   x->stmts[curr]->accept(S);
+   S->Step(X->stmts[curr]);
    return Stop;
-}
-
-void Stepper::visit_ifstmt(IfStmt *x) {
-   I.Eval(x->cond);
-   Value cond = I._curr;
-   if (!cond.is<Bool>()) {
-      _error(_T("The condition in a '%s' has to be a value of type 'bool'.", "if"));
-   }
-   Stmt *next;
-   if (cond.as<Bool>()) {
-      status(_T("The condition is 'true', we take the first branch."));
-      next = x->then;
-   } else {
-      if (x->els != 0) {
-         status(_T("The condition is 'false', we take the second branch."));
-         next = x->els;
-      } else {
-         status(_T("The condition is 'false', we continue."));
-         next = 0;
-      }
-   }
-   push(new IfVisitState(x->cond->span, next));
 }
 
 Todo Stepper::IfVisitState::step(Stepper *S) {
@@ -146,21 +252,10 @@ Todo Stepper::IfVisitState::step(Stepper *S) {
    if (next == 0) {
       todo = Next;
    } else {
-      next->accept(S);
+      S->Step(next);
    }
    delete this;
    return todo;
-}
-
-void Stepper::visit_forstmt(ForStmt *x) {
-   push(new ForVisitState(x));
-   x->init->accept(this);
-}
-
-void Stepper::visit_whilestmt(WhileStmt *x) {
-   WhileVisitState *s = new WhileVisitState(x);
-   s->step(this);
-   push(s);
 }
 
 Todo Stepper::ForVisitState::step(Stepper *S) {
@@ -171,7 +266,7 @@ Todo Stepper::ForVisitState::step(Stepper *S) {
       return Next;
    }
    case Stepper::ForVisitState::Cond: {
-      S->visit(x->cond);
+      S->Step(X->cond);
       Value cond = S->I._curr;
       if (!cond.is<Bool>()) {
          S->_error(_T("The condition in a '%s' must be a value of type 'bool'.", "for"));
@@ -186,12 +281,12 @@ Todo Stepper::ForVisitState::step(Stepper *S) {
       return Stop;
    }
    case Stepper::ForVisitState::Block: {
-      x->substmt->accept(S);
+      S->Step(X->substmt);
       at = Stepper::ForVisitState::Post;
       return Stop;
    }
    case Stepper::ForVisitState::Post: {
-      x->post->accept(S);
+      S->Step(X->post);
       at = Stepper::ForVisitState::Cond;
       return Stop;
    }
@@ -206,7 +301,7 @@ Todo Stepper::WhileVisitState::step(Stepper *S) {
       return Next;
    }
    case Stepper::WhileVisitState::Cond: {
-      S->visit(x->cond);
+      S->Step(X->cond);
       Value cond = S->I._curr;
       if (!cond.is<Bool>()) {
          S->_error(_T("The condition in a '%s' must be a value of type 'bool'.", "while"));
@@ -221,35 +316,9 @@ Todo Stepper::WhileVisitState::step(Stepper *S) {
       return Stop;
    }
    case Stepper::WhileVisitState::Block:
-      x->substmt->accept(S);
+      S->Step(X->substmt);
       at = Stepper::WhileVisitState::Cond;
       return Stop;
-   }
-}
-
-void Stepper::visit_exprstmt(ExprStmt *x) { 
-   if (x->expr->is_assignment()) {
-      visit_assignment(dynamic_cast<BinaryExpr*>(x->expr));
-   } 
-   else if (x->expr->is_write_expr()) {
-      BinaryExpr *e = dynamic_cast<BinaryExpr*>(x->expr);
-      assert(e != 0);
-      WriteExprVisitState *ws = new WriteExprVisitState(e);
-      e->collect_rights(ws->exprs);
-      push(ws);
-      ws->step(this);
-   } else if (x->expr->is<CallExpr>()) {
-      visit_callexpr(dynamic_cast<CallExpr*>(x->expr));
-   } else {
-      I.Eval(x->expr);
-      if (x->is_return) {
-         ostringstream oss;
-         oss << I._curr;
-         status(_T("%s is returned.", oss.str().c_str()));
-      } else {
-         status(x->expr->describe());
-      }
-      push(new PopState(x->span));
    }
 }
 
@@ -273,7 +342,7 @@ Todo Stepper::WriteExprVisitState::step(Stepper* S) {
       } else {
          curr = exprs.front();
          const int old_sz = S->_stack.size();
-         curr->accept(S);
+         S->Step(curr);
          if (S->_stack.size() > old_sz) {
             waiting = true;
             return Stop;
@@ -301,9 +370,9 @@ void Stepper::visit_assignment(BinaryExpr *e) {
 
 Span Stepper::EqmentVisitState::span() const {
    if (left.is_null()) {
-      return x->right->span;
+      return X->right->span;
    } else {
-      return Span(x->left->span.begin, x->right->span.begin);
+      return Span(X->left->span.begin, X->right->span.begin);
    }
 }
 
@@ -313,44 +382,15 @@ Todo Stepper::EqmentVisitState::step(Stepper *S) {
       delete this;
       return Next;
    }
-   S->I.Eval(x->left);
+   S->I.Eval(X->left);
    left = S->I._curr;
-   if (x->op == "=") {
+   if (X->op == "=") {
       S->I.visit_binaryexpr_assignment(left, right);
-   } else if (x->op.size() == 2 and x->op[1] == '=') {
-      S->I.visit_binaryexpr_op_assignment(x->op[0], left, right);
+   } else if (X->op.size() == 2 and X->op[1] == '=') {
+      S->I.visit_binaryexpr_op_assignment(X->op[0], left, right);
    }
    S->status(_T("We assign the value."));
    return Stop;
-}
-
-void Stepper::visit_callexpr(CallExpr *x) {
-   vector<Value> args;
-   I.eval_arguments(x->args, args);
-
-   if (I.visit_type_conversion(x, args)) {
-      push(new PopState(x->span));
-      return;
-   }
-
-   I.visit_callexpr_getfunc(x);
-   if (I._curr.is<Overloaded>()) {
-      I._curr = I._curr.as<Overloaded>().resolve(args);
-      assert(I._curr.is<Callable>());
-   }
-   Func *fptr = I._curr.as<Callable>().func.as<Function>().ptr;
-   const UserFunc *userfunc = dynamic_cast<const UserFunc*>(fptr);
-   if (userfunc == 0) {
-      I.visit_callexpr_call(I._curr, args);
-      push(new PopState(x->span));
-      return;
-   }
-   FuncDecl *fn = userfunc->decl;
-   assert(fn != 0);
-   CallExprVisitState *s = new CallExprVisitState(x, fn);
-   I.pushenv(fn->funcname());
-   s->step(this);
-   push(s);
 }
 
 const int Stepper::CallExprVisitState::Block  = -1;
@@ -358,23 +398,23 @@ const int Stepper::CallExprVisitState::Return = -2;
 
 Span Stepper::CallExprVisitState::span() const {
    if (curr == CallExprVisitState::Return) {
-      return x->span;
+      return X->span;
    } else if (curr == CallExprVisitState::Block) {
       return fn->id->span;
    } else {
-      return x->args[curr-1]->span;
+      return X->args[curr-1]->span;
    }
 }
 
 Todo Stepper::CallExprVisitState::step(Stepper *S) {
-   const int size = x->args.size();
+   const int size = X->args.size();
    if (curr == CallExprVisitState::Return) {
       S->I.popenv();
       S->pop();
       delete this;
       return Next;
    } else if (curr == CallExprVisitState::Block) {
-      fn->block->accept(S);
+      S->Step(fn->block);
       curr = CallExprVisitState::Return;
       return Stop;
    } else if (curr < size) {
@@ -383,7 +423,7 @@ Todo Stepper::CallExprVisitState::step(Stepper *S) {
       } else {
          S->status(_T("We evaluate parameter number %d.", curr));
       }
-      S->I.Eval(x->args[curr]);
+      S->I.Eval(X->args[curr]);
       Value v = S->I._curr;
       S->I.invoke_func_prepare_arg(fn, v, curr);
       ++curr;
@@ -426,3 +466,4 @@ string Stepper::state2json() const {
    json << "}}";
    return json.str();
 }
+
