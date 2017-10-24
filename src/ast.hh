@@ -165,13 +165,13 @@ struct IfStmt : public StmtDerived<AstType::IfStmt> {
    Stmt *then = 0, *els = 0;
 };
 
-struct ForStmt : public StmtDerived<AstType::ForStmt> { // while + for
+struct ForStmt : public StmtDerived<AstType::ForStmt> {
    Stmt *init = 0;
    Expr *cond = 0, *post = 0;
    Stmt *substmt = 0;
 };
 
-struct WhileStmt : public StmtDerived<AstType::WhileStmt> { // while + for
+struct WhileStmt : public StmtDerived<AstType::WhileStmt> {
    Expr *cond = 0;
    Stmt *substmt = 0;
 };
@@ -326,8 +326,7 @@ struct FullIdent : TemplateIdent {
 
 struct BinaryExpr : public ExprDerived<AstType::BinaryExpr> {
    Kind kind;
-   std::string op;
-   std::string str;
+   std::string op, str;
    Expr *left, *right;
 
    BinaryExpr(Kind k = Unknown) : kind(k), op("") {}
@@ -336,8 +335,7 @@ struct BinaryExpr : public ExprDerived<AstType::BinaryExpr> {
 };
 
 struct UnaryExpr : public Expr {
-   Expr *expr;
-   UnaryExpr() : expr(0) {}
+   Expr *expr = 0;
 };
 
 template<AstType Type>
