@@ -232,7 +232,7 @@ struct Expr : public Ast {
       // pm_expression 
       Multiplicative, Additive, Shift, Relational, Equality, 
       BitAnd, BitXor, BitOr, LogicalAnd, LogicalOr, Conditional,
-      Eqment, Comma, Infinite
+      Eq, Comma, Infinite
    };
    struct Op2KindInitializer { Op2KindInitializer(); }; // init _op2kind
 
@@ -240,7 +240,6 @@ struct Expr : public Ast {
 
    Expr() : paren(false) {}
 
-   virtual bool is_read_expr()  const { return false; }
    virtual bool is_write_expr() const { return false; }
    virtual bool is_assignment() const { return false; }
    virtual void collect_rights(std::list<Expr*>& L) const {}
@@ -339,7 +338,6 @@ struct BinaryExpr : public ExprDerived<AstType::BinaryExpr> {
 
    void set(Expr::Kind _kind);
 
-   bool is_read_expr()  const;
    bool is_write_expr() const;
    bool is_assignment() const;
    void collect_rights(std::list<Expr*>& L) const;

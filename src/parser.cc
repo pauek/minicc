@@ -722,14 +722,14 @@ Expr *Parser::parse_expr(Ast *parent, BinaryExpr::Kind max) {
          e->cond = left;
          e->comments.push_back(c0);
          _skip(e);
-         e->then = parse_expr(e, Expr::Eqment); // Expr::comma?
+         e->then = parse_expr(e, Expr::Eq); // Expr::comma?
          _skip(e);
          Token colon = _lexer.read_token();
          if (colon.type != Token::Colon) {
             error(e, _T("Expected '%s' here.", ":"));
          }
          _skip(e);
-         e->els = parse_expr(e, Expr::Eqment);
+         e->els = parse_expr(e, Expr::Eq);
          left = e;
       } else {
          BinaryExpr *e = new BinaryExpr();
@@ -760,12 +760,12 @@ Expr *Parser::parse_callexpr(Expr *x) {
    _lexer.consume('(');
    _skip(e);
    if (_lexer.curr() != ')') {
-      e->args.push_back(parse_expr(e, Expr::Eqment));
+      e->args.push_back(parse_expr(e, Expr::Eq));
       _skip(e);
       while (_lexer.curr() == ',') {
          _lexer.next();
          _skip(e);
-         e->args.push_back(parse_expr(e, Expr::Eqment));
+         e->args.push_back(parse_expr(e, Expr::Eq));
          _skip(e);
       }
    }
@@ -932,11 +932,11 @@ Stmt *Parser::parse_switch(Ast *parent) {
 }
 
 void Parser::parse_expr_seq(Ast *parent, vector<Expr*>& exprs) {
-   exprs.push_back(parse_expr(parent, Expr::Eqment));
+   exprs.push_back(parse_expr(parent, Expr::Eq));
    while (_lexer.curr() == ',') {
       _lexer.next();
       _skip(parent);
-      exprs.push_back(parse_expr(parent, Expr::Eqment));
+      exprs.push_back(parse_expr(parent, Expr::Eq));
    }
 }
 
@@ -961,7 +961,7 @@ Expr *Parser::parse_exprlist(Ast *parent) {
       }
       elist->exprs.push_back(_lexer.curr() == '{' 
                              ? parse_exprlist(parent) 
-                             : parse_expr(parent, Expr::Eqment));
+                             : parse_expr(parent, Expr::Eq));
    } while (_lexer.curr() == ',');
 
    if (!_lexer.expect(Token::RBrace)) {
@@ -1052,7 +1052,7 @@ DeclStmt *Parser::parse_declstmt(Ast *parent, bool is_typedef) {
          _skip(stmt);
          item.init = (_lexer.curr() == '{' 
                       ? parse_exprlist(item.decl) 
-                      : parse_expr(item.decl, Expr::Eqment));
+                      : parse_expr(item.decl, Expr::Eq));
       }
       item.decl->typespec = stmt->typespec;
       item.decl->span.end = _lexer.pos();

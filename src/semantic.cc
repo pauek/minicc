@@ -512,7 +512,7 @@ void SemanticAnalyzer::Analyze(Ast *ast) {
       // left
       Analyze(X->left);
       Value left = _curr;
-      if (X->kind != Expr::Eqment) {
+      if (X->kind != Expr::Eq) {
          left = Reference::deref(left);
          check_unknown(left, X->left, _curr_varname);
       }

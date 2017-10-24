@@ -448,7 +448,7 @@ void Interpreter::Eval(Ast* ast) {
       BinaryExpr *X = cast<BinaryExpr>(ast);
       Eval(X->left);
       Value left = _curr;
-      if (X->kind != Expr::Eqment) {
+      if (X->kind != Expr::Eq) {
          left = Reference::deref(left);
       }
 

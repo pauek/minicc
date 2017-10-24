@@ -73,17 +73,17 @@ struct {
    { "",    Token::Empty,        Expr::Unknown },
    { ",",   Token::Comma,        Expr::Comma },
 
-   { "=",   Token::Eq,           Expr::Eqment },
-   { "+=",  Token::PlusEq,       Expr::Eqment },
-   { "-=",  Token::MinusEq,      Expr::Eqment },
-   { "*=",  Token::StarEq,       Expr::Eqment },
-   { "/=",  Token::SlashEq,      Expr::Eqment },
-   { "%=",  Token::DivEq,        Expr::Eqment },
-   { "<<=", Token::LShiftEq,     Expr::Eqment },
-   { ">>=", Token::RShiftEq,     Expr::Eqment },
-   { "&=",  Token::AmpEq,        Expr::Eqment },
-   { "|=",  Token::BarEq,        Expr::Eqment },
-   { "^=",  Token::XorEq,        Expr::Eqment },
+   { "=",   Token::Eq,           Expr::Eq },
+   { "+=",  Token::PlusEq,       Expr::Eq },
+   { "-=",  Token::MinusEq,      Expr::Eq },
+   { "*=",  Token::StarEq,       Expr::Eq },
+   { "/=",  Token::SlashEq,      Expr::Eq },
+   { "%=",  Token::DivEq,        Expr::Eq },
+   { "<<=", Token::LShiftEq,     Expr::Eq },
+   { ">>=", Token::RShiftEq,     Expr::Eq },
+   { "&=",  Token::AmpEq,        Expr::Eq },
+   { "|=",  Token::BarEq,        Expr::Eq },
+   { "^=",  Token::XorEq,        Expr::Eq },
 
    { ":",   Token::Colon,        Expr::Infinite },
    { "?",   Token::QMark,        Expr::Conditional },
@@ -151,7 +151,7 @@ Expr::Kind Expr::tok2kind(Token::Type tokkind) {
 }
 
 bool Expr::right_associative(Expr::Kind t) {
-   return t == Expr::Eqment;
+   return t == Expr::Eq;
 }
 
 std::ostream& ReadWriter::out(OutType typ) { 
@@ -483,13 +483,6 @@ int StructDecl::num_fields() const {
    return num;
 }
 
-bool BinaryExpr::is_read_expr() const {
-   FullIdent *id = dynamic_cast<FullIdent*>(left);
-   return 
-      (left->is_read_expr() and op == ">>") or
-      (id != 0 and id->name == "cin");   
-}
-
 bool BinaryExpr::is_write_expr() const {
    FullIdent *id = dynamic_cast<FullIdent*>(left);
    return 
@@ -498,12 +491,28 @@ bool BinaryExpr::is_write_expr() const {
 }
 
 bool BinaryExpr::is_assignment() const {
-   return kind == Expr::Eqment;
+   return kind == Expr::Eq;
 }
 
 void BinaryExpr::collect_rights(list<Expr*>& L) const {
    L.push_front(right);
    left->collect_rights(L);
+}
+
+bool IsReadExpr(Ast *ast) {
+   switch (ast->type()) {
+   case AstType::BinaryExpr: {
+      BinaryExpr *X = cast<BinaryExpr>(ast);
+      if (isa<FullIdent>(X->left)) {
+         FullIdent *id = cast<FullIdent>(X->left);
+         return id->name == "cin";
+      } else {
+         return IsReadExpr(X->left) and X->op == ">>";
+      }
+   }
+   default:
+      false;
+   }
 }
 
 string Describe(Ast *ast) {
@@ -525,7 +534,7 @@ string Describe(Ast *ast) {
       if (X->is_write_expr()) {
          return _T("Some output is written.");
       }
-      if (X->is_read_expr()) {
+      if (IsReadExpr(X)) {
          return _T("Some input is read.");
       }
       return _T("UNIMPLEMENTED");

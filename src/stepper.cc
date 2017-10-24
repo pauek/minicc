@@ -365,10 +365,10 @@ void Stepper::visit_assignment(BinaryExpr *e) {
    oss << right;
    string escaped = Literal::escape(oss.str(), '"');
    status(_T("La expresión ha dado %s.", escaped.c_str()));
-   push(new EqmentVisitState(e, right));
+   push(new AssignVisitState(e, right));
 }
 
-Span Stepper::EqmentVisitState::span() const {
+Span Stepper::AssignVisitState::span() const {
    if (left.is_null()) {
       return X->right->span;
    } else {
@@ -376,7 +376,7 @@ Span Stepper::EqmentVisitState::span() const {
    }
 }
 
-Todo Stepper::EqmentVisitState::step(Stepper *S) {
+Todo Stepper::AssignVisitState::step(Stepper *S) {
    if (!left.is_null()) {
       S->pop();
       delete this;
