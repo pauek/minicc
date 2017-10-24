@@ -6,13 +6,12 @@
 #include "ast.hh"
 #include "value.hh"
 #include "types.hh"
-#include "readwriter.hh"
 
 struct EvalError : public Error {
    EvalError(std::string _msg) : Error(_msg) {}
 };
 
-class Interpreter : public ReadWriter, WithEnvironment {
+class Interpreter : WithEnvironment {
     Value _curr, _ret;
 
     void _error(std::string msg) { throw new EvalError(msg); }
@@ -48,7 +47,7 @@ class Interpreter : public ReadWriter, WithEnvironment {
 
 public:
    Interpreter(std::istream *i, std::ostream *o)
-      : ReadWriter(i, o), WithEnvironment(i, o) {}
+      : WithEnvironment(i, o) {}
 
    void Eval(Ast *ast);
 
