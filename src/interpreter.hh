@@ -6,6 +6,7 @@
 #include "ast.hh"
 #include "value.hh"
 #include "types.hh"
+#include "readwriter.hh"
 
 struct EvalError : public Error {
    EvalError(std::string _msg) : Error(_msg) {}

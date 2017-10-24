@@ -128,18 +128,6 @@ bool Expr::right_associative(Expr::Kind t) {
    return t == Expr::Eq;
 }
 
-std::ostream& ReadWriter::out(OutType typ) { 
-   ostream *o = _out;
-   if (!_stack.empty()) {
-      o = _stack.back();
-   }
-   if (typ == beginl and _indent > 0) {
-      *o << indentation();
-   }
-   return *o; 
-}
-
-
 void BinaryExpr::set(Expr::Kind k) {
    kind = k;
 }
