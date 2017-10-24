@@ -62,7 +62,7 @@ void Error::ToJson(ostream& o) const {
    o << "}";
 }
 
-const string TypeSpec::QualifiersNames[] = { 
+const string TypeSpec::QualifierNames[] = { 
    "const",    "volatile", "mutable", 
    "register", "auto",     "extern"
 };
@@ -356,7 +356,7 @@ Identifier *Identifier::GetPotentialNamespaceOrClass() const {
    return 0;
 }
 
-vector<Identifier*> Identifier::get_non_namespaces() {
+vector<Identifier*> Identifier::GetNonNamespaces() {
    vector<Identifier*>::iterator it = prefix.begin();
    while (it != prefix.end() and (*it)->is_namespace) {
       it++;
@@ -370,7 +370,7 @@ Identifier *TypeSpec::GetPotentialNamespaceOrClass() const {
    return id->GetPotentialNamespaceOrClass();
 }
 
-bool TypeSpec::is(TypeSpec::Qualifiers q) const {
+bool TypeSpec::HasQualifier(TypeSpec::Qualifier q) const {
    return find(qual.begin(), qual.end(), q) != qual.end();
 }
 
@@ -380,8 +380,8 @@ string TypeSpec::TypeStr() const {
    static const string names[] = { 
       "const", "volatile", "mutable", "register", "auto", "extern"
    };
-   while (TypeSpec::Qualifiers(1 << i) <= TypeSpec::Extern) {
-      int q = TypeSpec::Qualifiers(1 << i);
+   while (TypeSpec::Qualifier(1 << i) <= TypeSpec::Extern) {
+      int q = TypeSpec::Qualifier(1 << i);
       if (find(qual.begin(), qual.end(), q) != qual.end()) {
          if (numquals > 0) {
             _id += " ";

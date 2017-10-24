@@ -800,7 +800,7 @@ void SemanticAnalyzer::Analyze(Ast *ast) {
       } 
       
       if (init.is_null()) {
-         if (X->typespec->is(TypeSpec::Const)) {
+         if (X->typespec->HasQualifier(TypeSpec::Const)) {
             X->AddError(_T("Las constantes deben tener un valor inicial."));
          }
          init = type->create();
@@ -818,13 +818,13 @@ void SemanticAnalyzer::Analyze(Ast *ast) {
          } catch (TypeError *e) {
             X->AddError(e->msg);
          }
-         if (X->typespec->is(TypeSpec::Const) and
+         if (X->typespec->HasQualifier(TypeSpec::Const) and
              type->is<Struct>() and
              init.contains_unknowns()) {
             X->AddError(_T("En una tupla constante hay que inicializar todas las casillas."));
          }
       }
-      if (X->typespec->is(TypeSpec::Const)) {
+      if (X->typespec->HasQualifier(TypeSpec::Const)) {
          init.set_const(true);
       }
       setenv(X->name, init);
@@ -859,7 +859,7 @@ void SemanticAnalyzer::Analyze(Ast *ast) {
       // FIXME: don't create new Array type every time?
       Type *arraytype = Array::mkarray(celltype, sizes);
       if (init.is_null()) {
-         if (X->typespec->is(TypeSpec::Const)) {
+         if (X->typespec->HasQualifier(TypeSpec::Const)) {
             X->AddError(_T("Las tablas constantes deben tener un valor inicial."));
          }
          init = arraytype->create();
@@ -870,7 +870,7 @@ void SemanticAnalyzer::Analyze(Ast *ast) {
             X->AddError(e.msg);
             init = arraytype->create();
          }
-         if (X->typespec->is(TypeSpec::Const)) {
+         if (X->typespec->HasQualifier(TypeSpec::Const)) {
             if (init.contains_unknowns()) {
                X->AddError(_T("En una tabla constante hay que inicializar todas las casillas."));
             }

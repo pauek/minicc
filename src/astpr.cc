@@ -86,12 +86,12 @@ void AstPrinter::Print(Ast* ast) {
          out.Write(", {");
          int i = 0, numq = 0;
          for (int q = TypeSpec::Const; q <= TypeSpec::Extern; q++) {
-            vector<TypeSpec::Qualifiers>& Q = X->qual;
+            vector<TypeSpec::Qualifier>& Q = X->qual;
             if (find(Q.begin(), Q.end(), q) != X->qual.end()) {
                if (numq > 0) {
                   out.Write(", ");
                }
-               out.Write(TypeSpec::QualifiersNames[i]);
+               out.Write(TypeSpec::QualifierNames[i]);
                numq++;
             }
             i++;

@@ -187,7 +187,7 @@ void PrettyPrinter::Print(Ast* ast) {
       TypeSpec *X = cast<TypeSpec>(ast);
       CommentPrinter cp(X, out);
       for (int q : X->qual) {
-         out.Write(TypeSpec::QualifiersNames[q], " ");
+         out.Write(TypeSpec::QualifierNames[q], " ");
          cp.CommentSpace();
       }
       Print(X->id);

@@ -61,7 +61,7 @@ Type *TypeMap::get_type(TypeSpec *spec, Environment *topmost) {
    }
    // 2. Construct the Type from the TypeSpec
    {
-      vector<Identifier*> path = spec->id->get_non_namespaces();
+      vector<Identifier*> path = spec->id->GetNonNamespaces();
       assert(!path.empty());
 
       // find first type

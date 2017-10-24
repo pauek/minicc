@@ -285,7 +285,7 @@ struct Identifier : ExprDerived<AstType::Identifier> {
    std::string TypeStr() const;
    void shift(std::string new_id);
    Identifier *GetPotentialNamespaceOrClass() const;
-   std::vector<Identifier*> get_non_namespaces();
+   std::vector<Identifier*> GetNonNamespaces();
 
    static bool classof(const Ast *ast) { 
       return ast->Type() == AstType::Identifier; 
@@ -293,20 +293,20 @@ struct Identifier : ExprDerived<AstType::Identifier> {
 };
 
 struct TypeSpec : public AstDerived<AstType::TypeSpec> {
-   static const std::string QualifiersNames[];
+   static const std::string QualifierNames[];
 
-   enum Qualifiers {
+   enum Qualifier {
       Const    = 0, Volatile = 1, Mutable = 2, 
       Register = 3, Auto     = 4, Extern  = 5
    };
 
    bool                    reference = false;
-   std::vector<Qualifiers> qual;
+   std::vector<Qualifier> qual;
    Identifier              *id = 0;
 
    TypeSpec() = default;
    TypeSpec(Identifier *_id) : id(_id), reference(false) {}
-   bool is(Qualifiers q) const;
+   bool HasQualifier(Qualifier q) const;
    std::string TypeStr() const;
 
    bool IsTemplate() const { return !id->subtypes.empty(); }

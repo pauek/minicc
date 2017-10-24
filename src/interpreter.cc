@@ -613,7 +613,7 @@ void Interpreter::Eval(Ast* ast) {
          Value init = (_curr.is_null() 
                        ? type->create() 
                        : type->convert(_curr));
-         if (X->typespec->is(TypeSpec::Const)) {
+         if (X->typespec->HasQualifier(TypeSpec::Const)) {
             init.set_const(true);
          }
          setenv(X->name, init);
