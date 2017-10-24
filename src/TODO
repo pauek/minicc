@@ -8,7 +8,12 @@
 
 - El sistema de tipos es un gran embrollo ahora mismo.
 
-- Hay que traducir todos los visitors para usar el sistema de type-tags.
+- Hay que traducir todos los visitors para usar el sistema de type-tags:
+  [X] AstPrinter
+  [X] PrettyPrinter
+  [X] SemanticAnalyzer
+  [ ] Interpreter
+  [ ] Stepper
 
 
   

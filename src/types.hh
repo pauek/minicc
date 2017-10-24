@@ -19,7 +19,7 @@ struct Func {
    std::string name;
    Func(std::string n) : name(n) {}
    virtual ~Func() {}
-   virtual Value call(Interpreter *I, Value self, const std::vector<Value>& args) = 0;
+   virtual Value call(Value self, const std::vector<Value>& args) = 0;
    virtual bool  call_abstract(Ast *x, Value self, const std::vector<Value>& args) { return false; }
 };
 
@@ -365,8 +365,8 @@ struct Binding {
    Binding(Value _self, Value _func) 
       : self(_self), func(_func) {}
 
-   Value call(Interpreter *I, const std::vector<Value>& args) {
-      return func.as<Function>().ptr->call(I, self, args);
+   Value call(const std::vector<Value>& args) {
+      return func.as<Function>().ptr->call(self, args);
    }
    bool call_abstract(Ast *x, const std::vector<Value>& args) {
       return func.as<Function>().ptr->call_abstract(x, self, args);

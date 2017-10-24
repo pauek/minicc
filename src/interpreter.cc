@@ -47,7 +47,7 @@ void Interpreter::visit_program_find_main() {
 void Interpreter::visit_program(Program* x) {
    visit_program_prepare(x);
    visit_program_find_main();
-   _curr.as<Callable>().call(this, vector<Value>());
+   _curr.as<Callable>().call(vector<Value>());
 }
 
 void Interpreter::visit_comment(CommentSeq* cn) {}
@@ -73,7 +73,7 @@ void Interpreter::visit_funcdecl(FuncDecl *x) {
       assert(param_type != 0);
       functype->add_params(param_type);
    }
-   Value func = functype->mkvalue(new UserFunc(funcname, x));
+   Value func = functype->mkvalue(new UserFunc(funcname, x, this));
    Value callable = Callable::self->mkvalue(Value::null, func); // bind with 'null'
    setenv(funcname, callable, Hidden);
 }
@@ -532,7 +532,7 @@ bool Interpreter::call_operator(string op, const vector<Value>& args) {
    Binding& opfun = _curr.as<Callable>();
    const Function *func_type = opfun.func.type()->as<Function>();
    check_arguments(func_type, args);
-   _curr = opfun.call(this, args);
+   _curr = opfun.call(args);
    return true;
 }
    
@@ -554,7 +554,7 @@ void Interpreter::visit_objdecl(ObjDecl *x) {
       Binding& constructor = _curr.as<Callable>();
       const Function *func_type = constructor.func.type()->as<Function>();
       check_arguments(func_type, args);
-      constructor.call(this, args); // <-- Invoke!
+      constructor.call(args); // <-- Invoke!
       
       setenv(x->name, new_obj);
       return;
@@ -724,7 +724,7 @@ void Interpreter::visit_callexpr_call(Value func, const vector<Value>& args) {
    Binding& fn = func.as<Callable>();
    const Function *func_type = fn.func.type()->as<Function>();
    check_arguments(func_type, args);
-   _ret = fn.call(this, args); // <-- Invoke!
+   _ret = fn.call(args); // <-- Invoke!
    check_result(fn, func_type);
    _curr = _ret;
 }

@@ -351,7 +351,7 @@ Vector::Vector(Type *celltype)
    struct VectorConstructor1 : public Func {
       Type *celltype;
       VectorConstructor1(Type *t) : Func("vector"), celltype(t) {}
-      Value call(Interpreter *I, Value self, const vector<Value>& args) {
+      Value call(Value self, const vector<Value>& args) {
          vector<Value>& the_vector = self.as<Vector>();
          Value the_size = Reference::deref(args[0]);
          const int sz = the_size.as<Int>();
@@ -368,7 +368,7 @@ Vector::Vector(Type *celltype)
    // vector(size, elem)
    struct VectorConstructor2 : public Func {
       VectorConstructor2() : Func("vector") {}
-      Value call(Interpreter *I, Value self, const vector<Value>& args) {
+      Value call(Value self, const vector<Value>& args) {
          vector<Value>& the_vector = self.as<Vector>();
          Value the_size = Reference::deref(args[0]);
          const int sz = the_size.as<Int>();
@@ -386,7 +386,7 @@ Vector::Vector(Type *celltype)
    // size
    struct SizeMethod : public Func {
       SizeMethod() : Func("size") {}
-      Value call(Interpreter *I, Value self, const vector<Value>& args) {
+      Value call(Value self, const vector<Value>& args) {
          assert(args.empty());
          vector<Value>& the_vector = self.as<Vector>();
          return Value(int(the_vector.size()));
@@ -398,7 +398,7 @@ Vector::Vector(Type *celltype)
    // empty
    struct EmptyMethod : public Func {
       EmptyMethod() : Func("empty") {}
-      Value call(Interpreter *I, Value self, const vector<Value>& args) {
+      Value call(Value self, const vector<Value>& args) {
          assert(args.empty());
          vector<Value>& the_vector = self.as<Vector>();
          return Value(bool(the_vector.empty()));
@@ -410,7 +410,7 @@ Vector::Vector(Type *celltype)
    // push_back
    struct PushBackMethod : public Func {
       PushBackMethod() : Func("push_back") {}
-      Value call(Interpreter *I, Value self, const vector<Value>& args) {
+      Value call(Value self, const vector<Value>& args) {
          vector<Value>& v = self.as<Vector>();
          Value pushed = Reference::deref(args[0]);
          v.push_back(pushed.clone());
@@ -423,7 +423,7 @@ Vector::Vector(Type *celltype)
    // pop_back
    struct PopBackMethod : public Func {
       PopBackMethod() : Func("pop_back") {}
-      Value call(Interpreter *I, Value self, const vector<Value>& args) {
+      Value call(Value self, const vector<Value>& args) {
          vector<Value>& the_vector = self.as<Vector>();
          the_vector.pop_back();
          return Value::null;
@@ -436,7 +436,7 @@ Vector::Vector(Type *celltype)
    struct Resize1Method : public Func {
       Type *celltype;
       Resize1Method(Type *t) : Func("resize"), celltype(t) {}
-      Value call(Interpreter *I, Value self, const vector<Value>& args) {
+      Value call(Value self, const vector<Value>& args) {
          vector<Value>& the_vector = self.as<Vector>();
          Value the_new_size = Reference::deref(args[0]);
          the_vector.resize(the_new_size.as<Int>(), default_value_for(celltype));
@@ -449,7 +449,7 @@ Vector::Vector(Type *celltype)
    // resize(int, T)
    struct Resize2Method : public Func {
       Resize2Method() : Func("resize") {}
-      Value call(Interpreter *I, Value self, const vector<Value>& args) {
+      Value call(Value self, const vector<Value>& args) {
          vector<Value>& the_vector = self.as<Vector>();
          Value the_new_size  = Reference::deref(args[0]);
          Value the_new_value = Reference::deref(args[1]);
@@ -465,7 +465,7 @@ Vector::Vector(Type *celltype)
    // front
    struct FrontMethod : public Func {
       FrontMethod() : Func("front") {}
-      Value call(Interpreter *I, Value self, const vector<Value>& args)  {
+      Value call(Value self, const vector<Value>& args)  {
          vector<Value>& the_vector = self.as<Vector>();
          return Reference::mkref(the_vector.front());
       }
@@ -476,7 +476,7 @@ Vector::Vector(Type *celltype)
    // back
    struct BackMethod : public Func {
       BackMethod() : Func("back") {}
-      Value call(Interpreter *I, Value self, const vector<Value>& args) {
+      Value call(Value self, const vector<Value>& args) {
          vector<Value>& the_vector = self.as<Vector>();
          return Reference::mkref(the_vector.back());
       }
@@ -487,7 +487,7 @@ Vector::Vector(Type *celltype)
    // clear
    struct ClearMethod : public Func {
       ClearMethod() : Func("clear") {}
-      Value call(Interpreter *I, Value self, const vector<Value>& args) {
+      Value call(Value self, const vector<Value>& args) {
          vector<Value>& the_vector = self.as<Vector>();
          the_vector.clear();
          return Value::null;
@@ -505,7 +505,7 @@ Vector::Vector(Type *celltype)
    struct BeginMethod : public Func {
       Type *iter_type;
       BeginMethod(Type *t) : Func("begin"), iter_type(t) {}
-      Value call(Interpreter *I, Value self, const vector<Value>& args) {
+      Value call(Value self, const vector<Value>& args) {
          vector<Value>& the_vector = self.as<Vector>();
          return Value(iter_type, new vector<Value>::iterator(the_vector.begin()));
       }
@@ -516,7 +516,7 @@ Vector::Vector(Type *celltype)
    struct EndMethod : public Func {
       Type *iter_type;
       EndMethod(Type *t) : Func("end"), iter_type(t) {}
-      Value call(Interpreter *I, Value self, const vector<Value>& args) {
+      Value call(Value self, const vector<Value>& args) {
          vector<Value>& the_vector = self.as<Vector>();
          return Value(iter_type, new vector<Value>::iterator(the_vector.end()));
       }
@@ -528,7 +528,7 @@ Vector::Vector(Type *celltype)
    struct InsertMethod : public Func {
       Type *iter_type;
       InsertMethod(Type *t) : Func("insert"), iter_type(t) {}
-      Value call(Interpreter *I, Value self, const vector<Value>& args) {
+      Value call(Value self, const vector<Value>& args) {
          vector<Value>& the_vector = self.as<Vector>();
          Value pos = Reference::deref(args[0]);
          Value val = Reference::deref(args[1]);
@@ -544,7 +544,7 @@ Vector::Vector(Type *celltype)
    struct EraseMethod : public Func {
       Type *iter_type;
       EraseMethod(Type *t) : Func("erase"), iter_type(t) {}
-      Value call(Interpreter *I, Value self, const vector<Value>& args) {
+      Value call(Value self, const vector<Value>& args) {
          vector<Value>& the_vector = self.as<Vector>();
          Value pos = Reference::deref(args[0]);
          vector<Value>::iterator it = pos.as<MyIterator>();
@@ -558,7 +558,7 @@ Vector::Vector(Type *celltype)
    // []
    struct IndexedAccessOperator : public Func {
       IndexedAccessOperator() : Func("[]") {}
-      Value call(Interpreter *I, Value self, const vector<Value>& args) {
+      Value call(Value self, const vector<Value>& args) {
          vector<Value>& the_vector = self.as<Vector>();
          Value the_index = Reference::deref(args[0]);
          int k = the_index.as<Int>();
@@ -633,7 +633,7 @@ List::List(Type *celltype)
    struct ListConstructor1 : public Func {
       Type *celltype;
       ListConstructor1(Type *t) : Func("list"), celltype(t) {}
-      Value call(Interpreter *I, Value self, const vector<Value>& args) {
+      Value call(Value self, const vector<Value>& args) {
          list<Value>& the_list = self.as<List>();
          Value the_new_size = Reference::deref(args[0]);
          the_list.resize(the_new_size.as<Int>());
@@ -649,7 +649,7 @@ List::List(Type *celltype)
    // list(size, elem)
    struct ListConstructor2 : public Func {
       ListConstructor2() : Func("list") {}
-      Value call(Interpreter *I, Value self, const vector<Value>& args) {
+      Value call(Value self, const vector<Value>& args) {
          list<Value>& the_list = self.as<List>();
          Value the_new_size  = Reference::deref(args[0]);
          Value the_new_value = Reference::deref(args[1]);
@@ -667,7 +667,7 @@ List::List(Type *celltype)
    // size
    struct SizeMethod : public Func {
       SizeMethod() : Func("size") {}
-      Value call(Interpreter *I, Value self, const vector<Value>& args) {
+      Value call(Value self, const vector<Value>& args) {
          assert(args.empty());
          list<Value>& the_list = self.as<List>();
          return Value(int(the_list.size()));
@@ -679,7 +679,7 @@ List::List(Type *celltype)
    // empty
    struct EmptyMethod : public Func {
       EmptyMethod() : Func("empty") {}
-      Value call(Interpreter *I, Value self, const vector<Value>& args) {
+      Value call(Value self, const vector<Value>& args) {
          assert(args.empty());
          list<Value>& the_list = self.as<List>();
          return Value(bool(the_list.empty()));
@@ -691,7 +691,7 @@ List::List(Type *celltype)
    // push_back
    struct PushBackMethod : public Func {
       PushBackMethod() : Func("push_back") {}
-      Value call(Interpreter *I, Value self, const vector<Value>& args) {
+      Value call(Value self, const vector<Value>& args) {
          list<Value>& the_list = self.as<List>();
          Value pushed = Reference::deref(args[0]);
          the_list.push_back(pushed.clone());
@@ -704,7 +704,7 @@ List::List(Type *celltype)
    // push_front
    struct PushFrontMethod : public Func {
       PushFrontMethod() : Func("push_front") {}
-      Value call(Interpreter *I, Value self, const vector<Value>& args) {
+      Value call(Value self, const vector<Value>& args) {
          list<Value>& the_list = self.as<List>();
          Value pushed = Reference::deref(args[0]);
          the_list.push_front(pushed.clone());
@@ -717,7 +717,7 @@ List::List(Type *celltype)
    // pop_back
    struct PopBackMethod : public Func {
       PopBackMethod() : Func("pop_back") {}
-      Value call(Interpreter *I, Value self, const vector<Value>& args) {
+      Value call(Value self, const vector<Value>& args) {
          list<Value>& the_list = self.as<List>();
          the_list.pop_back();
          return Value::null;
@@ -729,7 +729,7 @@ List::List(Type *celltype)
    // pop_front
    struct PopFrontMethod : public Func {
       PopFrontMethod() : Func("pop_front") {}
-      Value call(Interpreter *I, Value self, const vector<Value>& args) {
+      Value call(Value self, const vector<Value>& args) {
          list<Value>& the_list = self.as<List>();
          the_list.pop_front();
          return Value::null;
@@ -742,7 +742,7 @@ List::List(Type *celltype)
    struct Resize1Method : public Func {
       Type *celltype;
       Resize1Method(Type *t) : Func("resize"), celltype(t) {}
-      Value call(Interpreter *I, Value self, const vector<Value>& args) {
+      Value call(Value self, const vector<Value>& args) {
          list<Value>& the_list = self.as<List>();
          Value the_new_size  = Reference::deref(args[0]);
          int sz = the_new_size.as<Int>();
@@ -763,7 +763,7 @@ List::List(Type *celltype)
    // resize(int, T)
    struct Resize2Method : public Func {
       Resize2Method() : Func("resize") {}
-      Value call(Interpreter *I, Value self, const vector<Value>& args) {
+      Value call(Value self, const vector<Value>& args) {
          list<Value>& the_list = self.as<List>();
          Value the_new_size  = Reference::deref(args[0]);
          Value the_new_value = Reference::deref(args[1]);
@@ -787,7 +787,7 @@ List::List(Type *celltype)
    // front
    struct FrontMethod : public Func {
       FrontMethod() : Func("front") {}
-      Value call(Interpreter *I, Value self, const vector<Value>& args)  {
+      Value call(Value self, const vector<Value>& args)  {
          list<Value>& the_list = self.as<List>();
          return Reference::mkref(the_list.front());
       }
@@ -798,7 +798,7 @@ List::List(Type *celltype)
    // back
    struct BackMethod : public Func {
       BackMethod() : Func("back") {}
-      Value call(Interpreter *I, Value self, const vector<Value>& args) {
+      Value call(Value self, const vector<Value>& args) {
          list<Value>& the_list = self.as<List>();
          return Reference::mkref(the_list.back());
       }
@@ -809,7 +809,7 @@ List::List(Type *celltype)
    // clear
    struct ClearMethod : public Func {
       ClearMethod() : Func("clear") {}
-      Value call(Interpreter *I, Value self, const vector<Value>& args) {
+      Value call(Value self, const vector<Value>& args) {
          list<Value>& the_list = self.as<List>();
          the_list.clear();
          return Value::null;
@@ -821,7 +821,7 @@ List::List(Type *celltype)
    // reverse
    struct ReverseMethod : public Func {
       ReverseMethod() : Func("reverse") {}
-      Value call(Interpreter *I, Value self, const vector<Value>& args) {
+      Value call(Value self, const vector<Value>& args) {
          list<Value>& the_list = self.as<List>();
          the_list.reverse();
          return Value::null;
@@ -833,7 +833,7 @@ List::List(Type *celltype)
    // unique
    struct UniqueMethod : public Func {
       UniqueMethod() : Func("unique") {}
-      Value call(Interpreter *I, Value self, const vector<Value>& args) {
+      Value call(Value self, const vector<Value>& args) {
          list<Value>& the_list = self.as<List>();
          the_list.unique([](const Value& a, const Value& b) {
             return a.equals(b);
@@ -847,7 +847,7 @@ List::List(Type *celltype)
    // sort
    struct SortMethod : public Func {
       SortMethod() : Func("sort") {}
-      Value call(Interpreter *I, Value self, const vector<Value>& args) {
+      Value call(Value self, const vector<Value>& args) {
          list<Value>& the_list = self.as<List>();
          the_list.sort([](const Value& a, const Value& b) {
             return a.less_than(b);
@@ -861,14 +861,14 @@ List::List(Type *celltype)
    // sort
    struct SortFnMethod : public Func {
       SortFnMethod() : Func("sort") {}
-      Value call(Interpreter *I, Value self, const vector<Value>& args) {
+      Value call(Value self, const vector<Value>& args) {
          list<Value>& the_list = self.as<List>();
          Value the_function = Reference::deref(args[0]);
          the_list.sort([&](const Value& a, const Value& b) {
             vector<Value> args = {a, b};
             Binding& fn = the_function.as<Callable>();
             const Function *func_type = fn.func.type()->as<Function>();
-            Value ret = fn.call(I, args);
+            Value ret = fn.call(args);
             return ret.as<Bool>();
          });
          return Value::null;
@@ -886,7 +886,7 @@ List::List(Type *celltype)
    struct BeginMethod : public Func {
       Type *iter_type;
       BeginMethod(Type *t) : Func("begin"), iter_type(t) {}
-      Value call(Interpreter *I, Value self, const vector<Value>& args) {
+      Value call(Value self, const vector<Value>& args) {
          list<Value>& the_list = self.as<List>();
          return Value(iter_type, new list<Value>::iterator(the_list.begin()));
       }
@@ -897,7 +897,7 @@ List::List(Type *celltype)
    struct EndMethod : public Func {
       Type *iter_type;
       EndMethod(Type *t) : Func("end"), iter_type(t) {}
-      Value call(Interpreter *I, Value self, const vector<Value>& args) {
+      Value call(Value self, const vector<Value>& args) {
          list<Value>& the_list = self.as<List>();
          return Value(iter_type, new list<Value>::iterator(the_list.end()));
       }
@@ -908,7 +908,7 @@ List::List(Type *celltype)
    struct InsertMethod : public Func {
       Type *iter_type;
       InsertMethod(Type *t) : Func("insert"), iter_type(t) {}
-      Value call(Interpreter *I, Value self, const vector<Value>& args) {
+      Value call(Value self, const vector<Value>& args) {
          list<Value>& the_list = self.as<List>();
          Value pos = Reference::deref(args[0]);
          list<Value>::iterator it = pos.as<MyIterator>();
@@ -923,7 +923,7 @@ List::List(Type *celltype)
    struct EraseMethod : public Func {
       Type *iter_type;
       EraseMethod(Type *t) : Func("erase"), iter_type(t) {}
-      Value call(Interpreter *I, Value self, const vector<Value>& args) {
+      Value call(Value self, const vector<Value>& args) {
          list<Value>& the_list = self.as<List>();
          Value pos = Reference::deref(args[0]);
          list<Value>::iterator it = pos.as<MyIterator>();
@@ -997,7 +997,7 @@ Pair::Pair(Type *_1, Type *_2)
    // <
    struct LessThanOperator : public Func {
       LessThanOperator() : Func("<") {}
-      Value call(Interpreter *I, Value self, const vector<Value>& args) {
+      Value call(Value self, const vector<Value>& args) {
          Value other = Reference::deref(args[0]);
          pair<Value, Value>& a = self.as<Pair>();
          pair<Value, Value>& b = other.as<Pair>();
@@ -1082,7 +1082,7 @@ Map::Map(Type *k, Type *v)
    // size
    struct SizeMethod : public Func {
       SizeMethod() : Func("size") {}
-      Value call(Interpreter *I, Value self, const vector<Value>& args) {
+      Value call(Value self, const vector<Value>& args) {
          assert(args.empty());
          map<Value, Value>& the_map = self.as<Map>();
          return Value(int(the_map.size()));
@@ -1094,7 +1094,7 @@ Map::Map(Type *k, Type *v)
    // empty
    struct EmptyMethod : public Func {
       EmptyMethod() : Func("empty") {}
-      Value call(Interpreter *I, Value self, const vector<Value>& args) {
+      Value call(Value self, const vector<Value>& args) {
          assert(args.empty());
          map<Value, Value>& the_map = self.as<Map>();
          return Value(bool(the_map.empty()));
@@ -1106,7 +1106,7 @@ Map::Map(Type *k, Type *v)
    // clear
    struct ClearMethod : public Func {
       ClearMethod() : Func("clear") {}
-      Value call(Interpreter *I, Value self, const vector<Value>& args) {
+      Value call(Value self, const vector<Value>& args) {
          assert(args.empty());
          map<Value, Value>& the_map = self.as<Map>();
          the_map.clear();
@@ -1128,7 +1128,7 @@ Map::Map(Type *k, Type *v)
       InsertMethod(Type *t1, Type *t2) 
          : Func("insert"), iterator_type(t1), insert_return_type(t2) {}
 
-      Value call(Interpreter *I, Value self, const vector<Value>& args) {
+      Value call(Value self, const vector<Value>& args) {
          map<Value, Value>& the_map = self.as<Map>();
          Value elem = Reference::deref(args[0]);
          typedef pair<map<Value, Value>::iterator, bool> _pair;
@@ -1147,7 +1147,7 @@ Map::Map(Type *k, Type *v)
    struct FindMethod : public Func {
       Type *iterator_type;
       FindMethod(Type *t) : Func("find"), iterator_type(t) {}
-      Value call(Interpreter *I, Value self, const vector<Value>& args) {
+      Value call(Value self, const vector<Value>& args) {
          map<Value, Value>& the_map = self.as<Map>();
          Value key = Reference::deref(args[0]);
          map<Value, Value>::iterator it = the_map.find(key);
@@ -1160,7 +1160,7 @@ Map::Map(Type *k, Type *v)
    // erase(key)
    struct EraseKeyMethod : public Func {
       EraseKeyMethod() : Func("erase") {}
-      Value call(Interpreter *I, Value self, const vector<Value>& args) {
+      Value call(Value self, const vector<Value>& args) {
          map<Value, Value>& the_map = self.as<Map>();
          Value key = Reference::deref(args[0]);
          the_map.erase(key);
@@ -1173,7 +1173,7 @@ Map::Map(Type *k, Type *v)
    // erase(iterator)
    struct EraseIteratorMethod : public Func {
       EraseIteratorMethod() : Func("erase") {}
-      Value call(Interpreter *I, Value self, const vector<Value>& args) {
+      Value call(Value self, const vector<Value>& args) {
          map<Value, Value>& the_map = self.as<Map>();
          Value the_iterator = Reference::deref(args[0]);
          the_map.erase(the_iterator.as<MyIterator>());
@@ -1187,7 +1187,7 @@ Map::Map(Type *k, Type *v)
    struct BeginMethod : public Func {
       Type *iter_type;
       BeginMethod(Type *t) : Func("begin"), iter_type(t) {}
-      Value call(Interpreter *I, Value self, const vector<Value>& args) {
+      Value call(Value self, const vector<Value>& args) {
          map<Value, Value>& the_map = self.as<Map>();
          return Value(iter_type, new map<Value, Value>::iterator(the_map.begin()));
       }
@@ -1198,7 +1198,7 @@ Map::Map(Type *k, Type *v)
    struct EndMethod : public Func {
       Type *iter_type;
       EndMethod(Type *t) : Func("end"), iter_type(t) {}
-      Value call(Interpreter *I, Value self, const vector<Value>& args) {
+      Value call(Value self, const vector<Value>& args) {
          map<Value, Value>& the_map = self.as<Map>();
          return Value(iter_type, new map<Value, Value>::iterator(the_map.end()));
       }
@@ -1209,7 +1209,7 @@ Map::Map(Type *k, Type *v)
    struct FindOperator : public Func {
       Type *value_type;
       FindOperator(Type *t) : Func("[]"), value_type(t) {}
-      Value call(Interpreter *I, Value self, const vector<Value>& args) {
+      Value call(Value self, const vector<Value>& args) {
          map<Value, Value>& the_map = self.as<Map>();
          // Each key has to be a new object, otherwise the box of a key
          // could be modified outside the map and the behavior of the map 
@@ -1485,7 +1485,7 @@ String::String() : Class("string") {
    // constructor(size, char)
    struct StringConstructor1 : public Func {
       StringConstructor1() : Func("string") {}
-      Value call(Interpreter *I, Value self, const vector<Value>& args) {
+      Value call(Value self, const vector<Value>& args) {
          string& the_string = self.as<String>();
          Value size = Reference::deref(args[0]);
          const int sz = size.as<Int>();
@@ -1502,7 +1502,7 @@ String::String() : Class("string") {
    // size
    struct SizeMethod : public Func {
       SizeMethod(string name) : Func(name) {}
-      Value call(Interpreter *I, Value self, const vector<Value>& args) {
+      Value call(Value self, const vector<Value>& args) {
          string& the_string = self.as<String>();
          return Value(int(the_string.size()));
       }
@@ -1513,7 +1513,7 @@ String::String() : Class("string") {
    // substr(from, size)
    struct Substr1Method : public Func {
       Substr1Method() : Func("substr") {}
-      Value call(Interpreter *I, Value self, const vector<Value>& args) {
+      Value call(Value self, const vector<Value>& args) {
          string& the_string = self.as<String>();
          Value pos  = Reference::deref(args[0]);
          Value size = Reference::deref(args[1]);
@@ -1526,7 +1526,7 @@ String::String() : Class("string") {
    // substr(from)
    struct Substr2Method : public Func {
       Substr2Method() : Func("substr") {}
-      Value call(Interpreter *I, Value self, const vector<Value>& args) {
+      Value call(Value self, const vector<Value>& args) {
          string& the_string = self.as<String>();
          Value the_pos = Reference::deref(args[0]);
          return Value(the_string.substr(the_pos.as<Int>()));
@@ -1538,7 +1538,7 @@ String::String() : Class("string") {
    // find(str)
    struct FindMethod1 : public Func {
       FindMethod1() : Func("find") {}
-      Value call(Interpreter *I, Value self, const vector<Value>& args) {
+      Value call(Value self, const vector<Value>& args) {
          string& the_string = self.as<String>();
          Value the_searched = Reference::deref(args[0]);
          return Value(int(the_string.find(the_searched.as<String>())));
@@ -1550,7 +1550,7 @@ String::String() : Class("string") {
    // find(char)
    struct FindMethod2 : public Func {
       FindMethod2() : Func("find") {}
-      Value call(Interpreter *I, Value self, const vector<Value>& args) {
+      Value call(Value self, const vector<Value>& args) {
          string& the_string = self.as<String>();
          Value the_search = Reference::deref(args[0]);
          return Value(int(the_string.find(the_search.as<Char>())));
@@ -1562,7 +1562,7 @@ String::String() : Class("string") {
    // find(str, pos)
    struct FindMethod3 : public Func {
       FindMethod3() : Func("find") {}
-      Value call(Interpreter *I, Value self, const vector<Value>& args) {
+      Value call(Value self, const vector<Value>& args) {
          string& the_string = self.as<String>();
          Value the_search = Reference::deref(args[0]);
          Value the_pos    = Reference::deref(args[1]);
@@ -1575,7 +1575,7 @@ String::String() : Class("string") {
    // find(char, pos)
    struct FindMethod4 : public Func {
       FindMethod4() : Func("find") {}
-      Value call(Interpreter *I, Value self, const vector<Value>& args) {
+      Value call(Value self, const vector<Value>& args) {
          string& the_string = self.as<String>();
          Value the_char = Reference::deref(args[0]);
          Value the_pos  = Reference::deref(args[1]);
@@ -1589,7 +1589,7 @@ String::String() : Class("string") {
    // insert(pos, str)
    struct InsertMethod : public Func {
       InsertMethod() : Func("insert") {}
-      Value call(Interpreter *I, Value self, const vector<Value>& args) {
+      Value call(Value self, const vector<Value>& args) {
          string& the_string = self.as<String>();
          Value the_pos    = Reference::deref(args[0]);
          Value the_insert = Reference::deref(args[1]);
@@ -1602,7 +1602,7 @@ String::String() : Class("string") {
    // replace(pos, len, str)
    struct ReplaceMethod : public Func {
       ReplaceMethod() : Func("replace") {}
-      Value call(Interpreter *I, Value self, const vector<Value>& args) {
+      Value call(Value self, const vector<Value>& args) {
          string& the_string = self.as<String>();
          Value the_pos         = Reference::deref(args[0]);
          Value the_len         = Reference::deref(args[1]);
@@ -1618,7 +1618,7 @@ String::String() : Class("string") {
    // erase(from)
    struct Erase1Method : public Func {
       Erase1Method() : Func("erase") {}
-      Value call(Interpreter *I, Value self, const vector<Value>& args) {
+      Value call(Value self, const vector<Value>& args) {
          string& the_string = self.as<String>();
          Value the_pos = Reference::deref(args[0]);
          return Value(the_string.erase(the_pos.as<Int>()));
@@ -1630,7 +1630,7 @@ String::String() : Class("string") {
    // erase(from, size)
    struct Erase2Method : public Func {
       Erase2Method() : Func("erase") {}
-      Value call(Interpreter *I, Value self, const vector<Value>& args) {
+      Value call(Value self, const vector<Value>& args) {
          string& the_string = self.as<String>();
          Value the_pos  = Reference::deref(args[0]);
          Value the_size = Reference::deref(args[1]);
@@ -1643,7 +1643,7 @@ String::String() : Class("string") {
    // +
    struct PlusOperator : public Func {
       PlusOperator() : Func("+") {}
-      Value call(Interpreter *I, Value self, const vector<Value>& args) {
+      Value call(Value self, const vector<Value>& args) {
          string& the_string = self.as<String>();
          Value the_other_string = Reference::deref(args[0]);
          return Value(the_string + the_other_string.as<String>()); 
@@ -1657,7 +1657,7 @@ String::String() : Class("string") {
    // []
    struct IndexedAccessOperator : public Func {
       IndexedAccessOperator() : Func("[]") {}
-      Value call(Interpreter *I, Value self, const vector<Value>& args) {
+      Value call(Value self, const vector<Value>& args) {
          string& the_string = self.as<String>();
          Value the_index = Reference::deref(args[0]);
          int k = the_index.as<Int>();
@@ -1686,7 +1686,7 @@ Iterator<C>::Iterator(C *type)
    struct DerefOperator : public Func {
       C *type;
       DerefOperator(C *t) : Func("*"), type(t) {}
-      Value call(Interpreter *I, Value self, const vector<Value>& args) {
+      Value call(Value self, const vector<Value>& args) {
          typename C::cpp_iterator& the_iterator = self.as<Iterator<C>>();
          Value v = C::elem_to_value(type, *the_iterator);
          return Reference::mkref(v);
@@ -1713,7 +1713,7 @@ ForwardIterator<C>::ForwardIterator(C *type)
    // ++
    struct IncrOperator : public Func {
       IncrOperator() : Func("++") {}
-      Value call(Interpreter *I, Value self, const vector<Value>& args) {
+      Value call(Value self, const vector<Value>& args) {
          typename C::cpp_iterator& the_iterator = self.as<Iterator<C>>();
          the_iterator++;
          return self.clone();
@@ -1732,7 +1732,7 @@ BidirectionalIterator<C>::BidirectionalIterator(C *type)
    // --
    struct DecrOperator : public Func {
       DecrOperator() : Func("--") {}
-      Value call(Interpreter *I, Value self, const vector<Value>& args) {
+      Value call(Value self, const vector<Value>& args) {
          typename C::cpp_iterator& the_iterator = self.as<Iterator<C>>();
          the_iterator--;
          return self.clone();
@@ -1751,7 +1751,7 @@ RandomAccessIterator<C>::RandomAccessIterator(C *type)
    // +
    struct PlusOperator : public Func {
       PlusOperator() : Func("+") {}
-      Value call(Interpreter *I, Value self, const vector<Value>& args) {
+      Value call(Value self, const vector<Value>& args) {
          typedef typename C::cpp_iterator iter;
          iter& the_iterator = self.as<Iterator<C>>();
          Value the_int = Reference::deref(args[0]);
@@ -1901,7 +1901,7 @@ void OStream::_add_ostream_methods() {
    // <<
    struct OutputOperator : public Func {
       OutputOperator() : Func("<<") {}
-      Value call(Interpreter *I, Value self, const vector<Value>& args) {
+      Value call(Value self, const vector<Value>& args) {
          ostream& out = self.as<OStream>();
          out << args[0];
          return self; 
@@ -1922,7 +1922,7 @@ void IStream::_add_istream_methods() {
    // >>
    struct InputOperator : public Func {
       InputOperator() : Func(">>") {}
-      Value call(Interpreter *I, Value self, const vector<Value>& args) {
+      Value call(Value self, const vector<Value>& args) {
          istream& in = self.as<IStream>();
          Value holder = args[0];
          in >> holder;
@@ -1948,7 +1948,7 @@ void IStream::_add_istream_methods() {
    // bool
    struct BoolOperator : public Func {
       BoolOperator() : Func("bool") {}
-      Value call(Interpreter *I, Value self, const vector<Value>& args) {
+      Value call(Value self, const vector<Value>& args) {
          return Value(bool(self.as<IStream>()));
       }
    };
@@ -1959,7 +1959,7 @@ void IStream::_add_istream_methods() {
 IStringStream::IStringStream() : IStream("istringstream") {
    struct Constructor1 : public Func {
       Constructor1() : Func("istringstream") {}
-      Value call(Interpreter *I, Value self, const vector<Value>& args) {
+      Value call(Value self, const vector<Value>& args) {
          istringstream& the_stream = self.as<IStringStream>();
          Value the_content = Reference::deref(args[0]);
          the_stream.str(the_content.as<String>());
@@ -1973,7 +1973,7 @@ IStringStream::IStringStream() : IStream("istringstream") {
 OStringStream::OStringStream() : OStream("ostringstream") {
    struct StrMethod : public Func {
       StrMethod() : Func("str") {}
-      Value call(Interpreter *I, Value self, const vector<Value>& args) {
+      Value call(Value self, const vector<Value>& args) {
          ostringstream &the_stream = self.as<OStringStream>();
          return Value(the_stream.str());
       }
@@ -1984,7 +1984,7 @@ OStringStream::OStringStream() : OStream("ostringstream") {
 
 struct MaxFunc : public Func {
    MaxFunc() : Func("max") {}
-   Value call(Interpreter *I, Value self, const vector<Value>& args) {
+   Value call(Value self, const vector<Value>& args) {
       assert(args.size() == 2);
       assert(args[0].is<Int>());
       assert(args[1].is<Int>());
@@ -1995,7 +1995,7 @@ MaxFunc _max;
 
 struct TojsonFunc : public Func {
    TojsonFunc() : Func("to_json") {}
-   Value call(Interpreter *I, Value self, const vector<Value>& args) {
+   Value call(Value self, const vector<Value>& args) {
       assert(args.size() == 1);
       Value arg0 = Reference::deref(args[0]);
       return Value(arg0.to_json());
@@ -2005,7 +2005,7 @@ TojsonFunc _tojson;
 
 struct GetlineFunc : public Func {
    GetlineFunc() : Func("getline") {}
-   Value call(Interpreter *I, Value self, const vector<Value>& args) {
+   Value call(Value self, const vector<Value>& args) {
       Value the_string = Reference::deref(args[1]);
       Value the_istream = Reference::deref(args[0]);
       return Value(std::getline(the_istream.as<IStream>(), the_string.as<String>()));

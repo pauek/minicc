@@ -516,6 +516,3 @@ void FullIdent::shift(string new_id) {
    name = new_id;
 }
 
-string FuncDecl::funcname() const {
-   return id->name;
-}

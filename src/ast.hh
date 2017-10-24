@@ -524,7 +524,7 @@ struct FuncDecl : public AstDerived<AstType::FuncDecl> {
    
    FuncDecl(SimpleIdent *_id) : id(_id) {}
 
-   std::string funcname() const;
+   std::string funcname() const { return id->name; }
    void accept(AstVisitor *v);
    bool has_errors() const;
 };

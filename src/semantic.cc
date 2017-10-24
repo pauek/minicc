@@ -5,6 +5,16 @@
 #include "semantic.hh"
 using namespace std;
 
+struct UserFunc2 : public Func {
+   FuncDecl *decl;
+
+   UserFunc2(std::string n, FuncDecl *d) : Func(n), decl(d) {}
+
+   Value call(Value self, const std::vector<Value>& args) {
+      assert(false);
+   }
+};
+
 struct SemanticAnalyzer : public WithEnvironment
 {
     std::string  _curr_varname;
@@ -490,7 +500,7 @@ void SemanticAnalyzer::Analyze(Ast *ast) {
       Analyze(X->block);
       popenv();
      
-      Value func = functype->mkvalue(new UserFunc(funcname, X));
+      Value func = functype->mkvalue(new UserFunc2(funcname, X));
       Value callable = Callable::self->mkvalue(Value::null, func); // bind with 'null'
       setenv(funcname, callable, Hidden);
       break;
@@ -1003,6 +1013,9 @@ void SemanticAnalyzer::Analyze(Ast *ast) {
          const Function *func_type = fn.func.type()->as<Function>();
          _curr_node = X; // ugly
          check_arguments(func_type, argvals, &X->args);
+         // TODO
+         // TODO: Call the function abstractly!!
+         // TODO
          const Type *return_type = func_type->return_type();
          if (return_type != 0) {
             _curr = _ret = return_type->create_abstract();
