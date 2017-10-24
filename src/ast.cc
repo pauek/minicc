@@ -127,22 +127,16 @@ const string TypeSpec::QualifiersNames[] = {
    "register", "auto",     "extern"
 };
 
-map<string, Expr::Kind>      Expr::_op2kind;
 map<Token::Type, Expr::Kind> Expr::_tok2kind;
+
 Expr::Op2KindInitializer Expr::initializer;
 
 Expr::Op2KindInitializer::Op2KindInitializer() {
    int i = 0;
    while (pairs[i].op != "END") {
-      _op2kind[pairs[i].op] = pairs[i].kind;
       _tok2kind[pairs[i].tokkind] = pairs[i].kind;
       i++;
    }
-}
-
-Expr::Kind Expr::op2kind(string op) {
-   auto it = _op2kind.find(op);
-   return (it != _op2kind.end() ? it->second : Expr::Unknown);
 }
 
 Expr::Kind Expr::tok2kind(Token::Type tokkind) {

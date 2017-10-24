@@ -236,15 +236,11 @@ struct Expr : public Ast {
    };
    struct Op2KindInitializer { Op2KindInitializer(); }; // init _op2kind
 
-   bool paren; // if this is true, comments will have an extra element!
+   bool paren = false; // if this is true, comments will have an extra element!
 
-   Expr() : paren(false) {}
-
-   static std::map<std::string, Kind> _op2kind;
-   static std::map<Token::Type, Kind> _tok2kind;
-   static Kind op2kind(std::string op);
-   static Kind tok2kind(Token::Type toktyp);
    static Op2KindInitializer initializer;
+   static std::map<Token::Type, Kind> _tok2kind;
+   static Kind tok2kind(Token::Type toktyp);
    static bool right_associative(Kind t);
 
    struct Error;
