@@ -26,15 +26,15 @@ struct SemanticAnalyzer : public WithEnvironment
      void  EvalBinaryExprOpAssignment(char, Value left, Value right);
      void  GetFunc(CallExpr *x);
      bool  TypeConversion(CallExpr *x, const std::vector<Value>& args);
-     void  check_arguments(const Function *func_type, 
+     void  CheckArguments(const Function *func_type, 
                            const std::vector<Value>& argvals, 
                            std::vector<Expr*> *args = 0);
-     bool  bind_field(Value obj, string method_name);
-     bool  call_operator(string op, 
+     bool  BindField(Value obj, string method_name);
+     bool  CallOperator(string op, 
                          const std::vector<Value>& args = std::vector<Value>());
      void  check_condition(Expr *cond, std::string who);
      void  check_unknown(Value v, Ast *x, string varname);
-     void  eval_arguments(const std::vector<Expr *>& args,
+     void  EvalArguments(const std::vector<Expr *>& args,
                           std::vector<Value>& argvals);
    
    template<class Op>
@@ -236,7 +236,7 @@ bool SemanticAnalyzer::TypeConversion(CallExpr *X, const vector<Value>& args) {
          _curr = type->convert(args[0]);
          if (_curr == Value::null) {
             _curr = args[0];
-            if (!call_operator(id->typestr())) {
+            if (!CallOperator(id->typestr())) {
                X->AddError(_T("No se puede convertir un '%s' en un '%s'.",
                                args[0].type()->typestr().c_str(),
                                type->typestr().c_str()));
@@ -248,7 +248,7 @@ bool SemanticAnalyzer::TypeConversion(CallExpr *X, const vector<Value>& args) {
    return false;
 }
 
-void SemanticAnalyzer::check_arguments(const Function *func_type,
+void SemanticAnalyzer::CheckArguments(const Function *func_type,
                                        const vector<Value>& argvals,
                                        vector<Expr*> *args)
 {
@@ -279,7 +279,7 @@ void SemanticAnalyzer::check_arguments(const Function *func_type,
    }
 }
 
-bool SemanticAnalyzer::bind_field(Value obj, string method_name) {
+bool SemanticAnalyzer::BindField(Value obj, string method_name) {
    vector<Value> candidates;
    int count = obj.type()->get_field(obj, method_name, candidates);
    if (count == 1) {
@@ -298,8 +298,8 @@ bool SemanticAnalyzer::bind_field(Value obj, string method_name) {
 }
 
 
-bool SemanticAnalyzer::call_operator(string op, const vector<Value>& args) {
-   if (!bind_field(_curr, op)) {
+bool SemanticAnalyzer::CallOperator(string op, const vector<Value>& args) {
+   if (!BindField(_curr, op)) {
       return false;
    }
    if (_curr.is<Overloaded>()) {
@@ -309,7 +309,7 @@ bool SemanticAnalyzer::call_operator(string op, const vector<Value>& args) {
    Binding& opfun = _curr.as<Callable>();
    const Function *func_type = opfun.func.type()->as<Function>();
    if (!opfun.call_abstract(_curr_node, args)) {
-      check_arguments(func_type, args);
+      CheckArguments(func_type, args);
    }
    _curr = func_type->return_type()->create_abstract();
    return true;
@@ -319,7 +319,7 @@ void SemanticAnalyzer::check_condition(Expr *cond, string who) {
    Analyze(cond);
    _curr = Reference::deref(_curr);
    if (!_curr.is<Bool>()) {
-      if (!call_operator("bool")) {
+      if (!CallOperator("bool")) {
          cond->AddError(_T("La condición de un '%s' debe ser de tipo 'bool'.",
                             who.c_str()));
       }
@@ -338,7 +338,7 @@ void SemanticAnalyzer::check_unknown(Value v, Ast *X, string varname) {
    }
 }
 
-void SemanticAnalyzer::eval_arguments(const vector<Expr *>& args,
+void SemanticAnalyzer::EvalArguments(const vector<Expr *>& args,
                                       vector<Value>& argvals) {
    for (int i = 0; i < args.size(); i++) {
       Analyze(args[i]);
@@ -530,7 +530,7 @@ void SemanticAnalyzer::Analyze(Ast *ast) {
       
       // Try operator first
       _curr = left;
-      if (call_operator(X->op, vector<Value>(1, right))) {
+      if (CallOperator(X->op, vector<Value>(1, right))) {
          return;
       }
 
@@ -562,7 +562,7 @@ void SemanticAnalyzer::Analyze(Ast *ast) {
          if (ok) {
             return;
          }
-         if (call_operator(X->op, vector<Value>(1, right))) {
+         if (CallOperator(X->op, vector<Value>(1, right))) {
             return;
          }
          if (!left.is<Int>()) {
@@ -595,7 +595,7 @@ void SemanticAnalyzer::Analyze(Ast *ast) {
             }
          } else {
             _curr = left;
-            if (!call_operator(X->op, vector<Value>(1, right))) {
+            if (!CallOperator(X->op, vector<Value>(1, right))) {
                X->AddError(_T("El tipo '%s' no tiene operador '%s'.", 
                                _curr.type()->typestr().c_str(), 
                                X->op.c_str()));
@@ -886,10 +886,10 @@ void SemanticAnalyzer::Analyze(Ast *ast) {
       if (type != 0) {
          vector<Value> argvals;
          vector<Expr*> args;
-         eval_arguments(X->args, argvals);
+         EvalArguments(X->args, argvals);
          string constructor_name = type->name();
          Value new_obj = type->create_abstract();
-         if (!bind_field(new_obj, constructor_name)) {
+         if (!BindField(new_obj, constructor_name)) {
             X->AddError(_T("El tipo '%s' no tiene constructor", type->typestr().c_str()));
          }
          if (_curr.is<Overloaded>()) {
@@ -898,7 +898,7 @@ void SemanticAnalyzer::Analyze(Ast *ast) {
          }
          Binding& constructor = _curr.as<Callable>();
          const Function *func_type = constructor.func.type()->as<Function>();
-         check_arguments(func_type, argvals, &X->args);
+         CheckArguments(func_type, argvals, &X->args);
          constructor.call_abstract(X, argvals);
          setenv(X->name, new_obj);
          return;
@@ -997,7 +997,7 @@ void SemanticAnalyzer::Analyze(Ast *ast) {
       CallExpr *X = cast<CallExpr>(ast);
       _curr_node = X;
       vector<Value> argvals;
-      eval_arguments(X->args, argvals);
+      EvalArguments(X->args, argvals);
       if (TypeConversion(X, argvals)) {
          return;
       }
@@ -1012,7 +1012,7 @@ void SemanticAnalyzer::Analyze(Ast *ast) {
          Binding& fn = func.as<Callable>();
          const Function *func_type = fn.func.type()->as<Function>();
          _curr_node = X; // ugly
-         check_arguments(func_type, argvals, &X->args);
+         CheckArguments(func_type, argvals, &X->args);
          // TODO
          // TODO: Call the function abstractly!!
          // TODO
@@ -1068,7 +1068,7 @@ void SemanticAnalyzer::Analyze(Ast *ast) {
          return;
       }
       _curr = base;
-      if (!call_operator("[]", vector<Value>(1, index))) {
+      if (!CallOperator("[]", vector<Value>(1, index))) {
          X->AddError(_T("Los corchetes deben usarse sobre tablas o vectores."));
       }
       break;
@@ -1079,7 +1079,7 @@ void SemanticAnalyzer::Analyze(Ast *ast) {
       Analyze(X->base);
       _curr = Reference::deref(_curr);
       if (X->pointer) {
-         if (!call_operator("*")) {
+         if (!CallOperator("*")) {
             X->AddError(_T("El tipo '%s' no tiene 'operator*'", 
                             _curr.type()->typestr().c_str()));
          }
@@ -1097,7 +1097,7 @@ void SemanticAnalyzer::Analyze(Ast *ast) {
          }
          return;
       }
-      if (!bind_field(obj, X->field)) {
+      if (!BindField(obj, X->field)) {
          if (obj.type()->is(Type::Class)) {
             const char *msg;
             if (X->parent and isa<CallExpr>(X->parent)) {
@@ -1200,7 +1200,7 @@ void SemanticAnalyzer::Analyze(Ast *ast) {
       } else {
          _curr = after;
          string op = (X->kind == IncrExpr::Positive ? "++" : "--");
-         if (!call_operator(op)) {
+         if (!CallOperator(op)) {
             X->AddError(_T("El tipo '%s' no tiene operador '%s'.", 
                             _curr.type()->typestr().c_str(), op.c_str()));
          }
@@ -1254,7 +1254,7 @@ void SemanticAnalyzer::Analyze(Ast *ast) {
       Analyze(X->expr);
       _curr = Reference::deref(_curr);
       /*
-      if (!call_operator("*")) {
+      if (!CallOperator("*")) {
          X->AddError(_T("El tipo '%s' no tiene 'operator*'", 
                          _curr.type()->typestr().c_str()));
       }

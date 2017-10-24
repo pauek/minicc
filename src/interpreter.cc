@@ -207,8 +207,8 @@ void Interpreter::EvalBinaryExprOpAssignment(char op, Value left, Value right) {
    }
 }
 
-bool Interpreter::call_operator(string op, const vector<Value>& args) {
-   if (!bind_field(_curr, op)) {
+bool Interpreter::CallOperator(string op, const vector<Value>& args) {
+   if (!BindField(_curr, op)) {
       return false;
    }
    if (_curr.is<Overloaded>()) {
@@ -217,7 +217,7 @@ bool Interpreter::call_operator(string op, const vector<Value>& args) {
    }
    Binding& opfun = _curr.as<Callable>();
    const Function *func_type = opfun.func.type()->as<Function>();
-   check_arguments(func_type, args);
+   CheckArguments(func_type, args);
    _curr = opfun.call(args);
    return true;
 }
@@ -237,7 +237,7 @@ void Interpreter::GetFunc(CallExpr *X) {
    }
 }
 
-void Interpreter::check_arguments(const Function *func_type, const vector<Value>& args) {
+void Interpreter::CheckArguments(const Function *func_type, const vector<Value>& args) {
    for (int i = 0; i < args.size(); i++) {
       Type *param_type = func_type->param(i);
       if (param_type == Any) {
@@ -258,14 +258,14 @@ void Interpreter::check_arguments(const Function *func_type, const vector<Value>
    }
 }
 
-void Interpreter::eval_arguments(const std::vector<Expr*>& exprs, std::vector<Value>& args) {
+void Interpreter::EvalArguments(const std::vector<Expr*>& exprs, std::vector<Value>& args) {
    for (int i = 0; i < exprs.size(); i++) {
       Eval(exprs[i]);
       args.push_back(_curr);
    }
 }
 
-void Interpreter::check_result(Binding& fn, const Function *func_type) {
+void Interpreter::CheckResult(Binding& fn, const Function *func_type) {
    if (_ret == Value::null && !func_type->is_void()) {
       string name = fn.func.as<Function>().ptr->name;
       const Type *return_type = func_type->return_type();
@@ -287,7 +287,7 @@ bool Interpreter::TypeConversion(CallExpr *X, const vector<Value>& args) {
          _curr = type->convert(args[0]);
          if (_curr == Value::null) {
             _curr = args[0];
-            call_operator(id->typestr());
+            CallOperator(id->typestr());
          }
          return true;
       }
@@ -303,13 +303,13 @@ void Interpreter::Call(Value func, const vector<Value>& args) {
    }
    Binding& fn = func.as<Callable>();
    const Function *func_type = fn.func.type()->as<Function>();
-   check_arguments(func_type, args);
+   CheckArguments(func_type, args);
    _ret = fn.call(args); // <-- Invoke!
-   check_result(fn, func_type);
+   CheckResult(fn, func_type);
    _curr = _ret;
 }
 
-bool Interpreter::bind_field(Value obj, string method_name) {
+bool Interpreter::BindField(Value obj, string method_name) {
    vector<Value> candidates;
    int count = obj.type()->get_field(obj, method_name, candidates);
    if (count == 1) {
@@ -525,7 +525,7 @@ void Interpreter::Eval(Ast* ast) {
             }
          } else {
             _curr = left;
-            if (!call_operator(X->op, vector<Value>(1, right))) {
+            if (!CallOperator(X->op, vector<Value>(1, right))) {
                _error(_T("El tipo '%s' no tiene 'operator%s'", 
                          _curr.type()->typestr().c_str(), X->op.c_str()));
             }
@@ -575,7 +575,7 @@ void Interpreter::Eval(Ast* ast) {
             }
          } else {
             _curr = left;
-            if (!call_operator(X->op, vector<Value>(1, right))) {
+            if (!CallOperator(X->op, vector<Value>(1, right))) {
                _error(_T("El tipo '%s' no tiene 'operator%s'", 
                          _curr.type()->typestr().c_str(), X->op.c_str()));
             }
@@ -588,7 +588,7 @@ void Interpreter::Eval(Ast* ast) {
          _error(_T("Los operandos de '%s' no son compatibles", X->op.c_str()));
       }
       _curr = left;
-      if (call_operator(X->op, vector<Value>(1, right))) {
+      if (CallOperator(X->op, vector<Value>(1, right))) {
          return;
       }
       _error(_T("Interpreter::visit_binaryexpr: UNIMPLEMENTED (%s)", X->op.c_str()));
@@ -655,11 +655,11 @@ void Interpreter::Eval(Ast* ast) {
       Type *type = get_type(X->typespec);
       if (type != 0) {
          vector<Value> args;
-         eval_arguments(X->args, args);
+         EvalArguments(X->args, args);
          
          string constructor_name = type->name();
          Value new_obj = type->create();
-         if (!bind_field(new_obj, constructor_name)) {
+         if (!BindField(new_obj, constructor_name)) {
             _error(_T("El tipo '%s' no tiene constructor", type->typestr().c_str()));
          }
          if (_curr.is<Overloaded>()) {
@@ -668,7 +668,7 @@ void Interpreter::Eval(Ast* ast) {
          }
          Binding& constructor = _curr.as<Callable>();
          const Function *func_type = constructor.func.type()->as<Function>();
-         check_arguments(func_type, args);
+         CheckArguments(func_type, args);
          constructor.call(args); // <-- Invoke!
          
          setenv(X->name, new_obj);
@@ -705,7 +705,7 @@ void Interpreter::Eval(Ast* ast) {
       Eval(X->cond);
       _curr = Reference::deref(_curr);
       if (!_curr.is<Bool>()) {
-         if (!call_operator("bool")) {      
+         if (!CallOperator("bool")) {      
             _error(_T("An if's condition needs to be a bool value"));
          }
       }
@@ -728,7 +728,7 @@ void Interpreter::Eval(Ast* ast) {
          Eval(X->cond);
          _curr = Reference::deref(_curr);
          if (!_curr.is<Bool>()) {
-            if (!call_operator("bool")) {      
+            if (!CallOperator("bool")) {      
                _error(_T("La condición de un for debe ser un valor de tipo bool."));
             }
          }
@@ -750,7 +750,7 @@ void Interpreter::Eval(Ast* ast) {
          Eval(X->cond);
          _curr = Reference::deref(_curr);
          if (!_curr.is<Bool>()) {
-            if (!call_operator("bool")) {      
+            if (!CallOperator("bool")) {      
                _error(_T("La condición de un while debe ser un valor de tipo bool."));
             }
          }
@@ -765,7 +765,7 @@ void Interpreter::Eval(Ast* ast) {
    case AstType::CallExpr: {
       CallExpr *X = cast<CallExpr>(ast);
       vector<Value> args;
-      eval_arguments(X->args, args);
+      EvalArguments(X->args, args);
       if (TypeConversion(X, args)) {
          return;
       }
@@ -793,7 +793,7 @@ void Interpreter::Eval(Ast* ast) {
          return;
       }
       _curr = base;
-      if (!call_operator("[]", vector<Value>(1, index))) {
+      if (!CallOperator("[]", vector<Value>(1, index))) {
          _error(_T("Las expresiones de índice deben usarse sobre tablas o vectores"));
       }
       break;
@@ -803,7 +803,7 @@ void Interpreter::Eval(Ast* ast) {
       Eval(X->base);
       _curr = Reference::deref(_curr);
       if (X->pointer) {
-         if (!call_operator("*")) {
+         if (!CallOperator("*")) {
             _error(_T("El tipo '%s' no tiene 'operator*'", 
                       _curr.type()->typestr().c_str()));
          }
@@ -820,7 +820,7 @@ void Interpreter::Eval(Ast* ast) {
          _curr = Reference::mkref(v);
          return;
       }
-      if (!bind_field(obj, X->field)) {
+      if (!BindField(obj, X->field)) {
          _error(_T("Este objeto no tiene un campo '%s'", X->field.c_str()));
       }
       break;
@@ -891,7 +891,7 @@ void Interpreter::Eval(Ast* ast) {
       } else {
          _curr = after;
          string op = (X->kind == IncrExpr::Positive ? "++" : "--");
-         if (!call_operator(op)) {
+         if (!CallOperator(op)) {
             _error(_T("El tipo '%s' no tiene 'operator%s'", 
                       _curr.type()->typestr().c_str(), op.c_str()));
          }
@@ -938,7 +938,7 @@ void Interpreter::Eval(Ast* ast) {
       DerefExpr *X = cast<DerefExpr>(ast);
       Eval(X->expr);
       _curr = Reference::deref(_curr);
-      if (!call_operator("*")) {
+      if (!CallOperator("*")) {
          _error(_T("El tipo '%s' no tiene 'operator*'", 
                    _curr.type()->typestr().c_str()));
       }

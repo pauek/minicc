@@ -147,7 +147,7 @@ void Stepper::Step(Ast *ast) {
    case AstType::CallExpr: {
       CallExpr *X = cast<CallExpr>(ast);
       vector<Value> args;
-      I.eval_arguments(X->args, args);
+      I.EvalArguments(X->args, args);
 
       if (I.TypeConversion(X, args)) {
          push(new PopState(X->span));

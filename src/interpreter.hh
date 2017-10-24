@@ -16,7 +16,7 @@ class Interpreter : WithEnvironment {
 
     void _error(std::string msg) { throw new EvalError(msg); }
 
-   Value new_value_from_structdecl(StructDecl *x);
+   // Value NewValueFromStructDecl(StructDecl *x);
 
    void  invoke_func_prepare_arg(FuncDecl *x, Value args, int i);
    void  invoke_func_prepare(FuncDecl *x, const std::vector<Value>& args);
@@ -39,11 +39,11 @@ class Interpreter : WithEnvironment {
 
    friend class Stepper;
 
-   void eval_arguments(const std::vector<Expr*>& exprs, std::vector<Value>& args);
-   void check_arguments(const Function *func_type, const std::vector<Value>& args);
-   void check_result(Binding& fn, const Function *func_type);
-   bool bind_field(Value obj, string method_name);
-   bool call_operator(std::string op, const std::vector<Value>& args = std::vector<Value>());
+   void EvalArguments(const std::vector<Expr*>& exprs, std::vector<Value>& args);
+   void CheckArguments(const Function *func_type, const std::vector<Value>& args);
+   void CheckResult(Binding& fn, const Function *func_type);
+   bool BindField(Value obj, string method_name);
+   bool CallOperator(std::string op, const std::vector<Value>& args = std::vector<Value>());
 
 public:
    Interpreter(std::istream *i, std::ostream *o)
