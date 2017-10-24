@@ -168,6 +168,208 @@ string Literal::Escape(string s, char delim) {
    return r;
 }
 
+string Identifier::TypeStr() const {
+   string _id;
+   for (int i = 0; i < prefix.size(); i++) {
+      _id += prefix[i]->TypeStr();
+      _id += "::";
+   }
+   _id += name;
+   if (!subtypes.empty()) {
+      _id += "<";
+      for (int i = 0; i < subtypes.size(); i++) {
+         if (i > 0) {
+            _id += ",";
+         }
+         _id += subtypes[i]->TypeStr();
+      }
+      _id += ">";
+   }
+   return _id;
+}
+
+Identifier *Identifier::GetPotentialNamespaceOrClass() const {
+   if (prefix.size() == 1 and !prefix[0]->IsTemplate()) {
+      return prefix[0];
+   }
+   return 0;
+}
+
+vector<Identifier*> Identifier::GetNonNamespaces() {
+   vector<Identifier*>::iterator it = prefix.begin();
+   while (it != prefix.end() and (*it)->is_namespace) {
+      it++;
+   }
+   vector<Identifier*> result(it, prefix.end());
+   result.push_back(this);
+   return result;
+}
+
+Identifier *TypeSpec::GetPotentialNamespaceOrClass() const {
+   return id->GetPotentialNamespaceOrClass();
+}
+
+bool TypeSpec::HasQualifier(TypeSpec::Qualifier q) const {
+   return find(qual.begin(), qual.end(), q) != qual.end();
+}
+
+string TypeSpec::TypeStr() const {
+   string _id;
+   int i = 0, numquals = 0;
+   static const string names[] = { 
+      "const", "volatile", "mutable", "register", "auto", "extern"
+   };
+   while (TypeSpec::Qualifier(1 << i) <= TypeSpec::Extern) {
+      int q = TypeSpec::Qualifier(1 << i);
+      if (find(qual.begin(), qual.end(), q) != qual.end()) {
+         if (numquals > 0) {
+            _id += " ";
+         }
+         _id += names[i];
+         numquals++;
+      }
+      i++;
+   }
+   _id += id->TypeStr();
+   if (reference) {
+      _id += "&";
+   }
+   return _id;
+}
+
+string ArrayDecl::TypeStr() const { 
+   string brackets;
+   for (int i = 0; i < sizes.size(); i++) {
+      brackets += "[]";
+   }
+   return typespec->TypeStr() + brackets; 
+}
+
+string StructDecl::TypeStr() const {
+   ostringstream S;
+   S << "struct{";
+   for (int i = 0; i < decls.size(); i++) {
+      if (i > 0) {
+         S << ";";
+      }
+      S << decls[i]->typespec->TypeStr();
+   }
+   S << "}";
+   return S.str();
+}
+
+void Identifier::Shift(string new_id) {
+   Identifier *pre = new Identifier(name);
+   pre->subtypes.swap(subtypes);
+   pre->comments.swap(comments);
+   pre->errors.swap(errors);
+   // the last two comments are the ones surrounding the "::", 
+   // copy them over to new_id
+   const int commsz = pre->comments.size();
+   comments.push_back(pre->comments[commsz-2]);
+   comments.push_back(pre->comments[commsz-1]);
+   pre->comments.resize(commsz-2);
+
+   prefix.push_back(pre);
+   name = new_id;
+}
+
+
+void CollectRights(Ast *ast, list<Expr*>& L) {
+   if (isa<BinaryExpr>(ast)) {
+      BinaryExpr *X = cast<BinaryExpr>(ast);
+      L.push_front(X->right);
+      CollectRights(X->left, L);
+   }
+}
+
+bool IsReadExpr(Ast *ast) {
+   switch (ast->Type()) {
+   case AstType::BinaryExpr: {
+      BinaryExpr *X = cast<BinaryExpr>(ast);
+      if (isa<Identifier>(X->left)) {
+         Identifier *id = cast<Identifier>(X->left);
+         return id->name == "cin";
+      } else {
+         return IsReadExpr(X->left) and X->op == ">>";
+      }
+   }
+   default:
+      return false;
+   }
+}
+
+bool IsWriteExpr(Ast *ast) {
+   switch (ast->Type()) {
+   case AstType::BinaryExpr: {
+      BinaryExpr *X = cast<BinaryExpr>(ast);
+      if (isa<Identifier>(X->left)) {
+         Identifier *id = cast<Identifier>(X->left);
+         return id->name == "cout";
+      } else {
+         return IsWriteExpr(X->left) and X->op == "<<";
+      }
+   }
+   default:
+      return false;
+   }
+}
+
+bool IsAssignment(Ast *ast) {
+   if (isa<BinaryExpr>(ast)) {
+      BinaryExpr *X = cast<BinaryExpr>(ast);
+      return X->kind == Expr::Eq;
+   }
+   return false;
+}
+
+string Describe(Ast *ast) {
+   switch (ast->Type()) {
+   case AstType::ExprStmt: {
+      ExprStmt *X = cast<ExprStmt>(ast);
+      return Describe(X->expr);
+   }
+   case AstType::IncrExpr: {
+      IncrExpr *X = cast<IncrExpr>(ast);
+      if (isa<Identifier>(X->expr)) {
+         Identifier *id = cast<Identifier>(X->expr);
+         return _T("Se incrementa la variable '%s'.", id->name.c_str());
+      }
+      return _T("UNIMPLEMENTED");
+   }
+   case AstType::BinaryExpr: {
+      BinaryExpr *X = cast<BinaryExpr>(ast);
+      if (IsWriteExpr(X)) {
+         return _T("Some output is written.");
+      }
+      if (IsReadExpr(X)) {
+         return _T("Some input is read.");
+      }
+      return _T("UNIMPLEMENTED");
+   }
+   case AstType::DeclStmt: {
+      DeclStmt *X = cast<DeclStmt>(ast);
+      if (X->items.size() == 1) {
+         return _T("Se declara la variable '%s'.", X->items[0].decl->name.c_str());
+      }
+      ostringstream S;
+      for (int i = 0; i < X->items.size(); i++) {
+         if (i > 0) {
+            if (i == X->items.size() - 1) {
+               S << _T(" and ");
+            } else {
+               S << ", ";
+            }
+         }
+         S << "'" << X->items[i].decl->name << "'";
+      }
+      return _T("Variables %s are declared.", S.str().c_str());
+   }
+   default:
+      return _T("UNIMPLEMENTED");
+   }
+}
+
 bool HasErrors(Ast *ast) {
 
 #define CHECK_ERRORS(n) if (HasErrors(n)) return true
@@ -328,205 +530,3 @@ bool HasErrors(Ast *ast) {
       return ast->HasErrors();
    }
 }
-
-string Identifier::TypeStr() const {
-   string _id;
-   for (int i = 0; i < prefix.size(); i++) {
-      _id += prefix[i]->TypeStr();
-      _id += "::";
-   }
-   _id += name;
-   if (!subtypes.empty()) {
-      _id += "<";
-      for (int i = 0; i < subtypes.size(); i++) {
-         if (i > 0) {
-            _id += ",";
-         }
-         _id += subtypes[i]->TypeStr();
-      }
-      _id += ">";
-   }
-   return _id;
-}
-
-Identifier *Identifier::GetPotentialNamespaceOrClass() const {
-   if (prefix.size() == 1 and !prefix[0]->IsTemplate()) {
-      return prefix[0];
-   }
-   return 0;
-}
-
-vector<Identifier*> Identifier::GetNonNamespaces() {
-   vector<Identifier*>::iterator it = prefix.begin();
-   while (it != prefix.end() and (*it)->is_namespace) {
-      it++;
-   }
-   vector<Identifier*> result(it, prefix.end());
-   result.push_back(this);
-   return result;
-}
-
-Identifier *TypeSpec::GetPotentialNamespaceOrClass() const {
-   return id->GetPotentialNamespaceOrClass();
-}
-
-bool TypeSpec::HasQualifier(TypeSpec::Qualifier q) const {
-   return find(qual.begin(), qual.end(), q) != qual.end();
-}
-
-string TypeSpec::TypeStr() const {
-   string _id;
-   int i = 0, numquals = 0;
-   static const string names[] = { 
-      "const", "volatile", "mutable", "register", "auto", "extern"
-   };
-   while (TypeSpec::Qualifier(1 << i) <= TypeSpec::Extern) {
-      int q = TypeSpec::Qualifier(1 << i);
-      if (find(qual.begin(), qual.end(), q) != qual.end()) {
-         if (numquals > 0) {
-            _id += " ";
-         }
-         _id += names[i];
-         numquals++;
-      }
-      i++;
-   }
-   _id += id->TypeStr();
-   if (reference) {
-      _id += "&";
-   }
-   return _id;
-}
-
-string ArrayDecl::TypeStr() const { 
-   string brackets;
-   for (int i = 0; i < sizes.size(); i++) {
-      brackets += "[]";
-   }
-   return typespec->TypeStr() + brackets; 
-}
-
-string StructDecl::TypeStr() const {
-   ostringstream S;
-   S << "struct{";
-   for (int i = 0; i < decls.size(); i++) {
-      if (i > 0) {
-         S << ";";
-      }
-      S << decls[i]->typespec->TypeStr();
-   }
-   S << "}";
-   return S.str();
-}
-
-void CollectRights(Ast *ast, list<Expr*>& L) {
-   if (isa<BinaryExpr>(ast)) {
-      BinaryExpr *X = cast<BinaryExpr>(ast);
-      L.push_front(X->right);
-      CollectRights(X->left, L);
-   }
-}
-
-bool IsReadExpr(Ast *ast) {
-   switch (ast->Type()) {
-   case AstType::BinaryExpr: {
-      BinaryExpr *X = cast<BinaryExpr>(ast);
-      if (isa<Identifier>(X->left)) {
-         Identifier *id = cast<Identifier>(X->left);
-         return id->name == "cin";
-      } else {
-         return IsReadExpr(X->left) and X->op == ">>";
-      }
-   }
-   default:
-      return false;
-   }
-}
-
-bool IsWriteExpr(Ast *ast) {
-   switch (ast->Type()) {
-   case AstType::BinaryExpr: {
-      BinaryExpr *X = cast<BinaryExpr>(ast);
-      if (isa<Identifier>(X->left)) {
-         Identifier *id = cast<Identifier>(X->left);
-         return id->name == "cout";
-      } else {
-         return IsWriteExpr(X->left) and X->op == "<<";
-      }
-   }
-   default:
-      return false;
-   }
-}
-
-bool IsAssignment(Ast *ast) {
-   if (isa<BinaryExpr>(ast)) {
-      BinaryExpr *X = cast<BinaryExpr>(ast);
-      return X->kind == Expr::Eq;
-   }
-   return false;
-}
-
-string Describe(Ast *ast) {
-   switch (ast->Type()) {
-   case AstType::ExprStmt: {
-      ExprStmt *X = cast<ExprStmt>(ast);
-      return Describe(X->expr);
-   }
-   case AstType::IncrExpr: {
-      IncrExpr *X = cast<IncrExpr>(ast);
-      if (isa<Identifier>(X->expr)) {
-         Identifier *id = cast<Identifier>(X->expr);
-         return _T("Se incrementa la variable '%s'.", id->name.c_str());
-      }
-      return _T("UNIMPLEMENTED");
-   }
-   case AstType::BinaryExpr: {
-      BinaryExpr *X = cast<BinaryExpr>(ast);
-      if (IsWriteExpr(X)) {
-         return _T("Some output is written.");
-      }
-      if (IsReadExpr(X)) {
-         return _T("Some input is read.");
-      }
-      return _T("UNIMPLEMENTED");
-   }
-   case AstType::DeclStmt: {
-      DeclStmt *X = cast<DeclStmt>(ast);
-      if (X->items.size() == 1) {
-         return _T("Se declara la variable '%s'.", X->items[0].decl->name.c_str());
-      }
-      ostringstream S;
-      for (int i = 0; i < X->items.size(); i++) {
-         if (i > 0) {
-            if (i == X->items.size() - 1) {
-               S << _T(" and ");
-            } else {
-               S << ", ";
-            }
-         }
-         S << "'" << X->items[i].decl->name << "'";
-      }
-      return _T("Variables %s are declared.", S.str().c_str());
-   }
-   default:
-      return _T("UNIMPLEMENTED");
-   }
-}
-
-void Identifier::shift(string new_id) {
-   Identifier *pre = new Identifier(name);
-   pre->subtypes.swap(subtypes);
-   pre->comments.swap(comments);
-   pre->errors.swap(errors);
-   // the last two comments are the ones surrounding the "::", 
-   // copy them over to new_id
-   const int commsz = pre->comments.size();
-   comments.push_back(pre->comments[commsz-2]);
-   comments.push_back(pre->comments[commsz-1]);
-   pre->comments.resize(commsz-2);
-
-   prefix.push_back(pre);
-   name = new_id;
-}
-

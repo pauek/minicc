@@ -283,7 +283,7 @@ struct Identifier : ExprDerived<AstType::Identifier> {
 
    bool IsTemplate() const { return !subtypes.empty(); }
    std::string TypeStr() const;
-   void shift(std::string new_id);
+   void Shift(std::string new_id);
    Identifier *GetPotentialNamespaceOrClass() const;
    std::vector<Identifier*> GetNonNamespaces();
 

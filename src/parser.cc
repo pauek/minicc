@@ -229,7 +229,7 @@ Identifier *Parser::parse_ident(Ast *parent, Token tok, Pos ini) {
       if (!tok.IsIdent()) {
          error(id, _T("Expected an identifier here"));
       }
-      id->shift(_lexer.SubStr(tok));
+      id->Shift(_lexer.SubStr(tok));
       fin = _lexer.pos();
    }
    id->span = Span(ini, fin);
