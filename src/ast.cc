@@ -179,7 +179,7 @@ bool HasErrors(Ast *ast) {
    if (ast == 0) {
       return false;
    }
-   switch (ast->type()) {
+   switch (ast->Type()) {
    case AstType::Program: {
       Program *X = cast<Program>(ast);
       for (Ast *n : X->nodes) {
@@ -440,7 +440,7 @@ void CollectRights(Ast *ast, list<Expr*>& L) {
 }
 
 bool IsReadExpr(Ast *ast) {
-   switch (ast->type()) {
+   switch (ast->Type()) {
    case AstType::BinaryExpr: {
       BinaryExpr *X = cast<BinaryExpr>(ast);
       if (isa<Identifier>(X->left)) {
@@ -456,7 +456,7 @@ bool IsReadExpr(Ast *ast) {
 }
 
 bool IsWriteExpr(Ast *ast) {
-   switch (ast->type()) {
+   switch (ast->Type()) {
    case AstType::BinaryExpr: {
       BinaryExpr *X = cast<BinaryExpr>(ast);
       if (isa<Identifier>(X->left)) {
@@ -480,7 +480,7 @@ bool IsAssignment(Ast *ast) {
 }
 
 string Describe(Ast *ast) {
-   switch (ast->type()) {
+   switch (ast->Type()) {
    case AstType::ExprStmt: {
       ExprStmt *X = cast<ExprStmt>(ast);
       return Describe(X->expr);

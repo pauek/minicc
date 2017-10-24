@@ -332,7 +332,7 @@ bool Interpreter::BindField(Value obj, string method_name) {
 
 void Interpreter::Eval(Ast* ast) {
    assert(ast != nullptr);
-   switch (ast->type()) {
+   switch (ast->Type()) {
    case AstType::Program: {
       Program *X = cast<Program>(ast);
       ProgramPrepare(X);
@@ -913,7 +913,7 @@ void Interpreter::Eval(Ast* ast) {
       string name = X->decl->name;
       Type *type = get_type(X->decl->typespec);
       assert(type != 0);
-      switch (X->decl->type()) {
+      switch (X->decl->Type()) {
       case AstType::VarDecl: {
          const VarDecl *var = cast<VarDecl>(X->decl);
          register_type(var->name, type);

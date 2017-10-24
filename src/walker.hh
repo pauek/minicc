@@ -16,7 +16,7 @@ struct Walker {
 
 template<typename Delegate>
 void Walker<Delegate>::Walk(Ast *ast) {
-   switch (ast->type()) {
+   switch (ast->Type()) {
       case AstType::Program: {
          Program *X = cast<Program>(ast);
          D.Walk(X);

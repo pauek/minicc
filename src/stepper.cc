@@ -43,7 +43,7 @@ void Stepper::generic_visit(Ast *X) {
 }
 
 void Stepper::Step(Ast *ast) {
-   switch (ast->type()) {
+   switch (ast->Type()) {
    case AstType::Program: {
       Program *X = cast<Program>(ast);
       I.ProgramPrepare(X);

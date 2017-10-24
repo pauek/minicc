@@ -40,7 +40,7 @@ struct AstPrinter {
 
 void AstPrinter::Print(Ast* ast) {
    assert(ast != nullptr);
-   switch (ast->type()) {
+   switch (ast->Type()) {
    case AstType::Program: {
       out.Line("Program{");
       out.Indent();

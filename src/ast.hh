@@ -100,16 +100,16 @@ struct Ast {
     void AddError(std::string msg);
     void AddError(Pos ini, Pos fin, std::string msg);
     bool HasErrors() const { return !errors.empty(); }
- AstType type() const { return type_; }
+ AstType Type() const { return type_; }
 
 protected:
    AstType  type_;
 };
 
-template<AstType Type>
+template<AstType T>
 struct AstDerived : Ast {
-   static bool classof(const Ast *ast) { return ast->type() == Type; }
-   AstDerived() { type_ = Type; }
+   static bool classof(const Ast *ast) { return ast->Type() == T; }
+   AstDerived() { type_ = T; }
 };
 
 struct Program : public AstDerived<AstType::Program> {
@@ -143,10 +143,10 @@ struct Using : public AstDerived<AstType::Using> {
 struct Expr;
 struct Stmt : public Ast {};
 
-template<AstType Type>
+template<AstType T>
 struct StmtDerived : Stmt {
-   static bool classof(const Ast *ast) { return ast->type() == Type; }
-   StmtDerived() { type_ = Type; }
+   static bool classof(const Ast *ast) { return ast->Type() == T; }
+   StmtDerived() { type_ = T; }
 };
 
 struct StmtError : public StmtDerived<AstType::StmtError> {
@@ -180,10 +180,10 @@ struct Decl : public Ast {
    std::string name;
 };
 
-template<AstType Type>
+template<AstType T>
 struct DeclDerived : Decl {
-   static bool classof(const Ast *ast) { return ast->type() == Type; }
-   DeclDerived() { type_ = Type; }
+   static bool classof(const Ast *ast) { return ast->Type() == T; }
+   DeclDerived() { type_ = T; }
 };
 
 struct VarDecl : public DeclDerived<AstType::VarDecl> {
@@ -241,10 +241,10 @@ struct Expr : public Ast {
    struct Error;
 };
 
-template<AstType Type>
+template<AstType T>
 struct ExprDerived : Expr {
-   static bool classof(const Ast *ast) { return ast->type() == Type; }
-   ExprDerived() { type_ = Type; }
+   static bool classof(const Ast *ast) { return ast->Type() == T; }
+   ExprDerived() { type_ = T; }
 };
 
 struct ExprError : public ExprDerived<AstType::ExprError> {
@@ -290,7 +290,7 @@ struct Identifier : ExprDerived<AstType::Identifier> {
    std::vector<Identifier*> get_non_namespaces();
 
    static bool classof(const Ast *ast) { 
-      return ast->type() == AstType::Identifier; 
+      return ast->Type() == AstType::Identifier; 
    }
 };
 
@@ -308,10 +308,10 @@ struct UnaryExpr : public Expr {
    Expr *expr = 0;
 };
 
-template<AstType Type>
+template<AstType T>
 struct UnaryExprDerived : UnaryExpr {
-   UnaryExprDerived() { type_ = Type; }
-   static bool classof(const Ast *ast) { return ast->type() == Type; }
+   UnaryExprDerived() { type_ = T; }
+   static bool classof(const Ast *ast) { return ast->Type() == T; }
 };
 
 struct SignExpr : public UnaryExprDerived<AstType::SignExpr> {

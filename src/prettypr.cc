@@ -127,7 +127,7 @@ struct PrettyPrinter {
 
 void PrettyPrinter::Print(Ast* ast) {
    assert(ast != nullptr);
-   switch (ast->type()) {
+   switch (ast->Type()) {
    case AstType::Program: {
       Program *X = cast<Program>(ast);
       CommentPrinter cp(X, out);
