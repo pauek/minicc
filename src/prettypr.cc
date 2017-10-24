@@ -347,9 +347,24 @@ void PrettyPrinter::Print(Ast* ast) {
          out.Write("::");
          cp.SpaceCommentSpace();
       }
-      // ----> FALLTHROUGH!!!! <-----
-      // ----> FALLTHROUGH!!!! <-----
-      // ----> FALLTHROUGH!!!! <-----
+      out.Write(X->name);
+      if (!X->subtypes.empty()) {
+         // WARNING: g++ here optimizes and changes order of instructions!!!
+         cp.SpaceCommentSpace();
+         out.Write("<");
+         cp.CommentSpace();
+         for (int i = 0; i < X->subtypes.size(); i++) {
+            if (i > 0) {
+               // WARNING: g++ here optimizes and changes order of instructions!!!
+               out.Write(", ");
+               cp.CommentSpace();
+            }
+            Print(X->subtypes[i]);
+            cp.SpaceComment();
+         }
+         out.Write(">");
+      }
+      break;
    }   
    case AstType::TemplateIdent: {
       TemplateIdent *X = cast<TemplateIdent>(ast);

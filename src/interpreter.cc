@@ -276,8 +276,8 @@ void Interpreter::check_result(Binding& fn, const Function *func_type) {
 }
 
 bool Interpreter::visit_type_conversion(CallExpr *X, const vector<Value>& args) {
-   FullIdent *id = X->func->as<FullIdent>();
-   if (id != 0) {
+   if (isa<FullIdent>(X->func)) {
+      FullIdent *id = cast<FullIdent>(X->func);
       TypeSpec spec(id);
       Type *type = get_type(&spec);
       if (type != 0) {
@@ -378,9 +378,9 @@ void Interpreter::Eval(Ast* ast) {
          Type *field_type = get_type(decl.typespec);
          assert(type != 0);
          for (DeclStmt::Item& item : decl.items) {
-            if (item.decl->is<ArrayDecl>()) {
-               Expr *size_expr = dynamic_cast<ArrayDecl*>(item.decl)->sizes[0];
-               Literal *size_lit = dynamic_cast<Literal*>(size_expr);
+            if (isa<ArrayDecl>(item.decl)) {
+               Expr *size_expr   = cast<ArrayDecl>(item.decl)->sizes[0];
+               Literal *size_lit = cast<Literal>(size_expr);
                assert(size_lit != 0);
                assert(size_lit->kind == Literal::Int);
                const int sz = size_lit->val.as_int;
@@ -913,17 +913,24 @@ void Interpreter::Eval(Ast* ast) {
       string name = X->decl->name;
       Type *type = get_type(X->decl->typespec);
       assert(type != 0);
-      if (X->decl->is<VarDecl>()) {
-         const VarDecl *var = X->decl->as<VarDecl>();
+      switch (X->decl->type()) {
+      case AstType::VarDecl: {
+         const VarDecl *var = cast<VarDecl>(X->decl);
          register_type(var->name, type);
-      } else if (X->decl->is<ArrayDecl>()) {
-         const ArrayDecl *array = X->decl->as<ArrayDecl>();
+         break;
+      }
+      case AstType::ArrayDecl: {
+         const ArrayDecl *array = cast<ArrayDecl>(X->decl);
          Eval(array->sizes[0]);
          if (!_curr.is<Int>()) {
             _error(_T("El tamaño de un array debería ser un entero"));
          }
          const int size = _curr.as<Int>();
          register_type(array->name, new Array(type, size));
+         break;
+      }
+      default:
+         assert(false);
       }
       break;
    }

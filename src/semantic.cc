@@ -225,8 +225,8 @@ void SemanticAnalyzer::visit_callexpr_getfunc(CallExpr *X) {
 bool SemanticAnalyzer::visit_type_conversion(CallExpr *X, const vector<Value>& args) {
    _curr_node = X;
    _curr_varname = "";
-   FullIdent *id = X->func->as<FullIdent>();
-   if (id != 0) {
+   if (isa<FullIdent>(X->func)) {
+      FullIdent *id = cast<FullIdent>(X->func);
       TypeSpec spec(id);
       Type *type = get_type(&spec);
       if (type != 0) {
@@ -686,8 +686,8 @@ void SemanticAnalyzer::Analyze(Ast *ast) {
             if (type->has_field(item.decl->name)) {
                decl.add_error(_T("El campo '%s' está repetido.", item.decl->name.c_str()));
             }
-            if (item.decl->is<ArrayDecl>()) {
-               ArrayDecl *array_decl = dynamic_cast<ArrayDecl*>(item.decl);
+            if (isa<ArrayDecl>(item.decl)) {
+               ArrayDecl *array_decl = cast<ArrayDecl>(item.decl);
                vector<int> sizes;
                for (Expr *size_expr : array_decl->sizes) {
                   Analyze(size_expr);
@@ -1100,7 +1100,7 @@ void SemanticAnalyzer::Analyze(Ast *ast) {
       if (!bind_field(obj, X->field->name)) {
          if (obj.type()->is(Type::Class)) {
             const char *msg;
-            if (X->parent->is<CallExpr>()) {
+            if (X->parent and isa<CallExpr>(X->parent)) {
                msg = "La clase '%s' no tiene método '%s'.";
             } else {
                msg = "La clase '%s' no tiene campo '%s'.";
@@ -1226,17 +1226,24 @@ void SemanticAnalyzer::Analyze(Ast *ast) {
       string name = X->decl->name;
       Type *type = get_type(X->decl->typespec);
       assert(type != 0);
-      if (X->decl->is<VarDecl>()) {
-         const VarDecl *var = X->decl->as<VarDecl>();
+      switch (X->decl->type()) {
+      case AstType::VarDecl: {         
+         const VarDecl *var = cast<VarDecl>(X->decl);
          register_type(var->name, type);
-      } else if (X->decl->is<ArrayDecl>()) {
-         const ArrayDecl *array = X->decl->as<ArrayDecl>();
+         break;
+      }
+      case AstType::ArrayDecl: {
+         const ArrayDecl *array = cast<ArrayDecl>(X->decl);
          Analyze(array->sizes[0]);
          if (!_curr.is<Int>()) {
             X->add_error(_T("El tamaño de un array debería ser un entero"));
          }
          const int size = _curr.as<Int>();
          register_type(array->name, new Array(type, size));
+         break;
+      }
+      default:
+         assert(false);
       }
       break;
    }

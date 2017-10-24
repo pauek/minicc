@@ -105,12 +105,6 @@ struct Ast {
  AstType type() const { return type_; }
     bool HasErrors()   const { return !errors.empty(); }
 
-   template<typename X>
-                  bool is() const { return dynamic_cast<const X*>(this) != 0; }
-   template<typename X>
-              const X *as() const { return dynamic_cast<const X*>(this); }
-   template<typename X>
-                    X *as()       { return dynamic_cast<X*>(this); }
 protected:
    AstType  type_;
 };
@@ -276,7 +270,7 @@ struct Expr : public Ast {
 
 template<AstType Type>
 struct ExprDerived : Expr {
-   static bool classof(const Ast *ast) { ast->type() == Type; }
+   static bool classof(const Ast *ast) { return ast->type() == Type; }
    ExprDerived() { type_ = Type; }
 };
 
@@ -326,7 +320,9 @@ struct TemplateIdent : SimpleIdent {
    bool is_template() const { return !subtypes.empty(); }
    std::string typestr() const;
 
-   static bool classof(const Ast *ast) { ast->type() == AstType::TemplateIdent; }
+   static bool classof(const Ast *ast) { 
+      return ast->type() == AstType::TemplateIdent; 
+   }
 };
 
 struct FullIdent : TemplateIdent {
@@ -341,7 +337,9 @@ struct FullIdent : TemplateIdent {
    SimpleIdent *get_potential_namespace_or_class() const;
    std::vector<TemplateIdent*> get_non_namespaces();
 
-   static bool classof(const Ast *ast) { ast->type() == AstType::FullIdent; }
+   static bool classof(const Ast *ast) { 
+      return ast->type() == AstType::FullIdent; 
+   }
 };
 
 struct BinaryExpr : public ExprDerived<AstType::BinaryExpr> {

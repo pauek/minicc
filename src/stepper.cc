@@ -87,7 +87,7 @@ void Stepper::Step(Ast *ast) {
          e->collect_rights(ws->exprs);
          push(ws);
          ws->step(this);
-      } else if (X->expr->is<CallExpr>()) {
+      } else if (isa<CallExpr>(X->expr)) {
          Step(X->expr);
       } else {
          I.Eval(X->expr);
