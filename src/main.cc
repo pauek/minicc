@@ -8,7 +8,7 @@ using namespace std;
 #include "astpr.hh"
 #include "prettypr.hh"
 #include "stepper.hh"
-#include "semantic2.hh"
+#include "semantic.hh"
 #include "interpreter.hh"
 #include "translator.hh"
 #include "walker.hh"

@@ -4,7 +4,7 @@ endif
 
 OBJECTS=main.o lexer.o parser.o ast.o token.o value.o types.o \
 	prettypr.o astpr.o interpreter.o \
-	stepper.o walker.o translator.o semantic2.o
+	stepper.o walker.o translator.o semantic.o
 
 HEADERS=$(wildcard *.hh)
 
