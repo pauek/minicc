@@ -74,8 +74,6 @@ enum class AstType {
 
    ExprError,
    Literal,
-   // SimpleIdent,
-   // TemplateIdent,
    Identifier,
    BinaryExpr,
    UnaryExpr,
@@ -465,9 +463,6 @@ public:
    std::string indentation() const { 
       return std::string(_indent * TAB_WIDTH, ' '); 
    }
-
-   void set_in(std::istream *i)  { _in  = i; }
-   void set_out(std::ostream *o) { _out = o; }
 };
 
 #endif
