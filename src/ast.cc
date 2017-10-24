@@ -62,86 +62,66 @@ void Error::to_json(ostream& o) const {
    o << "}";
 }
 
-// OJO: El orden de la tabla es importante!
-// Hay que dejarla antes que el initializer y el map...
-//
-struct { 
-   string      op; 
-   Token::Type tokkind; 
-   Expr::Kind  kind; 
-} pairs[] = {
-   { "",    Token::Empty,        Expr::Unknown },
-   { ",",   Token::Comma,        Expr::Comma },
-
-   { "=",   Token::Eq,           Expr::Eq },
-   { "+=",  Token::PlusEq,       Expr::Eq },
-   { "-=",  Token::MinusEq,      Expr::Eq },
-   { "*=",  Token::StarEq,       Expr::Eq },
-   { "/=",  Token::SlashEq,      Expr::Eq },
-   { "%=",  Token::DivEq,        Expr::Eq },
-   { "<<=", Token::LShiftEq,     Expr::Eq },
-   { ">>=", Token::RShiftEq,     Expr::Eq },
-   { "&=",  Token::AmpEq,        Expr::Eq },
-   { "|=",  Token::BarEq,        Expr::Eq },
-   { "^=",  Token::XorEq,        Expr::Eq },
-
-   { ":",   Token::Colon,        Expr::Infinite },
-   { "?",   Token::QMark,        Expr::Conditional },
-
-   { "or",  Token::Or,           Expr::LogicalOr },
-   { "||",  Token::BarBar,       Expr::LogicalOr },
-
-   { "and", Token::And,          Expr::LogicalAnd },
-   { "&&",  Token::AmpAmp,       Expr::LogicalAnd },
-
-   { "|",   Token::Bar,          Expr::BitOr },
-   { "^",   Token::Xor,       Expr::BitXor },
-   { "&",   Token::Amp,          Expr::BitAnd },
-
-   { "==",  Token::EqEq,         Expr::Equality },
-   { "!=",  Token::NotEq,        Expr::Equality },
-
-   { "<",   Token::LT,           Expr::Relational },
-   { ">",   Token::GT,           Expr::Relational },
-   { ">=",  Token::GE,           Expr::Relational },
-   { "<=",  Token::LE,           Expr::Relational },
-      
-   { "<<",  Token::LShift,       Expr::Shift },
-   { ">>",  Token::RShift,       Expr::Shift },
-
-   { "+",   Token::Plus,         Expr::Additive },
-   { "-",   Token::Minus,        Expr::Additive },
-
-   { "*",   Token::Star,         Expr::Multiplicative },
-   { "/",   Token::Slash,        Expr::Multiplicative },
-   { "%",   Token::Div,          Expr::Multiplicative },
-
-   // { "->*", Expr::multiplicative }, TODO
-   // { ".*", Expr::multiplicative }, TODO
-
-   { "END", Token::Unknown,      Expr::Unknown }
-};
-
 const string TypeSpec::QualifiersNames[] = { 
    "const",    "volatile", "mutable", 
    "register", "auto",     "extern"
 };
 
-map<Token::Type, Expr::Kind> Expr::_tok2kind;
-
-Expr::Op2KindInitializer Expr::initializer;
-
-Expr::Op2KindInitializer::Op2KindInitializer() {
-   int i = 0;
-   while (pairs[i].op != "END") {
-      _tok2kind[pairs[i].tokkind] = pairs[i].kind;
-      i++;
-   }
-}
-
 Expr::Kind Expr::tok2kind(Token::Type tokkind) {
-   auto it = _tok2kind.find(tokkind);
-   return (it != _tok2kind.end() ? it->second : Expr::Unknown);
+   switch (tokkind) {
+   case Token::Empty:
+      return Expr::Unknown;
+   case Token::Comma:
+      return Expr::Comma;
+   case Token::Eq:
+   case Token::PlusEq:
+   case Token::MinusEq:
+   case Token::StarEq:
+   case Token::SlashEq:
+   case Token::DivEq:
+   case Token::LShiftEq:
+   case Token::RShiftEq:
+   case Token::AmpEq:
+   case Token::BarEq:
+   case Token::XorEq:
+      return Expr::Eq;
+   case Token::Colon:
+      return Expr::Infinite;
+   case Token::QMark:
+      return Expr::Conditional;
+   case Token::Or:
+   case Token::BarBar:
+      return Expr::LogicalOr;
+   case Token::And:
+   case Token::AmpAmp:
+      return Expr::LogicalAnd;
+   case Token::Bar:
+      return Expr::BitOr;
+   case Token::Xor:
+      return Expr::BitXor;
+   case Token::Amp:
+      return Expr::BitAnd;
+   case Token::EqEq:
+   case Token::NotEq:
+      return Expr::Equality;
+   case Token::LT:
+   case Token::GT:
+   case Token::GE:
+   case Token::LE:
+      return Expr::Relational;
+   case Token::LShift:
+   case Token::RShift:
+      return Expr::Shift;
+   case Token::Plus:
+   case Token::Minus:
+      return Expr::Additive;
+   case Token::Star:
+   case Token::Slash:
+   case Token::Div:
+      return Expr::Multiplicative;
+   default:
+      return Expr::Unknown;
+   }
 }
 
 bool Expr::right_associative(Expr::Kind t) {

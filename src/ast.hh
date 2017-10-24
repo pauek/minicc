@@ -234,12 +234,9 @@ struct Expr : public Ast {
       BitAnd, BitXor, BitOr, LogicalAnd, LogicalOr, Conditional,
       Eq, Comma, Infinite
    };
-   struct Op2KindInitializer { Op2KindInitializer(); }; // init _op2kind
 
    bool paren = false; // if this is true, comments will have an extra element!
 
-   static Op2KindInitializer initializer;
-   static std::map<Token::Type, Kind> _tok2kind;
    static Kind tok2kind(Token::Type toktyp);
    static bool right_associative(Kind t);
 
