@@ -86,9 +86,11 @@ void Stepper::Step(Ast *ast) {
          CollectRights(e, ws->exprs);
          push(ws);
          ws->step(this);
-      } else if (isa<CallExpr>(X->expr)) {
+      } 
+      else if (isa<CallExpr>(X->expr)) {
          Step(X->expr);
-      } else {
+      } 
+      else {
          I.Eval(X->expr);
          if (X->is_return) {
             ostringstream oss;
