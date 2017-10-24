@@ -8,13 +8,13 @@
 #include <list>
 #include <stack>
 #include <map>
-#include "interpreter.hh"
+#include "interpreter2.hh"
 
 enum Todo { Stop, Next };
 
 class Stepper : public AstVisitor {
 
-   Interpreter I;
+   Interpreter2 I;
 
    struct StepperState {
       virtual Todo  step(Stepper*) = 0;
@@ -24,13 +24,13 @@ class Stepper : public AstVisitor {
                  std::string _status;
    std::stack<StepperState*> _stack;
    std::vector<std::string>  _errors;
-                 EvalError*  _err;
+                EvalError2*  _err;
 
           void _e() const { assert(!_stack.empty()); }
           void prepare_funcall(FuncDecl *, std::vector<Value>&);
           void _error(std::string msg) { _errors.push_back(msg); }
 
-          void eval(Ast *x) { x->accept(&I); }
+          void eval(Ast *X) { I.Eval(X); }
 
           void generic_visit(Ast *x);
           void visit_assignment(BinaryExpr *x);
@@ -38,9 +38,7 @@ class Stepper : public AstVisitor {
    std::stringstream _out;
    std::stringstream _in;
 public:
-   Stepper() : _err(0) { 
-      I.set_in(&_in), I.set_out(&_out); 
-   }
+   Stepper() : _err(0), I(&_in, &_out) {}
 
    Stepper(std::istream *i, std::ostream* o) 
       : I(i, o), _err(0) {}
@@ -49,7 +47,7 @@ public:
 
           void status(std::string s)    { _status = s; }
    std::string status()           const { return _status; }
-     EvalError *error()           const { return _err; }
+    EvalError2 *error()           const { return _err; }
  
           void start(Program *p)        { visit_program(p); }
 

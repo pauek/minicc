@@ -1,7 +1,8 @@
 #include "cast.h"
 #include "ast.hh"
+#include "value.hh"
+#include "types.hh"
 #include "translator.hh"
-#include "interpreter.hh"
 #include "semantic.hh"
 using namespace std;
 

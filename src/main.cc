@@ -9,7 +9,7 @@ using namespace std;
 #include "prettypr.hh"
 #include "stepper.hh"
 #include "semantic.hh"
-#include "interpreter.hh"
+#include "interpreter2.hh"
 #include "translator.hh"
 #include "walker.hh"
 
@@ -90,9 +90,7 @@ int interpret(string filename) {
       if (nerrors > 0) {
          return 1;
       }
-
-      Interpreter I(&cin, &cout);
-      program->accept(&I);
+      Eval(program, cin, cout);
       vector<Error*> ve;
       collect_errors(program, ve);
       for (Error *e : ve) {
@@ -165,11 +163,6 @@ string visible_spaces(string output, string compare = "") {
    return res;
 }
 
-enum VisitorType { interpreter, stepper };
-
-void exec_visitor(Program *P, VisitorType vtype) {
-}
-
 void parse_test_file(string filename, 
                      string& code, string& in, string& out, string& err) {
    ifstream F(filename);
@@ -220,64 +213,6 @@ void compare_result(string filename, string sout, string serr,
    cout << res << flush;
 }
 
-int test_visitor(string filename, VisitorType vtype) {
-   string code, in, out, err;
-   parse_test_file(filename, code, in, out, err);
-   
-   ostringstream Sout, Saux, Serr;
-   istringstream Scode(code), Sin(in);
-   Parser P(&Scode, &Serr);
-   Ast *program;
-   try {
-      program = P.parse();
-   }
-   catch (ParseError& e) {
-      Serr << filename << "[" << e.pos << "]: " << e.msg << endl;
-      goto compare;
-   }
-
-   AstVisitor *v;
-   switch (vtype) {
-   case interpreter:    v = new Interpreter(&Sin, &Sout); break;
-   default: break;
-   }
-
-   // Run it
-   try {
-      Translator::translator.set_language("es");
-      if (vtype == stepper) {
-         Stepper S(&Sin, &Saux);
-         program->accept(&S);
-         while (!S.finished()) {
-            Sout << S.span() << ": " << P.lexer().SubStr(S.span()) << endl;
-            Sout << S.status() << endl;
-            string output = S.output();
-            if (output != "") {
-               Sout << "OUTPUT: \"" << output << '"' << endl;
-            }
-            Sout << endl;
-            if (!S.step()) {
-               throw S.error();
-            }
-         }
-      } else {
-         vector<Error*> ve;
-         program->accept(v);
-         collect_errors(program, ve);
-         for (Error *e : ve) {
-            Serr << e->msg << endl;
-         }
-      }
-   } 
-   catch (Error* e) {
-      Serr << "Error de ejecución: " << e->msg << endl;
-   }
-
- compare:
-   compare_result(filename, Sout.str(), Serr.str(), out, err);
-   return 0;
-}
-
 int _test_parser_and_semantic(string filename, bool do_semantic) {
    string code, in, out, err;
    parse_test_file(filename, code, in, out, err);
@@ -313,42 +248,6 @@ int test_parser(string filename) {
    return _test_parser_and_semantic(filename, false);
 }
 
-int test_print(string filename) {
-   string code, in, out, err;
-   parse_test_file(filename, code, in, out, err);
-   
-   ostringstream Sout, Saux, Serr;
-   istringstream Scode(code), Sin(in);
-   Parser P(&Scode, &Serr);
-   Ast *program;
-   try {
-      program = P.parse();
-   }
-   catch (ParseError& e) {
-      Serr << filename << "[" << e.pos << "]: " << e.msg << endl;
-      goto compare;
-   }
-   try {
-      Translator::translator.set_language("es");
-      vector<Error*> ve;
-      PrettyPrint(program, Sout);
-      collect_errors(program, ve);
-      for (Error *e : ve) {
-         Serr << e->msg << endl;
-      }
-   } 
-   catch (Error* e) {
-      Serr << "Error de ejecución: " << e->msg << endl;
-   }
-
- compare:
-   compare_result(filename, Sout.str(), Serr.str(), out, err);
-   return 0;
-}
-
-int test_eval(string fname)  { return test_visitor(fname, interpreter); }
-int test_step(string fname)  { return test_visitor(fname, stepper); }
-
 int test_ast(string filename) {
    string code, in, out, err;
    parse_test_file(filename, code, in, out, err);
@@ -382,6 +281,114 @@ int test_ast(string filename) {
    compare_result(filename, Sout.str(), Serr.str(), out, err);
    return 0;
 }
+
+int test_print(string filename) {
+   string code, in, out, err;
+   parse_test_file(filename, code, in, out, err);
+   
+   ostringstream Sout, Saux, Serr;
+   istringstream Scode(code), Sin(in);
+   Parser P(&Scode, &Serr);
+   Ast *program;
+   try {
+      program = P.parse();
+   }
+   catch (ParseError& e) {
+      Serr << filename << "[" << e.pos << "]: " << e.msg << endl;
+      goto compare;
+   }
+   try {
+      Translator::translator.set_language("es");
+      vector<Error*> ve;
+      PrettyPrint(program, Sout);
+      collect_errors(program, ve);
+      for (Error *e : ve) {
+         Serr << e->msg << endl;
+      }
+   } 
+   catch (Error* e) {
+      Serr << "Error de ejecución: " << e->msg << endl;
+   }
+
+ compare:
+   compare_result(filename, Sout.str(), Serr.str(), out, err);
+   return 0;
+}
+
+int test_eval(string filename) {
+   string code, in, out, err;
+   parse_test_file(filename, code, in, out, err);
+   
+   ostringstream Sout, Saux, Serr;
+   istringstream Scode(code), Sin(in);
+   Parser P(&Scode, &Serr);
+   Ast *program;
+   try {
+      program = P.parse();
+   }
+   catch (ParseError& e) {
+      Serr << filename << "[" << e.pos << "]: " << e.msg << endl;
+      goto compare;
+   }
+   try {
+      Translator::translator.set_language("es");
+      vector<Error*> ve;
+      Eval(program, Sin, Sout);
+      collect_errors(program, ve);
+      for (Error *e : ve) {
+         Serr << e->msg << endl;
+      }
+   } 
+   catch (Error* e) {
+      Serr << "Error de ejecución: " << e->msg << endl;
+   }
+
+ compare:
+   compare_result(filename, Sout.str(), Serr.str(), out, err);
+   return 0;
+}
+
+int test_step(string filename) {
+   string code, in, out, err;
+   parse_test_file(filename, code, in, out, err);
+   
+   ostringstream Sout, Saux, Serr;
+   istringstream Scode(code), Sin(in);
+   Parser P(&Scode, &Serr);
+   Ast *program;
+   try {
+      program = P.parse();
+   }
+   catch (ParseError& e) {
+      Serr << filename << "[" << e.pos << "]: " << e.msg << endl;
+      goto compare;
+   }
+   try {
+      Translator::translator.set_language("es");
+      Stepper S(&Sin, &Saux);
+      program->accept(&S);
+      while (!S.finished()) {
+         Sout << S.span() << ": " << P.lexer().SubStr(S.span()) << endl;
+         Sout << S.status() << endl;
+         string output = S.output();
+         if (output != "") {
+            Sout << "OUTPUT: \"" << output << '"' << endl;
+         }
+         Sout << endl;
+         if (!S.step()) {
+            throw S.error();
+         }
+      }
+   } 
+   catch (Error* e) {
+      Serr << "Error de ejecución: " << e->msg << endl;
+   }
+
+ compare:
+   compare_result(filename, Sout.str(), Serr.str(), out, err);
+   return 0;
+}
+
 
 string filename, cmd;
 

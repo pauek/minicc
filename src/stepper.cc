@@ -17,7 +17,7 @@ bool Stepper::step() {
       }
       return true;
    }
-   catch (EvalError* e) {
+   catch (EvalError2* e) {
       _err = e;
       return false;
    }
@@ -35,19 +35,19 @@ Todo Stepper::PopState::step(Stepper *S) {
    return Next; 
 }
 
-void Stepper::generic_visit(Ast *x) {
-   x->accept(&I);
-   status(x->describe());
-   push(new PopState(x->span));
+void Stepper::generic_visit(Ast *X) {
+   I.Eval(X);
+   status(X->describe());
+   push(new PopState(X->span));
 }
 
-void Stepper::visit_declstmt(DeclStmt *x)     { generic_visit(x); }
-void Stepper::visit_increxpr(IncrExpr *x)     { generic_visit(x); }
-void Stepper::visit_binaryexpr(BinaryExpr *x) { generic_visit(x); }
-void Stepper::visit_literal(Literal *x)       { x->accept(&I); }
-void Stepper::visit_fullident(FullIdent *x)   { x->accept(&I); }
-void Stepper::visit_fieldexpr(FieldExpr *x)   { x->accept(&I); }
-void Stepper::visit_indexexpr(IndexExpr *x)   { x->accept(&I); }
+void Stepper::visit_declstmt(DeclStmt *X)     { generic_visit(X); }
+void Stepper::visit_increxpr(IncrExpr *X)     { generic_visit(X); }
+void Stepper::visit_binaryexpr(BinaryExpr *X) { generic_visit(X); }
+void Stepper::visit_literal(Literal *X)       { eval(X); }
+void Stepper::visit_fullident(FullIdent *X)   { eval(X); }
+void Stepper::visit_fieldexpr(FieldExpr *X)   { eval(X); }
+void Stepper::visit_indexexpr(IndexExpr *X)   { eval(X); }
 
 void Stepper::visit_program(Program *x) {
    I.visit_program_prepare(x);
@@ -55,7 +55,7 @@ void Stepper::visit_program(Program *x) {
    status(_T("The program begins."));
    I.pushenv("main");
    Func *fn = I._curr.as<Callable>().func.as<Function>().ptr;
-   FuncDecl *main = dynamic_cast<UserFunc*>(fn)->decl;
+   FuncDecl *main = dynamic_cast<UserFunc2*>(fn)->decl;
    I.invoke_func_prepare(main, vector<Value>());
    I.actenv();
    push(new ProgramVisitState(main));
@@ -119,7 +119,7 @@ Todo Stepper::BlockVisitState::step(Stepper *S) {
 }
 
 void Stepper::visit_ifstmt(IfStmt *x) {
-   x->cond->accept(&I);
+   I.Eval(x->cond);
    Value cond = I._curr;
    if (!cond.is<Bool>()) {
       _error(_T("The condition in a '%s' has to be a value of type 'bool'.", "if"));
@@ -241,7 +241,7 @@ void Stepper::visit_exprstmt(ExprStmt *x) {
    } else if (x->expr->is<CallExpr>()) {
       visit_callexpr(dynamic_cast<CallExpr*>(x->expr));
    } else {
-      I.visit(x->expr);
+      I.Eval(x->expr);
       if (x->is_return) {
          ostringstream oss;
          oss << I._curr;
@@ -290,7 +290,7 @@ Todo Stepper::WriteExprVisitState::step(Stepper* S) {
 
 void Stepper::visit_assignment(BinaryExpr *e) {
    assert(e != 0);
-   I.visit(e->right);
+   I.Eval(e->right);
    Value right = Reference::deref(I._curr);
    ostringstream oss;
    oss << right;
@@ -313,7 +313,7 @@ Todo Stepper::EqmentVisitState::step(Stepper *S) {
       delete this;
       return Next;
    }
-   S->I.visit(x->left);
+   S->I.Eval(x->left);
    left = S->I._curr;
    if (x->op == "=") {
       S->I.visit_binaryexpr_assignment(left, right);
@@ -339,7 +339,7 @@ void Stepper::visit_callexpr(CallExpr *x) {
       assert(I._curr.is<Callable>());
    }
    Func *fptr = I._curr.as<Callable>().func.as<Function>().ptr;
-   const UserFunc *userfunc = dynamic_cast<const UserFunc*>(fptr);
+   const UserFunc2 *userfunc = dynamic_cast<const UserFunc2*>(fptr);
    if (userfunc == 0) {
       I.visit_callexpr_call(I._curr, args);
       push(new PopState(x->span));
@@ -383,7 +383,7 @@ Todo Stepper::CallExprVisitState::step(Stepper *S) {
       } else {
          S->status(_T("We evaluate parameter number %d.", curr));
       }
-      S->I.visit(x->args[curr]);
+      S->I.Eval(x->args[curr]);
       Value v = S->I._curr;
       S->I.invoke_func_prepare_arg(fn, v, curr);
       ++curr;
