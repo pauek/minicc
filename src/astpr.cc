@@ -87,10 +87,10 @@ void AstPrinter::Print(Ast* ast) {
          out.Write(", {");
 
 #define QUALIFIER(qual, str) \
-         if (X->bqual & TypeSpec::qual) { \
-            if (count > 0) out.Write(", ");          \
-            out.Write(str);                          \
-            count++;                                 \
+         if (X->bqual & TypeSpec::qual) {   \
+            if (count > 0) out.Write(", "); \
+            out.Write(str);                 \
+            count++;                        \
          }
          QUALIFIER(Const,    "const")
          QUALIFIER(Volatile, "volatile")

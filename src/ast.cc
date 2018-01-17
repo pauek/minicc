@@ -203,10 +203,10 @@ Identifier *TypeSpec::GetPotentialNamespaceOrClass() const {
 string TypeSpec::TypeStr() const {
    string typestr;
 
-#define QUALIFIER(qual, str)            \
-   if (HasQualifier(qual)) {            \
-      typestr += str;                   \
-      typestr += ' ';                   \
+#define QUALIFIER(qual, str) \
+   if (HasQualifier(qual)) { \
+      typestr += str;        \
+      typestr += ' ';        \
    }
    QUALIFIER(Const,    "const")
    QUALIFIER(Volatile, "volatile")
