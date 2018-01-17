@@ -106,7 +106,7 @@ protected:
 
 template<AstType T>
 struct AstDerived : Ast {
-   static bool classof(const Ast *ast) { return ast->Type() == T; }
+   static bool subclassof(const Ast *ast) { return ast->Type() == T; }
    AstDerived() { type_ = T; }
 };
 
@@ -143,7 +143,7 @@ struct Stmt : public Ast {};
 
 template<AstType T>
 struct StmtDerived : Stmt {
-   static bool classof(const Ast *ast) { return ast->Type() == T; }
+   static bool subclassof(const Ast *ast) { return ast->Type() == T; }
    StmtDerived() { type_ = T; }
 };
 
@@ -180,7 +180,7 @@ struct Decl : public Ast {
 
 template<AstType T>
 struct DeclDerived : Decl {
-   static bool classof(const Ast *ast) { return ast->Type() == T; }
+   static bool subclassof(const Ast *ast) { return ast->Type() == T; }
    DeclDerived() { type_ = T; }
 };
 
@@ -242,7 +242,7 @@ struct Expr : public Ast {
 
 template<AstType T>
 struct ExprDerived : Expr {
-   static bool classof(const Ast *ast) { return ast->Type() == T; }
+   static bool subclassof(const Ast *ast) { return ast->Type() == T; }
    ExprDerived() { type_ = T; }
 };
 
@@ -288,7 +288,7 @@ struct Identifier : ExprDerived<AstType::Identifier> {
    Identifier *GetPotentialNamespaceOrClass() const;
    std::vector<Identifier*> GetNonNamespaces();
 
-   static bool classof(const Ast *ast) { 
+   static bool subclassof(const Ast *ast) { 
       return ast->Type() == AstType::Identifier; 
    }
 };
@@ -329,7 +329,7 @@ struct UnaryExpr : public Expr {
 template<AstType T>
 struct UnaryExprDerived : UnaryExpr {
    UnaryExprDerived() { type_ = T; }
-   static bool classof(const Ast *ast) { return ast->Type() == T; }
+   static bool subclassof(const Ast *ast) { return ast->Type() == T; }
 };
 
 struct SignExpr : public UnaryExprDerived<AstType::SignExpr> {

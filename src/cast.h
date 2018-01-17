@@ -53,7 +53,7 @@
 //     enum CarType { Minivan, ... };
 //     struct Car { CarType type; ... };
 //     struct Minivan : Car {
-//       static bool classof(const Car* car) { return car->type == Minivan; }
+//       static bool subclassof(const Car* car) { return car->type == Minivan; }
 //       ...
 //     };
 //
@@ -63,7 +63,7 @@
 template <typename Derived, typename Base>
 bool isa(const Base* base) {
    STATIC_ASSERT((std::is_base_of<Base, Derived>::value));
-   return Derived::classof(base);
+   return Derived::subclassof(base);
 }
 
 template <typename Derived, typename Base>
@@ -77,6 +77,8 @@ Derived* cast(Base* base) {
    assert(isa<Derived>(base));
    return static_cast<Derived*>(base);
 };
+
+/*
 
 template <typename Derived, typename Base>
 const Derived* dyn_cast(const Base* base) {
@@ -102,5 +104,7 @@ std::unique_ptr<Derived> cast(std::unique_ptr<Base>&& base) {
    assert(isa<Derived>(base.get()));
    return std::unique_ptr<Derived>(static_cast<Derived*>(base.release()));
 };
+
+*/
 
 #endif
