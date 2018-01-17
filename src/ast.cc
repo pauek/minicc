@@ -205,27 +205,28 @@ Identifier *TypeSpec::GetPotentialNamespaceOrClass() const {
    return id->GetPotentialNamespaceOrClass();
 }
 
+/*
 bool TypeSpec::HasQualifier(TypeSpec::Qualifier q) const {
    return find(qual.begin(), qual.end(), q) != qual.end();
 }
+*/
 
 string TypeSpec::TypeStr() const {
    string typestr;
-   int i = 0, numquals = 0;
-   static const string names[] = { 
-      "const", "volatile", "mutable", "register", "auto", "extern"
-   };
-   while (TypeSpec::Qualifier(1 << i) <= TypeSpec::Extern) {
-      int q = TypeSpec::Qualifier(1 << i);
-      if (find(qual.begin(), qual.end(), q) != qual.end()) {
-         if (numquals > 0) {
-            typestr += " ";
-         }
-         typestr += names[i];
-         numquals++;
-      }
-      i++;
+
+#define QUALIFIER(qual, str)            \
+   if (HasQualifier(qual)) {            \
+      typestr += str;                   \
+      typestr += ' ';                   \
    }
+   QUALIFIER(Const,    "const")
+   QUALIFIER(Volatile, "volatile")
+   QUALIFIER(Mutable,  "mutable")
+   QUALIFIER(Register, "register")
+   QUALIFIER(Auto,     "auto")
+   QUALIFIER(Extern,   "extern")
+#undef QUALIFIER
+
    typestr += id->TypeStr();
    if (reference) {
       typestr += "&";

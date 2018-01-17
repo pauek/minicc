@@ -185,10 +185,20 @@ void PrettyPrinter::Print(Ast* ast) {
    case AstType::TypeSpec: {
       TypeSpec *X = cast<TypeSpec>(ast);
       CommentPrinter cp(X, out);
-      for (int q : X->qual) {
-         out.Write(TypeSpec::QualifierNames[q], " ");
-         cp.CommentSpace();
+
+#define QUALIFIER(qual, str)       \
+      if (X->HasQualifier(TypeSpec::qual)) { \
+         out.Write(str, " ");      \
+         cp.CommentSpace();        \
       }
+      QUALIFIER(Const,    "const")
+      QUALIFIER(Volatile, "volatile")
+      QUALIFIER(Mutable,  "mutable")
+      QUALIFIER(Register, "register")
+      QUALIFIER(Auto,     "auto")
+      QUALIFIER(Extern,   "extern")
+#undef QUALIFIER
+
       Print(X->id);
       if (X->reference) {
          cp.SpaceCommentSpace();

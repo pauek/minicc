@@ -297,17 +297,26 @@ struct TypeSpec : public AstDerived<AstType::TypeSpec> {
    static const std::string QualifierNames[];
 
    enum Qualifier {
-      Const    = 0, Volatile = 1, Mutable = 2, 
-      Register = 3, Auto     = 4, Extern  = 5
+      Const    = 0b000001,
+      Volatile = 0b000010,
+      Mutable  = 0b000100,
+      Register = 0b001000,
+      Auto     = 0b010000,
+      Extern   = 0b100000,
    };
 
    bool                    reference = false;
-   std::vector<Qualifier> qual;
+   int8_t                  bqual;
+   // std::vector<Qualifier>  qual;
    Identifier              *id = 0;
 
    TypeSpec() = default;
    TypeSpec(Identifier *_id) : id(_id), reference(false) {}
-   bool HasQualifier(Qualifier q) const;
+
+   void AddQualifier(Qualifier q)       { bqual |= q; }
+   bool HasQualifier(Qualifier q) const { return (bqual & q) != 0; }
+   bool HasQualifiers()           const { return bqual != 0; }
+
    std::string TypeStr() const;
 
    bool IsTemplate() const { return !id->subtypes.empty(); }

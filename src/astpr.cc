@@ -82,20 +82,24 @@ void AstPrinter::Print(Ast* ast) {
       }
       out.Write("(");
       Print(X->id);
-      if (!X->qual.empty()) {
+      if (X->HasQualifiers()) {
+         int count = 0;
          out.Write(", {");
-         int i = 0, numq = 0;
-         for (int q = TypeSpec::Const; q <= TypeSpec::Extern; q++) {
-            vector<TypeSpec::Qualifier>& Q = X->qual;
-            if (find(Q.begin(), Q.end(), q) != X->qual.end()) {
-               if (numq > 0) {
-                  out.Write(", ");
-               }
-               out.Write(TypeSpec::QualifierNames[i]);
-               numq++;
-            }
-            i++;
+
+#define QUALIFIER(qual, str) \
+         if (X->bqual & TypeSpec::qual) { \
+            if (count > 0) out.Write(", ");          \
+            out.Write(str);                          \
+            count++;                                 \
          }
+         QUALIFIER(Const,    "const")
+         QUALIFIER(Volatile, "volatile")
+         QUALIFIER(Mutable,  "mutable")
+         QUALIFIER(Register, "register")
+         QUALIFIER(Auto,     "auto")
+         QUALIFIER(Extern,   "extern")
+#undef QUALIFIER
+
          out.Write("}");
       }
       out.Write(")");

@@ -246,12 +246,12 @@ bool Parser::_parse_type_process_token(TypeSpec *type, Token tok, Pos p) {
    } 
    if (tok.IsTypeQual()) {
       switch (tok.type) {
-      case Token::Const:    type->qual.push_back(TypeSpec::Const);    break;
-      case Token::Auto:     type->qual.push_back(TypeSpec::Auto);     break;
-      case Token::Mutable:  type->qual.push_back(TypeSpec::Mutable);  break;
-      case Token::Register: type->qual.push_back(TypeSpec::Register); break;
-      case Token::Volatile: type->qual.push_back(TypeSpec::Volatile); break;
-      case Token::Extern:   type->qual.push_back(TypeSpec::Extern);   break;
+      case Token::Const:    type->AddQualifier(TypeSpec::Const);    break;
+      case Token::Auto:     type->AddQualifier(TypeSpec::Auto);     break;
+      case Token::Mutable:  type->AddQualifier(TypeSpec::Mutable);  break;
+      case Token::Register: type->AddQualifier(TypeSpec::Register); break;
+      case Token::Volatile: type->AddQualifier(TypeSpec::Volatile); break;
+      case Token::Extern:   type->AddQualifier(TypeSpec::Extern);   break;
       default: /* TODO: acabar! */ break;
       }
       return true;
