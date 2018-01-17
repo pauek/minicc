@@ -294,8 +294,6 @@ struct Identifier : ExprDerived<AstType::Identifier> {
 };
 
 struct TypeSpec : public AstDerived<AstType::TypeSpec> {
-   static const std::string QualifierNames[];
-
    enum Qualifier {
       Const    = 0b000001,
       Volatile = 0b000010,
@@ -307,7 +305,6 @@ struct TypeSpec : public AstDerived<AstType::TypeSpec> {
 
    bool                    reference = false;
    int8_t                  bqual;
-   // std::vector<Qualifier>  qual;
    Identifier              *id = 0;
 
    TypeSpec() = default;

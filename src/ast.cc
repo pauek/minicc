@@ -62,11 +62,6 @@ void Error::ToJson(ostream& o) const {
    o << "}";
 }
 
-const string TypeSpec::QualifierNames[] = { 
-   "const",    "volatile", "mutable", 
-   "register", "auto",     "extern"
-};
-
 Expr::Kind Expr::TokenToKind(Token::Type tokkind) {
    switch (tokkind) {
    case Token::Empty:
@@ -204,12 +199,6 @@ vector<Identifier*> Identifier::GetNonNamespaces() {
 Identifier *TypeSpec::GetPotentialNamespaceOrClass() const {
    return id->GetPotentialNamespaceOrClass();
 }
-
-/*
-bool TypeSpec::HasQualifier(TypeSpec::Qualifier q) const {
-   return find(qual.begin(), qual.end(), q) != qual.end();
-}
-*/
 
 string TypeSpec::TypeStr() const {
    string typestr;
