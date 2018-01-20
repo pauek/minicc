@@ -1,0 +1,162 @@
+
+- El intérprete actual se va a ir. Haremos uno nuevo donde básicamente 
+  tienes una máquina virtual, con estructuras de datos debuggables.
+  O sea, que por ejemplo la pila conserva los nombres de las variables (y
+  las variables estáticas también). El heap recuerda los chunks reservados y
+  qué layout tienen (y así caza errores de segmentación). Y para recordar de 
+  qué instrucción provienen las instrucciones de la VM, se agrupan. Quizás
+  se pueda incluso hacer la información de debug opcional.
+
+  1. No hay Value!!! No necesitas un valor genérico (variant). 
+     No lo necesitas. Los tipos desaparecen porque las instrucciones ya 
+     contienen los tipos necesarios para operar, como en ensamblador. Todas las 
+     instrucciones saben los tipos con los que operan, punto.
+
+  2. Los tipos definidos por el usuario sí tienen objetos en memoria que los
+     representan (para poder mostrar por pantalla!), pero las instrucciones 
+     generadas no lo necesitan. Si accedo a un campo de un campo de un campo
+     de una tupla, el acceso es directo, pero luego al mostrarlo por pantalla
+     necesito el layout de esa variable (por eso tengo el tipo original).
+
+  3. El stepper y el intérprete son la misma cosa! La VM permite parar en 
+     cualquier momento y en cualquier instrucción, punto.
+
+  4. Las estructuras de datos de la VM son todas inspeccionables, contienen 
+     todos los datos necesarios para hacer un dump o un backtrace o lo que se
+     necesite, están diseñadas para ello. Estamos metiendo la información de 
+     debug en la VM, de forma no-opcional. En general un debugger lo que hace
+     es usar la información extra que proporciona el compilador para poder 
+     entender los layouts y el código en ASM, pero en MiniCC esto es por 
+     definición.
+
+  5. El programa es un tipo de "ensamblador" muy pensado para poderlo trabajar
+     con facilidad y con API sencilla. Son estructuras de datos, simplemente. 
+     También es una jerarquía de objetos pero las instrucciones ya no tienen 
+     ifs de tipo, directamente suman o restan tipos concretos. Al controlar 
+     estos objetos puedes meter la información que necesites para que se puedan 
+     representar gráficamente de forma fácil.
+
+  6. Hacer nuevas instrucciones es fácil y se pueden implementar funciones
+     de librería que leen directamente la pila y hacen lo que hay que hacer.
+     Con esto puedes emular los #includes que quieras (<vector>, <set>, <map>, 
+     etc.)
+
+  7. Similar a WebAssembly, puede haber un formato de serialización fácil
+     del ejecutable que permite enviar programas en "binario". Qué diferencias
+     hay con el WebAssembly? Probablemente las mismas que con los otros, la
+     información de debug.
+
+Diseño de la VM
+---------------
+
+Tienes 6 partes: 
+   Tabla de nombres,
+   Tabla de tipos,
+   Tabla de funciones (código),
+   Tabla de globales (zona estática),
+   Pila (tabla de frames),
+   Memoria (Zona estática, heap, y zona pila),
+
+- La tabla de nombres sirve para describir los nombres de variables
+  y de tipos o campos que hay en el código. Cuando reservas una variable
+  local, debes decir qué nombre asociado tiene.
+
+- La tabla de tipos describe los layouts de memoria (éstos pueden tener
+  nombres de campos, si los hay), con sus tamaños precalculados.
+
+- La memoria general, con 3 partes: zona estática, heap y pila.
+
+- Tabla de variables globales, cada una con índice, tipo y nombre. El índice
+  apunta a la memoria global. Esta parte se inicializa al principio y usa
+  los índices a partir del 0. Una vez rellenas las variables globales, el heap
+  toma como inicio el final de esta zona (o simplemente las variables globales
+  no se van a liberar, así que no hace falta hacer nada especial, y puedes
+  tratar el heap como todo excepto la pila).
+
+   Instrucciones:
+      GetGlobal<type>(index, offset) -> value<type>
+      SetGlobal<type>(index, offset, value<type>) 
+
+- La pila. Es una lista de frames, donde cada frame tiene una lista de argumentos
+  (índices a la memoria general), y de variables locales ____HERE YOU WERE____
+  Son varios frames, donde de cada uno se sabe qué parámetros se
+  pasaron, qué función se llamó. Y en cada frame hay una lista de variables 
+  locales (un chunk con una tabla de nombres y tipos).
+
+   Instrucciones:
+      GetLocal<type>(index, offset) -> value<type>
+      SetLocal<type>(index, offset, value<type>)
+      PushLocal(name, size) -> index
+      PopLocal()
+
+      PushFrame(func) // se sabe el número de argumentos y los tipos, que 
+                      // permite leer las primeras variables locales, que son
+                      // los argumentos.
+      PopFrame()
+
+- El heap, donde se reserva espacio para los objetos reservados con 
+  malloc o new.
+
+   Instrucciones:
+      Alloc type -> index
+      Free index
+      GetMem<type> ptr -> value<type>
+      SetMem<type>(index, offset, value<type>)
+
+   ¿¿Alloc(type), donde 'type' es un layout de memoria, aunque sea anónimo??
+   O sea, tabla de 16 enteros? Un tipo que se podría declarar, vamos. Si
+   pides el layout cuando allocas, eso permite tener controlada la 
+   interpretación de la memoria.
+
+   En el heap, cuando haces Alloc, se te devuelve el índice del chunk que
+   has reservado. Es como un puntero. Para acceder usas el índice + un offset.
+   Esto permite saber qué trozos de memoria estan reservados para cada valor,
+   y detectar errores de segmentación muy finos!!!
+   Otra cosa que puedes hacer es describir la memoria, para cada chunk puedes
+   tener el layout que tiene y así puedes interpretar la memoria.
+   En realidad es como la pila, pero simplemente puedes hacer Free de cosas que
+   estan por enmedio y luego álguien puede reservar enmedio (se fragmenta).
+
+- El código, que básicamente es una lista de funciones (con índices), y
+  donde cada función tiene declarado qué argumentos recibe y de qué tipo son.
+  Cada función es una ristra de instrucciones.
+
+- Un listado de tipos, de "layouts" de memoria que permiten leer ciertas
+  porciones de la memoria. Cada chunk de la memoria tiene un layout (sea en
+  la pila, la zona estática o el heap), sacado de esta lista. (Esto prohíbe 
+  pedir datos sin formato!)
+
+ISA
+---
+
+Stack-based: hay una minipila en la VM, donde se evalúan las instrucciones. 
+Si hago "GetLocal"/"GetGlobal", los valores se colocan en la pila (con su tipo?).
+Las instrucciones operan sobre la pila (los últimos valores, por ejemplo).
+
+El ASM es un árbol, porque las instrucciones de loops e ifs contienen listas
+de las instrucciones dentro del bucle o alternativa. El ASM es serializable 
+de forma fácil (en modo texto o binario, como WebASM).
+
+Existe un solo chunk de memoria, con una zona baja para lo estático, la pila 
+que está al final (y se expande hacia abajo), y enmedio el heap. La memoria de 
+la VM va por chunks. Puedes hacer descender la pila o pedir memoria en el heap, 
+pero se te devuelve el índice de un chunk, al cual se le asigna un tipo. El tipo
+lo pasas al pedir memoria. Es decir, la memoria tiene un lista de las zonas 
+ocupadas y de qué tipo son los chunks. Cuando pides espacio para una variable 
+complicada (con estructura de tablas/tuplas), el tipo asociado está en una tabla 
+de tipos que hay en el binario también. En todo momento, la memoria usada está
+descrita, y es interpretable. Además, sabes donde hay algo y dónde no.
+
+Los punteros son (índice, offset), es decir, el índice del chunk y luego dentro
+del chunk un offset. Esto permite detectar de inmediato errores de acceso fuera
+del chunk, y luego permite saber también qué campos han cambiado de una 
+estructura (porque tenemos el layout con el tipo). Los frames tienen índices
+extra (una indirección extra) para las variables locales y los argumentos. 
+Si haces GetLocal(0, offset), primero se obtiene el índice de la memoria general 
+asociado al offset 0, y luego se aplica el offset. Pero este sistema de la 
+memoria general con chunks permite que los punteros sean simplemente 
+(indice, offset), en cualquier caso.
+
+Instrucciones:
+   GetPtr<type> ptr -> value<type>    // Utiliza un puntero en la pila (comprobar que lo sea!)
+   SetPtr<type> ptr value<type> -> {} // idem
