@@ -40,11 +40,11 @@ type_index_t TypeTable::Add(TypeDescr *desc) {
 Memory::Memory(size_t sz_heap, size_t sz_stack, TypeTable& _tab) 
    : _type_table(_tab)
 {
-   heap_size = sz_heap;
+   heap_size  = sz_heap;
    total_size = sz_heap + sz_stack;
-   stack_pos = sz_heap;
-   stack_top = total_size;
-   data = malloc(total_size);
+   stack_pos  = sz_heap;
+   stack_top  = total_size;
+   data = (uint8_t*)malloc(total_size);
 }
 
 const Memory::Chunk* Memory::Get(mem_index_t index) const {
@@ -130,6 +130,13 @@ bool Stack::PushLocal(name_index_t name, Type type, size_t& index) {
    index = current.locals.size();
    current.locals.push_back(Var(name, chunk));
    return true;
+}
+
+void Stack::PopLocal() {
+   Frame& current = _frames.top();
+   assert(_memory.StackTop() == current.locals.back().chunk);
+   current.locals.pop_back();
+   _memory.StackPop();
 }
 
 } // namespace vm

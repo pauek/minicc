@@ -67,6 +67,7 @@ struct ArrayDescr : TypeDescrDerived<Array> {
 
 class TypeTable {
    std::vector<TypeDescr*> _types;
+
 public:
    TypeDescr *Get(type_index_t index) {
       assert(index >= 0 && index < _types.size());
@@ -105,13 +106,14 @@ class Memory {
    struct Chunk {
       Type type;
       size_t start, size;
+
       Chunk(Type _type, size_t _start, size_t _size) 
          : type(_type), start(_start), size(_size) {}
    };
 
    TypeTable& _type_table;
-   void *data;
-   size_t total_size, heap_size, stack_pos, stack_top;
+   uint8_t *data;
+   size_t   total_size, heap_size, stack_pos, stack_top;
    /* 
       We want the indices of memory chunks to keep growing. They are like IDs.
       If you free a chunk and by mistake you still have a pointer to this chunk 
@@ -120,7 +122,7 @@ class Memory {
       We can avoid this by making new indices all the time, so that the index 
       is tied to the identity of the object that was allocated at the time.
       When there is a pointer to a freed chunk, it can never work, because the
-      index will have disappeared, so we can detect this pointers.
+      index will have disappeared, therefore we can detect this pointers.
 
    */
    mem_index_t last = 0; // Indices keep growing
@@ -136,15 +138,33 @@ class Memory {
 
 public:
    Memory(size_t sz_heap, size_t sz_stack, TypeTable& type_table);
-
    bool Alloc(Type t, mem_index_t& index);
    void Free(mem_index_t);
-
    bool StackPush(Type t, mem_index_t& index);
+   mem_index_t StackTop() const { return _stack.top(); }
    void StackPop();
-
    const Chunk *Get(mem_index_t index)  const;
+
+   template<typename T>
+   bool Read(mem_index_t index, size_t offset, T& value);
 };
+
+template<typename T>
+bool Memory::Read(mem_index_t index, size_t offset, T& value) {
+   const Chunk *chunk = Get(index);
+   if (chunk == 0) {
+      return false;
+   }
+   /****************************************************************************
+      TODO: Check that the offset has the requested type (matches the layout!)
+   ****************************************************************************/
+   if (offset + sizeof(T) > chunk->size) {
+      return false;
+   }
+   value = *(T*)(data + chunk->start + offset);
+   return true;
+}
+
 
 // Stack ///////////////////////////////////////////////////////////////////////
 
@@ -165,12 +185,13 @@ class Stack {
 
    Memory& _memory;
    std::stack<Frame> _frames;
+
 public:
    Stack(Memory& mem) : _memory(mem) {}
-
    void PushFrame(func_index_t func);
    void PopFrame();
    bool PushLocal(name_index_t name, Type type, size_t& index);
+   void PopLocal();
    mem_index_t GetLocal(size_t index);
 };
 
