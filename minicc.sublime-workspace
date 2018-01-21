@@ -33,44 +33,6 @@
 			]
 		]
 	},
-	"buffers":
-	[
-		{
-			"file": "c-mera/lexer.cc.lisp",
-			"settings":
-			{
-				"buffer_size": 14308,
-				"encoding": "UTF-8",
-				"line_ending": "Unix"
-			}
-		},
-		{
-			"file": "c-mera/test.cc",
-			"settings":
-			{
-				"buffer_size": 22,
-				"line_ending": "Unix"
-			}
-		},
-		{
-			"file": "c-mera/file.cc.lisp",
-			"settings":
-			{
-				"buffer_size": 1438,
-				"encoding": "UTF-8",
-				"line_ending": "Unix"
-			}
-		},
-		{
-			"file": "c-mera/main.cc",
-			"settings":
-			{
-				"buffer_size": 866,
-				"encoding": "UTF-8",
-				"line_ending": "Unix"
-			}
-		}
-	],
 	"build_system": "build.bat",
 	"build_system_choices":
 	[
@@ -98,10 +60,18 @@
 	"build_varint": "",
 	"command_palette":
 	{
-		"height": 374.0,
+		"height": 35.0,
 		"last_filter": "",
 		"selected_items":
 		[
+			[
+				"wrap",
+				"Word Wrap: Toggle"
+			],
+			[
+				"side",
+				"View: Toggle Side Bar"
+			],
 			[
 				"upper",
 				"Convert Case: Upper Case"
@@ -109,10 +79,6 @@
 			[
 				"lower",
 				"Convert Case: Lower Case"
-			],
-			[
-				"side",
-				"View: Toggle Side Bar"
 			],
 			[
 				"menu",
@@ -179,7 +145,7 @@
 				"View: Toggle Status Bar"
 			]
 		],
-		"width": 420.0
+		"width": 444.0
 	},
 	"console":
 	{
@@ -196,17 +162,16 @@
 		"show_minimap": true,
 		"show_open_files": false,
 		"show_tabs": false,
-		"side_bar_visible": false,
+		"side_bar_visible": true,
 		"status_bar_visible": false
 	},
-	"expanded_folders":
-	[
-		"/home/pauek/src/pauek/c++/minicc",
-		"/home/pauek/src/pauek/c++/minicc/c-mera",
-		"/home/pauek/src/pauek/c++/minicc/old"
-	],
 	"file_history":
 	[
+		"/home/pauek/src/pauek/minicc/ideas/TODO",
+		"/home/pauek/src/pauek/minicc/ideas/Types.txt",
+		"/home/pauek/src/pauek/minicc/src/types.hh",
+		"/home/pauek/src/pauek/minicc/c-mera/lexer.cc.lisp",
+		"/home/pauek/src/pauek/minicc/c-mera/file.cc.lisp",
 		"/home/pauek/src/pauek/c++/minicc/c-mera/build.sh",
 		"/home/pauek/src/pauek/c++/minicc/c-mera/main.cc",
 		"/home/pauek/src/pauek/c++/minicc/c-mera/test.cc",
@@ -262,7 +227,7 @@
 	],
 	"find":
 	{
-		"height": 40.0
+		"height": 41.0
 	},
 	"find_in_files":
 	{
@@ -277,6 +242,19 @@
 		"case_sensitive": true,
 		"find_history":
 		[
+			"Global",
+			"Assign",
+			"subclassof",
+			"base",
+			"subclassof",
+			"type->",
+			"destroy",
+			"SimpleTable",
+			"Environment",
+			"properties",
+			"properties()",
+			"UserDefined",
+			"Value",
 			"alloc",
 			"malloc",
 			"alloc",
@@ -391,20 +369,7 @@
 			"#",
 			"DIRECTIVE",
 			"include",
-			"read_include_filename",
-			"lexer_skip_space",
-			"skip_space",
-			"init(",
-			"atom(",
-			"_block_END",
-			"_block_BEGIN",
-			"_label_",
-			"_localvar_",
-			"_for_",
-			"_lit_",
-			"_binop_",
-			"((t",
-			"t##T"
+			"read_include_filename"
 		],
 		"highlight": true,
 		"in_selection": false,
@@ -431,131 +396,9 @@
 		"whole_word": false,
 		"wrap": true
 	},
-	"groups":
-	[
-		{
-			"selected": 3,
-			"sheets":
-			[
-				{
-					"buffer": 0,
-					"file": "c-mera/lexer.cc.lisp",
-					"semi_transient": false,
-					"settings":
-					{
-						"buffer_size": 14308,
-						"regions":
-						{
-						},
-						"selection":
-						[
-							[
-								10837,
-								10837
-							]
-						],
-						"settings":
-						{
-							"auto_name": "",
-							"syntax": "Packages/Lisp/Lisp.sublime-syntax"
-						},
-						"translation.x": 0.0,
-						"translation.y": 4927.0,
-						"zoom_level": 1.0
-					},
-					"stack_index": 1,
-					"type": "text"
-				},
-				{
-					"buffer": 1,
-					"file": "c-mera/test.cc",
-					"semi_transient": true,
-					"settings":
-					{
-						"buffer_size": 22,
-						"regions":
-						{
-						},
-						"selection":
-						[
-							[
-								22,
-								22
-							]
-						],
-						"settings":
-						{
-							"syntax": "Packages/C++/C++.sublime-syntax"
-						},
-						"translation.x": 0.0,
-						"translation.y": 0.0,
-						"zoom_level": 1.0
-					},
-					"stack_index": 3,
-					"type": "text"
-				},
-				{
-					"buffer": 2,
-					"file": "c-mera/file.cc.lisp",
-					"semi_transient": false,
-					"settings":
-					{
-						"buffer_size": 1438,
-						"regions":
-						{
-						},
-						"selection":
-						[
-							[
-								1306,
-								1306
-							]
-						],
-						"settings":
-						{
-							"syntax": "Packages/Lisp/Lisp.sublime-syntax"
-						},
-						"translation.x": 0.0,
-						"translation.y": 0.0,
-						"zoom_level": 1.0
-					},
-					"stack_index": 2,
-					"type": "text"
-				},
-				{
-					"buffer": 3,
-					"file": "c-mera/main.cc",
-					"semi_transient": false,
-					"settings":
-					{
-						"buffer_size": 866,
-						"regions":
-						{
-						},
-						"selection":
-						[
-							[
-								79,
-								79
-							]
-						],
-						"settings":
-						{
-							"syntax": "Packages/C++/C++.sublime-syntax"
-						},
-						"translation.x": 0.0,
-						"translation.y": 0.0,
-						"zoom_level": 1.0
-					},
-					"stack_index": 0,
-					"type": "text"
-				}
-			]
-		}
-	],
 	"incremental_find":
 	{
-		"height": 27.0
+		"height": 28.0
 	},
 	"input":
 	{
@@ -597,10 +440,9 @@
 		"height": 106.0
 	},
 	"pinned_build_system": "",
-	"project": "minicc.sublime-project",
 	"replace":
 	{
-		"height": 50.0
+		"height": 52.0
 	},
 	"save_all_on_build": true,
 	"select_file":
@@ -766,7 +608,6 @@
 		],
 		"width": 0.0
 	},
-	"selected_group": 0,
 	"settings":
 	{
 	},
@@ -774,7 +615,7 @@
 	"show_open_files": false,
 	"show_tabs": true,
 	"side_bar_visible": true,
-	"side_bar_width": 175.0,
+	"side_bar_width": 208.0,
 	"status_bar_visible": true,
 	"template_settings":
 	{

@@ -13,6 +13,68 @@ using namespace std;
 #include "translator.hh"
 #include "walker.hh"
 
+#include "new_types.hh"
+#include "new_vm.hh"
+
+int test_vm(string filename) {
+   using vm::TypeDescription;
+   using vm::TypeTable;
+   using vm::NameTable;
+   using vm::type_index_t;
+   using vm::mem_index_t;
+   using vm::Struct;
+   using vm::Array;
+   using vm::Composite;
+   using vm::StructDescription;
+   using vm::ArrayDescription;
+   using vm::I32;
+   using vm::F32;
+   using vm::F64;
+   using vm::Memory;
+   using vm::MiB;
+
+   TypeTable tab;
+   NameTable names;
+
+   cout << tab.SizeOf(vm::I32) << endl;
+   type_index_t point2d = tab.Add(new StructDescription(names.Put("Point2D"), {
+      { names.Put("x"), F64 },
+      { names.Put("y"), F64 }
+   }));
+   vm::Type point2d_t = vm::Type(Composite, point2d);
+   cout << tab.SizeOf(point2d_t) << endl;
+
+   type_index_t pointtab = tab.Add(new ArrayDescription(
+      names.Put("Vector10"),
+      (size_t)12,
+      point2d_t
+   ));
+   vm::Type pointtab_t(Composite, pointtab);
+   cout << tab.SizeOf(pointtab_t) << endl;
+
+   vm::Type i32(I32);
+
+   Memory M(8 * MiB, tab);
+   mem_index_t chunk1;
+   if (M.Alloc(pointtab_t, chunk1)) {
+      cout << "alloc: " << chunk1 << " (" << M.Get(chunk1)->start << ")" << endl;
+   }
+   mem_index_t chunk2;
+   if (M.Alloc(i32, chunk2)) {
+      cout << "alloc: " << chunk2 << " (" << M.Get(chunk2)->start << ")" << endl;
+   }
+   M.Free(chunk1);
+   mem_index_t chunk3;
+   if (M.Alloc(i32, chunk3)) {
+      cout << "alloc: " << chunk3 << " (" << M.Get(chunk3)->start << ")" << endl;
+   }
+   mem_index_t chunk4;
+   if (M.Alloc(i32, chunk4)) {
+      cout << "alloc: " << chunk4 << " (" << M.Get(chunk4)->start << ")" << endl;
+   }
+   return 0;
+}
+
 int tokenize(string filename) {
    ifstream codefile(filename);
    Lexer L(&codefile);
@@ -403,6 +465,7 @@ int help(string filename);
 
 typedef int (*CmdFunc)(string);
 map<string, CmdFunc> funcs = {
+   {"vm",               test_vm},
    {"tok",              tokenize},
    {"ast",              show_ast},
    {"pprint",           prettyprint},
