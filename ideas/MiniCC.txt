@@ -50,58 +50,82 @@ Diseño de la VM
 ---------------
 
 Tienes 6 partes: 
-   Tabla de nombres,
-   Tabla de tipos,
+   Tabla de nombres (índice -> string),
+   Tabla de tipos (layouts de memoria, con nombres),
    Tabla de funciones (código),
+   Memoria (Zona estática, heap, y zona pila),
    Tabla de globales (zona estática),
    Pila (tabla de frames),
-   Memoria (Zona estática, heap, y zona pila),
 
 - La tabla de nombres sirve para describir los nombres de variables
   y de tipos o campos que hay en el código. Cuando reservas una variable
   local, debes decir qué nombre asociado tiene.
 
-- La tabla de tipos describe los layouts de memoria (éstos pueden tener
-  nombres de campos, si los hay), con sus tamaños precalculados.
+- La tabla de tipos describe los layouts de memoria (éstos tienen los
+  nombres de los campos), con sus tamaños precalculados. Al reservar memoria,
+  hay que indicar de qué tipo es un chunk. A partir del código del programa,
+  un tipo en esta tabla es una representación muy escueta de las tuplas/tablas.
+  Manteniendo las referencias entre sí (para permitir jerarquía y la
+  representación gráfica arbórea).
 
-- La memoria general, con 3 partes: zona estática, heap y pila.
+- La memoria general, con 2 partes: heap y pila (en la parte alta).
 
-- Tabla de variables globales, cada una con índice, tipo y nombre. El índice
-  apunta a la memoria global. Esta parte se inicializa al principio y usa
-  los índices a partir del 0. Una vez rellenas las variables globales, el heap
-  toma como inicio el final de esta zona (o simplemente las variables globales
-  no se van a liberar, así que no hace falta hacer nada especial, y puedes
-  tratar el heap como todo excepto la pila).
+- Tabla de variables globales, cada una con índice, tipo y nombre. 
+  El índice apunta a la memoria global, y es correlativo con el orden de 
+  declaración, la primera variable es la 0. 
+  En la inicialización del programa se reserva memoria para las variables
+  globales por orden en el heap. Como que se hace al principio, los índices
+  que hay en el código concuerdan con los índices que se obtendrán ahora.
+  Las variables globales son como las del heap normal, pero nadie las va a
+  liberar (aunque se puede guardar el último índice de variable global por
+  si acaso luego una instrucción hace "free" por error).
 
    Instrucciones:
       GetGlobal<type>(index, offset) -> value<type>
-      SetGlobal<type>(index, offset, value<type>) 
+      SetGlobal<type>(index, offset, value<type>)
 
-- La pila. Es una lista de frames, donde cada frame tiene una lista de argumentos
-  (índices a la memoria general), y de variables locales ____HERE YOU WERE____
-  Son varios frames, donde de cada uno se sabe qué parámetros se
-  pasaron, qué función se llamó. Y en cada frame hay una lista de variables 
-  locales (un chunk con una tabla de nombres y tipos).
+   (Estas dos instrucciones son como GetMem, en realidad...)
 
-   Instrucciones:
-      GetLocal<type>(index, offset) -> value<type>
-      SetLocal<type>(index, offset, value<type>)
-      PushLocal(name, size) -> index
-      PopLocal()
-
-      PushFrame(func) // se sabe el número de argumentos y los tipos, que 
-                      // permite leer las primeras variables locales, que son
-                      // los argumentos.
-      PopFrame()
-
-- El heap, donde se reserva espacio para los objetos reservados con 
-  malloc o new.
+- La pila. 
+  Es una lista de frames, donde cada frame tiene una lista de argumentos
+  (índices a la memoria), y de variables locales (también índices a la memoria).
+  Cada frame también guarda qué función se llamó.
 
    Instrucciones:
-      Alloc type -> index
-      Free index
-      GetMem<type> ptr -> value<type>
-      SetMem<type>(index, offset, value<type>)
+      GetLocal<basetype>(stackindex, offset) -> value<basetype> = {
+         ptr = (dereference(stackindex), offset)
+         GetMem<basetype> ptr
+      }
+      SetLocal<basetype>(index, offset) value<basetype> -> _ = {
+         ptr = (dereference(stackindex), offset)
+         SetMem<basetype> ptr value<basetype>
+      }
+      PushLocal(name, type) -> _ = {  // los argumentos son los primeros locals!
+         AllocStack(type) -> memindex
+         locals[localindex++] = (name, memindex)
+      }
+      PopLocal() = { 
+         Free(locals[localindex -1].index)
+         localindex-- 
+      }
+
+      PushFrame(func) -> _ = {
+         Crear un frame rellenando la dirección de retorno
+      }
+      [PopFrame()]
+      Return -> _ = {
+         (el valor de retorno debe estar en la pila, if any)
+         Usar la dirección de retorno del frame actual para volver
+         PopFrame
+      }
+
+- El heap, donde se residen los objetos reservados con malloc o new.
+
+   Instrucciones:
+      Alloc(type) -> index
+      Free index -> _
+      GetMem<basetype> ptr -> value<basetype>
+      SetMem<basetype> ptr value<basetype> -> _
 
    ¿¿Alloc(type), donde 'type' es un layout de memoria, aunque sea anónimo??
    O sea, tabla de 16 enteros? Un tipo que se podría declarar, vamos. Si
@@ -159,4 +183,4 @@ memoria general con chunks permite que los punteros sean simplemente
 
 Instrucciones:
    GetPtr<type> ptr -> value<type>    // Utiliza un puntero en la pila (comprobar que lo sea!)
-   SetPtr<type> ptr value<type> -> {} // idem
+   SetPtr<type> ptr value<type> -> _ // idem
