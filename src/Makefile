@@ -1,10 +1,9 @@
-ifndef CXX
-	CXX=clang++ # TODO: Fix bug compiling with G++!!
-endif
+CXX=clang++
 
 OBJECTS=main.o lexer.o parser.o ast.o token.o value.o types.o \
 	prettypr.o astpr.o interpreter.o \
-	stepper.o walker.o translator.o semantic.o
+	stepper.o walker.o translator.o semantic.o \
+	new_types.o
 
 HEADERS=$(wildcard *.hh)
 

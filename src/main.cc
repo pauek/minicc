@@ -23,6 +23,7 @@ int tokenize(string filename) {
       cout << tok.pos << ' ' << L.SubStr(tok) << endl;
       L.skip();
    }
+   return 0;
 }
 
 int show_ast(string filename) {
@@ -30,6 +31,7 @@ int show_ast(string filename) {
    Parser P(&codefile);
    Ast *program = P.parse();
    AstPrint(program);
+   return 0;
 }
 
 int prettyprint(string filename) {
@@ -42,7 +44,8 @@ int prettyprint(string filename) {
    catch (Error* e) {
       cerr << _T("Pretty Print Error") << ": " << e->msg << endl;
       return 1;
-   }   
+   }
+   return 0;
 }
 
 int semantic_analysis(Ast *program, string filename) {
@@ -82,6 +85,7 @@ int interpret(string filename) {
       cerr << _T("Execution Error") << ": " << e->msg << endl;
       return 1;
    }
+   return 0;
 }
 
 int step(string filename) {
@@ -211,7 +215,7 @@ void compare_result(string filename, string sout, string serr,
       cerr << endl;
       res = 'x';
    }
-   cout << res << flush;
+   cout << res << flush;   
 }
 
 int _test_parser_and_semantic(string filename, bool do_semantic) {

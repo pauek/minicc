@@ -74,7 +74,6 @@ enum class AstType {
    Literal,
    Identifier,
    BinaryExpr,
-   UnaryExpr,
    SignExpr,
    IncrExpr,
    NegExpr,
