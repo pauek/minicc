@@ -4,6 +4,10 @@
 		"selected_items":
 		[
 			[
+				"Struct",
+				"StructDescription"
+			],
+			[
 				"sla",
 				"slash-error"
 			],
@@ -60,7 +64,7 @@
 	"build_varint": "",
 	"command_palette":
 	{
-		"height": 35.0,
+		"height": 36.0,
 		"last_filter": "",
 		"selected_items":
 		[
@@ -145,7 +149,7 @@
 				"View: Toggle Status Bar"
 			]
 		],
-		"width": 444.0
+		"width": 470.0
 	},
 	"console":
 	{
@@ -167,6 +171,12 @@
 	},
 	"file_history":
 	[
+		"/home/pauek/src/pauek/minicc/src/Makefile",
+		"/home/pauek/src/pauek/minicc/src/main.cc",
+		"/home/pauek/src/pauek/minicc/src/vm.cc",
+		"/home/pauek/src/pauek/minicc/src/cast.h",
+		"/home/pauek/src/pauek/minicc/src/ast.hh",
+		"/home/pauek/src/pauek/minicc/src/walker.hh",
 		"/home/pauek/src/pauek/minicc/ideas/TODO",
 		"/home/pauek/src/pauek/minicc/ideas/Types.txt",
 		"/home/pauek/src/pauek/minicc/src/types.hh",
@@ -227,11 +237,11 @@
 	],
 	"find":
 	{
-		"height": 41.0
+		"height": 42.0
 	},
 	"find_in_files":
 	{
-		"height": 104.0,
+		"height": 107.0,
 		"where_history":
 		[
 			""
@@ -242,6 +252,39 @@
 		"case_sensitive": true,
 		"find_history":
 		[
+			"total_size",
+			"s",
+			"vector",
+			"ChunkSize",
+			"offset",
+			"name_index",
+			"index_t",
+			"vector",
+			"size_t name",
+			"Unary",
+			"UnaryExpr",
+			"Expr",
+			"tokenize",
+			"_desc",
+			"cast",
+			"32",
+			"index_t",
+			"TypeLayout",
+			"TypeDesc",
+			"string",
+			"Tag",
+			"kind",
+			"ValueType",
+			"_type",
+			"TypeBase",
+			"is_instance",
+			"StructDecl",
+			"struct",
+			"typedef",
+			"stack-index",
+			"mem-index",
+			"{}",
+			"type",
 			"Global",
 			"Assign",
 			"subclassof",
@@ -336,40 +379,7 @@
 			"id-begin",
 			"Token ",
 			"token ",
-			"tokpos",
-			"tok.",
-			"tok",
-			"at ",
-			"at",
-			"loop",
-			"lin",
-			"\"or\"",
-			":or",
-			"     ",
-			"         1",
-			"_new",
-			"alloc",
-			")))",
-			"(",
-			",",
-			"TOKEN",
-			"push",
-			"save",
-			"_error",
-			"F",
-			"fprintf",
-			",F",
-			"_loop",
-			"cloop",
-			"skip_space",
-			"at_include",
-			"at_include_filename",
-			"RESULT",
-			"at_directive",
-			"#",
-			"DIRECTIVE",
-			"include",
-			"read_include_filename"
+			"tokpos"
 		],
 		"highlight": true,
 		"in_selection": false,
@@ -377,6 +387,7 @@
 		"regex": false,
 		"replace_history":
 		[
+			"64",
 			"ATOM_NUM_NODES",
 			"push",
 			"Array",
@@ -398,11 +409,11 @@
 	},
 	"incremental_find":
 	{
-		"height": 28.0
+		"height": 29.0
 	},
 	"input":
 	{
-		"height": 40.0
+		"height": 41.0
 	},
 	"layout":
 	{
@@ -413,11 +424,18 @@
 				0,
 				1,
 				1
+			],
+			[
+				1,
+				0,
+				2,
+				1
 			]
 		],
 		"cols":
 		[
 			0.0,
+			0.5,
 			1.0
 		],
 		"rows":
@@ -442,7 +460,7 @@
 	"pinned_build_system": "",
 	"replace":
 	{
-		"height": 52.0
+		"height": 76.0
 	},
 	"save_all_on_build": true,
 	"select_file":

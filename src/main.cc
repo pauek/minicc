@@ -12,12 +12,10 @@ using namespace std;
 #include "interpreter.hh"
 #include "translator.hh"
 #include "walker.hh"
-
-#include "new_types.hh"
-#include "new_vm.hh"
+#include "vm.hh"
 
 int test_vm(string filename) {
-   using vm::TypeDescription;
+   using vm::TypeDescr;
    using vm::TypeTable;
    using vm::NameTable;
    using vm::type_index_t;
@@ -25,8 +23,8 @@ int test_vm(string filename) {
    using vm::Struct;
    using vm::Array;
    using vm::Composite;
-   using vm::StructDescription;
-   using vm::ArrayDescription;
+   using vm::StructDescr;
+   using vm::ArrayDescr;
    using vm::I32;
    using vm::F32;
    using vm::F64;
@@ -37,14 +35,14 @@ int test_vm(string filename) {
    NameTable names;
 
    cout << tab.SizeOf(vm::I32) << endl;
-   type_index_t point2d = tab.Add(new StructDescription(names.Put("Point2D"), {
+   type_index_t point2d = tab.Add(new StructDescr(names.Put("Point2D"), {
       { names.Put("x"), F64 },
       { names.Put("y"), F64 }
    }));
    vm::Type point2d_t = vm::Type(Composite, point2d);
    cout << tab.SizeOf(point2d_t) << endl;
 
-   type_index_t pointtab = tab.Add(new ArrayDescription(
+   type_index_t pointtab = tab.Add(new ArrayDescr(
       names.Put("Vector10"),
       (size_t)12,
       point2d_t
@@ -54,7 +52,7 @@ int test_vm(string filename) {
 
    vm::Type i32(I32);
 
-   Memory M(8 * MiB, tab);
+   Memory M(8 * MiB, 4 * MiB, tab);
    mem_index_t chunk1;
    if (M.Alloc(pointtab_t, chunk1)) {
       cout << "alloc: " << chunk1 << " (" << M.Get(chunk1)->start << ")" << endl;

@@ -52,10 +52,10 @@ Diseño de la VM
 Tienes 6 partes: 
    Tabla de nombres (índice -> string),
    Tabla de tipos (layouts de memoria, con nombres),
-   Tabla de funciones (código),
    Memoria (Zona estática, heap, y zona pila),
    Tabla de globales (zona estática),
    Pila (tabla de frames),
+   Tabla de funciones (código),
 
 - La tabla de nombres sirve para describir los nombres de variables
   y de tipos o campos que hay en el código. Cuando reservas una variable
@@ -87,9 +87,9 @@ Tienes 6 partes:
    (Estas dos instrucciones son como GetMem, en realidad...)
 
 - La pila. 
-  Es una lista de frames, donde cada frame tiene una lista de argumentos
-  (índices a la memoria), y de variables locales (también índices a la memoria).
-  Cada frame también guarda qué función se llamó.
+  Es una lista de frames, donde cada frame tiene una lista de variables locales
+  (índices a chunks de la memoria). Las primeras variables locales son los 
+  argumentos de la función. Cada frame también guarda qué función se llamó.
 
    Instrucciones:
       GetLocal<basetype>(stackindex, offset) -> value<basetype> = {
