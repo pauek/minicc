@@ -37,6 +37,17 @@
 			]
 		]
 	},
+	"buffers":
+	[
+		{
+			"file": "src/parser.hh",
+			"settings":
+			{
+				"buffer_size": 2867,
+				"line_ending": "Unix"
+			}
+		}
+	],
 	"build_system": "build.bat",
 	"build_system_choices":
 	[
@@ -64,10 +75,14 @@
 	"build_varint": "",
 	"command_palette":
 	{
-		"height": 36.0,
-		"last_filter": "",
+		"height": 209.0,
+		"last_filter": "status",
 		"selected_items":
 		[
+			[
+				"status",
+				"View: Toggle Status Bar"
+			],
 			[
 				"wrap",
 				"Word Wrap: Toggle"
@@ -133,10 +148,6 @@
 				"View: Toggle Status Bar"
 			],
 			[
-				"status",
-				"View: Toggle Status Bar"
-			],
-			[
 				"vmen",
 				"View: Toggle Menu"
 			],
@@ -149,7 +160,7 @@
 				"View: Toggle Status Bar"
 			]
 		],
-		"width": 470.0
+		"width": 420.0
 	},
 	"console":
 	{
@@ -169,10 +180,23 @@
 		"side_bar_visible": true,
 		"status_bar_visible": false
 	},
+	"expanded_folders":
+	[
+		"/home/pauek/src/minicc",
+		"/home/pauek/src/minicc/src"
+	],
 	"file_history":
 	[
-		"/home/pauek/src/pauek/minicc/src/Makefile",
+		"/home/pauek/src/minicc/ideas/MiniCC.txt",
+		"/home/pauek/src/minicc/src/vm.cc",
+		"/home/pauek/src/minicc/src/vm.hh",
 		"/home/pauek/src/pauek/minicc/src/main.cc",
+		"/home/pauek/src/pauek/minicc/src/Makefile",
+		"/home/pauek/src/pauek/minicc/src/vm-types.cc",
+		"/home/pauek/src/pauek/minicc/src/TODO",
+		"/home/pauek/src/pauek/minicc/src/vm-types.hh",
+		"/home/pauek/src/pauek/minicc/c-mera/main.cc",
+		"/home/pauek/src/pauek/minicc/c-mera/main",
 		"/home/pauek/src/pauek/minicc/src/vm.cc",
 		"/home/pauek/src/pauek/minicc/src/cast.h",
 		"/home/pauek/src/pauek/minicc/src/ast.hh",
@@ -237,7 +261,7 @@
 	],
 	"find":
 	{
-		"height": 42.0
+		"height": 41.0
 	},
 	"find_in_files":
 	{
@@ -252,6 +276,17 @@
 		"case_sensitive": true,
 		"find_history":
 		[
+			"Memory",
+			"TypeTable",
+			"malloc",
+			"data",
+			"int32_t",
+			"32",
+			"Description",
+			"StructDescription",
+			"TypeDescription",
+			"TypeDescTag",
+			"TypeDescription",
 			"total_size",
 			"s",
 			"vector",
@@ -368,18 +403,7 @@
 			"TOK_",
 			"tok-atom",
 			"string",
-			":",
-			"short",
-			"'.'",
-			"char-class",
-			"tokens",
-			"postfix+",
-			"postfix++",
-			"null",
-			"id-begin",
-			"Token ",
-			"token ",
-			"tokpos"
+			":"
 		],
 		"highlight": true,
 		"in_selection": false,
@@ -407,6 +431,48 @@
 		"whole_word": false,
 		"wrap": true
 	},
+	"groups":
+	[
+		{
+			"selected": 0,
+			"sheets":
+			[
+				{
+					"buffer": 0,
+					"file": "src/parser.hh",
+					"semi_transient": true,
+					"settings":
+					{
+						"buffer_size": 2867,
+						"regions":
+						{
+						},
+						"selection":
+						[
+							[
+								499,
+								499
+							]
+						],
+						"settings":
+						{
+							"syntax": "Packages/C++/C++.sublime-syntax"
+						},
+						"translation.x": 0.0,
+						"translation.y": 0.0,
+						"zoom_level": 1.0
+					},
+					"stack_index": 0,
+					"type": "text"
+				}
+			]
+		},
+		{
+			"sheets":
+			[
+			]
+		}
+	],
 	"incremental_find":
 	{
 		"height": 29.0
@@ -435,7 +501,7 @@
 		"cols":
 		[
 			0.0,
-			0.5,
+			0.48773364486,
 			1.0
 		],
 		"rows":
@@ -458,6 +524,7 @@
 		"height": 106.0
 	},
 	"pinned_build_system": "",
+	"project": "minicc.sublime-project",
 	"replace":
 	{
 		"height": 76.0
@@ -469,6 +536,14 @@
 		"last_filter": "",
 		"selected_items":
 		[
+			[
+				"vm.cc",
+				"src/vm.cc"
+			],
+			[
+				"",
+				"ideas/MiniCC.txt"
+			],
 			[
 				"main.cc",
 				"c-mera/main.cc"
@@ -594,10 +669,6 @@
 				"pp.h"
 			],
 			[
-				"",
-				"pp.cc"
-			],
-			[
 				"p.",
 				"pp.h"
 			],
@@ -626,6 +697,7 @@
 		],
 		"width": 0.0
 	},
+	"selected_group": 1,
 	"settings":
 	{
 	},
@@ -634,7 +706,7 @@
 	"show_tabs": true,
 	"side_bar_visible": true,
 	"side_bar_width": 208.0,
-	"status_bar_visible": true,
+	"status_bar_visible": false,
 	"template_settings":
 	{
 	}

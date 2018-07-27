@@ -139,4 +139,12 @@ void Stack::PopLocal() {
    _memory.StackPop();
 }
 
+// VM //////////////////////////////////////////////////////////////////////////
+
+VM::VM(size_t heap_size, size_t stack_size)
+   : _memory(heap_size, stack_size, _types),  
+     _stack(_memory)
+{}
+
 } // namespace vm
+

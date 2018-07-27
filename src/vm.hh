@@ -10,8 +10,8 @@
 namespace vm {
 
 typedef uint16_t type_index_t;
+typedef uint32_t mem_index_t;
 typedef size_t   name_index_t;
-typedef size_t   mem_index_t;
 typedef size_t   func_index_t;
 
 // Types ///////////////////////////////////////////////////////////////////////
@@ -195,14 +195,37 @@ public:
    mem_index_t GetLocal(size_t index);
 };
 
+// Operand Stack ///////////////////////////////////////////////////////////////
+
+struct Pointer {
+   mem_index_t index;
+   int32_t     offset;
+};
+
+struct Operand {
+   TypeTag type;
+   union {
+      int32_t i32;
+      int64_t i64;
+      float   f32;
+      double  f64;
+      Pointer ptr;
+   };
+};
+
+typedef std::stack<Operand> OpStack;
+
 // VM //////////////////////////////////////////////////////////////////////////
 
 class VM {
    NameTable _names;
    TypeTable _types;
    Memory    _memory;
-   // Globals _globals;
    Stack     _stack;
+   OpStack   _ops;
+   // Globals _globals;
+public:
+   VM(size_t heap_size, size_t stack_size);
 };
 
 }

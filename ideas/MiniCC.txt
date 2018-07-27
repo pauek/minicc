@@ -4,8 +4,8 @@
   O sea, que por ejemplo la pila conserva los nombres de las variables (y
   las variables estáticas también). El heap recuerda los chunks reservados y
   qué layout tienen (y así caza errores de segmentación). Y para recordar de 
-  qué instrucción provienen las instrucciones de la VM, se agrupan. Quizás
-  se pueda incluso hacer la información de debug opcional.
+  qué instrucción de C++ provienen las instrucciones de la VM, se agrupan. 
+  Quizás se pueda incluso hacer la información de debug opcional.
 
   1. No hay Value!!! No necesitas un valor genérico (variant). 
      No lo necesitas. Los tipos desaparecen porque las instrucciones ya 
@@ -45,6 +45,14 @@
      del ejecutable que permite enviar programas en "binario". Qué diferencias
      hay con el WebAssembly? Probablemente las mismas que con los otros, la
      información de debug.
+
+Tipos de la VM
+--------------
+
+ * I/U32, I/U64, F32, F64 - Los típicos.
+(* U8, U16??? WebAssembly no los tiene!)
+ * Punteros (index: U32, offset: U32) = 64
+      Permite tener cualquier índice y cualquier offset en una zona de 4Gb (enough)
 
 Diseño de la VM
 ---------------
