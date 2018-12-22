@@ -58,9 +58,7 @@ void AstPrinter::Print(Ast* ast) {
       Include *X = cast<Include>(ast);
       string D = (X->global ? "<>" : "\"\"");
       out.Write("Include(");
-      out.Write(D[0]);
-      out.Write(X->filename);
-      out.Write(D[1]);
+      out.Write(D[0], X->filename, D[1]);
       out.Write(")");
       break;
    }
