@@ -21,16 +21,13 @@ int test_vm(string filename) {
   NameTable names;
 
   cout << tab.SizeOf(vm::I32) << endl;
-  TypeIndex point2d = tab.Add(new StructDescr(
+  vm::Type point2d = tab.Add(new StructDescr(
       names.Put("Point2D"), {{names.Put("x"), F64}, {names.Put("y"), F64}}));
-  vm::Type point2d_t = vm::Type(point2d);
-  cout << tab.SizeOf(point2d_t) << endl;
+  cout << tab.SizeOf(point2d) << endl;
 
   TypeIndex pointtab =
-      tab.Add(new ArrayDescr(names.Put("Vector10"), (size_t)12, point2d_t));
+      tab.Add(new ArrayDescr(names.Put("Vector10"), (size_t)12, point2d));
   cout << tab.SizeOf(pointtab) << endl;
-
-  vm::Type i32(I32);
 
   Memory M(8 * MiB, 4 * MiB, tab);
   ChunkIndex chunk1;
@@ -38,16 +35,16 @@ int test_vm(string filename) {
     cout << "alloc: " << chunk1 << " (" << M.Get(chunk1)->start << ")" << endl;
   }
   ChunkIndex chunk2;
-  if (M.Alloc(i32, chunk2)) {
+  if (M.Alloc(I32, chunk2)) {
     cout << "alloc: " << chunk2 << " (" << M.Get(chunk2)->start << ")" << endl;
   }
   M.Free(chunk1);
   ChunkIndex chunk3;
-  if (M.Alloc(i32, chunk3)) {
+  if (M.Alloc(I32, chunk3)) {
     cout << "alloc: " << chunk3 << " (" << M.Get(chunk3)->start << ")" << endl;
   }
   ChunkIndex chunk4;
-  if (M.Alloc(i32, chunk4)) {
+  if (M.Alloc(I32, chunk4)) {
     cout << "alloc: " << chunk4 << " (" << M.Get(chunk4)->start << ")" << endl;
   }
   return 0;
