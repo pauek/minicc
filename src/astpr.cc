@@ -42,9 +42,9 @@ void AstPrinter::Print(Ast* ast) {
    assert(ast != nullptr);
    switch (ast->Type()) {
    case AstType::Program: {
+      Program *X = cast<Program>(ast);
       out.Line("Program{");
       out.Indent();
-      Program *X = cast<Program>(ast);
       for (Ast *child : X->nodes) {
          out.BeginLine();
          Print(child);
