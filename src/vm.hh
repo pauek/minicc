@@ -47,6 +47,7 @@ struct StructDescr : TypeDescrDerived<Struct> {
     fields = _fields;
   }
 };
+
 struct ArrayDescr : TypeDescrDerived<Array> {
   size_t size;
   Type elem_type;
