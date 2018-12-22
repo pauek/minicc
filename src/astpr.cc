@@ -263,9 +263,7 @@ void AstPrinter::Print(Ast* ast) {
    }
    case AstType::ArrayDecl: {
       ArrayDecl *X = cast<ArrayDecl>(ast);
-      out.Write('"');
-      out.Write(X->name);
-      out.Write("\"(");
+      out.Write('"', X->name, "\"(");
       if (X->sizes.size() == 1) {
          out.Write("Size = ");
          Print(X->sizes[0]);
@@ -391,9 +389,7 @@ void AstPrinter::Print(Ast* ast) {
    case AstType::JumpStmt: {
       JumpStmt *X = cast<JumpStmt>(ast);
       static string keyword[] = { "break", "continue", "goto" };
-      out.Write("JumpStmt<");
-      out.Write(keyword[X->kind]);
-      out.Write(">(");
+      out.Write("JumpStmt<", keyword[X->kind], ">(");
       if (X->kind == JumpStmt::Goto) {
          out.Write('"', X->label, '"');
       }
