@@ -1,4 +1,5 @@
-CXX=clang++
+# CXX=clang++
+CXX=g++
 
 OBJECTS=main.o lexer.o parser.o ast.o token.o value.o types.o \
 	prettypr.o astpr.o interpreter.o \

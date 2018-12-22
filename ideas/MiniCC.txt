@@ -48,7 +48,6 @@
 
 Tipos de la VM
 --------------
-
  * I/U32, I/U64, F32, F64 - Los típicos.
 (* U8, U16??? WebAssembly no los tiene!)
  * Punteros (index: U32, offset: U32) = 64
@@ -56,14 +55,17 @@ Tipos de la VM
 
 Diseño de la VM
 ---------------
-
-Tienes 6 partes: 
+Tienes varias partes:
+   Value Stack (Computation Stack)
    Tabla de nombres (índice -> string),
-   Tabla de tipos (layouts de memoria, con nombres),
-   Memoria (Zona estática, heap, y zona pila),
-   Tabla de globales (zona estática),
-   Pila (tabla de frames),
-   Tabla de funciones (código),
+   Tabla de tipos (layouts de memoria, con nombres (índices a la tabla de nombres)),
+   Tabla de funciones (índice -> bytecode string),
+   Tabla de chunks (Memoria), donde cada chunk tiene asociado un puntero y un tipo.
+      La memoria tiene 2 subtablas:
+      - Tabla de globales (zona estática, índices -> chunks en la parte baja de la memoria)
+   Tabla de frames (Call Stack), cada frame:
+      - Tabla de locales (índices -> chunks consecutivos en la pila)
+      - Puntero de retorno.
 
 - La tabla de nombres sirve para describir los nombres de variables
   y de tipos o campos que hay en el código. Cuando reservas una variable
@@ -76,11 +78,11 @@ Tienes 6 partes:
   Manteniendo las referencias entre sí (para permitir jerarquía y la
   representación gráfica arbórea).
 
-- La memoria general, con 2 partes: heap y pila (en la parte alta).
+- La memoria general, con 3 partes: globales, heap y pila (en la parte alta).
 
-- Tabla de variables globales, cada una con índice, tipo y nombre. 
-  El índice apunta a la memoria global, y es correlativo con el orden de 
-  declaración, la primera variable es la 0. 
+- Tabla de variables globales (parte baja de la memoria), cada una con índice, 
+  tipo y nombre. El índice apunta a la memoria global, y es correlativo con el 
+  orden de declaración, la primera variable es la 0. 
   En la inicialización del programa se reserva memoria para las variables
   globales por orden en el heap. Como que se hace al principio, los índices
   que hay en el código concuerdan con los índices que se obtendrán ahora.
@@ -160,7 +162,6 @@ Tienes 6 partes:
 
 ISA
 ---
-
 Stack-based: hay una minipila en la VM, donde se evalúan las instrucciones. 
 Si hago "GetLocal"/"GetGlobal", los valores se colocan en la pila (con su tipo?).
 Las instrucciones operan sobre la pila (los últimos valores, por ejemplo).
@@ -192,3 +193,49 @@ memoria general con chunks permite que los punteros sean simplemente
 Instrucciones:
    GetPtr<type> ptr -> value<type>    // Utiliza un puntero en la pila (comprobar que lo sea!)
    SetPtr<type> ptr value<type> -> _ // idem
+
+
+Representación de la Máquina Virtual:
+  Type = Struct | Array | I32 | I64 | U32 | U64 | F32 | F64 
+    + Map | Vector | ...
+  Name = Index<List<string>>
+  Mem = List<byte>
+  Address = Index<List<byte>>
+  Chunk = (Address, Type)
+  Variable = (Name, Chunk)
+  ReturnAddress = (Index<List<Func>>, Address)
+  Frame = (ReturnAddress, List<Variable>)
+  Globals = List<Variable>
+  Stack = List<Frame>
+  Func = List<Byte>
+  Functions = List<Func>
+
+Instrucciones:
+  // aritméticas
+  ADD x y -> z
+  SUB x y -> z
+  MUL x y -> x
+  DIV x y -> z
+  MOD x y -> z
+
+  // Booleanas
+  LT  x y -> z
+  LTE x y -> z
+  GT  x y -> z
+  GTE x y -> z
+  EQ  x y -> z
+
+  LOAD(n)     -> x = Carga la variable local n
+  STORE(n)  x -> . = Guarda la variable local n
+  GLOAD(n)    -> x = Carga la variable global n
+  GSTORE(n) x ->   = Guarda la variable global n
+
+  CONST(n)    -> n = Pone en la pila una constante
+  POP       x ->   = Quite el valor de arriba de la pila
+
+  DUP1      x -> x x = Duplica el valor de arriba de la pila
+  
+
+  
+
+
