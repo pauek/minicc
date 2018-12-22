@@ -142,7 +142,19 @@ void Stack::PopLocal() {
 // VM //////////////////////////////////////////////////////////////////////////
 
 VM::VM(size_t heap_size, size_t stack_size)
-    : _memory(heap_size, stack_size, _types), _stack(_memory) {}
+    : _memory(heap_size, stack_size, _types), _stack(_memory) 
+{
+
+    for (int i = 0; i < NUM_REGISTERS; i++) {
+        _registers[i].i64 = 0L;
+    }
+}
+
+void VM::test() {
+    NameIndex idx1 = _names.Put("hola");
+    NameIndex idx2 = _names.Put("que");
+    NameIndex idx3 = _names.Put("tal");
+}
 
 } // namespace vm
 
