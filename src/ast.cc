@@ -357,9 +357,7 @@ string Describe(Ast *ast) {
 }
 
 bool HasErrors(Ast *ast) {
-
 #define CHECK_ERRORS(n) if (HasErrors(n)) return true
-
    if (ast == 0) {
       return false;
    }
@@ -515,4 +513,5 @@ bool HasErrors(Ast *ast) {
    default:
       return ast->HasErrors();
    }
+#undef CHECK_ERRORS
 }
