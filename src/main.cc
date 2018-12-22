@@ -15,20 +15,7 @@ using namespace std;
 #include "walker.hh"
 
 int test_vm(string filename) {
-  using vm::Array;
-  using vm::ArrayDescr;
-  using vm::ChunkIndex;
-  using vm::F32;
-  using vm::F64;
-  using vm::I32;
-  using vm::Memory;
-  using vm::MiB;
-  using vm::NameTable;
-  using vm::Struct;
-  using vm::StructDescr;
-  using vm::TypeDescr;
-  using vm::TypeIndex;
-  using vm::TypeTable;
+  using namespace vm;
 
   TypeTable tab;
   NameTable names;
