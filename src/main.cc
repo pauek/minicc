@@ -14,16 +14,18 @@ using namespace std;
 #include "vm.hh"
 #include "walker.hh"
 
-int test_vm(string filename) {
+int test_vm(const vector<string>& args) {
 	using namespace vm;
 	VM vm;
 	vm.test();
 	return 0;
 }
 
-int tokenize(string filename) {
-	ifstream codefile(filename);
-	Lexer	 L(&codefile);
+int tokenize(const vector<string>& args) {
+	assert(args.size() == 1);
+	const string& filename = args[0];
+	ifstream	  codefile(filename);
+	Lexer		  L(&codefile);
 	L.next();
 	L.skip();
 	while (!L.end()) {
@@ -34,15 +36,19 @@ int tokenize(string filename) {
 	return 0;
 }
 
-int show_ast(string filename) {
-	ifstream codefile(filename);
-	Parser	 P(&codefile);
-	Ast		*program = P.parse();
+int show_ast(const vector<string>& args) {
+	assert(args.size() == 1);
+	const string& filename = args[0];
+	ifstream	  codefile(filename);
+	Parser		  P(&codefile);
+	Ast			 *program = P.parse();
 	AstPrint(program);
 	return 0;
 }
 
-int prettyprint(string filename) {
+int prettyprint(const vector<string>& args) {
+	assert(args.size() == 1);
+	const string& filename = args[0];
 	try {
 		ifstream codefile(filename);
 		Parser	 P(&codefile);
@@ -78,7 +84,9 @@ Ast *parse_and_analyze(string filename) {
 	return program;
 }
 
-int interpret(string filename) {
+int interpret(const vector<string>& args) {
+	assert(args.size() == 1);
+	const string& filename = args[0];
 	try {
 		Ast *program = parse_and_analyze(filename);
 		Eval(program, cin, cout);
@@ -96,7 +104,10 @@ int interpret(string filename) {
 	return 0;
 }
 
-int step(string filename) {
+int step(const vector<string>& args) {
+	assert(args.size() == 1);
+	const string& filename = args[0];
+
 	try {
 		ifstream codefile(filename);
 		Parser	 P(&codefile);
@@ -255,16 +266,19 @@ int _test_parser_and_semantic(string filename, bool do_semantic) {
 	return 0;
 }
 
-int test_semantic(string filename) {
-	return _test_parser_and_semantic(filename, true);
+int test_semantic(const vector<string>& args) {
+	assert(args.size() == 1);
+	return _test_parser_and_semantic(args[0], true);
 }
 
-int test_parser(string filename) {
-	return _test_parser_and_semantic(filename, false);
+int test_parser(const vector<string>& args) {
+	return _test_parser_and_semantic(args[0], false);
 }
 
-int test_ast(string filename) {
-	string code, in, out, err;
+int test_ast(const vector<string>& args) {
+	assert(args.size() == 1);
+	const string& filename = args[0];
+	string		  code, in, out, err;
 	parse_test_file(filename, code, in, out, err);
 
 	ostringstream Sout, Saux, Serr;
@@ -295,8 +309,10 @@ compare:
 	return 0;
 }
 
-int test_print(string filename) {
-	string code, in, out, err;
+int test_print(const vector<string>& args) {
+	assert(args.size() == 1);
+	const string& filename = args[0];
+	string		  code, in, out, err;
 	parse_test_file(filename, code, in, out, err);
 
 	ostringstream Sout, Saux, Serr;
@@ -326,7 +342,10 @@ compare:
 	return 0;
 }
 
-int test_eval(string filename) {
+int test_eval(const vector<string>& args) {
+	assert(args.size() == 1);
+	const string& filename = args[0];
+
 	string code, in, out, err;
 	parse_test_file(filename, code, in, out, err);
 
@@ -357,7 +376,10 @@ compare:
 	return 0;
 }
 
-int test_step(string filename) {
+int test_step(const vector<string>& args) {
+	assert(args.size() == 1);
+	const string& filename = args[0];
+
 	string code, in, out, err;
 	parse_test_file(filename, code, in, out, err);
 
@@ -396,14 +418,14 @@ compare:
 	return 0;
 }
 
-struct Args {
-	string filename;
-	string cmd;
+struct CmdArgs {
+	string		   cmd;
+	vector<string> args;
 };
 
-int help(string filename);
+int help(const vector<string>& filename);
 
-typedef int (*CmdFunc)(string);
+typedef int (*CmdFunc)(const vector<string>& args);
 map<string, CmdFunc> funcs = {
 	{"vm", test_vm},
 	{"tok", tokenize},
@@ -439,8 +461,8 @@ bool is_option(string s) {
 	return s.substr(0, 2) == "--";
 }
 
-Args parse_args(int argc, char *argv[]) {
-	Args A;
+CmdArgs parse_args(int argc, char *argv[]) {
+	CmdArgs A;
 	switch (argc) {
 		case 2:
 			if (string("--help") == argv[1]) {
@@ -451,14 +473,14 @@ Args parse_args(int argc, char *argv[]) {
 				usage();
 			}
 			A.cmd = "eval";
-			A.filename = argv[1];
+			A.args = vector<string>{argv[1]};
 			break;
 		case 3:
 			if (!is_option(argv[1]) or is_option(argv[2])) {
 				usage();
 			}
 			A.cmd = argv[1] + 2;  // skip '--'
-			A.filename = argv[2];
+			A.args = vector<string>{argv[2]};
 			break;
 		default:
 			usage();
@@ -468,12 +490,12 @@ Args parse_args(int argc, char *argv[]) {
 
 int main(int argc, char *argv[]) {
 	Translator::translator.set_language("es");
-	Args A = parse_args(argc, argv);
-	auto it = funcs.find(A.cmd);
+	CmdArgs A = parse_args(argc, argv);
+	auto	it = funcs.find(A.cmd);
 	if (it == funcs.end()) {
 		cerr << "No se reconoce el comando '" << A.cmd << "'" << endl;
 		return 1;
 	} else {
-		return (*it->second)(A.filename);
+		return (*it->second)(A.args);
 	}
 }
