@@ -773,8 +773,8 @@ void SemanticAnalyzer::Analyze(Ast *ast) {
 							Analyze(size_expr);
 							if (_curr.is_abstract()) {
 								array_decl->AddError(
-									_T("El tamaño de una tabla en un 'struct' debe ser una ")
-									_T("constante."));
+									_T("El tamaño de una tabla en un 'struct' debe ser una "
+									   "constante."));
 							} else if (!_curr.is<Int>()) {
 								array_decl->AddError(
 									_T("El tamaño de una tabla no puede ser un '%s'.",
