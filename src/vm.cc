@@ -7,21 +7,24 @@ namespace vm {
 // TypeTable ///////////////////////////////////////////////////////////////////
 
 size_t TypeTable::SizeOf(Type type) {
+	size_t size = 0;
 	switch (type) {
 		case I32:
 		case U32:
 		case F32:
-			return 4;
+			size = 4;
+			break;
 		case I64:
 		case U64:
 		case F64:
-			return 8;
+			size = 8;
+			break;
 		default: {
 			TypeDescr *_desc = Get(type);
 			switch (_desc->Tag()) {
 				case Struct: {
 					StructDescr *struc = cast<StructDescr>(_desc);
-					size_t		 size = 0;
+					size = 0;
 					for (int i = 0; i < struc->fields.size(); i++) {
 						size += SizeOf(struc->fields[i].type);
 					}
@@ -29,11 +32,12 @@ size_t TypeTable::SizeOf(Type type) {
 				}
 				case Array: {
 					ArrayDescr *array = cast<ArrayDescr>(_desc);
-					return array->size * SizeOf(array->elem_type);
+					size = array->size * SizeOf(array->elem_type);
 				}
 			}
 		}
 	}
+	return size;
 }
 
 Type TypeTable::Add(TypeDescr *desc) {
