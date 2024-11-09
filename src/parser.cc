@@ -115,7 +115,7 @@ Ast *Parser::parse() {
 					prog->add(parse_func_or_var(prog));
 					break;
 				}
-				string s = _lexer.SubStr(tok);
+				string s = _lexer.substr(tok);
 				error(prog, _T("Unexpected '%s' here.", s.c_str()));
 				_lexer.read_token();
 				break;
@@ -133,11 +133,11 @@ Ast *Parser::parse_macro(Ast *parent) {
 	Pos macro_ini = _lexer.pos();
 	if (!_lexer.expect("include")) {
 		Token  tok = _lexer.read_ident();
-		string macro_name = _lexer.SubStr(tok);
+		string macro_name = _lexer.substr(tok);
 		_lexer.skip_to("\n");
 		Pos macro_fin = _lexer.pos();
 		_lexer.next();
-		Macro *m = new Macro(_lexer.SubStr(macro_ini, macro_fin));
+		Macro *m = new Macro(_lexer.substr(macro_ini, macro_fin));
 		m->span = Span(ini, macro_fin);
 		fatal_error(macro_fin, _T("Macro '#%s' unknown.", macro_name.c_str()));
 		return m;
@@ -190,7 +190,7 @@ Ast *Parser::parse_using_declaration(Ast *parent) {
 	}
 	_skip(u);
 	Token tok = _lexer.read_ident();
-	u->namespc = _lexer.SubStr(tok);
+	u->namespc = _lexer.substr(tok);
 	_skip(u);
 	const Pos fin = _lexer.pos();
 	u->span = Span(ini, fin);
@@ -201,7 +201,7 @@ Ast *Parser::parse_using_declaration(Ast *parent) {
 }
 
 Identifier *Parser::parse_ident(Ast *parent, Token tok, Pos ini) {
-	Identifier *id = new Identifier(_lexer.SubStr(tok));
+	Identifier *id = new Identifier(_lexer.substr(tok));
 	Pos			fin = _lexer.pos();
 	while (true) {
 		tok = _lexer.peek_token();
@@ -229,7 +229,7 @@ Identifier *Parser::parse_ident(Ast *parent, Token tok, Pos ini) {
 		if (!tok.IsIdent()) {
 			error(id, _T("Expected an identifier here"));
 		}
-		id->Shift(_lexer.SubStr(tok));
+		id->Shift(_lexer.substr(tok));
 		fin = _lexer.pos();
 	}
 	id->span = Span(ini, fin);
@@ -241,7 +241,7 @@ bool Parser::_parse_type_process_token(TypeSpec *type, Token tok, Pos p) {
 		if (type->id != 0) {
 			error(type, _T("Basic types are not templates"));
 		}
-		type->id = new Identifier(_lexer.SubStr(tok));
+		type->id = new Identifier(_lexer.substr(tok));
 		return true;
 	}
 	if (tok.IsTypeQual()) {
@@ -341,7 +341,7 @@ void Parser::parse_function(FuncDecl *fn) {
 		p->typespec = parse_typespec(fn);
 		_skip(fn);
 		Token tok = _lexer.read_ident();
-		p->name = _lexer.SubStr(tok);
+		p->name = _lexer.substr(tok);
 		_skip(fn);
 		fn->params.push_back(p);
 		p->fin = _lexer.pos();
@@ -479,12 +479,12 @@ Stmt *Parser::parse_jumpstmt(Ast *parent) {
 	_skip(stmt);
 	if (stmt->kind == JumpStmt::Goto) {
 		Token tok = _lexer.read_ident();
-		stmt->label = _lexer.SubStr(tok);
+		stmt->label = _lexer.substr(tok);
 		_skip(stmt);
 	}
 	if (!_lexer.expect(Token::SemiColon)) {
 		error(stmt, _lexer.pos().str() + ": " +
-						_T("Esperaba un ';' después de '%s'.", _lexer.SubStr(tok).c_str()));
+						_T("Esperaba un ';' después de '%s'.", _lexer.substr(tok).c_str()));
 		_lexer.skip_to(";\n");	// resync...
 	}
 	return stmt;
@@ -544,7 +544,7 @@ Expr *Parser::parse_primary_expr(Ast *parent) {
 		case Token::IntLiteral: {
 			Literal *lit = new Literal(Literal::Int);
 			lit->parent = parent;
-			lit->val.as_int = atoi(_lexer.SubStr(tok).c_str());
+			lit->val.as_int = atoi(_lexer.substr(tok).c_str());
 			lit->span = Span(ini, _lexer.pos());
 			_skip(lit);
 			e = lit;
@@ -553,7 +553,7 @@ Expr *Parser::parse_primary_expr(Ast *parent) {
 		case Token::CharLiteral: {
 			Literal *lit = new Literal(Literal::Char);
 			lit->parent = parent;
-			lit->val.as_char = _translate_Escapes(_lexer.SubStr(tok))[0];
+			lit->val.as_char = _translate_Escapes(_lexer.substr(tok))[0];
 			lit->span = Span(ini, _lexer.pos());
 			_skip(lit);
 			e = lit;
@@ -567,7 +567,7 @@ Expr *Parser::parse_primary_expr(Ast *parent) {
 				kind = Literal::Float;
 			}
 			Literal		 *lit = new Literal(kind);
-			istringstream S(_lexer.SubStr(tok));
+			istringstream S(_lexer.substr(tok));
 			S >> lit->val.as_double;
 			lit->parent = parent;
 			lit->span = Span(ini, _lexer.pos());
@@ -579,7 +579,7 @@ Expr *Parser::parse_primary_expr(Ast *parent) {
 			Literal *lit = new Literal(Literal::String);
 			lit->parent = parent;
 			lit->val.as_string.s =
-				new string(_translate_Escapes(_lexer.SubStr(tok)));	 // FIXME: Shouldn't copy string
+				new string(_translate_Escapes(_lexer.substr(tok)));	 // FIXME: Shouldn't copy string
 			lit->span = Span(ini, _lexer.pos());
 			_skip(lit);
 			e = lit;
@@ -773,7 +773,7 @@ Expr *Parser::parse_expr(Ast *parent, BinaryExpr::Kind max) {
 			left = e;
 		} else {
 			BinaryExpr *e = new BinaryExpr();
-			e->op = _lexer.SubStr(tok);
+			e->op = _lexer.substr(tok);
 			e->kind = kind;
 			e->comments.push_back(c0);
 			_skip(e);
@@ -838,7 +838,7 @@ Expr *Parser::parse_fieldexpr(Expr *x, Token tok) {
 	_lexer.consume(tok.type == Token::Arrow ? "->" : ".");
 	_skip(e);
 	Token id = _lexer.read_ident();
-	e->field = _lexer.SubStr(id);
+	e->field = _lexer.substr(id);
 	e->span = Span(x->span.begin, _lexer.pos());
 	return e;
 }
@@ -1063,13 +1063,13 @@ DeclStmt *Parser::parse_declstmt(Ast *parent, bool is_typedef) {
 	while (true) {
 		Pos		   item_ini = _lexer.pos();
 		Token	   id = _lexer.read_token();
-		string	   name = _lexer.SubStr(id);
+		string	   name = _lexer.substr(id);
 		Decl::Kind kind = Decl::Normal;
 		if (id.type == Token::Star) {
 			kind = Decl::Pointer;
 			_skip(stmt);
 			id = _lexer.read_token();
-			name = _lexer.SubStr(id);
+			name = _lexer.substr(id);
 		}
 		if (!id.IsIdent()) {
 			stopper_error(stmt, _T("Expected a variable name here."));
@@ -1119,7 +1119,7 @@ EnumDecl *Parser::parse_enum(Ast *parent) {
 		_lexer.skip_to(";");
 		return decl;
 	}
-	decl->name = _lexer.SubStr(tok);
+	decl->name = _lexer.substr(tok);
 	_skip(decl);
 	if (!_lexer.expect(Token::LBrace)) {
 		error(decl, _lexer.pos().str() + ": " + _T("Expected '%s' here.", "{"));
@@ -1133,7 +1133,7 @@ EnumDecl *Parser::parse_enum(Ast *parent) {
 			_lexer.skip_to(",}");
 			break;
 		}
-		EnumDecl::Value v(_lexer.SubStr(tok));
+		EnumDecl::Value v(_lexer.substr(tok));
 		_skip(decl);
 		if (_lexer.curr() == '=') {
 			_lexer.next();
@@ -1144,7 +1144,7 @@ EnumDecl *Parser::parse_enum(Ast *parent) {
 				_lexer.skip_to(",};");
 			}
 			v.has_val = true;
-			istringstream S(_lexer.SubStr(num));
+			istringstream S(_lexer.substr(num));
 			S >> v.val;
 			_skip(decl);
 		}
@@ -1188,7 +1188,7 @@ StructDecl *Parser::parse_struct(Ast *parent) {
 	_skip(decl);
 
 	Token id = _lexer.read_ident();
-	decl->name = _lexer.SubStr(id);
+	decl->name = _lexer.substr(id);
 	_skip(decl);
 
 	tok = _lexer.read_token();

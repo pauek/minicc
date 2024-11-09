@@ -30,7 +30,7 @@ int tokenize(const vector<string>& args) {
 	L.skip();
 	while (!L.end()) {
 		Token tok = L.read_token();
-		cout << tok.pos << ' ' << L.SubStr(tok) << endl;
+		cout << tok.pos << ' ' << L.substr(tok) << endl;
 		L.skip();
 	}
 	return 0;
@@ -120,7 +120,7 @@ int step(const vector<string>& args) {
 		Stepper S;
 		S.Step(program);
 		while (!S.finished()) {
-			cout << S.span() << ": " << P.lexer().SubStr(S.span()) << endl;
+			cout << S.span() << ": " << P.lexer().substr(S.span()) << endl;
 			cout << S.status() << endl;
 			string out = S.output();
 			if (out != "") {
@@ -398,7 +398,7 @@ int test_step(const vector<string>& args) {
 		Stepper S(&Sin, &Saux);
 		S.Step(program);
 		while (!S.finished()) {
-			Sout << S.span() << ": " << P.lexer().SubStr(S.span()) << endl;
+			Sout << S.span() << ": " << P.lexer().substr(S.span()) << endl;
 			Sout << S.status() << endl;
 			string output = S.output();
 			if (output != "") {

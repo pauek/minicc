@@ -52,10 +52,10 @@ class Lexer {
 
 	bool curr_one_of(std::string set) const;
 
-	std::string SubStr(const Token& t);
-	std::string SubStr(const Pos& begin, const Pos& end) const;
+	std::string substr(const Token& t);
+	std::string substr(const Pos& begin, const Pos& end) const;
 
-	std::string SubStr(const Span& r) const { return SubStr(r.begin, r.end); }
+	std::string substr(const Span& r) const { return substr(r.begin, r.end); }
 
 	void save();
 	void restore();

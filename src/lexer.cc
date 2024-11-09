@@ -22,11 +22,11 @@ void Lexer::consume(Token::Type type) {
 	assert(tok.type == type);
 }
 
-string Lexer::SubStr(const Token& t) {
+string Lexer::substr(const Token& t) {
 	return _text.substr(_pos_to_idx(t.pos), t.len);
 }
 
-string Lexer::SubStr(const Pos& ini, const Pos& fin) const {
+string Lexer::substr(const Pos& ini, const Pos& fin) const {
 	const int i = _pos_to_idx(ini);
 	const int j = _pos_to_idx(fin);
 	assert(j > i and i != -1 and j != -1);
@@ -475,7 +475,7 @@ Token Lexer::read_ident() {
 	// tok.fin = _curr;
 	tok.len = _curr - ini;
 	tok.type = Token::Ident;
-	string s = SubStr(tok);
+	string s = substr(tok);
 	switch (tok.len) {
 		case 2: {
 			if (s == "or") {
