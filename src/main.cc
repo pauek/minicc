@@ -421,23 +421,23 @@ map<string, CmdFunc> funcs = {{"vm", test_vm},
 void help() {
 	cout << "usage: minicc [cmd] <filename>" << endl << endl;
 	cout << "Commands: " << endl;
-	cout << "   --help" << endl;
+	cout << "   help" << endl;
 	for (auto it = funcs.begin(); it != funcs.end(); it++) {
-		cout << "   --" << it->first << endl;
+		cout << "   " << it->first << endl;
 	}
 	cout << endl;
 }
 
-void Usage() {
+void usage() {
 	cerr << "usage: minicc [cmd] <filename>" << endl;
 	exit(1);
 }
 
-bool IsOption(string s) {
+bool is_option(string s) {
 	return s.substr(0, 2) == "--";
 }
 
-Args ParseArgs(int argc, char *argv[]) {
+Args parse_args(int argc, char *argv[]) {
 	Args A;
 	switch (argc) {
 		case 2:
@@ -445,28 +445,28 @@ Args ParseArgs(int argc, char *argv[]) {
 				help();
 				exit(0);
 			}
-			if (IsOption(argv[1])) {
-				Usage();
+			if (is_option(argv[1])) {
+				usage();
 			}
 			A.cmd = "eval";
 			A.filename = argv[1];
 			break;
 		case 3:
-			if (!IsOption(argv[1]) or IsOption(argv[2])) {
-				Usage();
+			if (!is_option(argv[1]) or is_option(argv[2])) {
+				usage();
 			}
 			A.cmd = argv[1] + 2;  // skip '--'
 			A.filename = argv[2];
 			break;
 		default:
-			Usage();
+			usage();
 	}
 	return A;
 }
 
 int main(int argc, char *argv[]) {
 	Translator::translator.set_language("es");
-	Args A = ParseArgs(argc, argv);
+	Args A = parse_args(argc, argv);
 	auto it = funcs.find(A.cmd);
 	if (it == funcs.end()) {
 		cerr << "No se reconoce el comando '" << A.cmd << "'" << endl;
