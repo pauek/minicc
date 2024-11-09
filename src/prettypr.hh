@@ -7,4 +7,3 @@
 void PrettyPrint(Ast *ast, std::ostream& out = std::cout);
 
 #endif
-

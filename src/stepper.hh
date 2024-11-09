@@ -3,165 +3,208 @@
 
 #include <assert.h>
 #include <iostream>
-#include <sstream>
-#include <vector>
 #include <list>
-#include <stack>
 #include <map>
+#include <sstream>
+#include <stack>
+#include <vector>
 #include "interpreter.hh"
 
 enum Todo { Stop, Next };
 
 class Stepper {
+	Interpreter I;
 
-   Interpreter I;
+	struct StepperState {
+		virtual Todo step(Stepper *) = 0;
+		virtual Span span() const = 0;
+	};
 
-   struct StepperState {
-      virtual Todo  step(Stepper*) = 0;
-      virtual  Span span() const   = 0;
-   };
+	std::string				   _status;
+	std::stack<StepperState *> _stack;
+	std::vector<std::string>   _errors;
+	EvalError				  *_err;
 
-                 std::string _status;
-   std::stack<StepperState*> _stack;
-   std::vector<std::string>  _errors;
-                 EvalError*  _err;
+	void _e() const { assert(!_stack.empty()); }
 
-          void _e() const { assert(!_stack.empty()); }
-          void prepare_funcall(FuncDecl *, std::vector<Value>&);
-          void _error(std::string msg) { _errors.push_back(msg); }
+	void prepare_funcall(FuncDecl *, std::vector<Value>&);
 
-          void eval(Ast *X) { I.Eval(X); }
+	void _error(std::string msg) { _errors.push_back(msg); }
 
-          void generic_visit(Ast *x);
-          void visit_assignment(BinaryExpr *x);
+	void eval(Ast *X) { I.Eval(X); }
 
-   std::stringstream _out;
-   std::stringstream _in;
-public:
-   Stepper() : _err(0), I(&_in, &_out) {}
+	void generic_visit(Ast *x);
+	void visit_assignment(BinaryExpr *x);
 
-   Stepper(std::istream *i, std::ostream* o) 
-      : I(i, o), _err(0) {}
+	std::stringstream _out;
+	std::stringstream _in;
 
-              ~Stepper() {}
+   public:
+	Stepper() : _err(0), I(&_in, &_out) {}
 
-          void status(std::string s)    { _status = s; }
-   std::string status()           const { return _status; }
-    EvalError *error()           const { return _err; }
- 
-          void start(Program *p)        { visit_program(p); }
+	Stepper(std::istream *i, std::ostream *o) : I(i, o), _err(0) {}
 
-          void push(StepperState *s)    {       _stack.push(s);              }
-          void replace(StepperState *s) { _e(); _stack.top() = s;            }
-          void pop()                    { _e(); _stack.pop();                }
-          bool finished()         const {       return _stack.empty();       }
-          Span span()             const { _e(); return _stack.top()->span(); }
-          bool step();
-   std::string state2json()       const;
+	~Stepper() {}
 
-   std::string output();
+	void status(std::string s) { _status = s; }
 
-          void visit_program(Program *x);
-          void visit_block(Block *x);
-          void visit_binaryexpr(BinaryExpr *x); 
-          void visit_increxpr(IncrExpr *x); 
-          void visit_exprstmt(ExprStmt *x); 
-          void visit_declstmt(DeclStmt *x);
-          void visit_ifstmt(IfStmt *x);
-          void visit_forstmt(ForStmt *x);
-          void visit_whilestmt(WhileStmt *x);
-          void visit_callexpr(CallExpr *x); 
-          void visit_literal(Literal *x); 
-          void visit_fieldexpr(FieldExpr *x); 
-          void visit_fullident(Identifier *x);
-          void visit_indexexpr(IndexExpr *x);
+	std::string status() const { return _status; }
 
-          void Step(Ast *);
+	EvalError *error() const { return _err; }
 
-   struct PopState : public StepperState {
-      Span spn;
-      PopState(Span _span) : spn(_span) {}
-      Todo step(Stepper *S);
-      Span span() const { return spn; }
-   };
+	void start(Program *p) { visit_program(p); }
 
-   struct ProgramVisitState : public StepperState {
-      FuncDecl *X;
-      enum At { Begin, End, Finished }; 
-      At at;
-      ProgramVisitState(FuncDecl *_X) : X(_X), at(Begin) {}
-      Todo  step(Stepper *S);
-      Span span() const;
-   };
+	void push(StepperState *s) { _stack.push(s); }
 
-   struct BlockVisitState : public StepperState {
-      Block *X;
-      int curr;
-      BlockVisitState(Block *_X) : X(_X), curr(0) {}
-      Todo step(Stepper *S);      
-      Span span() const { return X->span; }
-   };
+	void replace(StepperState *s) {
+		_e();
+		_stack.top() = s;
+	}
 
-   struct AssignVisitState : public StepperState {
-      BinaryExpr *X;
-      Value left, right;
-      AssignVisitState(BinaryExpr *_X, Value r) : X(_X), right(r) {}
-      Todo step(Stepper *S);
-      Span span() const;
-   };
-   
-   struct IfVisitState : public StepperState {
-      Span spn;
-      Stmt *next;
-      IfVisitState(Span _span, Stmt *_next) : spn(_span), next(_next) {}
-      Todo step(Stepper *S);
-      Span span() const { return spn; }
-   };
+	void pop() {
+		_e();
+		_stack.pop();
+	}
 
-   struct ForVisitState : public StepperState {
-      enum At { Cond, Block, Post, Leave };
-      At at;
-      ForStmt *X;
-      bool cond;
-      ForVisitState(ForStmt *_X) : X(_X), at(Cond) {}
-      Todo step(Stepper *S);
-      Span span() const { return X->span; }
-   };
+	bool finished() const { return _stack.empty(); }
 
-   struct WhileVisitState : public StepperState {
-      enum At { Cond, Block, Leave };
-      At at;
-      WhileStmt *X;
-      WhileVisitState(WhileStmt *_X) : X(_X), at(Cond) {}
-      Todo step(Stepper *S);
-      Span span() const { return X->cond->span; }
-   };
+	Span span() const {
+		_e();
+		return _stack.top()->span();
+	}
 
-   struct CallExprVisitState : public StepperState {
-      int curr;
-      FuncDecl *fn;
-      CallExpr *X;
-      std::vector<Value> args;
-      CallExprVisitState(CallExpr *_X, FuncDecl *f) : X(_X), fn(f), curr(0) {
-         args.resize(X->args.size());
-      }
-      Todo step(Stepper *S);
-      Span span() const;
+	bool		step();
+	std::string state2json() const;
 
-      static const int Return, Block;
-   };
+	std::string output();
 
-   struct WriteExprVisitState : public StepperState {
-      Expr *curr;
-      bool waiting;
-      std::list<Expr*> exprs;
-      BinaryExpr *X;
-      WriteExprVisitState(BinaryExpr *_X) : X(_X), curr(0), waiting(false) {}
-      Todo step(Stepper *S); 
-      Todo step_waiting(Stepper *S);
-      Span span() const;
-   };
+	void visit_program(Program *x);
+	void visit_block(Block *x);
+	void visit_binaryexpr(BinaryExpr *x);
+	void visit_increxpr(IncrExpr *x);
+	void visit_exprstmt(ExprStmt *x);
+	void visit_declstmt(DeclStmt *x);
+	void visit_ifstmt(IfStmt *x);
+	void visit_forstmt(ForStmt *x);
+	void visit_whilestmt(WhileStmt *x);
+	void visit_callexpr(CallExpr *x);
+	void visit_literal(Literal *x);
+	void visit_fieldexpr(FieldExpr *x);
+	void visit_fullident(Identifier *x);
+	void visit_indexexpr(IndexExpr *x);
 
+	void Step(Ast *);
+
+	struct PopState : public StepperState {
+		Span spn;
+
+		PopState(Span _span) : spn(_span) {}
+
+		Todo step(Stepper *S);
+
+		Span span() const { return spn; }
+	};
+
+	struct ProgramVisitState : public StepperState {
+		FuncDecl *X;
+
+		enum At { Begin, End, Finished };
+
+		At at;
+
+		ProgramVisitState(FuncDecl *_X) : X(_X), at(Begin) {}
+
+		Todo step(Stepper *S);
+		Span span() const;
+	};
+
+	struct BlockVisitState : public StepperState {
+		Block *X;
+		int	   curr;
+
+		BlockVisitState(Block *_X) : X(_X), curr(0) {}
+
+		Todo step(Stepper *S);
+
+		Span span() const { return X->span; }
+	};
+
+	struct AssignVisitState : public StepperState {
+		BinaryExpr *X;
+		Value		left, right;
+
+		AssignVisitState(BinaryExpr *_X, Value r) : X(_X), right(r) {}
+
+		Todo step(Stepper *S);
+		Span span() const;
+	};
+
+	struct IfVisitState : public StepperState {
+		Span  spn;
+		Stmt *next;
+
+		IfVisitState(Span _span, Stmt *_next) : spn(_span), next(_next) {}
+
+		Todo step(Stepper *S);
+
+		Span span() const { return spn; }
+	};
+
+	struct ForVisitState : public StepperState {
+		enum At { Cond, Block, Post, Leave };
+
+		At		 at;
+		ForStmt *X;
+		bool	 cond;
+
+		ForVisitState(ForStmt *_X) : X(_X), at(Cond) {}
+
+		Todo step(Stepper *S);
+
+		Span span() const { return X->span; }
+	};
+
+	struct WhileVisitState : public StepperState {
+		enum At { Cond, Block, Leave };
+
+		At		   at;
+		WhileStmt *X;
+
+		WhileVisitState(WhileStmt *_X) : X(_X), at(Cond) {}
+
+		Todo step(Stepper *S);
+
+		Span span() const { return X->cond->span; }
+	};
+
+	struct CallExprVisitState : public StepperState {
+		int				   curr;
+		FuncDecl		  *fn;
+		CallExpr		  *X;
+		std::vector<Value> args;
+
+		CallExprVisitState(CallExpr *_X, FuncDecl *f) : X(_X), fn(f), curr(0) {
+			args.resize(X->args.size());
+		}
+
+		Todo step(Stepper *S);
+		Span span() const;
+
+		static const int Return, Block;
+	};
+
+	struct WriteExprVisitState : public StepperState {
+		Expr			 *curr;
+		bool			  waiting;
+		std::list<Expr *> exprs;
+		BinaryExpr		 *X;
+
+		WriteExprVisitState(BinaryExpr *_X) : X(_X), curr(0), waiting(false) {}
+
+		Todo step(Stepper *S);
+		Todo step_waiting(Stepper *S);
+		Span span() const;
+	};
 };
 
 #endif
