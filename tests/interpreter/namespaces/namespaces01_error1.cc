@@ -4,4 +4,4 @@ int main() {
    vector<int> v;
 }
 [[err]]--------------------------------------------------
-Error de ejecución: El tipo 'vector<int>' no existe.
+tests/interpreter/namespaces/namespaces01_error1.cc[1:0-1:0]: El tipo 'vector<int>' no existe.

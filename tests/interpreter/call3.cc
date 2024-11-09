@@ -13,4 +13,4 @@ int main() {
 }
 [[out]]--------------------------------------------------
 [[err]]--------------------------------------------------
-Error de ejecución: La función 'f' debería devolver un 'int'
+tests/interpreter/call3.cc[1:0-1:0]: La función 'f' debería devolver un 'int'

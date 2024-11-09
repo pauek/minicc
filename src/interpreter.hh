@@ -14,7 +14,7 @@ struct EvalError : public Error {
 class Interpreter : WithEnvironment {
 	Value _curr, _ret;
 
-	void _error(std::string msg) { throw new EvalError(msg); }
+	void _error(std::string msg) { throw EvalError(msg); }
 
 	void invoke_func_prepare_arg(FuncDecl *x, Value args, int i);
 	void invoke_func_prepare(FuncDecl *x, const std::vector<Value>& args);

@@ -8,4 +8,4 @@ int main() {
 }
 [[out]]--------------------------------------------------
 [[err]]--------------------------------------------------
-Error de ejecución: No se ha encontrado 'i'.
+tests/interpreter/for/for2.cc[1:0-1:0]: No se ha encontrado 'i'.

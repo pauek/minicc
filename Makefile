@@ -31,4 +31,4 @@ clean:
 	rm -f ./src/.depend minicc tester $(OBJECTS)
 
 test: minicc
-	@./test.sh
+	@./test.sh 2> err

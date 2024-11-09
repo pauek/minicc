@@ -12,4 +12,4 @@ int main() {
    x.f = 1;
 }
 [[err]]--------------------------------------------------
-semantic/struct/struct7.cc[12:4-12:7]: El campo 'f' no existe.
+tests/semantic/struct/struct7.cc[12:4-12:7]: El campo 'f' no existe.

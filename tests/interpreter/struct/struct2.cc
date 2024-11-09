@@ -13,4 +13,4 @@ int main() {
 }
 [[out]]--------------------------------------------------
 [[err]]--------------------------------------------------
-Error de ejecución: Demasiados valores al inicializar la tupla de tipo 'Punto'
+tests/interpreter/struct/struct2.cc[1:0-1:0]: Demasiados valores al inicializar la tupla de tipo 'Punto'

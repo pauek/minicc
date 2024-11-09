@@ -3,4 +3,4 @@ void f() {
    bool b = !a;
 }
 [[err]]--------------------------------------------------
-semantic/neg/neg1.cc[3:13-3:15]: Sólo se puede negar una expresión de tipo 'bool'.
+tests/semantic/neg/neg1.cc[3:13-3:15]: Sólo se puede negar una expresión de tipo 'bool'.

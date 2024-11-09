@@ -50,7 +50,7 @@ class Stepper {
 
 	std::string status() const { return _status; }
 
-	EvalError *error() const { return _err; }
+	EvalError error() const { return *_err; }
 
 	void start(Program *p) { visit_program(p); }
 

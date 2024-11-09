@@ -2,4 +2,4 @@ struct X {
    Blah b;
 };
 [[err]]--------------------------------------------------
-semantic/struct/struct1.cc[2:4-2:10]: El tipo 'Blah' no existe.
+tests/semantic/struct/struct1.cc[2:4-2:10]: El tipo 'Blah' no existe.

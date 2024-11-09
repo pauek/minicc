@@ -6,4 +6,4 @@ void f() {
    }
 }
 [[err]]--------------------------------------------------
-semantic/for/for1.cc[]: 
+tests/semantic/for/for1.cc[]: 

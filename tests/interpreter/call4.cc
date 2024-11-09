@@ -10,4 +10,4 @@ int main() {
 }
 [[out]]--------------------------------------------------
 [[err]]--------------------------------------------------
-Error de ejecución: El argumento 1 no es compatible con el tipo del parámetro (int vs string)
+tests/interpreter/call4.cc[1:0-1:0]: El argumento 1 no es compatible con el tipo del parámetro (int vs string)

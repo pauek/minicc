@@ -5,4 +5,4 @@ void f() {
    a = b - c;
 }
 [[err]]--------------------------------------------------
-semantic/expr/string1.cc[5:8-5:13]: El tipo 'string' no tiene operador '-'.
+tests/semantic/expr/string1.cc[5:8-5:13]: El tipo 'string' no tiene operador '-'.

@@ -26,9 +26,13 @@ int test(Args& args) {
 			for (Error *e : collect_errors(program)) {
 				serr << filename << "[" << e->span << "]: " << e->msg << endl;
 			}
-		} catch (ParseError* e) {
-			serr << filename << "[" << e->pos << "]: " << e->msg << endl;
-		} catch (Error* e) {
+		} catch (ParseError& e) {
+			serr << filename << "[" << e.pos << "]: " << e.msg << endl;
+		} catch (TypeError& e) {
+			serr << filename << "[" << e.span << "]: " << e.msg << endl;
+		} catch (EvalError &e) {
+			serr << filename << "[" << e.span << "]: " << e.msg << endl;
+		} catch (Error *e) {
 			serr << filename << "[" << e->span << "]: " << e->msg << endl;
 		}
 

@@ -11,6 +11,6 @@ void f() {
    f -= true;
 }
 [[err]]--------------------------------------------------
-semantic/expr/expr2.cc[9:4-9:15]: Intentas sumar un 'int' y un 'string'.
-semantic/expr/expr2.cc[10:4-10:15]: Intentas hacer un AND de un 'bool' con un 'string'.
-semantic/expr/expr2.cc[11:4-11:13]: Intentas restar un 'float' y un 'bool'.
+tests/semantic/expr/expr2.cc[9:4-9:15]: Intentas sumar un 'int' y un 'string'.
+tests/semantic/expr/expr2.cc[10:4-10:15]: Intentas hacer un AND de un 'bool' con un 'string'.
+tests/semantic/expr/expr2.cc[11:4-11:13]: Intentas restar un 'float' y un 'bool'.

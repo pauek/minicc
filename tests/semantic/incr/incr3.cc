@@ -3,4 +3,4 @@ void f() {
    a++;
 }
 [[err]]--------------------------------------------------
-semantic/incr/incr3.cc[3:4-3:7]: Incrementas la variable 'a' sin haberla inicializado.
+tests/semantic/incr/incr3.cc[3:4-3:7]: Incrementas la variable 'a' sin haberla inicializado.

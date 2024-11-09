@@ -10,4 +10,4 @@ int main() {
    b = f(a);
 }
 [[err]]--------------------------------------------------
-semantic/func/func09.cc[10:4-10:12]: No se puede asignar un 'void' a una variable de tipo 'int'.
+tests/semantic/func/func09.cc[10:4-10:12]: No se puede asignar un 'void' a una variable de tipo 'int'.

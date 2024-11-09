@@ -9,60 +9,60 @@ int main() {
    }
 }
 [[out]]--------------------------------------------------
-4:5-4:9: main
+4:5-4:9: 
 Empieza el programa.
 
-5:4-5:13: int i = 0
+5:4-5:13: 
 Se declara la variable 'i'.
 
-6:11-6:16: i < 3
+6:11-6:16: 
 La condición vale 'true', entramos en el while.
 
-7:15-7:16: i
+7:15-7:16: 
 Se escribe a la salida.
 OUTPUT: "0"
 
-7:20-7:24: endl
+7:20-7:24: 
 Se escribe a la salida.
 OUTPUT: "
 "
 
-8:7-8:10: i++
+8:7-8:10: 
 Se incrementa la variable 'i'.
 
-6:11-6:16: i < 3
+6:11-6:16: 
 La condición vale 'true', entramos en el while.
 
-7:15-7:16: i
+7:15-7:16: 
 Se escribe a la salida.
 OUTPUT: "1"
 
-7:20-7:24: endl
+7:20-7:24: 
 Se escribe a la salida.
 OUTPUT: "
 "
 
-8:7-8:10: i++
+8:7-8:10: 
 Se incrementa la variable 'i'.
 
-6:11-6:16: i < 3
+6:11-6:16: 
 La condición vale 'true', entramos en el while.
 
-7:15-7:16: i
+7:15-7:16: 
 Se escribe a la salida.
 OUTPUT: "2"
 
-7:20-7:24: endl
+7:20-7:24: 
 Se escribe a la salida.
 OUTPUT: "
 "
 
-8:7-8:10: i++
+8:7-8:10: 
 Se incrementa la variable 'i'.
 
-6:11-6:16: i < 3
+6:11-6:16: 
 La condición vale 'false', salimos del while.
 
-10:1-10:2: }
+10:1-10:2: 
 Termina el programa.
 

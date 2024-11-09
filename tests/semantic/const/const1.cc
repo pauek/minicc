@@ -3,4 +3,4 @@ int main() {
    a = 3;
 }
 [[err]]--------------------------------------------------
-semantic/const/const1.cc[3:4-3:9]: La variable 'a' no se puede modificar (es 'const').
+tests/semantic/const/const1.cc[3:4-3:9]: La variable 'a' no se puede modificar (es 'const').

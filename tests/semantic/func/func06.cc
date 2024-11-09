@@ -15,4 +15,4 @@ int main() {
    }
 }
 [[err]]--------------------------------------------------
-semantic/func/func06.cc[12:12-12:16]: Número de argumentos erróneo (son 1 y deberían ser 0).
+tests/semantic/func/func06.cc[12:12-12:16]: Número de argumentos erróneo (son 1 y deberían ser 0).

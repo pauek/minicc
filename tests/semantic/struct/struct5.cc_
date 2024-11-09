@@ -7,5 +7,5 @@ struct Bleh {
    char c;
 };
 [[err]]--------------------------------------------------
-semantic/struct/struct5.cc[3:4-3:10]: El tipo 'Bleh' no existe.
+tests/semantic/struct/struct5.cc[3:4-3:10]: El tipo 'Bleh' no existe.
 Poner algo de que hay que declarar 'Bleh' más arriba...

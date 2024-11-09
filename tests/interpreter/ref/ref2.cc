@@ -10,4 +10,4 @@ int main() {
 }
 [[out]]--------------------------------------------------
 [[err]]--------------------------------------------------
-Error de ejecución: En el parámetro 1 se requiere una variable.
+tests/interpreter/ref/ref2.cc[1:0-1:0]: En el parámetro 1 se requiere una variable.

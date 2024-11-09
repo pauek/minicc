@@ -2,4 +2,4 @@ int main() {
    foo::bar X;
 }
 [[err]]--------------------------------------------------
-Error de ejecución: El tipo 'foo::bar' no existe.
+tests/interpreter/namespaces/namespaces02.cc[1:0-1:0]: El tipo 'foo::bar' no existe.
