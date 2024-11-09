@@ -404,19 +404,21 @@ struct Args {
 int help(string filename);
 
 typedef int (*CmdFunc)(string);
-map<string, CmdFunc> funcs = {{"vm", test_vm},
-							  {"tok", tokenize},
-							  {"ast", show_ast},
-							  {"pprint", prettyprint},
-							  {"step", step},
-							  {"eval", interpret},
+map<string, CmdFunc> funcs = {
+	{"vm", test_vm},
+	{"tok", tokenize},
+	{"ast", show_ast},
+	{"pprint", prettyprint},
+	{"step", step},
+	{"eval", interpret},
 
-							  {"test-parser", test_parser},
-							  {"test-ast", test_ast},
-							  {"test-print", test_print},
-							  {"test-semantic", test_semantic},
-							  {"test-interpreter", test_eval},
-							  {"test-stepper", test_step}};
+	{"test-parser", test_parser},
+	{"test-ast", test_ast},
+	{"test-print", test_print},
+	{"test-semantic", test_semantic},
+	{"test-interpreter", test_eval},
+	{"test-stepper", test_step},
+};
 
 void help() {
 	cout << "usage: minicc [cmd] <filename>" << endl << endl;
