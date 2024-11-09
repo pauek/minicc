@@ -16,42 +16,42 @@ class Interpreter : WithEnvironment {
 
 	void _error(std::string msg) { throw new EvalError(msg); }
 
-	void InvokeFuncPrepareArg(FuncDecl *x, Value args, int i);
-	void InvokeFuncPrepare(FuncDecl *x, const std::vector<Value>& args);
+	void invoke_func_prepare_arg(FuncDecl *x, Value args, int i);
+	void invoke_func_prepare(FuncDecl *x, const std::vector<Value>& args);
 
-	void ProgramPrepare(Program *x);
-	void FindMain();
-	void EvalBinaryExprAssignment(Value left, Value right);
-	void EvalBinaryExprOpAssignment(char, Value left, Value right);
-	void GetFunc(CallExpr *x);
-	bool TypeConversion(CallExpr *x, const std::vector<Value>& args);
-	void Call(Value func, const std::vector<Value>& args);
+	void program_prepare(Program *x);
+	void find_main();
+	void eval_binary_expr_assignment(Value left, Value right);
+	void eval_binary_expr_op_assignment(char, Value left, Value right);
+	void get_func(CallExpr *x);
+	bool type_conversion(CallExpr *x, const std::vector<Value>& args);
+	void call(Value func, const std::vector<Value>& args);
 
-	void InvokeUserFunc(FuncDecl *decl, const std::vector<Value>& args);
+	void invoke_user_func(FuncDecl *decl, const std::vector<Value>& args);
 
 	template <class Op>
-	bool EvalOpAssignment(Value left, Value right);
+	bool eval_op_assignment(Value left, Value right);
 	template <class Op>
-	bool EvalBitopAssignment(Value left, Value right);
+	bool eval_bitop_assignment(Value left, Value right);
 	template <class Op>
-	bool EvalSumProd(Value left, Value right);
+	bool eval_sum_prod(Value left, Value right);
 	template <class Op>
-	bool EvalBitop(Value left, Value right);
+	bool eval_bitop(Value left, Value right);
 	template <class Op>
-	bool EvalComparison(Value left, Value right);
+	bool eval_comparison(Value left, Value right);
 
 	friend class Stepper;
 
-	void EvalArguments(const std::vector<Expr *>& exprs, std::vector<Value>& args);
-	void CheckArguments(const Function *func_type, const std::vector<Value>& args);
-	void CheckResult(Binding& fn, const Function *func_type);
-	bool BindField(Value obj, string method_name);
-	bool CallOperator(std::string op, const std::vector<Value>& args = std::vector<Value>());
+	void eval_arguments(const std::vector<Expr *>& exprs, std::vector<Value>& args);
+	void check_arguments(const Function *func_type, const std::vector<Value>& args);
+	void check_result(Binding& fn, const Function *func_type);
+	bool bind_field(Value obj, string method_name);
+	bool call_operator(std::string op, const std::vector<Value>& args = std::vector<Value>());
 
    public:
 	Interpreter(std::istream *i, std::ostream *o) : WithEnvironment(i, o) {}
 
-	void Eval(Ast *ast);
+	void eval(Ast *ast);
 
 	friend class UserFunc;
 };
@@ -63,11 +63,11 @@ struct UserFunc : public Func {
 	UserFunc(std::string n, FuncDecl *d, Interpreter *_I) : Func(n), decl(d), I(_I) {}
 
 	Value call(Value self, const std::vector<Value>& args) {
-		I->InvokeUserFunc(decl, args);
+		I->invoke_user_func(decl, args);
 		return I->_ret;
 	}
 };
 
-void Eval(Ast *ast, std::istream& in, std::ostream& out);
+void eval(Ast *ast, std::istream& in, std::ostream& out);
 
 #endif

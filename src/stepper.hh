@@ -31,7 +31,7 @@ class Stepper {
 
 	void _error(std::string msg) { _errors.push_back(msg); }
 
-	void eval(Ast *X) { I.Eval(X); }
+	void eval(Ast *X) { I.eval(X); }
 
 	void generic_visit(Ast *x);
 	void visit_assignment(BinaryExpr *x);

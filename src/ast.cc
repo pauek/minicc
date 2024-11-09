@@ -7,7 +7,7 @@ using namespace std;
 #include "cast.h"
 #include "translator.hh"
 
-bool CommentSeq::HasEndLine() const {
+bool CommentSeq::has_endln() const {
 	for (const Comment& c : comments) {
 		if (c.kind == Comment::EndLine) {
 			return true;
@@ -16,19 +16,19 @@ bool CommentSeq::HasEndLine() const {
 	return false;
 }
 
-bool CommentSeq::EndsWithEmptyLine() const {
+bool CommentSeq::ends_with_empty_line() const {
 	const int sz = comments.size();
 	return sz >= 2 and (comments[sz - 2].kind == Comment::EndLine and
 						comments[sz - 1].kind == Comment::EndLine);
 }
 
-void CommentSeq::RemoveEndLines() {
+void CommentSeq::remove_endlns() {
 	comments.erase(std::remove_if(comments.begin(), comments.end(),
 								  [](Comment& c) { return c.kind == Comment::EndLine; }),
 				   comments.end());
 }
 
-void CommentSeq::OnlyOneEndLineAtEnd() {
+void CommentSeq::only_one_endln_at_end() {
 	if (comments.empty() or comments.back().kind != Comment::EndLine) {
 		return;
 	}
@@ -42,22 +42,22 @@ void CommentSeq::OnlyOneEndLineAtEnd() {
 	comments.resize(i + 1);
 }
 
-void Ast::AddError(string msg) {
+void Ast::add_error(string msg) {
 	errors.push_back(new Error(span, msg));
 }
 
-void Ast::AddError(Pos _ini, Pos _fin, string msg) {
+void Ast::add_error(Pos _ini, Pos _fin, string msg) {
 	errors.push_back(new Error(Span(_ini, _fin), msg));
 }
 
-void Error::ToJson(ostream& o) const {
+void Error::to_json(ostream& o) const {
 	ostringstream oss;
 	o << "{";
 	o << "\"ini\": ";
-	span.begin.ToJson(o);
+	span.begin.to_json(o);
 	o << ", ";
 	o << "\"fin\": ";
-	span.end.ToJson(o);
+	span.end.to_json(o);
 	o << ", ";
 	o << "\"msg\": \"" << msg << "\"";
 	o << "}";

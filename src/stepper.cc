@@ -36,7 +36,7 @@ Todo Stepper::PopState::step(Stepper *S) {
 }
 
 void Stepper::generic_visit(Ast *X) {
-	I.Eval(X);
+	I.eval(X);
 	status(Describe(X));
 	push(new PopState(X->span));
 }
@@ -45,13 +45,13 @@ void Stepper::Step(Ast *ast) {
 	switch (ast->Type()) {
 		case AstType::Program: {
 			Program *X = cast<Program>(ast);
-			I.ProgramPrepare(X);
-			I.FindMain();
+			I.program_prepare(X);
+			I.find_main();
 			status(_T("The program begins."));
 			I.pushenv("main");
 			Func	 *fn = I._curr.as<Callable>().func.as<Function>().ptr;
 			FuncDecl *main = dynamic_cast<UserFunc *>(fn)->decl;
-			I.InvokeFuncPrepare(main, vector<Value>());
+			I.invoke_func_prepare(main, vector<Value>());
 			I.actenv();
 			push(new ProgramVisitState(main));
 			break;
@@ -87,7 +87,7 @@ void Stepper::Step(Ast *ast) {
 			} else if (isa<CallExpr>(X->expr)) {
 				Step(X->expr);
 			} else {
-				I.Eval(X->expr);
+				I.eval(X->expr);
 				if (X->is_return) {
 					ostringstream oss;
 					oss << I._curr;
@@ -106,7 +106,7 @@ void Stepper::Step(Ast *ast) {
 		}
 		case AstType::IfStmt: {
 			IfStmt *X = cast<IfStmt>(ast);
-			I.Eval(X->cond);
+			I.eval(X->cond);
 			Value cond = I._curr;
 			if (!cond.is<Bool>()) {
 				_error(_T("The condition in a '%s' has to be a value of type 'bool'.", "if"));
@@ -143,14 +143,14 @@ void Stepper::Step(Ast *ast) {
 		case AstType::CallExpr: {
 			CallExpr	 *X = cast<CallExpr>(ast);
 			vector<Value> args;
-			I.EvalArguments(X->args, args);
+			I.eval_arguments(X->args, args);
 
-			if (I.TypeConversion(X, args)) {
+			if (I.type_conversion(X, args)) {
 				push(new PopState(X->span));
 				return;
 			}
 
-			I.GetFunc(X);
+			I.get_func(X);
 			if (I._curr.is<Overloaded>()) {
 				I._curr = I._curr.as<Overloaded>().resolve(args);
 				assert(I._curr.is<Callable>());
@@ -158,7 +158,7 @@ void Stepper::Step(Ast *ast) {
 			Func		   *fptr = I._curr.as<Callable>().func.as<Function>().ptr;
 			const UserFunc *userfunc = dynamic_cast<const UserFunc *>(fptr);
 			if (userfunc == 0) {
-				I.Call(I._curr, args);
+				I.call(I._curr, args);
 				push(new PopState(X->span));
 				return;
 			}
@@ -362,7 +362,7 @@ Todo Stepper::WriteExprVisitState::step(Stepper *S) {
 
 void Stepper::visit_assignment(BinaryExpr *e) {
 	assert(e != 0);
-	I.Eval(e->right);
+	I.eval(e->right);
 	Value		  right = Reference::deref(I._curr);
 	ostringstream oss;
 	oss << right;
@@ -385,12 +385,12 @@ Todo Stepper::AssignVisitState::step(Stepper *S) {
 		delete this;
 		return Next;
 	}
-	S->I.Eval(X->left);
+	S->I.eval(X->left);
 	left = S->I._curr;
 	if (X->op == "=") {
-		S->I.EvalBinaryExprAssignment(left, right);
+		S->I.eval_binary_expr_assignment(left, right);
 	} else if (X->op.size() == 2 and X->op[1] == '=') {
-		S->I.EvalBinaryExprOpAssignment(X->op[0], left, right);
+		S->I.eval_binary_expr_op_assignment(X->op[0], left, right);
 	}
 	S->status(_T("We assign the value."));
 	return Stop;
@@ -426,9 +426,9 @@ Todo Stepper::CallExprVisitState::step(Stepper *S) {
 		} else {
 			S->status(_T("We evaluate parameter number %d.", curr));
 		}
-		S->I.Eval(X->args[curr]);
+		S->I.eval(X->args[curr]);
 		Value v = S->I._curr;
-		S->I.InvokeFuncPrepareArg(fn, v, curr);
+		S->I.invoke_func_prepare_arg(fn, v, curr);
 		++curr;
 		return Stop;
 	} else {

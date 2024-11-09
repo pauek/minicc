@@ -178,7 +178,7 @@ bool Value::contains_unknowns() const {
 	return false;
 }
 
-string Value::ToJson() const {
+string Value::to_json() const {
 	ostringstream json;
 	if (is_null()) {
 		json << "null";
@@ -191,7 +191,7 @@ string Value::ToJson() const {
 		if (_box->data == 0) {
 			json << "null";
 		} else {
-			json << _box->type->ToJson(_box->data);
+			json << _box->type->to_json(_box->data);
 		}
 		json << "}";
 	}

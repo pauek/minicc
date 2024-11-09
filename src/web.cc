@@ -25,7 +25,7 @@ string print_errors(const vector<Error *>& errors) {
 		if (!first) {
 			E << ", " << endl;
 		}
-		e->ToJson(E);
+		e->to_json(E);
 		first = false;
 		// delete e; // ??
 	}
@@ -42,10 +42,10 @@ string compile(string code) {
 		ostringstream E;
 		E << "[{";
 		E << "\"ini\": ";
-		e.pos.ToJson(E);
+		e.pos.to_json(E);
 		E << ", ";
 		E << "\"fin\": ";
-		e.pos.ToJson(E);
+		e.pos.to_json(E);
 		E << ", ";
 		E << "\"msg\": \"" << e.msg << "\"";
 		E << "}]";

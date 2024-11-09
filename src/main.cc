@@ -89,7 +89,7 @@ int interpret(const vector<string>& args) {
 	const string& filename = args[0];
 	try {
 		Ast *program = parse_and_analyze(filename);
-		Eval(program, cin, cout);
+		eval(program, cin, cout);
 		vector<Error *> ve;
 		collect_errors(program, ve);
 		for (Error *e : ve) {
@@ -362,7 +362,7 @@ int test_eval(const vector<string>& args) {
 	try {
 		Translator::translator.set_language("es");
 		vector<Error *> ve;
-		Eval(program, Sin, Sout);
+		eval(program, Sin, Sout);
 		collect_errors(program, ve);
 		for (Error *e : ve) {
 			Serr << e->msg << endl;

@@ -33,7 +33,7 @@ Callable	  *Callable::self = new Callable();
 OStringStream *OStringStream::self = new OStringStream();
 IStringStream *IStringStream::self = new IStringStream();
 
-string String::ToJson(void *data) const {
+string String::to_json(void *data) const {
 	return string("\"") + Literal::Escape(*(string *)data, '"') + "\"";
 }
 
@@ -186,7 +186,7 @@ void Reference::clear_touched(void *data) const {
 	}
 }
 
-string Reference::ToJson(void *data) const {
+string Reference::to_json(void *data) const {
 	Value::Box		  *b = (Value::Box *)data;
 	std::ostringstream O;
 	O << "{\"<type>\":\"ref\",\"ref\":\"" << b << "\"}";
@@ -294,7 +294,7 @@ bool Char::accepts(const Type *t) const {
 	return t->is<Char>() or t->is<Int>();
 }
 
-string Char::ToJson(void *data) const {
+string Char::to_json(void *data) const {
 	ostringstream json;
 	string		  ch(1, *(char *)data);
 	json << "{\"<type>\":\"char\",\"char\":\"" << Literal::Escape(ch, '"') << "\"}" << endl;
@@ -592,7 +592,7 @@ Vector::Vector(Type *celltype) : Class("vector"), _celltype(celltype) {
 		bool call_abstract(Ast *x, Value self, const vector<Value>& args) {
 			Value the_index = Reference::deref(args[0]);
 			if (!the_index.is<Int>()) {
-				x->AddError(_T("El índice a una casilla de un vector debe ser un 'int' (no '%s').",
+				x->add_error(_T("El índice a una casilla de un vector debe ser un 'int' (no '%s').",
 							   the_index.type()->name().c_str()));
 			}
 			return true;
@@ -626,7 +626,7 @@ Value Vector::convert(Value x) const {
 	return Value::null;
 }
 
-string Vector::ToJson(void *data) const {
+string Vector::to_json(void *data) const {
 	ostringstream o;
 	o << "[";
 	vector<Value>& vec = *(vector<Value> *)data;
@@ -634,7 +634,7 @@ string Vector::ToJson(void *data) const {
 		if (i > 0) {
 			o << ", ";
 		}
-		o << vec[i].ToJson();
+		o << vec[i].to_json();
 	}
 	o << "]";
 	return o.str();
@@ -1007,7 +1007,7 @@ Value List::convert(Value x) const {
 	return Value::null;
 }
 
-string List::ToJson(void *data) const {
+string List::to_json(void *data) const {
 	ostringstream json;
 	json << "{\"<type>\":\"list\",\"<elements>\":[";
 	list<Value>& lst = *(list<Value> *)data;
@@ -1015,7 +1015,7 @@ string List::ToJson(void *data) const {
 		if (it != lst.begin()) {
 			json << ", ";
 		}
-		json << it->ToJson();
+		json << it->to_json();
 	}
 	json << "]}";
 	return json.str();
@@ -1106,12 +1106,12 @@ std::string Pair::TypeStr() const {
 	return string("pair<") + _1 + "," + _2 + ">";
 }
 
-std::string Pair::ToJson(void *data) const {
+std::string Pair::to_json(void *data) const {
 	pair<Value, Value> *p = (pair<Value, Value> *)data;
 	ostringstream		json;
 	json << "{\"<type>\":\"pair\","
-		 << "\"first\":" << p->first.ToJson() << ","
-		 << "\"second\":" << p->second.ToJson() << "}";
+		 << "\"first\":" << p->first.to_json() << ","
+		 << "\"second\":" << p->second.to_json() << "}";
 	return json.str();
 }
 
@@ -1296,7 +1296,7 @@ std::string Map::TypeStr() const {
 	return string("map<") + _1 + "," + _2 + ">";
 }
 
-std::string Map::ToJson(void *data) const {
+std::string Map::to_json(void *data) const {
 	map<Value, Value>& the_map = *(map<Value, Value> *)data;
 	ostringstream	   json;
 	json << "{\"<type>\":\"map\",\"<elements>\":[";
@@ -1304,8 +1304,8 @@ std::string Map::ToJson(void *data) const {
 		if (it != the_map.begin()) {
 			json << ", ";
 		}
-		json << "{\"key\":" << it->first.ToJson() << "\", "
-			 << "\"value\":" << it->second.ToJson() << "}";
+		json << "{\"key\":" << it->first.to_json() << "\", "
+			 << "\"value\":" << it->second.to_json() << "}";
 	}
 	json << "]}";
 	return json.str();
@@ -1326,7 +1326,7 @@ Type *Array::mkarray(Type *celltype, const vector<int>& sizes) {
 	return _mkarray(celltype, sizes.begin(), sizes);
 }
 
-string Array::ToJson(void *data) const {
+string Array::to_json(void *data) const {
 	ostringstream json;
 	json << "[";
 	vector<Value> *v = static_cast<vector<Value> *>(data);
@@ -1334,7 +1334,7 @@ string Array::ToJson(void *data) const {
 		if (i > 0) {
 			json << ",";
 		}
-		json << (*v)[i].ToJson();
+		json << (*v)[i].to_json();
 	}
 	json << "]";
 	return json.str();
@@ -1466,14 +1466,14 @@ void Struct::clear_touched(void *data) const {
 	}
 }
 
-string Struct::ToJson(void *data) const {
+string Struct::to_json(void *data) const {
 	SimpleTable<Value>& tab = *static_cast<SimpleTable<Value> *>(data);
 	ostringstream		json;
 	json << "{\"<type>\":\"struct\"";
 	for (int i = 0; i < tab.size(); i++) {
 		json << ",";
 		const pair<string, Value>& f = tab[i];
-		json << '"' << f.first << "\":" << f.second.ToJson();
+		json << '"' << f.first << "\":" << f.second.to_json();
 	}
 	json << "}";
 	return json.str();
@@ -1761,7 +1761,7 @@ Iterator<C>::Iterator(C *type)
 }
 
 template <class C>
-string Iterator<C>::ToJson(void *data) const {
+string Iterator<C>::to_json(void *data) const {
 	typename C::cpp_iterator& the_iterator = *(typename C::cpp_iterator *)data;
 	ostringstream			  json;
 	json << "{\"<type>\":\"iterator\",\"<address>\":\"" << &(*the_iterator) << "\"}";
@@ -1824,7 +1824,7 @@ RandomAccessIterator<C>::RandomAccessIterator(C *type) : BidirectionalIterator<C
 	_Class::_add_method((new Function(this))->add_params(Int::self), new PlusOperator());
 }
 
-string Environment::ToJson() const {
+string Environment::to_json() const {
 	ostringstream json;
 	json << "{\"name\":\"" << _name << "\",\"tab\":";
 	json << "{\"<active>\":" << (_active ? "true" : "false");
@@ -1834,7 +1834,7 @@ string Environment::ToJson() const {
 		}
 		string name = _tab.tab[i].name();
 		json << ",\"" << name << "\":";
-		json << _tab.tab[i].value().ToJson();
+		json << _tab.tab[i].value().to_json();
 	}
 	json << "}}";
 	return json.str();
@@ -2064,12 +2064,12 @@ struct MaxFunc : public Func {
 MaxFunc _max;
 
 struct TojsonFunc : public Func {
-	TojsonFunc() : Func("ToJson") {}
+	TojsonFunc() : Func("to_json") {}
 
 	Value call(Value self, const vector<Value>& args) {
 		assert(args.size() == 1);
 		Value arg0 = Reference::deref(args[0]);
-		return Value(arg0.ToJson());
+		return Value(arg0.to_json());
 	}
 };
 
@@ -2216,7 +2216,7 @@ string WithEnvironment::env2json() const {
 			if (i > 0) {
 				json << ",";
 			}
-			json << e->ToJson();
+			json << e->to_json();
 			i++;
 		}
 		e = e->parent();

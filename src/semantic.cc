@@ -19,33 +19,33 @@ struct SemanticAnalyzer : public WithEnvironment {
 	Ast		   *_curr_node;
 	Value		_curr, _ret;
 
-	void EvalBinaryExprAssignment(BinaryExpr *x, Value left, Value right);
-	void EvalBinaryExprOpAssignment(char, Value left, Value right);
-	void GetFunc(CallExpr *x);
-	bool TypeConversion(CallExpr *x, const std::vector<Value>& args);
-	void CheckArguments(const Function			 *func_type,
+	void eval_binary_expr_assignment(BinaryExpr *x, Value left, Value right);
+	void eval_binary_expr_op_assignment(char, Value left, Value right);
+	void get_func(CallExpr *x);
+	bool type_conversion(CallExpr *x, const std::vector<Value>& args);
+	void check_arguments(const Function			 *func_type,
 						const std::vector<Value>& argvals,
 						std::vector<Expr *>		 *args = 0);
-	bool BindField(Value obj, string method_name);
-	bool CallOperator(string op, const std::vector<Value>& args = std::vector<Value>());
+	bool bind_field(Value obj, string method_name);
+	bool call_operator(string op, const std::vector<Value>& args = std::vector<Value>());
 	void CheckCondition(Expr *cond, std::string who);
 	void CheckUnknown(Value v, Ast *x, string varname);
-	void EvalArguments(const std::vector<Expr *>& args, std::vector<Value>& argvals);
+	void eval_arguments(const std::vector<Expr *>& args, std::vector<Value>& argvals);
 
 	template <class Op>
-	bool EvalOpAssignment(Value left, Value right);
+	bool eval_op_assignment(Value left, Value right);
 
 	template <class Op>
-	bool EvalBitopAssignment(Value left, Value right);
+	bool eval_bitop_assignment(Value left, Value right);
 
 	template <class Op>
-	bool EvalSumProd(Value left, Value right, std::string what);
+	bool eval_sum_prod(Value left, Value right, std::string what);
 
 	template <class Op>
-	bool EvalBitop(Value left, Value right);
+	bool eval_bitop(Value left, Value right);
 
 	template <class Op>
-	bool EvalComparison(Value left, Value right);
+	bool eval_comparison(Value left, Value right);
 
 	void Analyze(Ast *ast);
 };
@@ -198,14 +198,14 @@ void checked_op_assign(Value& left, Value right) {
 	}
 }
 
-void SemanticAnalyzer::EvalBinaryExprAssignment(BinaryExpr *X, Value left, Value right) {
+void SemanticAnalyzer::eval_binary_expr_assignment(BinaryExpr *X, Value left, Value right) {
 	if (!left.is<Reference>()) {
-		X->AddError(_T("Intentas asignar sobre algo que no es una variable."));
+		X->add_error(_T("Intentas asignar sobre algo que no es una variable."));
 		return;
 	}
 	left = Reference::deref(left);
 	if (left.is_const()) {
-		X->AddError(
+		X->add_error(
 			_T("La variable '%s' no se puede modificar (es 'const').", _curr_varname.c_str()));
 		return;
 	}
@@ -215,22 +215,22 @@ void SemanticAnalyzer::EvalBinaryExprAssignment(BinaryExpr *X, Value left, Value
 		if (!right.is_null()) {
 			right_type_name = right.type_name();
 		}
-		X->AddError(_T("No se puede asignar un '%s' a una variable de tipo '%s'.",
+		X->add_error(_T("No se puede asignar un '%s' a una variable de tipo '%s'.",
 					   right_type_name.c_str(), left.type_name().c_str()));
 		return;
 	}
 	right = right2;
 	if (!left.assign(right)) {
-		X->AddError(_T("No se puede asignar un '%s' a una variable de tipo '%s'.",
+		X->add_error(_T("No se puede asignar un '%s' a una variable de tipo '%s'.",
 					   right.type_name().c_str(), left.type_name().c_str()));
 		return;
 	}
 	_curr = left;
 }
 
-void SemanticAnalyzer::EvalBinaryExprOpAssignment(char op, Value left, Value right) {
+void SemanticAnalyzer::eval_binary_expr_op_assignment(char op, Value left, Value right) {
 	if (!left.is<Reference>()) {
-		_curr_node->AddError(
+		_curr_node->add_error(
 			_T("En el operador '%c=' la parte izquierda debe ser una variable.", op));
 		return;
 	}
@@ -247,44 +247,44 @@ void SemanticAnalyzer::EvalBinaryExprOpAssignment(char op, Value left, Value rig
 				left.as<String>() += right.as<Char>();
 				ok = true;
 			} else {
-				ok = EvalOpAssignment<_AAdd>(left, right);
+				ok = eval_op_assignment<_AAdd>(left, right);
 			}
 			textual = _T("Intentas sumar un '%s' y un '%s'.", left.type()->TypeStr().c_str(),
 						 right.type()->TypeStr().c_str());
 			break;
 		}
 		case '-': {
-			ok = EvalOpAssignment<_ASub>(left, right);
+			ok = eval_op_assignment<_ASub>(left, right);
 			textual = _T("Intentas restar un '%s' y un '%s'.", left.type()->TypeStr().c_str(),
 						 right.type()->TypeStr().c_str());
 			break;
 		}
 		case '*': {
-			ok = EvalOpAssignment<_AMul>(left, right);
+			ok = eval_op_assignment<_AMul>(left, right);
 			textual = _T("Intentas multiplicar un '%s' por un '%s'.",
 						 left.type()->TypeStr().c_str(), right.type()->TypeStr().c_str());
 			break;
 		}
 		case '/': {
-			ok = EvalOpAssignment<_ADiv>(left, right);
+			ok = eval_op_assignment<_ADiv>(left, right);
 			textual = _T("Intentas dividir un '%s' por un '%s'.", left.type()->TypeStr().c_str(),
 						 right.type()->TypeStr().c_str());
 			break;
 		}
 		case '&': {
-			ok = EvalBitopAssignment<_AAnd>(left, right);
+			ok = eval_bitop_assignment<_AAnd>(left, right);
 			textual = _T("Intentas hacer un AND de un '%s' con un '%s'.",
 						 left.type()->TypeStr().c_str(), right.type()->TypeStr().c_str());
 			break;
 		}
 		case '|': {
-			ok = EvalBitopAssignment<_AOr>(left, right);
+			ok = eval_bitop_assignment<_AOr>(left, right);
 			textual = _T("Intentas hacer un OR de un '%s' con un '%s'.",
 						 left.type()->TypeStr().c_str(), right.type()->TypeStr().c_str());
 			break;
 		}
 		case '^': {
-			ok = EvalBitopAssignment<_AXor>(left, right);
+			ok = eval_bitop_assignment<_AXor>(left, right);
 			textual = _T("Intentas hacer un XOR de un '%s' con un '%s'.",
 						 left.type()->TypeStr().c_str(), right.type()->TypeStr().c_str());
 			break;
@@ -293,11 +293,11 @@ void SemanticAnalyzer::EvalBinaryExprOpAssignment(char op, Value left, Value rig
 	if (!ok) {
 		string _op = "?=";
 		_op[0] = op;
-		_curr_node->AddError(textual);
+		_curr_node->add_error(textual);
 	}
 }
 
-void SemanticAnalyzer::GetFunc(CallExpr *X) {
+void SemanticAnalyzer::get_func(CallExpr *X) {
 	_curr_node = X;
 	Analyze(X->func);
 	if (_curr.is<UnknownType>()) {
@@ -305,12 +305,12 @@ void SemanticAnalyzer::GetFunc(CallExpr *X) {
 	}
 	_curr = Reference::deref(_curr);
 	if (!_curr.is<Callable>() and !_curr.is<Overloaded>()) {
-		X->AddError(_T("Intentas llamar como función un valor de tipo '%s'.",
+		X->add_error(_T("Intentas llamar como función un valor de tipo '%s'.",
 					   _curr.type()->TypeStr().c_str()));
 	}
 }
 
-bool SemanticAnalyzer::TypeConversion(CallExpr *X, const vector<Value>& args) {
+bool SemanticAnalyzer::type_conversion(CallExpr *X, const vector<Value>& args) {
 	_curr_node = X;
 	_curr_varname = "";
 	if (isa<Identifier>(X->func)) {
@@ -319,13 +319,13 @@ bool SemanticAnalyzer::TypeConversion(CallExpr *X, const vector<Value>& args) {
 		Type	   *type = get_type(&spec);
 		if (type != 0) {
 			if (args.size() != 1) {
-				X->AddError(_T("La conversión de tipo recibe un solo argumento."));
+				X->add_error(_T("La conversión de tipo recibe un solo argumento."));
 			}
 			_curr = type->convert(args[0]);
 			if (_curr == Value::null) {
 				_curr = args[0];
-				if (!CallOperator(id->TypeStr())) {
-					X->AddError(_T("No se puede convertir un '%s' en un '%s'.",
+				if (!call_operator(id->TypeStr())) {
+					X->add_error(_T("No se puede convertir un '%s' en un '%s'.",
 								   args[0].type()->TypeStr().c_str(), type->TypeStr().c_str()));
 				}
 			}
@@ -335,11 +335,11 @@ bool SemanticAnalyzer::TypeConversion(CallExpr *X, const vector<Value>& args) {
 	return false;
 }
 
-void SemanticAnalyzer::CheckArguments(const Function	  *func_type,
+void SemanticAnalyzer::check_arguments(const Function	  *func_type,
 									  const vector<Value>& argvals,
 									  vector<Expr *>	  *args) {
 	if (func_type->num_params() != argvals.size()) {
-		_curr_node->AddError(_T("Número de argumentos erróneo (son %d y deberían ser %d).",
+		_curr_node->add_error(_T("Número de argumentos erróneo (son %d y deberían ser %d).",
 								argvals.size(), func_type->num_params()));
 		return;
 	}
@@ -355,11 +355,11 @@ void SemanticAnalyzer::CheckArguments(const Function	  *func_type,
 		} else if (!arg_i.type()->is<Reference>()) {
 			string cual = _T(numeral[i + 1]);
 			assert(args != 0);
-			(*args)[i]->AddError(_T("En el %s parámetro se requiere una variable.", cual.c_str()));
+			(*args)[i]->add_error(_T("En el %s parámetro se requiere una variable.", cual.c_str()));
 		}
 		string t2 = arg_i.type()->TypeStr();
 		if (t1 != t2 and !HasErrors((*args)[i])) {
-			_curr_node->AddError(
+			_curr_node->add_error(
 				_T("El argumento %d no es compatible con el tipo del parámetro "
 				   "(%s vs %s)",
 				   i + 1, t1.c_str(), t2.c_str()));
@@ -367,7 +367,7 @@ void SemanticAnalyzer::CheckArguments(const Function	  *func_type,
 	}
 }
 
-bool SemanticAnalyzer::BindField(Value obj, string method_name) {
+bool SemanticAnalyzer::bind_field(Value obj, string method_name) {
 	vector<Value> candidates;
 	int			  count = obj.type()->get_field(obj, method_name, candidates);
 	if (count == 1) {
@@ -385,8 +385,8 @@ bool SemanticAnalyzer::BindField(Value obj, string method_name) {
 	return false;
 }
 
-bool SemanticAnalyzer::CallOperator(string op, const vector<Value>& args) {
-	if (!BindField(_curr, op)) {
+bool SemanticAnalyzer::call_operator(string op, const vector<Value>& args) {
+	if (!bind_field(_curr, op)) {
 		return false;
 	}
 	if (_curr.is<Overloaded>()) {
@@ -396,7 +396,7 @@ bool SemanticAnalyzer::CallOperator(string op, const vector<Value>& args) {
 	Binding&		opfun = _curr.as<Callable>();
 	const Function *func_type = opfun.func.type()->as<Function>();
 	if (!opfun.call_abstract(_curr_node, args)) {
-		CheckArguments(func_type, args);
+		check_arguments(func_type, args);
 	}
 	_curr = func_type->return_type()->create_abstract();
 	return true;
@@ -406,12 +406,12 @@ void SemanticAnalyzer::CheckCondition(Expr *cond, string who) {
 	Analyze(cond);
 	_curr = Reference::deref(_curr);
 	if (!_curr.is<Bool>()) {
-		if (!CallOperator("bool")) {
-			cond->AddError(_T("La condición de un '%s' debe ser de tipo 'bool'.", who.c_str()));
+		if (!call_operator("bool")) {
+			cond->add_error(_T("La condición de un '%s' debe ser de tipo 'bool'.", who.c_str()));
 		}
 	} else {
 		if (who == "if" and !_curr.is_abstract()) {
-			cond->AddError(
+			cond->add_error(
 				_T("La condición siempre vale '%s'.", (_curr.as<Bool>() ? "true" : "false")));
 		}
 	}
@@ -419,11 +419,11 @@ void SemanticAnalyzer::CheckCondition(Expr *cond, string who) {
 
 void SemanticAnalyzer::CheckUnknown(Value v, Ast *X, string varname) {
 	if (v.is_unknown()) {
-		X->AddError(_T("Utilizas la variable '%s' sin haberla inicializado.", varname.c_str()));
+		X->add_error(_T("Utilizas la variable '%s' sin haberla inicializado.", varname.c_str()));
 	}
 }
 
-void SemanticAnalyzer::EvalArguments(const vector<Expr *>& args, vector<Value>& argvals) {
+void SemanticAnalyzer::eval_arguments(const vector<Expr *>& args, vector<Value>& argvals) {
 	for (int i = 0; i < args.size(); i++) {
 		Analyze(args[i]);
 		argvals.push_back(_curr);
@@ -431,7 +431,7 @@ void SemanticAnalyzer::EvalArguments(const vector<Expr *>& args, vector<Value>& 
 }
 
 template <class Op>
-bool SemanticAnalyzer::EvalOpAssignment(Value left, Value _right) {
+bool SemanticAnalyzer::eval_op_assignment(Value left, Value _right) {
 	Value right = left.type()->convert(_right);
 	if (left.is<Int>() and right.is<Int>()) {
 		checked_op_assign<Op, Int>(left, right);
@@ -449,7 +449,7 @@ bool SemanticAnalyzer::EvalOpAssignment(Value left, Value _right) {
 }
 
 template <class Op>
-bool SemanticAnalyzer::EvalBitopAssignment(Value left, Value _right) {
+bool SemanticAnalyzer::eval_bitop_assignment(Value left, Value _right) {
 	Value right = left.type()->convert(_right);
 	if (left.is<Int>() and right.is<Int>()) {
 		Op::eval(left.as<Int>(), right.as<Int>());
@@ -459,10 +459,10 @@ bool SemanticAnalyzer::EvalBitopAssignment(Value left, Value _right) {
 }
 
 template <class Op>
-bool SemanticAnalyzer::EvalSumProd(Value left, Value _right, string what) {
+bool SemanticAnalyzer::eval_sum_prod(Value left, Value _right, string what) {
 	Value right = left.type()->convert(_right);
 	if (right.is_null()) {
-		_curr_node->AddError(_T("No se puede %s un '%s' con un '%s'.", what.c_str(),
+		_curr_node->add_error(_T("No se puede %s un '%s' con un '%s'.", what.c_str(),
 								left.type()->TypeStr().c_str(), _right.type()->TypeStr().c_str()));
 		_curr = left.type()->create_abstract();
 		return true;  // assume the type of the left operand for the rest...
@@ -483,7 +483,7 @@ bool SemanticAnalyzer::EvalSumProd(Value left, Value _right, string what) {
 }
 
 template <class Op>
-bool SemanticAnalyzer::EvalBitop(Value left, Value right) {
+bool SemanticAnalyzer::eval_bitop(Value left, Value right) {
 	if (left.is<Int>() and right.is<Int>()) {
 		_curr = Value(Op::eval(left.as<Int>(), right.as<Int>()));
 		return true;
@@ -492,7 +492,7 @@ bool SemanticAnalyzer::EvalBitop(Value left, Value right) {
 }
 
 template <class Op>
-bool SemanticAnalyzer::EvalComparison(Value left, Value right) {
+bool SemanticAnalyzer::eval_comparison(Value left, Value right) {
 	if (left.is<Int>() and right.is<Int>()) {
 		_curr = Value(Op::eval(left.as<Int>(), right.as<Int>()));
 		return true;
@@ -531,7 +531,7 @@ void SemanticAnalyzer::Analyze(Ast *ast) {
 			Using *X = cast<Using>(ast);
 			_curr_node = X;
 			if (!using_namespace(X->namespc)) {
-				X->AddError(_T("El \"namespace\" '%s' no existe.", X->namespc.c_str()));
+				X->add_error(_T("El \"namespace\" '%s' no existe.", X->namespc.c_str()));
 			}
 			break;
 		}
@@ -539,7 +539,7 @@ void SemanticAnalyzer::Analyze(Ast *ast) {
 			Include *X = cast<Include>(ast);
 			_curr_node = X;
 			if (!include_header_file(X->filename)) {
-				X->AddError(_T("El fichero de cabecera '%s' no existe.", X->filename.c_str()));
+				X->add_error(_T("El fichero de cabecera '%s' no existe.", X->filename.c_str()));
 			}
 			break;
 		}
@@ -562,11 +562,11 @@ void SemanticAnalyzer::Analyze(Ast *ast) {
 				auto  p = X->params[i];
 				Value v;
 				if (getenv(p->name, v)) {
-					X->AddError(p->ini, p->fin, _T("El parámetro %d está repetido.", i + 1));
+					X->add_error(p->ini, p->fin, _T("El parámetro %d está repetido.", i + 1));
 				}
 				Type *param_type = get_type(p->typespec);
 				if (param_type == 0) {
-					X->AddError(p->ini, p->fin,
+					X->add_error(p->ini, p->fin,
 								_T("El tipo '%s' no existe.", p->typespec->TypeStr().c_str()));
 					// TODO: Maybe register some parameter type?
 				} else {
@@ -607,7 +607,7 @@ void SemanticAnalyzer::Analyze(Ast *ast) {
 
 			// Try operator first
 			_curr = left;
-			if (CallOperator(X->op, vector<Value>(1, right))) {
+			if (call_operator(X->op, vector<Value>(1, right))) {
 				return;
 			}
 
@@ -617,7 +617,7 @@ void SemanticAnalyzer::Analyze(Ast *ast) {
 			}
 			if (X->op == "=") {
 				if (!HasErrors(X->left)) {
-					EvalBinaryExprAssignment(X, left, right);
+					eval_binary_expr_assignment(X, left, right);
 				}
 				return;
 			}
@@ -625,34 +625,34 @@ void SemanticAnalyzer::Analyze(Ast *ast) {
 				X->op == "|=" || X->op == "^=") {
 				CheckUnknown(right, X->right, right_varname);
 				_curr_node = X;	 // ugly
-				EvalBinaryExprOpAssignment(X->op[0], left, right);
+				eval_binary_expr_op_assignment(X->op[0], left, right);
 				return;
 			} else if (X->op == "&" || X->op == "|" || X->op == "^") {
 				CheckUnknown(right, X->right, right_varname);
 				bool ok = false;
 				switch (X->op[0]) {
 					case '&':
-						ok = EvalBitop<_And>(left, right);
+						ok = eval_bitop<_And>(left, right);
 						break;
 					case '|':
-						ok = EvalBitop<_Or>(left, right);
+						ok = eval_bitop<_Or>(left, right);
 						break;
 					case '^':
-						ok = EvalBitop<_Xor>(left, right);
+						ok = eval_bitop<_Xor>(left, right);
 						break;
 				}
 				if (ok) {
 					return;
 				}
-				if (CallOperator(X->op, vector<Value>(1, right))) {
+				if (call_operator(X->op, vector<Value>(1, right))) {
 					return;
 				}
 				if (!left.is<Int>()) {
-					X->left->AddError(
+					X->left->add_error(
 						_T("La parte izquierda del '%s' no es un 'int'.", X->op.c_str()));
 				}
 				if (!right.is<Int>()) {
-					X->left->AddError(
+					X->left->add_error(
 						_T("La parte derecha del '%s' no es un 'int'.", X->op.c_str()));
 				}
 				return;
@@ -667,24 +667,24 @@ void SemanticAnalyzer::Analyze(Ast *ast) {
 								_curr = Value(char(left.as<Char>() + right.as<Int>()));
 								return;
 							} else {
-								ret = EvalSumProd<_Add>(left, right, "sumar");
+								ret = eval_sum_prod<_Add>(left, right, "sumar");
 								break;
 							}
 						}
 						case '*':
-							ret = EvalSumProd<_Mul>(left, right, "multiplicar");
+							ret = eval_sum_prod<_Mul>(left, right, "multiplicar");
 							break;
 						case '-':
-							ret = EvalSumProd<_Sub>(left, right, "restar");
+							ret = eval_sum_prod<_Sub>(left, right, "restar");
 							break;
 						case '/':
-							ret = EvalSumProd<_Div>(left, right, "dividir");
+							ret = eval_sum_prod<_Div>(left, right, "dividir");
 							break;
 					}
 				} else {
 					_curr = left;
-					if (!CallOperator(X->op, vector<Value>(1, right))) {
-						X->AddError(_T("El tipo '%s' no tiene operador '%s'.",
+					if (!call_operator(X->op, vector<Value>(1, right))) {
+						X->add_error(_T("El tipo '%s' no tiene operador '%s'.",
 									   _curr.type()->TypeStr().c_str(), X->op.c_str()));
 					}
 					ret = true;
@@ -692,14 +692,14 @@ void SemanticAnalyzer::Analyze(Ast *ast) {
 				if (ret) {
 					return;
 				}
-				X->AddError(_T("Los operandos de '%s' son incompatibles", X->op.c_str()));
+				X->add_error(_T("Los operandos de '%s' son incompatibles", X->op.c_str()));
 				return;
 			} else if (X->op == "%") {
 				if (left.is<Int>() and right.is<Int>()) {
 					_curr = Value(left.as<Int>() % right.as<Int>());
 					return;
 				}
-				X->AddError(_T("El módulo '%' debe usarse con dos 'int's."));
+				X->add_error(_T("El módulo '%' debe usarse con dos 'int's."));
 				return;
 			} else if (X->op == "%=") {
 				if (!left.is<Reference>()) {
@@ -711,7 +711,7 @@ void SemanticAnalyzer::Analyze(Ast *ast) {
 					left.as<Int>() %= right.as<Int>();
 					return;
 				}
-				X->AddError(_T("Los operandos de '%s' son incompatibles", "%="));
+				X->add_error(_T("Los operandos de '%s' son incompatibles", "%="));
 				return;
 			} else if (X->op == "&&" or X->op == "and" || X->op == "||" || X->op == "or") {
 				if (left.is<Bool>() and right.is<Bool>()) {
@@ -720,33 +720,33 @@ void SemanticAnalyzer::Analyze(Ast *ast) {
 									  : left.as<Bool>() or right.as<Bool>());
 					return;
 				}
-				X->AddError(_T("Los operandos de '%s' no son de tipo 'bool'", X->op.c_str()));
+				X->add_error(_T("Los operandos de '%s' no son de tipo 'bool'", X->op.c_str()));
 				return;
 			} else if (X->op == "==" || X->op == "!=") {
 				if (left.same_type_as(right)) {
 					_curr = Value(X->op == "==" ? left.equals(right) : !left.equals(right));
 					return;
 				}
-				X->AddError(_T("Los operandos de '%s' no son del mismo tipo", X->op.c_str()));
+				X->add_error(_T("Los operandos de '%s' no son del mismo tipo", X->op.c_str()));
 				return;
 			} else if (X->op == "<" || X->op == ">" || X->op == "<=" || X->op == ">=") {
 				bool ret = false;
 				if (left.type()->is(Type::Basic) and right.type()->is(Type::Basic)) {
 					if (X->op[0] == '<') {
-						ret = (X->op.size() == 1 ? EvalComparison<_Lt>(left, right)
-												 : EvalComparison<_Le>(left, right));
+						ret = (X->op.size() == 1 ? eval_comparison<_Lt>(left, right)
+												 : eval_comparison<_Le>(left, right));
 					} else {
-						ret = (X->op.size() == 1 ? EvalComparison<_Gt>(left, right)
-												 : EvalComparison<_Ge>(left, right));
+						ret = (X->op.size() == 1 ? eval_comparison<_Gt>(left, right)
+												 : eval_comparison<_Ge>(left, right));
 					}
 				}
 				if (ret) {
 					return;
 				}
-				X->AddError(_T("Los operandos de '%s' no son compatibles", X->op.c_str()));
+				X->add_error(_T("Los operandos de '%s' no son compatibles", X->op.c_str()));
 				return;
 			}
-			X->AddError(_T("No existe el operador '%s' para el tipo '%s'.", X->op.c_str(),
+			X->add_error(_T("No existe el operador '%s' para el tipo '%s'.", X->op.c_str(),
 						   left.type()->TypeStr().c_str()));
 			break;
 		}
@@ -759,12 +759,12 @@ void SemanticAnalyzer::Analyze(Ast *ast) {
 				DeclStmt& decl = *X->decls[i];
 				Type	 *field_type = get_type(decl.typespec);
 				if (field_type == 0) {
-					decl.AddError(_T("El tipo '%s' no existe.", decl.typespec->TypeStr().c_str()));
+					decl.add_error(_T("El tipo '%s' no existe.", decl.typespec->TypeStr().c_str()));
 					field_type = new UnknownType(decl.typespec->TypeStr());
 				}
 				for (DeclStmt::Item& item : decl.items) {
 					if (type->has_field(item.decl->name)) {
-						decl.AddError(_T("El campo '%s' está repetido.", item.decl->name.c_str()));
+						decl.add_error(_T("El campo '%s' está repetido.", item.decl->name.c_str()));
 					}
 					if (isa<ArrayDecl>(item.decl)) {
 						ArrayDecl  *array_decl = cast<ArrayDecl>(item.decl);
@@ -772,11 +772,11 @@ void SemanticAnalyzer::Analyze(Ast *ast) {
 						for (Expr *size_expr : array_decl->sizes) {
 							Analyze(size_expr);
 							if (_curr.is_abstract()) {
-								array_decl->AddError(
+								array_decl->add_error(
 									_T("El tamaño de una tabla en un 'struct' debe ser una "
 									   "constante."));
 							} else if (!_curr.is<Int>()) {
-								array_decl->AddError(
+								array_decl->add_error(
 									_T("El tamaño de una tabla no puede ser un '%s'.",
 									   _curr.type()->TypeStr().c_str()));
 							} else {
@@ -806,7 +806,7 @@ void SemanticAnalyzer::Analyze(Ast *ast) {
 					if (namespc->get(X->name, v)) {
 						goto found;
 					}
-					X->AddError(_T("No se ha encontrado '%s' en el namespace '%s'.",
+					X->add_error(_T("No se ha encontrado '%s' en el namespace '%s'.",
 								   X->name.c_str(), namespc_or_class->name.c_str()));
 					return;
 				}
@@ -818,7 +818,7 @@ void SemanticAnalyzer::Analyze(Ast *ast) {
 				TypeSpec   spec(&fid);
 				Type	  *type = get_type(&spec);
 				if (type != 0 and !type->get_static(X->name, v)) {
-					X->AddError(_T("No se ha encontrado '%s' en la clase '%s'.", X->name.c_str(),
+					X->add_error(_T("No se ha encontrado '%s' en la clase '%s'.", X->name.c_str(),
 								   namespc_or_class->name.c_str()));
 				}
 				goto found;
@@ -829,7 +829,7 @@ void SemanticAnalyzer::Analyze(Ast *ast) {
 				_curr_varname = X->name;
 				goto found;
 			} else {
-				X->AddError(_T("No se ha declarado '%s'.", X->name.c_str()));
+				X->add_error(_T("No se ha declarado '%s'.", X->name.c_str()));
 				Type *type = new UnknownType(X->name.c_str());
 				_curr = type->create_abstract();
 
@@ -864,7 +864,7 @@ void SemanticAnalyzer::Analyze(Ast *ast) {
 					_curr = Value(X->val.as_char);
 					break;
 				default:
-					X->AddError(_T("SemanticAnalyzer::visit_literal: UNIMPLEMENTED"));
+					X->add_error(_T("SemanticAnalyzer::visit_literal: UNIMPLEMENTED"));
 			}
 			break;
 		}
@@ -882,9 +882,9 @@ void SemanticAnalyzer::Analyze(Ast *ast) {
 			Value prev, init = Reference::deref(_curr);
 			if (getenv(X->name, prev)) {
 				if (has_flag(X->name, Param)) {
-					X->AddError(_T("Ya existe un parámetro con nombre '%s'.", X->name.c_str()));
+					X->add_error(_T("Ya existe un parámetro con nombre '%s'.", X->name.c_str()));
 				} else {
-					X->AddError(_T("La variable '%s' ya está declarada antes.", X->name.c_str()));
+					X->add_error(_T("La variable '%s' ya está declarada antes.", X->name.c_str()));
 				}
 				return;
 			}
@@ -896,14 +896,14 @@ void SemanticAnalyzer::Analyze(Ast *ast) {
 
 			if (init.is_null()) {
 				if (X->typespec->HasQualifier(TypeSpec::Const)) {
-					X->AddError(_T("Las constantes deben tener un valor inicial."));
+					X->add_error(_T("Las constantes deben tener un valor inicial."));
 				}
 				init = type->create();
 			} else {
 				try {
 					Value init2 = type->convert(init);
 					if (init2.is_null()) {
-						X->AddError(
+						X->add_error(
 							_T("El tipo del valor inicial ('%s') no se "
 							   "corresponde con el tipo de la variable ('%s').",
 							   init.type()->TypeStr().c_str(), type->TypeStr().c_str()));
@@ -911,11 +911,11 @@ void SemanticAnalyzer::Analyze(Ast *ast) {
 						init = init2;
 					}
 				} catch (TypeError *e) {
-					X->AddError(e->msg);
+					X->add_error(e->msg);
 				}
 				if (X->typespec->HasQualifier(TypeSpec::Const) and type->is<Struct>() and
 					init.contains_unknowns()) {
-					X->AddError(
+					X->add_error(
 						_T("En una tupla constante hay que inicializar todas las casillas."));
 				}
 			}
@@ -934,10 +934,10 @@ void SemanticAnalyzer::Analyze(Ast *ast) {
 				Analyze(X->sizes[i]);
 				_curr = Reference::deref(_curr);
 				if (!_curr.is<Int>()) {
-					X->AddError(_T("El tamaño de una tabla debe ser un entero."));
+					X->add_error(_T("El tamaño de una tabla debe ser un entero."));
 					return;
 				} else if (_curr.as<Int>() <= 0) {
-					X->AddError(_T("El tamaño de una tabla debe ser un entero positivo."));
+					X->add_error(_T("El tamaño de una tabla debe ser un entero positivo."));
 					return;
 				} else {
 					const int sz = _curr.as<Int>();
@@ -947,26 +947,26 @@ void SemanticAnalyzer::Analyze(Ast *ast) {
 
 			Type *celltype = get_type(X->typespec);
 			if (celltype == 0) {
-				X->AddError(_T("El tipo '%s' no existe", X->typespec->TypeStr().c_str()));
+				X->add_error(_T("El tipo '%s' no existe", X->typespec->TypeStr().c_str()));
 				celltype = UnknownType::self;
 			}
 			// FIXME: don't create new Array type every time?
 			Type *arraytype = Array::mkarray(celltype, sizes);
 			if (init.is_null()) {
 				if (X->typespec->HasQualifier(TypeSpec::Const)) {
-					X->AddError(_T("Las tablas constantes deben tener un valor inicial."));
+					X->add_error(_T("Las tablas constantes deben tener un valor inicial."));
 				}
 				init = arraytype->create();
 			} else {
 				try {
 					init = arraytype->convert(init);
 				} catch (TypeError& e) {
-					X->AddError(e.msg);
+					X->add_error(e.msg);
 					init = arraytype->create();
 				}
 				if (X->typespec->HasQualifier(TypeSpec::Const)) {
 					if (init.contains_unknowns()) {
-						X->AddError(
+						X->add_error(
 							_T("En una tabla constante hay que inicializar todas las casillas."));
 					}
 				}
@@ -981,11 +981,11 @@ void SemanticAnalyzer::Analyze(Ast *ast) {
 			if (type != 0) {
 				vector<Value>  argvals;
 				vector<Expr *> args;
-				EvalArguments(X->args, argvals);
+				eval_arguments(X->args, argvals);
 				string constructor_name = type->name();
 				Value  new_obj = type->create_abstract();
-				if (!BindField(new_obj, constructor_name)) {
-					X->AddError(_T("El tipo '%s' no tiene constructor", type->TypeStr().c_str()));
+				if (!bind_field(new_obj, constructor_name)) {
+					X->add_error(_T("El tipo '%s' no tiene constructor", type->TypeStr().c_str()));
 				}
 				if (_curr.is<Overloaded>()) {
 					_curr = _curr.as<Overloaded>().resolve(argvals);
@@ -993,12 +993,12 @@ void SemanticAnalyzer::Analyze(Ast *ast) {
 				}
 				Binding&		constructor = _curr.as<Callable>();
 				const Function *func_type = constructor.func.type()->as<Function>();
-				CheckArguments(func_type, argvals, &X->args);
+				check_arguments(func_type, argvals, &X->args);
 				constructor.call_abstract(X, argvals);
 				setenv(X->name, new_obj);
 				return;
 			}
-			X->AddError(
+			X->add_error(
 				_T("The type '%s' is not implemented in MiniCC", X->typespec->TypeStr().c_str()));
 			break;
 		}
@@ -1008,7 +1008,7 @@ void SemanticAnalyzer::Analyze(Ast *ast) {
 			Type *type = get_type(X->typespec);
 			if (type == 0) {
 				string typestr = X->typespec->TypeStr();
-				X->AddError(_T("El tipo '%s' no existe.", typestr.c_str()));
+				X->add_error(_T("El tipo '%s' no existe.", typestr.c_str()));
 			}
 			for (DeclStmt::Item& item : X->items) {
 				if (item.init) {
@@ -1029,7 +1029,7 @@ void SemanticAnalyzer::Analyze(Ast *ast) {
 			if (X->is_return) {
 				if (X->expr == 0) {
 					if (!_ret.is_null()) {
-						X->AddError(_T("La función debe devolver un '%s'.",
+						X->add_error(_T("La función debe devolver un '%s'.",
 									   _ret.type()->TypeStr().c_str()));
 					}
 				} else {
@@ -1042,12 +1042,12 @@ void SemanticAnalyzer::Analyze(Ast *ast) {
 						}
 						string Tcurr = _curr.type()->TypeStr();
 						if (_ret.is_null()) {
-							X->AddError(_T(
+							X->add_error(_T(
 								"Se devuelve un '%s' cuando no se debería devolver ningún valor.",
 								Tcurr.c_str()));
 						} else {
 							string Tret = _ret.type()->TypeStr();
-							X->AddError(_T("Se devuelve un '%s' cuando debería ser un '%s'.",
+							X->add_error(_T("Se devuelve un '%s' cuando debería ser un '%s'.",
 										   Tcurr.c_str(), Tret.c_str()));
 						}
 					}
@@ -1093,11 +1093,11 @@ void SemanticAnalyzer::Analyze(Ast *ast) {
 			CallExpr *X = cast<CallExpr>(ast);
 			_curr_node = X;
 			vector<Value> argvals;
-			EvalArguments(X->args, argvals);
-			if (TypeConversion(X, argvals)) {
+			eval_arguments(X->args, argvals);
+			if (type_conversion(X, argvals)) {
 				return;
 			}
-			GetFunc(X);
+			get_func(X);
 			if (_curr.is<Callable>()) {
 				// TODO: Find operator() (method or function)
 				Value func = _curr;
@@ -1108,9 +1108,9 @@ void SemanticAnalyzer::Analyze(Ast *ast) {
 				Binding&		fn = func.as<Callable>();
 				const Function *func_type = fn.func.type()->as<Function>();
 				_curr_node = X;	 // ugly
-				CheckArguments(func_type, argvals, &X->args);
+				check_arguments(func_type, argvals, &X->args);
 				// TODO
-				// TODO: Call the function abstractly!!
+				// TODO: call the function abstractly!!
 				// TODO
 				const Type *return_type = func_type->return_type();
 				if (return_type != 0) {
@@ -1142,14 +1142,14 @@ void SemanticAnalyzer::Analyze(Ast *ast) {
 					if (!index.is_abstract()) {
 						i = index.as<Int>();
 						if (i < 0 || i >= array.size()) {
-							X->AddError(_T(
+							X->add_error(_T(
 								"El índice está fuera de los límites de la tabla (entre 0 y %d).",
 								array.size() - 1));
 							i = -1;
 						}
 					}
 				} else {
-					X->AddError(_T("El índice debe ser un entero."));
+					X->add_error(_T("El índice debe ser un entero."));
 				}
 				if (base.is_abstract()) {
 					_curr = Reference::mkref(
@@ -1165,8 +1165,8 @@ void SemanticAnalyzer::Analyze(Ast *ast) {
 				return;
 			}
 			_curr = base;
-			if (!CallOperator("[]", vector<Value>(1, index))) {
-				X->AddError(_T("Los corchetes deben usarse sobre tablas o vectores."));
+			if (!call_operator("[]", vector<Value>(1, index))) {
+				X->add_error(_T("Los corchetes deben usarse sobre tablas o vectores."));
 			}
 			break;
 		}
@@ -1176,8 +1176,8 @@ void SemanticAnalyzer::Analyze(Ast *ast) {
 			Analyze(X->base);
 			_curr = Reference::deref(_curr);
 			if (X->pointer) {
-				if (!CallOperator("*")) {
-					X->AddError(
+				if (!call_operator("*")) {
+					X->add_error(
 						_T("El tipo '%s' no tiene 'operator*'", _curr.type()->TypeStr().c_str()));
 				}
 				_curr = Reference::deref(_curr);
@@ -1188,13 +1188,13 @@ void SemanticAnalyzer::Analyze(Ast *ast) {
 				SimpleTable<Value>& fields = obj.as<Struct>();
 				Value				v;
 				if (!fields.get(X->field, v)) {
-					X->AddError(_T("El campo '%s' no existe.", X->field.c_str()));
+					X->add_error(_T("El campo '%s' no existe.", X->field.c_str()));
 				} else {
 					_curr = Reference::mkref(v);
 				}
 				return;
 			}
-			if (!BindField(obj, X->field)) {
+			if (!bind_field(obj, X->field)) {
 				if (obj.type()->is(Type::Class)) {
 					const char *msg;
 					if (X->parent and isa<CallExpr>(X->parent)) {
@@ -1202,9 +1202,9 @@ void SemanticAnalyzer::Analyze(Ast *ast) {
 					} else {
 						msg = "La clase '%s' no tiene campo '%s'.";
 					}
-					X->AddError(_T(msg, obj.type()->TypeStr().c_str(), X->field.c_str()));
+					X->add_error(_T(msg, obj.type()->TypeStr().c_str(), X->field.c_str()));
 				} else {
-					X->AddError(_T("El tipo '%s' no tiene el campo '%s'",
+					X->add_error(_T("El tipo '%s' no tiene el campo '%s'",
 								   obj.type()->TypeStr().c_str(), X->field.c_str()));
 				}
 				_curr = UnknownType::self->create_abstract();
@@ -1217,10 +1217,10 @@ void SemanticAnalyzer::Analyze(Ast *ast) {
 			Analyze(X->cond);
 			Value cond = Reference::deref(_curr);
 			if (!cond.is<Bool>()) {
-				X->cond->AddError(_T("Debe haber un 'bool' antes del interrogante."));
+				X->cond->add_error(_T("Debe haber un 'bool' antes del interrogante."));
 			} else {
 				if (!cond.is_abstract() and !cond.is_unknown()) {
-					X->AddError(
+					X->add_error(
 						_T("La condición siempre es '%s'.", (cond.as<Bool>() ? "true" : "false")));
 				}
 			}
@@ -1233,7 +1233,7 @@ void SemanticAnalyzer::Analyze(Ast *ast) {
 			}
 			Value _els = _curr;
 			if (!_then.same_type_as(_els)) {
-				X->AddError(
+				X->add_error(
 					_T("Los tipos de las dos expresiones alternativas deben coincidir (son '%s' y "
 					   "'%s').",
 					   _then.type()->TypeStr().c_str(), _els.type()->TypeStr().c_str()));
@@ -1267,7 +1267,7 @@ void SemanticAnalyzer::Analyze(Ast *ast) {
 			} else if (_curr.is<Double>()) {
 				_curr.as<Double>() = -_curr.as<Double>();
 			} else {
-				X->AddError(_T("El cambio de signo para '%s' no tiene sentido.",
+				X->add_error(_T("El cambio de signo para '%s' no tiene sentido.",
 							   _curr.type_name().c_str()));
 			}
 			break;
@@ -1277,13 +1277,13 @@ void SemanticAnalyzer::Analyze(Ast *ast) {
 			_curr_node = X;
 			Analyze(X->expr);
 			if (!_curr.is<Reference>()) {
-				X->AddError(_T("Hay que incrementar una variable, no un valor."));
+				X->add_error(_T("Hay que incrementar una variable, no un valor."));
 			}
 			Value after = Reference::deref(_curr);
 			Value before = after.clone();
 			if (after.is<Int>()) {
 				if (after.is_unknown()) {
-					X->AddError(_T("Incrementas la variable '%s' sin haberla inicializado.",
+					X->add_error(_T("Incrementas la variable '%s' sin haberla inicializado.",
 								   _curr_varname.c_str()));
 				} else if (!after.is_abstract()) {
 					if (X->kind == IncrExpr::Positive) {
@@ -1295,8 +1295,8 @@ void SemanticAnalyzer::Analyze(Ast *ast) {
 			} else {
 				_curr = after;
 				string op = (X->kind == IncrExpr::Positive ? "++" : "--");
-				if (!CallOperator(op)) {
-					X->AddError(_T("El tipo '%s' no tiene operador '%s'.",
+				if (!call_operator(op)) {
+					X->add_error(_T("El tipo '%s' no tiene operador '%s'.",
 								   _curr.type()->TypeStr().c_str(), op.c_str()));
 				}
 			}
@@ -1308,7 +1308,7 @@ void SemanticAnalyzer::Analyze(Ast *ast) {
 			_curr_node = X;
 			Analyze(X->expr);
 			if (!_curr.is<Bool>()) {
-				X->AddError(_T("Sólo se puede negar una expresión de tipo 'bool'."));
+				X->add_error(_T("Sólo se puede negar una expresión de tipo 'bool'."));
 				_curr = Bool::self->create_abstract();	// avoid errors downstream
 				return;
 			}
@@ -1331,7 +1331,7 @@ void SemanticAnalyzer::Analyze(Ast *ast) {
 					const ArrayDecl *array = cast<ArrayDecl>(X->decl);
 					Analyze(array->sizes[0]);
 					if (!_curr.is<Int>()) {
-						X->AddError(_T("El tamaño de un array debería ser un entero"));
+						X->add_error(_T("El tamaño de un array debería ser un entero"));
 					}
 					const int size = _curr.as<Int>();
 					register_type(array->name, new Array(type, size));
@@ -1349,8 +1349,8 @@ void SemanticAnalyzer::Analyze(Ast *ast) {
 			Analyze(X->expr);
 			_curr = Reference::deref(_curr);
 			/*
-			if (!CallOperator("*")) {
-			   X->AddError(_T("El tipo '%s' no tiene 'operator*'",
+			if (!call_operator("*")) {
+			   X->add_error(_T("El tipo '%s' no tiene 'operator*'",
 							   _curr.type()->TypeStr().c_str()));
 			}
 			*/

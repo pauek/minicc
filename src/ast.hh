@@ -22,7 +22,7 @@ struct Error {
 
 	Error(Span s, std::string m) : stopper(false), span(s), msg(m) {}
 
-	void ToJson(std::ostream& o) const;
+	void to_json(std::ostream& o) const;
 };
 
 struct Comment {
@@ -37,16 +37,16 @@ struct Comment {
 struct CommentSeq {
 	std::vector<Comment> comments;
 
-	bool HasEndLine() const;
-	bool EndsWithEmptyLine() const;
-	void RemoveEndLines();
-	void OnlyOneEndLineAtEnd();
+	bool has_endln() const;
+	bool ends_with_empty_line() const;
+	void remove_endlns();
+	void only_one_endln_at_end();
 
-	bool StartsWithEndLine() const {
+	bool starts_with_endln() const {
 		return !comments.empty() and comments.front().kind == Comment::EndLine;
 	}
 
-	bool EndsWithEndLine() const {
+	bool ends_with_endln() const {
 		return !comments.empty() and comments.back().kind == Comment::EndLine;
 	}
 };
@@ -101,8 +101,8 @@ struct Ast {
 	std::vector<CommentSeq *> comments;
 	Ast						 *parent;
 
-	void AddError(std::string msg);
-	void AddError(Pos ini, Pos fin, std::string msg);
+	void add_error(std::string msg);
+	void add_error(Pos ini, Pos fin, std::string msg);
 
 	bool HasErrors() const { return !errors.empty(); }
 

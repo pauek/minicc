@@ -121,7 +121,7 @@ class Value {  // new value
 
 	void		write(std::ostream& o) const;
 	void		read(std::istream& i);
-	std::string ToJson() const;
+	std::string to_json() const;
 
 	friend class Reference;
 };

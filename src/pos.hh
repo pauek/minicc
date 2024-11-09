@@ -13,7 +13,7 @@ struct Pos {
 
 	std::string str() const;
 
-	void ToJson(std::ostream& o) const;
+	void to_json(std::ostream& o) const;
 };
 
 struct Span {
@@ -40,7 +40,7 @@ inline std::string Pos::str() const {
 	return out.str();
 }
 
-inline void Pos::ToJson(std::ostream& o) const {
+inline void Pos::to_json(std::ostream& o) const {
 	o << "{\"lin\": " << lin << ", \"col\": " << col << "}";
 }
 
