@@ -8,7 +8,7 @@ using namespace std;
 #include "commands.hh"
 #include "interpreter.hh"
 #include "parser.hh"
-#include "prettypr.hh"
+#include "pprint.hh"
 #include "semantic.hh"
 #include "stepper.hh"
 #include "test.hh"
@@ -16,14 +16,18 @@ using namespace std;
 #include "vm.hh"
 #include "walker.hh"
 
-int test_vm(Args& args) {
+int cmd_vm(Args& args) {
 	using namespace vm;
 	VM vm;
 	vm.test();
 	return 0;
 }
 
-int tokenize(Args& args) {
+int cmd_tokenize(Args& args) {
+	if (args.empty()) {
+		cout << "usage: minicc tok <filename>" << endl;
+		exit(1);
+	}
 	string	 filename = args.shift();
 	ifstream codefile(filename);
 	Lexer	 L(&codefile);
@@ -37,22 +41,28 @@ int tokenize(Args& args) {
 	return 0;
 }
 
-int show_ast(Args& args) {
+int cmd_ast(Args& args) {
+	if (args.empty()) {
+		cout << "usage: minicc ast <filename>" << endl;
+		exit(1);
+	}
 	string	 filename = args.shift();
 	ifstream codefile(filename);
 	Parser	 P(&codefile);
 	Ast		*program = P.parse();
-	AstPrint(program);
+	ast_print(program);
 	return 0;
 }
 
-int prettyprint(Args& args) {
+int cmd_prettyprint(Args& args) {
+	if (args.empty()) {
+		cout << "usage: minicc pprint <filename>" << endl;
+		exit(1);
+	}
 	string filename = args.shift();
 	try {
-		ifstream codefile(filename);
-		Parser	 P(&codefile);
-		Ast		*program = P.parse();
-		PrettyPrint(program);
+		Ast *program = parse_file(filename);
+		pretty_print(program);
 	} catch (Error *e) {
 		cerr << _T("Pretty Print Error")
 			 << ": " << e->msg << endl;
@@ -61,59 +71,61 @@ int prettyprint(Args& args) {
 	return 0;
 }
 
-int semantic_analysis(Ast *program, string filename) {
-	AnalyzeSemantics(program);
-	vector<Error *> ve;
-	collect_errors(program, ve);
-	for (Error *e : ve) {
+void _analyze_semantics(Ast *program, string filename) {
+	analyze_semantics(program);
+	vector<Error *> errors = collect_errors(program);
+	for (Error *e : errors) {
 		cerr << filename << ":" << e->span.begin << ": " << e->msg << endl;
 	}
-	return ve.size();
-}
-
-Ast *parse_and_analyze(string filename) {
-	ifstream codefile(filename);
-	Parser	 P(&codefile);
-	Ast		*program = P.parse();
-
-	int nerrors = semantic_analysis(program, filename);
-	if (nerrors > 0) {
+	if (errors.size() > 0) {
 		exit(1);
 	}
-	return program;
 }
 
-int interpret(Args& args) {
-	string filename = args.shift();
+int cmd_eval(Args& args) {
+	if (args.empty()) {
+		cout << "usage: minicc eval <filename>" << endl;
+		exit(1);
+	}
 	try {
-		Ast *program = parse_and_analyze(filename);
+		string	 filename = args.shift();
+		ifstream codefile(filename);
+		Parser	 P(&codefile);
+		Ast		*program = P.parse();
+
+		_analyze_semantics(program, filename);
+
 		eval(program, cin, cout);
-		vector<Error *> ve;
-		collect_errors(program, ve);
-		for (Error *e : ve) {
+
+		vector<Error *> errors = collect_errors(program);
+		if (errors.empty()) {
+			return 0;
+		}
+		for (Error *e : errors) {
 			cerr << e->msg << endl;
 		}
-		return (ve.empty() ? 0 : 1);
+		return 1;
+
 	} catch (Error *e) {
 		cerr << _T("Execution Error")
 			 << ": " << e->msg << endl;
 		return 1;
 	}
-	return 0;
 }
 
-int step(Args& args) {
-	string filename = args.shift();
-
+int cmd_step(Args& args) {
+	if (args.empty()) {
+		cout << "usage: minicc step <filename>" << endl;
+		exit(1);
+	}
 	try {
+		string	 filename = args.shift();
 		ifstream codefile(filename);
 		Parser	 P(&codefile);
 		Ast		*program = P.parse();
 
-		int nerrors = semantic_analysis(program, filename);
-		if (nerrors > 0) {
-			exit(1);
-		}
+		_analyze_semantics(program, filename);
+
 		Stepper S;
 		S.Step(program);
 		while (!S.finished()) {
@@ -137,17 +149,16 @@ int step(Args& args) {
 }
 
 vector<Command> commands = {
-	{"tok", tokenize, "Tokenize a program"},
-	{"ast", show_ast, "Show the AST of a program"},
-	{"pprint", prettyprint, "Pretty print a program"},
-	{"eval", interpret, "Evaluate a program"},
-	{"step", step, "Evaluate a program step by step"},
-	{"vm", test_vm, "Use the virtual machine (TODO)"},
-	{"test", test_command, "Test MiniCC"},
+	{"tok", cmd_tokenize, "Tokenize a program"},
+	{"ast", cmd_ast, "Show the AST of a program"},
+	{"pprint", cmd_prettyprint, "Pretty print a program"},
+	{"eval", cmd_eval, "Evaluate a program"},
+	{"step", cmd_step, "Evaluate a program step by step"},
+	{"vm", cmd_vm, "TODO: virtual machine"},
+	{"test", cmd_test, "Test MiniCC"},
 };
 
 int main(int argc, char *argv[]) {
-	Translator::translator.set_language("es");
 	Args args(argc, argv);
 	if (args.empty()) {
 		help(commands);

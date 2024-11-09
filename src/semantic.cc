@@ -47,131 +47,131 @@ struct SemanticAnalyzer : public WithEnvironment {
 	template <class Op>
 	bool eval_comparison(Value left, Value right);
 
-	void Analyze(Ast *ast);
+	void analyze(Ast *ast);
 };
 
 struct _Add {
-	template <typename T>
-	static T eval(const T& a, const T& b) {
+	template <typename TestClass>
+	static TestClass eval(const TestClass& a, const TestClass& b) {
 		return a + b;
 	}
 };
 
 struct _Sub {
-	template <typename T>
-	static T eval(const T& a, const T& b) {
+	template <typename TestClass>
+	static TestClass eval(const TestClass& a, const TestClass& b) {
 		return a - b;
 	}
 };
 
 struct _Mul {
-	template <typename T>
-	static T eval(const T& a, const T& b) {
+	template <typename TestClass>
+	static TestClass eval(const TestClass& a, const TestClass& b) {
 		return a * b;
 	}
 };
 
 struct _Div {
-	template <typename T>
-	static T eval(const T& a, const T& b) {
+	template <typename TestClass>
+	static TestClass eval(const TestClass& a, const TestClass& b) {
 		return a / b;
 	}
 };
 
 struct _And {
-	template <typename T>
-	static T eval(const T& a, const T& b) {
+	template <typename TestClass>
+	static TestClass eval(const TestClass& a, const TestClass& b) {
 		return a & b;
 	}
 };
 
 struct _Or {
-	template <typename T>
-	static T eval(const T& a, const T& b) {
+	template <typename TestClass>
+	static TestClass eval(const TestClass& a, const TestClass& b) {
 		return a | b;
 	}
 };
 
 struct _Xor {
-	template <typename T>
-	static T eval(const T& a, const T& b) {
+	template <typename TestClass>
+	static TestClass eval(const TestClass& a, const TestClass& b) {
 		return a ^ b;
 	}
 };
 
 struct _AAdd {
-	template <typename T>
-	static void eval(T& a, const T& b) {
+	template <typename TestClass>
+	static void eval(TestClass& a, const TestClass& b) {
 		a += b;
 	}
 };
 
 struct _ASub {
-	template <typename T>
-	static void eval(T& a, const T& b) {
+	template <typename TestClass>
+	static void eval(TestClass& a, const TestClass& b) {
 		a -= b;
 	}
 };
 
 struct _AMul {
-	template <typename T>
-	static void eval(T& a, const T& b) {
+	template <typename TestClass>
+	static void eval(TestClass& a, const TestClass& b) {
 		a *= b;
 	}
 };
 
 struct _ADiv {
-	template <typename T>
-	static void eval(T& a, const T& b) {
+	template <typename TestClass>
+	static void eval(TestClass& a, const TestClass& b) {
 		a /= b;
 	}
 };
 
 struct _AAnd {
-	template <typename T>
-	static void eval(T& a, const T& b) {
+	template <typename TestClass>
+	static void eval(TestClass& a, const TestClass& b) {
 		a &= b;
 	}
 };
 
 struct _AOr {
-	template <typename T>
-	static void eval(T& a, const T& b) {
+	template <typename TestClass>
+	static void eval(TestClass& a, const TestClass& b) {
 		a |= b;
 	}
 };
 
 struct _AXor {
-	template <typename T>
-	static void eval(T& a, const T& b) {
+	template <typename TestClass>
+	static void eval(TestClass& a, const TestClass& b) {
 		a ^= b;
 	}
 };
 
 struct _Lt {
-	template <typename T>
-	static bool eval(const T& a, const T& b) {
+	template <typename TestClass>
+	static bool eval(const TestClass& a, const TestClass& b) {
 		return a < b;
 	}
 };
 
 struct _Le {
-	template <typename T>
-	static bool eval(const T& a, const T& b) {
+	template <typename TestClass>
+	static bool eval(const TestClass& a, const TestClass& b) {
 		return a <= b;
 	}
 };
 
 struct _Gt {
-	template <typename T>
-	static bool eval(const T& a, const T& b) {
+	template <typename TestClass>
+	static bool eval(const TestClass& a, const TestClass& b) {
 		return a > b;
 	}
 };
 
 struct _Ge {
-	template <typename T>
-	static bool eval(const T& a, const T& b) {
+	template <typename TestClass>
+	static bool eval(const TestClass& a, const TestClass& b) {
 		return a >= b;
 	}
 };
@@ -299,7 +299,7 @@ void SemanticAnalyzer::eval_binary_expr_op_assignment(char op, Value left, Value
 
 void SemanticAnalyzer::get_func(CallExpr *X) {
 	_curr_node = X;
-	Analyze(X->func);
+	analyze(X->func);
 	if (_curr.is<UnknownType>()) {
 		return;
 	}
@@ -403,7 +403,7 @@ bool SemanticAnalyzer::call_operator(string op, const vector<Value>& args) {
 }
 
 void SemanticAnalyzer::CheckCondition(Expr *cond, string who) {
-	Analyze(cond);
+	analyze(cond);
 	_curr = Reference::deref(_curr);
 	if (!_curr.is<Bool>()) {
 		if (!call_operator("bool")) {
@@ -425,7 +425,7 @@ void SemanticAnalyzer::CheckUnknown(Value v, Ast *X, string varname) {
 
 void SemanticAnalyzer::eval_arguments(const vector<Expr *>& args, vector<Value>& argvals) {
 	for (int i = 0; i < args.size(); i++) {
-		Analyze(args[i]);
+		analyze(args[i]);
 		argvals.push_back(_curr);
 	}
 }
@@ -514,14 +514,14 @@ bool SemanticAnalyzer::eval_comparison(Value left, Value right) {
 
 // Analyze
 
-void SemanticAnalyzer::Analyze(Ast *ast) {
+void SemanticAnalyzer::analyze(Ast *ast) {
 	switch (ast->Type()) {
 		case AstType::Program: {
 			Program *X = cast<Program>(ast);
 			_curr_node = X;
 			prepare_global_environment();
 			for (Ast *n : X->nodes) {
-				Analyze(n);
+				analyze(n);
 			}
 			break;
 		}
@@ -574,7 +574,7 @@ void SemanticAnalyzer::Analyze(Ast *ast) {
 					setenv(p->name, param_type->create_abstract(), Param);
 				}
 			}
-			Analyze(X->block);
+			analyze(X->block);
 			popenv();
 
 			Value func = functype->mkvalue(new UserFunc(funcname, X));
@@ -587,7 +587,7 @@ void SemanticAnalyzer::Analyze(Ast *ast) {
 			_curr_node = X;
 
 			// left
-			Analyze(X->left);
+			analyze(X->left);
 			Value left = _curr;
 			if (X->kind != Expr::Eq) {
 				left = Reference::deref(left);
@@ -596,7 +596,7 @@ void SemanticAnalyzer::Analyze(Ast *ast) {
 			string left_varname = _curr_varname;
 
 			// right
-			Analyze(X->right);
+			analyze(X->right);
 			Value right = _curr;
 			right = Reference::deref(right);
 			string right_varname = _curr_varname;
@@ -770,7 +770,7 @@ void SemanticAnalyzer::Analyze(Ast *ast) {
 						ArrayDecl  *array_decl = cast<ArrayDecl>(item.decl);
 						vector<int> sizes;
 						for (Expr *size_expr : array_decl->sizes) {
-							Analyze(size_expr);
+							analyze(size_expr);
 							if (_curr.is_abstract()) {
 								array_decl->add_error(
 									_T("El tamaño de una tabla en un 'struct' debe ser una "
@@ -872,7 +872,7 @@ void SemanticAnalyzer::Analyze(Ast *ast) {
 			Block *X = cast<Block>(ast);
 			_curr_node = X;
 			for (Stmt *stmt : X->stmts) {
-				Analyze(stmt);
+				analyze(stmt);
 			}
 			break;
 		}
@@ -931,7 +931,7 @@ void SemanticAnalyzer::Analyze(Ast *ast) {
 			Value		init = _curr;
 			vector<int> sizes;
 			for (int i = 0; i < X->sizes.size(); i++) {
-				Analyze(X->sizes[i]);
+				analyze(X->sizes[i]);
 				_curr = Reference::deref(_curr);
 				if (!_curr.is<Int>()) {
 					X->add_error(_T("El tamaño de una tabla debe ser un entero."));
@@ -1012,11 +1012,11 @@ void SemanticAnalyzer::Analyze(Ast *ast) {
 			}
 			for (DeclStmt::Item& item : X->items) {
 				if (item.init) {
-					Analyze(item.init);
+					analyze(item.init);
 				} else {
 					_curr = Value::null;
 				}
-				Analyze(item.decl);
+				analyze(item.decl);
 			}
 			break;
 		}
@@ -1024,7 +1024,7 @@ void SemanticAnalyzer::Analyze(Ast *ast) {
 			ExprStmt *X = cast<ExprStmt>(ast);
 			_curr_node = X;
 			if (X->expr) {
-				Analyze(X->expr);
+				analyze(X->expr);
 			}
 			if (X->is_return) {
 				if (X->expr == 0) {
@@ -1059,9 +1059,9 @@ void SemanticAnalyzer::Analyze(Ast *ast) {
 			IfStmt *X = cast<IfStmt>(ast);
 			_curr_node = X;
 			CheckCondition(X->cond, "if");
-			Analyze(X->then);
+			analyze(X->then);
 			if (X->els) {
-				Analyze(X->els);
+				analyze(X->els);
 			}
 			break;
 		}
@@ -1070,12 +1070,12 @@ void SemanticAnalyzer::Analyze(Ast *ast) {
 			_curr_node = X;
 			pushenv("");
 			if (X->init) {
-				Analyze(X->init);
+				analyze(X->init);
 			}
 			CheckCondition(X->cond, "for");
-			Analyze(X->substmt);
+			analyze(X->substmt);
 			if (X->post) {
-				Analyze(X->post);
+				analyze(X->post);
 			}
 			popenv();
 			break;
@@ -1085,7 +1085,7 @@ void SemanticAnalyzer::Analyze(Ast *ast) {
 			_curr_node = X;
 			pushenv("");
 			CheckCondition(X->cond, "while");
-			Analyze(X->substmt);
+			analyze(X->substmt);
 			popenv();
 			break;
 		}
@@ -1129,10 +1129,10 @@ void SemanticAnalyzer::Analyze(Ast *ast) {
 		case AstType::IndexExpr: {
 			IndexExpr *X = cast<IndexExpr>(ast);
 			_curr_node = X;
-			Analyze(X->base);
+			analyze(X->base);
 			Value base = Reference::deref(_curr);
 			if (X->index) {
-				Analyze(X->index);
+				analyze(X->index);
 			}
 			Value index = Reference::deref(_curr);
 			if (base.is<Array>()) {
@@ -1173,7 +1173,7 @@ void SemanticAnalyzer::Analyze(Ast *ast) {
 		case AstType::FieldExpr: {
 			FieldExpr *X = cast<FieldExpr>(ast);
 			_curr_node = X;
-			Analyze(X->base);
+			analyze(X->base);
 			_curr = Reference::deref(_curr);
 			if (X->pointer) {
 				if (!call_operator("*")) {
@@ -1214,7 +1214,7 @@ void SemanticAnalyzer::Analyze(Ast *ast) {
 		case AstType::CondExpr: {
 			CondExpr *X = cast<CondExpr>(ast);
 			_curr_node = X;
-			Analyze(X->cond);
+			analyze(X->cond);
 			Value cond = Reference::deref(_curr);
 			if (!cond.is<Bool>()) {
 				X->cond->add_error(_T("Debe haber un 'bool' antes del interrogante."));
@@ -1225,11 +1225,11 @@ void SemanticAnalyzer::Analyze(Ast *ast) {
 				}
 			}
 			if (X->then) {
-				Analyze(X->then);
+				analyze(X->then);
 			}
 			Value _then = _curr;
 			if (X->els) {
-				Analyze(X->els);
+				analyze(X->els);
 			}
 			Value _els = _curr;
 			if (!_then.same_type_as(_els)) {
@@ -1246,7 +1246,7 @@ void SemanticAnalyzer::Analyze(Ast *ast) {
 			Value		   v = VectorValue::make();
 			vector<Value>& vals = v.as<VectorValue>();
 			for (Expr *e : X->exprs) {
-				Analyze(e);
+				analyze(e);
 				vals.push_back(_curr);
 			}
 			_curr = v;
@@ -1255,7 +1255,7 @@ void SemanticAnalyzer::Analyze(Ast *ast) {
 		case AstType::SignExpr: {
 			SignExpr *X = cast<SignExpr>(ast);
 			_curr_node = X;
-			Analyze(X->expr);
+			analyze(X->expr);
 			if (X->kind == SignExpr::Positive) {
 				return;
 			}
@@ -1275,7 +1275,7 @@ void SemanticAnalyzer::Analyze(Ast *ast) {
 		case AstType::IncrExpr: {
 			IncrExpr *X = cast<IncrExpr>(ast);
 			_curr_node = X;
-			Analyze(X->expr);
+			analyze(X->expr);
 			if (!_curr.is<Reference>()) {
 				X->add_error(_T("Hay que incrementar una variable, no un valor."));
 			}
@@ -1306,7 +1306,7 @@ void SemanticAnalyzer::Analyze(Ast *ast) {
 		case AstType::NegExpr: {
 			NegExpr *X = cast<NegExpr>(ast);
 			_curr_node = X;
-			Analyze(X->expr);
+			analyze(X->expr);
 			if (!_curr.is<Bool>()) {
 				X->add_error(_T("Sólo se puede negar una expresión de tipo 'bool'."));
 				_curr = Bool::self->create_abstract();	// avoid errors downstream
@@ -1329,7 +1329,7 @@ void SemanticAnalyzer::Analyze(Ast *ast) {
 				}
 				case AstType::ArrayDecl: {
 					const ArrayDecl *array = cast<ArrayDecl>(X->decl);
-					Analyze(array->sizes[0]);
+					analyze(array->sizes[0]);
 					if (!_curr.is<Int>()) {
 						X->add_error(_T("El tamaño de un array debería ser un entero"));
 					}
@@ -1346,7 +1346,7 @@ void SemanticAnalyzer::Analyze(Ast *ast) {
 			DerefExpr *X = cast<DerefExpr>(ast);
 			_curr_node = X;
 			// TODO: deal with pointers
-			Analyze(X->expr);
+			analyze(X->expr);
 			_curr = Reference::deref(_curr);
 			/*
 			if (!call_operator("*")) {
@@ -1359,6 +1359,6 @@ void SemanticAnalyzer::Analyze(Ast *ast) {
 	}
 }
 
-void AnalyzeSemantics(Ast *ast) {
-	SemanticAnalyzer().Analyze(ast);
+void analyze_semantics(Ast *ast) {
+	SemanticAnalyzer().analyze(ast);
 }

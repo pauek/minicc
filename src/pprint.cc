@@ -1,5 +1,5 @@
 
-#include "prettypr.hh"
+#include "pprint.hh"
 #include <algorithm>
 #include <sstream>
 #include "ast.hh"
@@ -19,8 +19,8 @@ class OutputWriter {
 
 	void indentation() { out_ << std::string(indent_, ' '); }
 
-	template <typename T>
-	void write(const T& t) {
+	template <typename TestClass>
+	void write(const TestClass& t) {
 		out_ << t;
 	}
 
@@ -774,6 +774,6 @@ void PrettyPrinter::Print(Ast *ast) {
 	}
 }
 
-void PrettyPrint(Ast *ast, ostream& out) {
+void pretty_print(Ast *ast, ostream& out) {
 	PrettyPrinter(out).Print(ast);
 }

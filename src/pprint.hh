@@ -4,6 +4,6 @@
 #include <iostream>
 #include "ast.hh"
 
-void PrettyPrint(Ast *ast, std::ostream& out = std::cout);
+void pretty_print(Ast *ast, std::ostream& out = std::cout);
 
 #endif

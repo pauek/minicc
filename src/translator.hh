@@ -6,12 +6,15 @@
 #include <iostream>
 #include <map>
 #include <string>
+#include <cassert>
 
 const int		   MAX_NUMERAL = 9;
 extern const char *numeral[MAX_NUMERAL + 1];
 
+enum Language { en = 0, es = 1, ca = 2 };
+
 class Translator {
-	int						   language;
+	Language				   language;
 	std::map<std::string, int> _index;
 
 	void build_index() {
@@ -26,19 +29,11 @@ class Translator {
 	static const char *_translations[1000][Translator::NUM_LANGS];
 
    public:
-	Translator() : language(0) { build_index(); }
+	Translator() : language(es) { build_index(); }
 
-	void set_language(std::string country_code) {
-		if (country_code == "en") {
-			language = 0;
-		} else if (country_code == "es") {
-			language = 1;
-		} else if (country_code == "ca") {
-			language = 2;
-		} else {
-			language = 0;
-			std::cerr << "Error: unknown language '" << country_code << "'" << std::endl;
-		}
+	void set_language(Language lang) {
+		assert(lang >= 0 and lang < NUM_LANGS);
+		language = lang;
 	}
 
 	std::string translate(std::string message) const {

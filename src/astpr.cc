@@ -12,8 +12,8 @@ struct OutputWriter {
 
 	void dedent() { indent_ -= 3; }
 
-	template <typename T>
-	void write(const T& t) {
+	template <typename TestClass>
+	void write(const TestClass& t) {
 		out_ << t;
 	}
 
@@ -532,6 +532,6 @@ void AstPrinter::Print(Ast *ast) {
 	}
 }
 
-void AstPrint(Ast *ast, ostream& out) {
+void ast_print(Ast *ast, ostream& out) {
 	AstPrinter(out).Print(ast);
 }

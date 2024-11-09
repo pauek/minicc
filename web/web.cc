@@ -9,7 +9,7 @@ using namespace std;
 
 #include "interpreter.hh"
 #include "parser.hh"
-#include "prettypr.hh"
+#include "pprint.hh"
 #include "semantic.hh"
 #include "stepper.hh"
 #include "translator.hh"
@@ -98,7 +98,6 @@ class EmbindStepper {
 
    public:
 	EmbindStepper() {
-		Translator::translator.set_language("ca");
 		S = new Stepper(&cin, &cout);
 		program->accept(S);
 	}

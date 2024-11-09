@@ -94,19 +94,19 @@ class Type {
 
 	virtual bool accepts(const Type *t) const { return this == t; }
 
-	template <typename T>
+	template <typename TestClass>
 	bool is() const {
-		return dynamic_cast<const T *>(this) != 0;
+		return dynamic_cast<const TestClass *>(this) != 0;
 	}
 
-	template <typename T>
-	const T *as() const {
-		return dynamic_cast<const T *>(this);
+	template <typename TestClass>
+	const TestClass *as() const {
+		return dynamic_cast<const TestClass *>(this);
 	}
 
-	template <typename T>
-	T *as() {
-		return dynamic_cast<T *>(this);
+	template <typename TestClass>
+	TestClass *as() {
+		return dynamic_cast<TestClass *>(this);
 	}
 
 	bool is(Property prop) const { return properties() & prop; }
@@ -153,24 +153,24 @@ class UnknownType : public Type {
 	static UnknownType *self;
 };
 
-template <typename T>
+template <typename TestClass>
 class BaseType : public Type {
    public:
 	BaseType(std::string name) : Type(name) {}
 
 	int properties() const { return Internal; }
 
-	typedef T cpp_type;
+	typedef TestClass cpp_type;
 
-	static T& cast(void *data) { return *static_cast<T *>(data); }
+	static TestClass& cast(void *data) { return *static_cast<TestClass *>(data); }
 
-	void *alloc(T x) const { return new T(x); }
+	void *alloc(TestClass x) const { return new TestClass(x); }
 
 	void destroy(void *data) const {
 		if (data == Value::abstract or data == Value::unknown) {
 			return;
 		}
-		delete static_cast<T *>(data);
+		delete static_cast<TestClass *>(data);
 	}
 
 	bool equals(void *a, void *b) const {
@@ -178,11 +178,11 @@ class BaseType : public Type {
 			b == Value::abstract) {
 			return false;
 		}
-		return (*static_cast<T *>(a)) == (*static_cast<T *>(b));
+		return (*static_cast<TestClass *>(a)) == (*static_cast<TestClass *>(b));
 	}
 
 	bool assign(void *a, void *b) const {
-		*static_cast<T *>(a) = *static_cast<T *>(b);
+		*static_cast<TestClass *>(a) = *static_cast<TestClass *>(b);
 		return true;
 	}
 
@@ -190,7 +190,7 @@ class BaseType : public Type {
 		if (data == Value::unknown or data == Value::abstract) {
 			return data;
 		}
-		return new T(*static_cast<T *>(data));
+		return new TestClass(*static_cast<TestClass *>(data));
 	}
 
 	Value create() { return Value(this, Value::unknown); }
@@ -207,32 +207,32 @@ class BaseType : public Type {
 	bool accepts(const Type *t) const;
 };
 
-template <typename T>
-class BasicType : public BaseType<T> {
+template <typename TestClass>
+class BasicType : public BaseType<TestClass> {
 	std::string to_json(void *data) const {
 		if (data == Value::unknown or data == Value::abstract) {
 			return "null";
 		}
 		std::ostringstream o;
-		o << *static_cast<const T *>(data);
+		o << *static_cast<const TestClass *>(data);
 		return o.str();
 	}
 
    public:
-	BasicType(std::string name) : BaseType<T>(name) {}
+	BasicType(std::string name) : BaseType<TestClass>(name) {}
 
 	int properties() const { return Type::Basic; }
 
 	bool less_than(void *a, void *b) const {
 		assert(a != Value::abstract and b != Value::abstract);
-		return (*static_cast<T *>(a)) < (*static_cast<T *>(b));
+		return (*static_cast<TestClass *>(a)) < (*static_cast<TestClass *>(b));
 	}
 
 	void *read(std::istream& i, void *data) const {
 		if (data == Value::unknown) {
-			data = new T;
+			data = new TestClass;
 		}
-		i >> (*static_cast<T *>(data));
+		i >> (*static_cast<TestClass *>(data));
 		return data;
 	}
 
@@ -240,7 +240,7 @@ class BasicType : public BaseType<T> {
 		if (data == Value::unknown) {
 			o << "?";
 		} else {
-			o << (*static_cast<T *>(data));
+			o << (*static_cast<TestClass *>(data));
 		}
 	}
 };
@@ -778,21 +778,21 @@ class OStringStream : public OStream {
 
 // Value template methods (DO NOT MOVE)
 
-template <typename T>
+template <typename TestClass>
 bool Value::is() const {
-	return !is_null() and dynamic_cast<const T *>(_box->type) != 0;
+	return !is_null() and dynamic_cast<const TestClass *>(_box->type) != 0;
 }
 
-template <typename T>
-typename T::cpp_type& Value::as() {
-	assert(is<T>() and _box);
-	return T::cast(_box->data);
+template <typename TestClass>
+typename TestClass::cpp_type& Value::as() {
+	assert(is<TestClass>() and _box);
+	return TestClass::cast(_box->data);
 }
 
-template <typename T>
-typename T::cpp_type& Value::as() const {
-	assert(is<T>() and _box);
-	return T::cast(_box->data);
+template <typename TestClass>
+typename TestClass::cpp_type& Value::as() const {
+	assert(is<TestClass>() and _box);
+	return TestClass::cast(_box->data);
 }
 
 class Environment {

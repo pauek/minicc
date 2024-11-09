@@ -8,9 +8,10 @@ using namespace std;
 #include "commands.hh"
 #include "interpreter.hh"
 #include "parser.hh"
-#include "prettypr.hh"
+#include "pprint.hh"
 #include "semantic.hh"
 #include "stepper.hh"
+#include "test.hh"
 #include "translator.hh"
 #include "vm.hh"
 #include "walker.hh"
@@ -116,191 +117,52 @@ void compare_result(string filename, string sout, string serr, string out, strin
 	cout << res << flush;
 }
 
-int _test_parser_and_semantic(string filename, bool do_semantic) {
-	string code, in, out, err;
-	parse_test_file(filename, code, in, out, err);
+void _parse(Ast *program, istream& Sin, ostream& Sout) {}
 
-	ostringstream Sout, Saux, Serr;
-	istringstream Scode(code), Sin(in);
-	Parser		  P(&Scode, &Serr);
-	Ast			 *program;
-	try {
-		program = P.parse();
-		if (do_semantic) {
-			AnalyzeSemantics(program);
-		}
-		vector<Error *> ve;
-		collect_errors(program, ve);
-		for (Error *e : ve) {
-			Serr << filename << "[" << e->span.begin << "-" << e->span.end << "]: " << e->msg
-				 << endl;
-		}
-	} catch (ParseError& e) {
-		Serr << filename << "[" << e.pos << "]: " << e.msg << endl;
-	}
-	compare_result(filename, Sout.str(), Serr.str(), out, err);
-	return 0;
+void _ast(Ast *program, istream& Sin, ostream& Sout) {
+	ast_print(program, Sout);
 }
 
-int test_semantic(Args& args) {
-	string filename = args.shift();
-	return _test_parser_and_semantic(filename, true);
+void _semantic(Ast *program, istream& Sin, ostream& Sout) {
+	analyze_semantics(program);
 }
 
-int test_parser(Args& args) {
-	string filename = args.shift();
-	return _test_parser_and_semantic(filename, false);
+void _print(Ast *program, istream& Sin, ostream& Sout) {
+	pretty_print(program, Sout);
 }
 
-int test_ast(Args& args) {
-	string filename = args.shift();
-	string code, in, out, err;
-	parse_test_file(filename, code, in, out, err);
+void _eval(Ast *program, istream& Sin, ostream& Sout) {
+	eval(program, Sin, Sout);
+}
 
-	ostringstream Sout, Saux, Serr;
-	istringstream Scode(code), Sin(in);
-	Parser		  P(&Scode, &Serr);
-	Ast			 *program;
-	try {
-		program = P.parse();
-	} catch (ParseError& e) {
-		Serr << filename << "[" << e.pos << "]: " << e.msg << endl;
-		goto compare;
-	}
-
-	try {
-		Translator::translator.set_language("es");
-		vector<Error *> ve;
-		AstPrint(program, Sout);
-		collect_errors(program, ve);
-		for (Error *e : ve) {
-			Serr << e->msg << endl;
+void _stepper(Ast *program, istream& Sin, ostream& Sout) {
+	ostringstream Saux;
+	Stepper		  S(&Sin, &Saux);
+	S.Step(program);
+	while (!S.finished()) {
+		Sout << S.span() << ": " << /* FIXME: P.lexer().substr(S.span()) <<*/ endl;
+		Sout << S.status() << endl;
+		string output = S.output();
+		if (output != "") {
+			Sout << "OUTPUT: \"" << output << '"' << endl;
 		}
-	} catch (Error *e) {
-		Serr << "Error de ejecución: " << e->msg << endl;
-	}
-
-compare:
-	compare_result(filename, Sout.str(), Serr.str(), out, err);
-	return 0;
-}
-
-int test_print(Args& args) {
-	string filename = args.shift();
-	string code, in, out, err;
-	parse_test_file(filename, code, in, out, err);
-
-	ostringstream Sout, Saux, Serr;
-	istringstream Scode(code), Sin(in);
-	Parser		  P(&Scode, &Serr);
-	Ast			 *program;
-	try {
-		program = P.parse();
-	} catch (ParseError& e) {
-		Serr << filename << "[" << e.pos << "]: " << e.msg << endl;
-		goto compare;
-	}
-	try {
-		Translator::translator.set_language("es");
-		vector<Error *> ve;
-		PrettyPrint(program, Sout);
-		collect_errors(program, ve);
-		for (Error *e : ve) {
-			Serr << e->msg << endl;
+		Sout << endl;
+		if (!S.step()) {
+			throw S.error();
 		}
-	} catch (Error *e) {
-		Serr << "Error de ejecución: " << e->msg << endl;
 	}
-
-compare:
-	compare_result(filename, Sout.str(), Serr.str(), out, err);
-	return 0;
-}
-
-int test_eval(Args& args) {
-	string filename = args.shift();
-
-	string code, in, out, err;
-	parse_test_file(filename, code, in, out, err);
-
-	ostringstream Sout, Saux, Serr;
-	istringstream Scode(code), Sin(in);
-	Parser		  P(&Scode, &Serr);
-	Ast			 *program;
-	try {
-		program = P.parse();
-	} catch (ParseError& e) {
-		Serr << filename << "[" << e.pos << "]: " << e.msg << endl;
-		goto compare;
-	}
-	try {
-		Translator::translator.set_language("es");
-		vector<Error *> ve;
-		eval(program, Sin, Sout);
-		collect_errors(program, ve);
-		for (Error *e : ve) {
-			Serr << e->msg << endl;
-		}
-	} catch (Error *e) {
-		Serr << "Error de ejecución: " << e->msg << endl;
-	}
-
-compare:
-	compare_result(filename, Sout.str(), Serr.str(), out, err);
-	return 0;
-}
-
-int test_step(Args& args) {
-	string filename = args.shift();
-
-	string code, in, out, err;
-	parse_test_file(filename, code, in, out, err);
-
-	ostringstream Sout, Saux, Serr;
-	istringstream Scode(code), Sin(in);
-	Parser		  P(&Scode, &Serr);
-	Ast			 *program;
-	try {
-		program = P.parse();
-	} catch (ParseError& e) {
-		Serr << filename << "[" << e.pos << "]: " << e.msg << endl;
-		goto compare;
-	}
-	try {
-		Translator::translator.set_language("es");
-		Stepper S(&Sin, &Saux);
-		S.Step(program);
-		while (!S.finished()) {
-			Sout << S.span() << ": " << P.lexer().substr(S.span()) << endl;
-			Sout << S.status() << endl;
-			string output = S.output();
-			if (output != "") {
-				Sout << "OUTPUT: \"" << output << '"' << endl;
-			}
-			Sout << endl;
-			if (!S.step()) {
-				throw S.error();
-			}
-		}
-	} catch (Error *e) {
-		Serr << "Error de ejecución: " << e->msg << endl;
-	}
-
-compare:
-	compare_result(filename, Sout.str(), Serr.str(), out, err);
-	return 0;
 }
 
 vector<Command> test_commands = {
-	{"parser", test_parser, "Test the parser"},
-	{"ast", test_ast, "Test the AST"},
-	{"print", test_print, "Test the pretty printer"},
-	{"semantic", test_semantic, "Test the semantic analyzer"},
-	{"interpreter", test_eval, "Test the interpreter"},
-	{"stepper", test_step, "Test the stepper"},
+	{"parser", test<_parse>, "Test the parser"},
+	{"ast", test<_ast>, "Test the AST"},
+	{"print", test<_print>, "Test the pretty printer"},
+	{"semantic", test<_semantic>, "Test the semantic analyzer"},
+	{"interpreter", test<_eval>, "Test the interpreter"},
+	{"stepper", test<_stepper>, "Test the stepper"},
 };
 
-int test_command(Args& args) {
+int cmd_test(Args& args) {
 	if (args.empty()) {
 		help(test_commands);
 	}
@@ -310,5 +172,8 @@ int test_command(Args& args) {
 		cerr << "error: No se conoce el comando '" << cmd << "'" << endl;
 		return 1;
 	}
-	return (*pcmd->func)(args);
+	cout << cmd << " ";
+	(*pcmd->func)(args);
+	cout << endl;
+	return 0;
 }

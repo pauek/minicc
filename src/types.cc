@@ -193,8 +193,8 @@ string Reference::to_json(void *data) const {
 	return O.str();
 }
 
-template <typename T>
-bool BaseType<T>::accepts(const Type *t) const {
+template <typename TestClass>
+bool BaseType<TestClass>::accepts(const Type *t) const {
 	if (t->is<Reference>()) {
 		t = t->as<Reference>()->subtype();
 	}

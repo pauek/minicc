@@ -5,6 +5,6 @@
 #include <iostream>
 #include "ast.hh"
 
-void AstPrint(Ast *ast, std::ostream& o = std::cout);
+void ast_print(Ast *ast, std::ostream& o = std::cout);
 
 #endif

@@ -315,6 +315,6 @@ void walk(Ast *ast, Delegate& D) {
 	Walker<Delegate>(D).walk(ast);
 }
 
-void collect_errors(Ast *X, std::vector<Error *>& v);
+std::vector<Error *> collect_errors(Ast *X);
 
 #endif

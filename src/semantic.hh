@@ -3,6 +3,6 @@
 
 #include "ast.hh"
 
-void AnalyzeSemantics(Ast *ast);
+void analyze_semantics(Ast *ast);
 
 #endif

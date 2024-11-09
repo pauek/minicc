@@ -15,16 +15,18 @@ struct ErrorCollector {
 	}
 };
 
-void collect_errors(Ast *ast, std::vector<Error *>& v) {
+std::vector<Error *> collect_errors(Ast *ast) {
+	std::vector<Error *> result;
 	if (ast == 0) {
-		return;
+		return result;
 	}
-	ErrorCollector error_collector(v);
+	ErrorCollector error_collector(result);
 	walk(ast, error_collector);
-	for (int i = 0; i < v.size(); i++) {
-		if (v[i]->stopper) {
-			v.resize(i + 1);
+	for (int i = 0; i < result.size(); i++) {
+		if (result[i]->stopper) {
+			result.resize(i + 1);
 			break;
 		}
 	}
+	return result;
 }

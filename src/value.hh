@@ -74,12 +74,12 @@ class Value {  // new value
 
 	void clear_touched();
 
-	template <typename T>
+	template <typename TestClass>
 	bool is() const;
-	template <typename T>
-	typename T::cpp_type& as();
-	template <typename T>
-	typename T::cpp_type& as() const;
+	template <typename TestClass>
+	typename TestClass::cpp_type& as();
+	template <typename TestClass>
+	typename TestClass::cpp_type& as() const;
 
 	bool has_type(const Type *t) const { return _box->type == t; }
 

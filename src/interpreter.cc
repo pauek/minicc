@@ -49,127 +49,127 @@ void Interpreter::find_main() {
 }
 
 struct _Add {
-	template <typename T>
-	static T eval(const T& a, const T& b) {
+	template <typename TestClass>
+	static TestClass eval(const TestClass& a, const TestClass& b) {
 		return a + b;
 	}
 };
 
 struct _Sub {
-	template <typename T>
-	static T eval(const T& a, const T& b) {
+	template <typename TestClass>
+	static TestClass eval(const TestClass& a, const TestClass& b) {
 		return a - b;
 	}
 };
 
 struct _Mul {
-	template <typename T>
-	static T eval(const T& a, const T& b) {
+	template <typename TestClass>
+	static TestClass eval(const TestClass& a, const TestClass& b) {
 		return a * b;
 	}
 };
 
 struct _Div {
-	template <typename T>
-	static T eval(const T& a, const T& b) {
+	template <typename TestClass>
+	static TestClass eval(const TestClass& a, const TestClass& b) {
 		return a / b;
 	}
 };
 
 struct _And {
-	template <typename T>
-	static T eval(const T& a, const T& b) {
+	template <typename TestClass>
+	static TestClass eval(const TestClass& a, const TestClass& b) {
 		return a & b;
 	}
 };
 
 struct _Or {
-	template <typename T>
-	static T eval(const T& a, const T& b) {
+	template <typename TestClass>
+	static TestClass eval(const TestClass& a, const TestClass& b) {
 		return a | b;
 	}
 };
 
 struct _Xor {
-	template <typename T>
-	static T eval(const T& a, const T& b) {
+	template <typename TestClass>
+	static TestClass eval(const TestClass& a, const TestClass& b) {
 		return a ^ b;
 	}
 };
 
 struct _AAdd {
-	template <typename T>
-	static void eval(T& a, const T& b) {
+	template <typename TestClass>
+	static void eval(TestClass& a, const TestClass& b) {
 		a += b;
 	}
 };
 
 struct _ASub {
-	template <typename T>
-	static void eval(T& a, const T& b) {
+	template <typename TestClass>
+	static void eval(TestClass& a, const TestClass& b) {
 		a -= b;
 	}
 };
 
 struct _AMul {
-	template <typename T>
-	static void eval(T& a, const T& b) {
+	template <typename TestClass>
+	static void eval(TestClass& a, const TestClass& b) {
 		a *= b;
 	}
 };
 
 struct _ADiv {
-	template <typename T>
-	static void eval(T& a, const T& b) {
+	template <typename TestClass>
+	static void eval(TestClass& a, const TestClass& b) {
 		a /= b;
 	}
 };
 
 struct _AAnd {
-	template <typename T>
-	static void eval(T& a, const T& b) {
+	template <typename TestClass>
+	static void eval(TestClass& a, const TestClass& b) {
 		a &= b;
 	}
 };
 
 struct _AOr {
-	template <typename T>
-	static void eval(T& a, const T& b) {
+	template <typename TestClass>
+	static void eval(TestClass& a, const TestClass& b) {
 		a |= b;
 	}
 };
 
 struct _AXor {
-	template <typename T>
-	static void eval(T& a, const T& b) {
+	template <typename TestClass>
+	static void eval(TestClass& a, const TestClass& b) {
 		a ^= b;
 	}
 };
 
 struct _Lt {
-	template <typename T>
-	static bool eval(const T& a, const T& b) {
+	template <typename TestClass>
+	static bool eval(const TestClass& a, const TestClass& b) {
 		return a < b;
 	}
 };
 
 struct _Le {
-	template <typename T>
-	static bool eval(const T& a, const T& b) {
+	template <typename TestClass>
+	static bool eval(const TestClass& a, const TestClass& b) {
 		return a <= b;
 	}
 };
 
 struct _Gt {
-	template <typename T>
-	static bool eval(const T& a, const T& b) {
+	template <typename TestClass>
+	static bool eval(const TestClass& a, const TestClass& b) {
 		return a > b;
 	}
 };
 
 struct _Ge {
-	template <typename T>
-	static bool eval(const T& a, const T& b) {
+	template <typename TestClass>
+	static bool eval(const TestClass& a, const TestClass& b) {
 		return a >= b;
 	}
 };

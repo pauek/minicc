@@ -89,4 +89,13 @@ class Parser {
 	Expr *parse_exprlist(Ast *parent);
 };
 
+inline Ast *parse(std::istream& in) {
+	return Parser(&in).parse();
+}
+
+inline Ast *parse_file(string filename) {
+	ifstream codefile(filename);
+	return parse(codefile);
+}
+
 #endif
