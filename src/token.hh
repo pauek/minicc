@@ -107,12 +107,12 @@ struct Token {
 
 	Token(Type t = Token::Unknown) : type(t) {}
 
-	bool IsIdent() const { return type == Ident or type == String; }
+	bool is_ident() const { return type == Ident or type == String; }
 
-	bool IsTypeSpec() const;
-	bool IsBasicType() const;
-	bool IsTypeQual() const;
-	bool IsOperator() const;
+	bool is_type_spec() const;
+	bool is_basic_type() const;
+	bool is_type_qual() const;
+	bool is_operator() const;
 };
 
 #endif

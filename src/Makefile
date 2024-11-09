@@ -4,7 +4,7 @@ CXX=g++
 OBJECTS=main.o lexer.o parser.o ast.o token.o value.o types.o \
 	prettypr.o astpr.o interpreter.o \
 	stepper.o walker.o translator.o semantic.o \
-	vm.o
+	vm.o test.o
 
 HEADERS=$(wildcard *.hh)
 

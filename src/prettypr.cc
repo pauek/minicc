@@ -199,7 +199,7 @@ void PrettyPrinter::Print(Ast *ast) {
 #define QUALIFIER(qual, str)               \
 	if (X->HasQualifier(TypeSpec::qual)) { \
 		out.write(str, " ");               \
-		cp.comment_space();                 \
+		cp.comment_space();                \
 	}
 			QUALIFIER(Const, "const")
 			QUALIFIER(Volatile, "volatile")

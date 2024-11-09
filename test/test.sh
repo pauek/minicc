@@ -27,7 +27,7 @@ function test_dir() {
          if [ $verbose = "true" ]; then
             echo -n $ccfile" "
          fi
-         $minicc --test-${dir} $ccfile 2>> ${dir}-err
+         $minicc test ${dir} $ccfile 2>> ${dir}-err
          code=$?
          if [ $code -ne 0 ]; then
             echo "[error code $code in $ccfile]" >> ${dir}-err

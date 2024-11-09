@@ -2,7 +2,7 @@
 #include "token.hh"
 using namespace std;
 
-bool Token::IsTypeSpec() const {
+bool Token::is_type_spec() const {
 	switch (type) {
 		case Token::Void:
 		case Token::Int:
@@ -30,7 +30,7 @@ bool Token::IsTypeSpec() const {
 	return false;
 }
 
-bool Token::IsOperator() const {
+bool Token::is_operator() const {
 	switch (type) {
 		case Token::Comma:
 		case Token::QMark:
@@ -75,7 +75,7 @@ bool Token::IsOperator() const {
 	return false;
 }
 
-bool Token::IsBasicType() const {
+bool Token::is_basic_type() const {
 	switch (type) {
 		case Token::Void:
 		case Token::Int:
@@ -91,7 +91,7 @@ bool Token::IsBasicType() const {
 	return false;
 }
 
-bool Token::IsTypeQual() const {
+bool Token::is_type_qual() const {
 	switch (type) {
 		case Token::Const:
 		case Token::Long:

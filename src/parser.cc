@@ -111,7 +111,7 @@ Ast *Parser::parse() {
 				break;
 			}
 			default:
-				if (tok.IsIdent() or tok.IsTypeSpec()) {
+				if (tok.is_ident() or tok.is_type_spec()) {
 					prog->add(parse_func_or_var(prog));
 					break;
 				}
@@ -226,7 +226,7 @@ Identifier *Parser::parse_ident(Ast *parent, Token tok, Pos ini) {
 		_lexer.consume("::");
 		_skip(id);
 		tok = _lexer.read_token();
-		if (!tok.IsIdent()) {
+		if (!tok.is_ident()) {
 			error(id, _T("Expected an identifier here"));
 		}
 		id->Shift(_lexer.substr(tok));
@@ -237,14 +237,14 @@ Identifier *Parser::parse_ident(Ast *parent, Token tok, Pos ini) {
 }
 
 bool Parser::_parse_type_process_token(TypeSpec *type, Token tok, Pos p) {
-	if (tok.IsBasicType()) {
+	if (tok.is_basic_type()) {
 		if (type->id != 0) {
 			error(type, _T("Basic types are not templates"));
 		}
 		type->id = new Identifier(_lexer.substr(tok));
 		return true;
 	}
-	if (tok.IsTypeQual()) {
+	if (tok.is_type_qual()) {
 		switch (tok.type) {
 			case Token::Const:
 				type->AddQualifier(TypeSpec::Const);
@@ -269,7 +269,7 @@ bool Parser::_parse_type_process_token(TypeSpec *type, Token tok, Pos p) {
 		}
 		return true;
 	}
-	if (type->id == 0 and tok.IsIdent()) {
+	if (type->id == 0 and tok.is_ident()) {
 		type->id = parse_ident(type, tok, p);
 		return true;
 	}
@@ -425,7 +425,7 @@ Stmt *Parser::parse_stmt(Ast *parent) {
 			return stmt;
 		}
 		default:
-			if (tok.IsOperator()) {
+			if (tok.is_operator()) {
 				return parse_exprstmt(parent);
 			}
 			Stmt *stmt = parse_decl_or_expr_stmt(parent);
@@ -745,7 +745,7 @@ Expr *Parser::parse_expr(Ast *parent, BinaryExpr::Kind max) {
 
 	while (true) {
 		Token tok = _lexer.peek_token();
-		if (!tok.IsOperator()) {
+		if (!tok.is_operator()) {
 			break;
 		}
 		BinaryExpr::Kind kind = BinaryExpr::TokenToKind(tok.type);
@@ -754,7 +754,7 @@ Expr *Parser::parse_expr(Ast *parent, BinaryExpr::Kind max) {
 		}
 		CommentSeq *c0 = _lexer.skip();
 		tok = _lexer.read_token();
-		if (!tok.IsOperator()) {
+		if (!tok.is_operator()) {
 			error(left, _T("Expected operator here."));
 		}
 		if (tok.type == Token::QMark) {	 // (... ? ... : ...)
@@ -1071,7 +1071,7 @@ DeclStmt *Parser::parse_declstmt(Ast *parent, bool is_typedef) {
 			id = _lexer.read_token();
 			name = _lexer.substr(id);
 		}
-		if (!id.IsIdent()) {
+		if (!id.is_ident()) {
 			stopper_error(stmt, _T("Expected a variable name here."));
 		}
 		after_id = _lexer.pos();
@@ -1114,7 +1114,7 @@ EnumDecl *Parser::parse_enum(Ast *parent) {
 	decl->parent = parent;
 	_skip(decl);
 	Token tok = _lexer.read_token();
-	if (!tok.IsIdent()) {
+	if (!tok.is_ident()) {
 		error(decl, _lexer.pos().str() + ": " + _T("Expected an identifier here."));
 		_lexer.skip_to(";");
 		return decl;
@@ -1128,7 +1128,7 @@ EnumDecl *Parser::parse_enum(Ast *parent) {
 	_skip(decl);
 	while (true) {
 		Token tok = _lexer.read_token();
-		if (!tok.IsIdent()) {
+		if (!tok.is_ident()) {
 			error(decl, _lexer.pos().str() + ": " + _T("Expected an identifier here."));
 			_lexer.skip_to(",}");
 			break;

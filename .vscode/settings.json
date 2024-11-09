@@ -1,7 +1,8 @@
 {
   "files.associations": {
-    "ostream": "cpp",
-    "stack": "cpp"
+	"ostream": "cpp",
+	"stack": "cpp",
+	"iostream": "cpp"
 },
   "files.exclude": {
     "**/*.o": true

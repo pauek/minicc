@@ -71,17 +71,17 @@ struct ArrayDescr : TypeDescrDerived<Array> {
 
 class TypeTable {
 	// The first type numbers are used for basic types so we have to subtract
-	// FirstFreeType always from the index (or add it in the Add method)
+	// FirstFreeType always from the index (or add it in the add method)
 	std::vector<TypeDescr *> _types;
 
    public:
-	TypeDescr *Get(Type index) {
+	TypeDescr *get(Type index) {
 		assert(index >= FirstFreeType && (index - FirstFreeType) < _types.size());
 		return _types[(size_t)index - FirstFreeType];
 	}
 
-	size_t SizeOf(Type type);
-	Type   Add(TypeDescr *desc);
+	size_t size_of(Type type);
+	Type   add(TypeDescr *desc);
 };
 
 // NameTable ///////////////////////////////////////////////////////////////////
@@ -90,7 +90,7 @@ class NameTable {
 	std::vector<std::string> _names;
 
    public:
-	size_t Put(std::string name) {
+	size_t put(std::string name) {
 		for (size_t i = 0; i < _names.size(); i++) {
 			if (name == _names[i]) {
 				return i;
@@ -101,7 +101,7 @@ class NameTable {
 		return index;
 	}
 
-	std::string Get(size_t index) {
+	std::string get(size_t index) {
 		assert(index < _names.size());
 		return _names[index];
 	}
@@ -120,8 +120,8 @@ class Memory {
 	};
 
 	TypeTable& _type_table;
-	uint8_t	  *data;
-	size_t	   total_size, heap_size, stack_pos, stack_top;
+	uint8_t	  *_data;
+	size_t	   _total_size, _heap_size, _stack_pos, _stack_top;
 	/*
 		We want the indices of memory chunks to keep growing. They are like IDs.
 		If you free a chunk and by mistake you still have a pointer to this chunk
@@ -138,26 +138,26 @@ class Memory {
 	std::map<size_t, ChunkIndex> _map;
 	std::stack<ChunkIndex>		 _stack;  // stack of indices to chunks
 
-	ChunkIndex NewIndex() { return ++last; }
+	ChunkIndex new_index() { return ++last; }
 
    public:
 	Memory(size_t sz_heap, size_t sz_stack, TypeTable& type_table);
-	bool Alloc(Type t, ChunkIndex& index);
-	void Free(ChunkIndex);
-	bool StackPush(Type t, ChunkIndex& index);
+	bool alloc(Type t, ChunkIndex& index);
+	void free(ChunkIndex);
+	bool stack_push(Type t, ChunkIndex& index);
 
-	ChunkIndex StackTop() const { return _stack.top(); }
+	ChunkIndex stack_top() const { return _stack.top(); }
 
-	void		 StackPop();
-	const Chunk *Get(ChunkIndex index) const;
+	void		 stack_pop();
+	const Chunk *get(ChunkIndex index) const;
 
 	template <typename T>
-	bool Read(ChunkIndex index, size_t offset, T& value);
+	bool read(ChunkIndex index, size_t offset, T& value);
 };
 
 template <typename T>
-bool Memory::Read(ChunkIndex index, size_t offset, T& value) {
-	const Chunk *chunk = Get(index);
+bool Memory::read(ChunkIndex index, size_t offset, T& value) {
+	const Chunk *chunk = get(index);
 	if (chunk == 0) {
 		return false;
 	}
@@ -167,7 +167,7 @@ bool Memory::Read(ChunkIndex index, size_t offset, T& value) {
 	if (offset + sizeof(T) > chunk->size) {
 		return false;
 	}
-	value = *(T *)(data + chunk->start + offset);
+	value = *(T *)(_data + chunk->start + offset);
 	return true;
 }
 
@@ -194,11 +194,11 @@ class Stack {
    public:
 	Stack(Memory& mem) : _memory(mem) {}
 
-	void	   PushFrame(FuncIndex func);
-	void	   PopFrame();
-	bool	   PushLocal(NameIndex name, Type type, size_t& index);
-	void	   PopLocal();
-	ChunkIndex GetLocal(size_t index);
+	void	   push_frame(FuncIndex func);
+	void	   pop_frame();
+	bool	   push_local(NameIndex name, Type type, size_t& index);
+	void	   pop_local();
+	ChunkIndex get_local(size_t index);
 };
 
 // Registers ///////////////////////////////////////////////////////////////////
