@@ -6,7 +6,8 @@
 #include <stack>
 #include <string>
 #include <vector>
-#include <assert.h>
+#include <cassert>
+#include <cstdint>
 
 namespace vm {
 

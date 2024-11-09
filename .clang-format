@@ -1,0 +1,20 @@
+BasedOnStyle: Chromium
+IndentWidth: 4
+TabWidth: 4
+UseTab: Always
+ColumnLimit: 100
+ReferenceAlignment: Left
+PointerAlignment: Right
+InsertBraces: true
+SeparateDefinitionBlocks: Always
+ReflowComments: true
+AlignTrailingComments:
+  Kind: Always
+  OverEmptyLines: 1
+AlignConsecutiveDeclarations:
+  Enabled: true
+  AcrossEmptyLines: false
+  AcrossComments: false
+IndentCaseLabels: true
+AllowShortIfStatementsOnASingleLine: Never
+AllowShortLoopsOnASingleLine: false

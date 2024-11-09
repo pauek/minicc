@@ -2,6 +2,7 @@
 #define POS_H
 
 #include <sstream>
+#include <cstdint>
 
 struct Pos { 
    uint32_t lin, col; 
