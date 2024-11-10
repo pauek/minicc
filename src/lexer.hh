@@ -2,8 +2,10 @@
 #define INPUT_H
 #include <iostream>
 #include <vector>
+#include <cassert>
 #include "pos.hh"
 #include "token.hh"
+
 struct Comment;
 struct CommentSeq;
 
@@ -69,17 +71,25 @@ class Lexer {
 
     void consume(std::string word);
     void consume(Token::Type type);
-    enum class Skip { SpaceTabNewline, SpaceTab };
+
+    enum class Skip {
+        SpaceTabNewline,
+        SpaceTab,
+    };
+
     CommentSeq *skip(Skip skip = Skip::SpaceTabNewline);
     std::string skip_to(std::string stop_set);
-    Token       read_token();
-    Token       peek_token();
-    Token       read_ident();
-    Token       read_number_literal();
-    Token       read_float_literal(Token t, int ini);
-    Token       read_string_or_char_literal(char delim);
-    void        read_SingleLine_comment(Comment& c);
-    void        read_MultiLine_comment(Comment& c);
-    void        error(std::string msg);
+
+    Token read_token();
+    Token peek_token();
+    Token read_ident();
+    Token read_number_literal();
+    Token read_float_literal(Token t, int ini);
+    Token read_string_or_char_literal(char delim);
+    void  read_SingleLine_comment(Comment& c);
+    void  read_MultiLine_comment(Comment& c);
+
+    void error(std::string msg);
 };
+
 #endif

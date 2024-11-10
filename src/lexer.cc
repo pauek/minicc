@@ -1,9 +1,8 @@
-
+#include "lexer.hh"
 #include <assert.h>
 #include <sstream>
-using namespace std;
 #include "ast.hh"
-#include "lexer.hh"
+using namespace std;
 
 void Lexer::error(string msg) {
     cerr << _pos << ": " << msg << endl;
