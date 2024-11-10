@@ -39,4 +39,8 @@ struct ParseError {
     bool empty() const { return pos.lin == -1; }
 };
 
+struct TypeError : public Error {
+    TypeError(std::string _msg) : Error(_msg) {}
+};
+
 #endif

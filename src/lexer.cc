@@ -4,7 +4,7 @@
 #include "ast.hh"
 using namespace std;
 
-void Lexer::error(string msg) {
+void Lexer::_error(string msg) {
     cerr << _pos << ": " << msg << endl;
     exit(1);
 }
@@ -425,7 +425,7 @@ void Lexer::read_MultiLine_comment(Comment& c) {
         c.text += curr();
         next();
     }
-    error("unfinished comment");
+    _error("unfinished comment");
     return;
 }
 
@@ -598,7 +598,7 @@ Token Lexer::read_string_or_char_literal(char delim) {
                     cerr << "warning: unknown Escape sequence '\\" << curr() << "'" << endl;
             }
         } else if (curr() == '\n') {
-            error("string inacabado");
+            _error("string inacabado");
             break;
         }
         next();

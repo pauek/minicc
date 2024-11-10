@@ -1,8 +1,8 @@
 #ifndef INPUT_H
 #define INPUT_H
+#include <cassert>
 #include <iostream>
 #include <vector>
-#include <cassert>
 #include "pos.hh"
 #include "token.hh"
 
@@ -34,6 +34,8 @@ class Lexer {
     }
 
     int _pos_to_idx(Pos p) const;
+
+    void _error(std::string msg);
 
    public:
     Lexer() : _in(0), _linepos(1) { _reset(); }
@@ -88,8 +90,6 @@ class Lexer {
     Token read_string_or_char_literal(char delim);
     void  read_SingleLine_comment(Comment& c);
     void  read_MultiLine_comment(Comment& c);
-
-    void error(std::string msg);
 };
 
 #endif

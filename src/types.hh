@@ -6,13 +6,11 @@
 #include <sstream>
 #include <vector>
 #include "ast.hh"
+#include "error.hh"
 #include "value.hh"
 
 using std::string;
 
-struct TypeError : public Error {
-    TypeError(std::string _msg) : Error(_msg) {}
-};
 class Interpreter;
 
 struct Func {
@@ -349,7 +347,7 @@ template <class Base>
 class Class : public Base {
     std::multimap<std::string, Value> _methods;
     std::map<std::string, Value>      _statics;
-    Table<const Type *>         _inner_classes;
+    Table<const Type *>               _inner_classes;
 
    protected:
     void _add_static(std::string, Value);
@@ -804,7 +802,7 @@ class Environment {
     std::string             _name;
     bool                    _hidden;
     Environment            *_parent;
-    Table<Value>      _tab;
+    Table<Value>            _tab;
     bool                    _active;
     TypeMap                 _curr_namespace;
     std::set<Environment *> _other_namespaces;
