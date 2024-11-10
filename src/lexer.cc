@@ -148,6 +148,7 @@ Token Lexer::read_token() {
         tok.len = _curr - ini;  \
         return tok;             \
     } while (0)
+
 #define RESULT2(type)           \
     do {                        \
         Token tok(Token::type); \
@@ -157,11 +158,13 @@ Token Lexer::read_token() {
         tok.len = _curr - ini;  \
         return tok;             \
     } while (0)
+
 #define RESULT_1_2(ch, type1, type2) \
     if (curr(1) == ch)               \
         RESULT2(type2);              \
     else                             \
         RESULT1(type1);
+
 #define RESULT_OP_EQUALS(ch, type1, type2, type3) \
     if (curr(1) == ch)                            \
         RESULT2(type2);                           \
@@ -169,6 +172,7 @@ Token Lexer::read_token() {
         RESULT2(type3);                           \
     else                                          \
         RESULT1(type1);
+
     switch (curr()) {
         case '(':
             RESULT1(LParen);

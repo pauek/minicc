@@ -46,131 +46,56 @@ void Interpreter::find_main() {
     }
 }
 
-struct _Add {
-    template <typename TestClass>
-    static TestClass eval(const TestClass& a, const TestClass& b) {
-        return a + b;
-    }
-};
+#define BINARY_OP(name, op)                     \
+    struct name {                               \
+        template <typename T>                   \
+        static T eval(const T& a, const T& b) { \
+            return a op b;                      \
+        }                                       \
+    };
 
-struct _Sub {
-    template <typename TestClass>
-    static TestClass eval(const TestClass& a, const TestClass& b) {
-        return a - b;
-    }
-};
+BINARY_OP(_Add, +)
+BINARY_OP(_Sub, -)
+BINARY_OP(_Mul, *)
+BINARY_OP(_Div, /)
+BINARY_OP(_And, &)
+BINARY_OP(_Or, |)
+BINARY_OP(_Xor, ^)
 
-struct _Mul {
-    template <typename TestClass>
-    static TestClass eval(const TestClass& a, const TestClass& b) {
-        return a * b;
-    }
-};
+#undef BINARY_OP
 
-struct _Div {
-    template <typename TestClass>
-    static TestClass eval(const TestClass& a, const TestClass& b) {
-        return a / b;
-    }
-};
+#define COMPARE_OP(name, op)                       \
+    struct name {                                  \
+        template <typename T>                      \
+        static bool eval(const T& a, const T& b) { \
+            return a op b;                         \
+        }                                          \
+    };
 
-struct _And {
-    template <typename TestClass>
-    static TestClass eval(const TestClass& a, const TestClass& b) {
-        return a & b;
-    }
-};
+COMPARE_OP(_Lt, <)
+COMPARE_OP(_Le, <=)
+COMPARE_OP(_Gt, >)
+COMPARE_OP(_Ge, >=)
 
-struct _Or {
-    template <typename TestClass>
-    static TestClass eval(const TestClass& a, const TestClass& b) {
-        return a | b;
-    }
-};
+#undef COMPARE_OP
 
-struct _Xor {
-    template <typename TestClass>
-    static TestClass eval(const TestClass& a, const TestClass& b) {
-        return a ^ b;
-    }
-};
+#define ASSIGN_OP(name, op)                  \
+    struct name {                            \
+        template <typename T>                \
+        static void eval(T& a, const T& b) { \
+            a op b;                          \
+        }                                    \
+    };
 
-struct _AAdd {
-    template <typename TestClass>
-    static void eval(TestClass& a, const TestClass& b) {
-        a += b;
-    }
-};
+ASSIGN_OP(_AAdd, +=)
+ASSIGN_OP(_ASub, -=)
+ASSIGN_OP(_AMul, *=)
+ASSIGN_OP(_ADiv, /=)
+ASSIGN_OP(_AAnd, &=)
+ASSIGN_OP(_AOr, |=)
+ASSIGN_OP(_AXor, ^=)
 
-struct _ASub {
-    template <typename TestClass>
-    static void eval(TestClass& a, const TestClass& b) {
-        a -= b;
-    }
-};
-
-struct _AMul {
-    template <typename TestClass>
-    static void eval(TestClass& a, const TestClass& b) {
-        a *= b;
-    }
-};
-
-struct _ADiv {
-    template <typename TestClass>
-    static void eval(TestClass& a, const TestClass& b) {
-        a /= b;
-    }
-};
-
-struct _AAnd {
-    template <typename TestClass>
-    static void eval(TestClass& a, const TestClass& b) {
-        a &= b;
-    }
-};
-
-struct _AOr {
-    template <typename TestClass>
-    static void eval(TestClass& a, const TestClass& b) {
-        a |= b;
-    }
-};
-
-struct _AXor {
-    template <typename TestClass>
-    static void eval(TestClass& a, const TestClass& b) {
-        a ^= b;
-    }
-};
-
-struct _Lt {
-    template <typename TestClass>
-    static bool eval(const TestClass& a, const TestClass& b) {
-        return a < b;
-    }
-};
-
-struct _Le {
-    template <typename TestClass>
-    static bool eval(const TestClass& a, const TestClass& b) {
-        return a <= b;
-    }
-};
-
-struct _Gt {
-    template <typename TestClass>
-    static bool eval(const TestClass& a, const TestClass& b) {
-        return a > b;
-    }
-};
-
-struct _Ge {
-    template <typename TestClass>
-    static bool eval(const TestClass& a, const TestClass& b) {
-        return a >= b;
-    }
-};
+#undef ASSIGN_OP
 
 template <class Op>
 bool Interpreter::eval_op_assignment(Value left, Value _right) {
