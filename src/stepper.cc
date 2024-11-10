@@ -3,8 +3,8 @@
 #include <sstream>
 #include <vector>
 using namespace std;
-#include "stepper.hh"
 #include "i18n.hh"
+#include "stepper.hh"
 
 bool Stepper::step() {
     _err = 0;
@@ -39,10 +39,10 @@ void Stepper::generic_visit(AstNode *X) {
     push(new PopState(X->span));
 }
 
-void Stepper::Step(AstNode *ast) {
-    switch (ast->type()) {
+void Stepper::Step(AstNode *node) {
+    switch (node->type()) {
         case AstNodeType::Program: {
-            auto *X = cast<Program>(ast);
+            auto *X = cast<Program>(node);
             I.program_prepare(X);
             I.find_main();
             status(_T("The program begins."));
@@ -55,7 +55,7 @@ void Stepper::Step(AstNode *ast) {
             break;
         }
         case AstNodeType::Block: {
-            auto *X = cast<Block>(ast);
+            auto *X = cast<Block>(node);
             if (!X->stmts.empty()) {
                 push(new BlockVisitState(X));
                 Step(X->stmts[0]);
@@ -63,17 +63,17 @@ void Stepper::Step(AstNode *ast) {
             break;
         }
         case AstNodeType::BinaryExpr: {
-            auto *X = cast<BinaryExpr>(ast);
+            auto *X = cast<BinaryExpr>(node);
             generic_visit(X);
             break;
         }
         case AstNodeType::IncrExpr: {
-            auto *X = cast<IncrExpr>(ast);
+            auto *X = cast<IncrExpr>(node);
             generic_visit(X);
             break;
         }
         case AstNodeType::ExprStmt: {
-            auto *X = cast<ExprStmt>(ast);
+            auto *X = cast<ExprStmt>(node);
             if (is_assignment(X->expr)) {
                 visit_assignment(cast<BinaryExpr>(X->expr));
             } else if (is_write_expr(X->expr)) {
@@ -98,12 +98,12 @@ void Stepper::Step(AstNode *ast) {
             break;
         }
         case AstNodeType::DeclStmt: {
-            auto *X = cast<DeclStmt>(ast);
+            auto *X = cast<DeclStmt>(node);
             generic_visit(X);
             break;
         }
         case AstNodeType::IfStmt: {
-            auto *X = cast<IfStmt>(ast);
+            auto *X = cast<IfStmt>(node);
             I.eval(X->cond);
             Value cond = I._curr;
             if (!cond.is<Bool>()) {
@@ -126,20 +126,20 @@ void Stepper::Step(AstNode *ast) {
             break;
         }
         case AstNodeType::ForStmt: {
-            auto *X = cast<ForStmt>(ast);
+            auto *X = cast<ForStmt>(node);
             push(new ForVisitState(X));
             Step(X->init);
             break;
         }
         case AstNodeType::WhileStmt: {
-            auto *X = cast<WhileStmt>(ast);
+            auto *X = cast<WhileStmt>(node);
             auto *s = new WhileVisitState(X);
             s->step(this);
             push(s);
             break;
         }
         case AstNodeType::CallExpr: {
-            auto         *X = cast<CallExpr>(ast);
+            auto         *X = cast<CallExpr>(node);
             vector<Value> args;
             I.eval_arguments(X->args, args);
             if (I.type_conversion(X, args)) {
@@ -167,22 +167,22 @@ void Stepper::Step(AstNode *ast) {
             break;
         }
         case AstNodeType::Literal: {
-            auto *X = cast<Literal>(ast);
+            auto *X = cast<Literal>(node);
             eval(X);
             break;
         }
         case AstNodeType::FieldExpr: {
-            auto *X = cast<FieldExpr>(ast);
+            auto *X = cast<FieldExpr>(node);
             eval(X);
             break;
         }
         case AstNodeType::Identifier: {
-            auto *X = cast<Identifier>(ast);
+            auto *X = cast<Identifier>(node);
             eval(X);
             break;
         }
         case AstNodeType::IndexExpr: {
-            auto *X = cast<IndexExpr>(ast);
+            auto *X = cast<IndexExpr>(node);
             eval(X);
             break;
         }

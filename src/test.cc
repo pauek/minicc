@@ -4,12 +4,12 @@
 #include <map>
 #include "astpr.hh"
 #include "commands.hh"
+#include "i18n.hh"
 #include "interpreter.hh"
 #include "parser.hh"
 #include "pprint.hh"
 #include "semantic.hh"
 #include "stepper.hh"
-#include "i18n.hh"
 #include "vm.hh"
 #include "walker.hh"
 using namespace std;

@@ -56,8 +56,8 @@ class CmtPr {  // Comment Printer
     void          _write_comment(bool pre, bool post, bool _endl);
 
    public:
-    CmtPr(AstNode *ast, OutputWriter& out)
-        : ast_(ast), out_(out), index_(0), had_endl_(false), was_empty_(true) {}
+    CmtPr(AstNode *node, OutputWriter& out)
+        : ast_(node), out_(out), index_(0), had_endl_(false), was_empty_(true) {}
 
     CommentSeq *Next() const {
         return (index_ < ast_->comments.size() ? ast_->comments[index_] : 0);
@@ -129,14 +129,14 @@ struct PrettyPrinter {
 
     PrettyPrinter(ostream& o) : out(o) {}
 
-    void Print(AstNode *ast);
+    void Print(AstNode *node);
 };
 
-void PrettyPrinter::Print(AstNode *ast) {
-    assert(ast != nullptr);
-    switch (ast->type()) {
+void PrettyPrinter::Print(AstNode *node) {
+    assert(node != nullptr);
+    switch (node->type()) {
         case AstNodeType::Program: {
-            auto *X = cast<Program>(ast);
+            auto *X = cast<Program>(node);
             CmtPr cp(X, out);
             for (int i = 0; i < X->nodes.size(); i++) {
                 cp.comment();
@@ -162,7 +162,7 @@ void PrettyPrinter::Print(AstNode *ast) {
             break;
         }
         case AstNodeType::Include: {
-            auto  *X = cast<Include>(ast);
+            auto  *X = cast<Include>(node);
             CmtPr  cp(X, out);
             string delim = (X->global ? "<>" : "\"\"");
             out.write("#include ");
@@ -171,12 +171,12 @@ void PrettyPrinter::Print(AstNode *ast) {
             break;
         }
         case AstNodeType::Macro: {
-            auto *X = cast<Macro>(ast);
+            auto *X = cast<Macro>(node);
             out.write("#", X->macro);
             break;
         }
         case AstNodeType::Using: {
-            auto *X = cast<Using>(ast);
+            auto *X = cast<Using>(node);
             CmtPr cp(X, out);
             // WARNING: g++ here optimizes and changes order of instructions!!!
             out.write("using ");
@@ -190,7 +190,7 @@ void PrettyPrinter::Print(AstNode *ast) {
             break;
         }
         case AstNodeType::TypeSpec: {
-            auto *X = cast<TypeSpec>(ast);
+            auto *X = cast<TypeSpec>(node);
             CmtPr cp(X, out);
 #define QUALIFIER(qual, str)               \
     if (X->HasQualifier(TypeSpec::qual)) { \
@@ -212,7 +212,7 @@ void PrettyPrinter::Print(AstNode *ast) {
             break;
         }
         case AstNodeType::EnumDecl: {
-            auto *X = cast<EnumDecl>(ast);
+            auto *X = cast<EnumDecl>(node);
             CmtPr cp(X, out);
             out.write("enum ");
             cp.comment_space();
@@ -238,7 +238,7 @@ void PrettyPrinter::Print(AstNode *ast) {
             break;
         }
         case AstNodeType::TypedefDecl: {
-            auto *X = cast<TypedefDecl>(ast);
+            auto *X = cast<TypedefDecl>(node);
             CmtPr cp(X, out);
             out.write("typedef ");
             cp.comment_space();
@@ -251,7 +251,7 @@ void PrettyPrinter::Print(AstNode *ast) {
             break;
         }
         case AstNodeType::StructDecl: {
-            auto *X = cast<StructDecl>(ast);
+            auto *X = cast<StructDecl>(node);
             CmtPr cp(X, out);
             // WARNING: g++ here optimizes and changes order of instructions!!!
             out.write("struct ");
@@ -276,7 +276,7 @@ void PrettyPrinter::Print(AstNode *ast) {
             break;
         }
         case AstNodeType::FuncDecl: {
-            auto *X = cast<FuncDecl>(ast);
+            auto *X = cast<FuncDecl>(node);
             CmtPr cp(X, out);
             Print(X->return_typespec);
             // WARNING: g++ here optimizes and changes order of instructions!!!
@@ -321,7 +321,7 @@ void PrettyPrinter::Print(AstNode *ast) {
             break;
         }
         case AstNodeType::Block: {
-            auto *X = cast<Block>(ast);
+            auto *X = cast<Block>(node);
             CmtPr cp(X, out);
             if (X->stmts.empty()) {
                 out.write("{");
@@ -346,7 +346,7 @@ void PrettyPrinter::Print(AstNode *ast) {
             break;
         }
         case AstNodeType::Identifier: {
-            auto *X = cast<Identifier>(ast);
+            auto *X = cast<Identifier>(node);
             CmtPr cp(X, out);
             for (Identifier *pre : X->prefix) {
                 Print(pre);
@@ -375,7 +375,7 @@ void PrettyPrinter::Print(AstNode *ast) {
             break;
         }
         case AstNodeType::Literal: {
-            auto *X = cast<Literal>(ast);
+            auto *X = cast<Literal>(node);
             CmtPr cp(X, out);
             if (X->paren) {
                 out.write("(");
@@ -408,7 +408,7 @@ void PrettyPrinter::Print(AstNode *ast) {
             break;
         }
         case AstNodeType::BinaryExpr: {
-            auto *X = cast<BinaryExpr>(ast);
+            auto *X = cast<BinaryExpr>(node);
             CmtPr cp(X, out);
             if (X->paren) {
                 // WARNING: g++ here optimizes and changes order of instructions!!!
@@ -433,7 +433,7 @@ void PrettyPrinter::Print(AstNode *ast) {
             break;
         }
         case AstNodeType::VarDecl: {
-            auto *X = cast<VarDecl>(ast);
+            auto *X = cast<VarDecl>(node);
             CmtPr cp(X, out);
             if (X->kind == Decl::Pointer) {
                 out.write("*");
@@ -444,7 +444,7 @@ void PrettyPrinter::Print(AstNode *ast) {
             break;
         }
         case AstNodeType::ExprList: {
-            auto *X = cast<ExprList>(ast);
+            auto *X = cast<ExprList>(node);
             CmtPr cp(X, out);
             out.write("{");
             for (int i = 0; i < X->exprs.size(); i++) {
@@ -457,7 +457,7 @@ void PrettyPrinter::Print(AstNode *ast) {
             break;
         }
         case AstNodeType::ArrayDecl: {
-            auto *X = cast<ArrayDecl>(ast);
+            auto *X = cast<ArrayDecl>(node);
             CmtPr cp(X, out);
             out.write(X->name);
             cp.space_comment_space();
@@ -471,7 +471,7 @@ void PrettyPrinter::Print(AstNode *ast) {
             break;
         }
         case AstNodeType::ObjDecl: {
-            auto *X = cast<ObjDecl>(ast);
+            auto *X = cast<ObjDecl>(node);
             CmtPr cp(X, out);
             out.write(X->name);
             cp.space_comment();
@@ -489,7 +489,7 @@ void PrettyPrinter::Print(AstNode *ast) {
             break;
         }
         case AstNodeType::DeclStmt: {
-            auto *X = cast<DeclStmt>(ast);
+            auto *X = cast<DeclStmt>(node);
             CmtPr cp(X, out);
             Print(X->typespec);
             out.write(" ");
@@ -511,7 +511,7 @@ void PrettyPrinter::Print(AstNode *ast) {
             break;
         }
         case AstNodeType::ExprStmt: {
-            auto *X = cast<ExprStmt>(ast);
+            auto *X = cast<ExprStmt>(node);
             CmtPr cp(X, out);
             if (X->is_return) {
                 out.write("return ");
@@ -525,7 +525,7 @@ void PrettyPrinter::Print(AstNode *ast) {
             break;
         }
         case AstNodeType::IfStmt: {
-            auto *X = cast<IfStmt>(ast);
+            auto *X = cast<IfStmt>(node);
             CmtPr cp(X, out);
             out.write("if ");
             cp.comment_space();
@@ -547,7 +547,7 @@ void PrettyPrinter::Print(AstNode *ast) {
             break;
         }
         case AstNodeType::ForStmt: {
-            auto *X = cast<ForStmt>(ast);
+            auto *X = cast<ForStmt>(node);
             CmtPr cp(X, out);
             out.write("for ");
             cp.comment_space();
@@ -575,7 +575,7 @@ void PrettyPrinter::Print(AstNode *ast) {
             break;
         }
         case AstNodeType::WhileStmt: {
-            auto *X = cast<WhileStmt>(ast);
+            auto *X = cast<WhileStmt>(node);
             CmtPr cp(X, out);
             // WARNING: g++ here optimizes and changes order of instructions!!!
             out.write("while ");
@@ -597,7 +597,7 @@ void PrettyPrinter::Print(AstNode *ast) {
             break;
         }
         case AstNodeType::JumpStmt: {
-            auto  *X = cast<JumpStmt>(ast);
+            auto  *X = cast<JumpStmt>(node);
             CmtPr  cp(X, out);
             string keyword[3] = {"break", "continue", "goto"};
             out.write(keyword[X->kind]);
@@ -613,7 +613,7 @@ void PrettyPrinter::Print(AstNode *ast) {
             break;
         }
         case AstNodeType::CallExpr: {
-            auto *X = cast<CallExpr>(ast);
+            auto *X = cast<CallExpr>(node);
             CmtPr cp(X, out);
             if (X->paren) {
                 out.write("(");
@@ -639,7 +639,7 @@ void PrettyPrinter::Print(AstNode *ast) {
             break;
         }
         case AstNodeType::IndexExpr: {
-            auto *X = cast<IndexExpr>(ast);
+            auto *X = cast<IndexExpr>(node);
             if (X->paren) {
                 out.write("(");
             }
@@ -653,7 +653,7 @@ void PrettyPrinter::Print(AstNode *ast) {
             break;
         }
         case AstNodeType::FieldExpr: {
-            auto *X = cast<FieldExpr>(ast);
+            auto *X = cast<FieldExpr>(node);
             if (X->paren) {
                 out.write("(");
             }
@@ -665,7 +665,7 @@ void PrettyPrinter::Print(AstNode *ast) {
             break;
         }
         case AstNodeType::CondExpr: {
-            auto *X = cast<CondExpr>(ast);
+            auto *X = cast<CondExpr>(node);
             CmtPr cp(X, out);
             if (X->paren) {
                 out.write("(");
@@ -687,7 +687,7 @@ void PrettyPrinter::Print(AstNode *ast) {
             break;
         }
         case AstNodeType::SignExpr: {
-            auto *X = cast<SignExpr>(ast);
+            auto *X = cast<SignExpr>(node);
             if (X->paren) {
                 out.write("(");
             }
@@ -699,7 +699,7 @@ void PrettyPrinter::Print(AstNode *ast) {
             break;
         }
         case AstNodeType::IncrExpr: {
-            auto *X = cast<IncrExpr>(ast);
+            auto *X = cast<IncrExpr>(node);
             CmtPr cp(X, out);
             if (X->paren) {
                 out.write("(");
@@ -719,7 +719,7 @@ void PrettyPrinter::Print(AstNode *ast) {
             break;
         }
         case AstNodeType::NegExpr: {
-            auto *X = cast<NegExpr>(ast);
+            auto *X = cast<NegExpr>(node);
             CmtPr cp(X, out);
             if (X->paren) {
                 out.write("(");
@@ -733,7 +733,7 @@ void PrettyPrinter::Print(AstNode *ast) {
             break;
         }
         case AstNodeType::AddrExpr: {
-            auto *X = cast<AddrExpr>(ast);
+            auto *X = cast<AddrExpr>(node);
             CmtPr cp(X, out);
             if (X->paren) {
                 out.write("(");
@@ -749,7 +749,7 @@ void PrettyPrinter::Print(AstNode *ast) {
             break;
         }
         case AstNodeType::DerefExpr: {
-            auto *X = cast<DerefExpr>(ast);
+            auto *X = cast<DerefExpr>(node);
             CmtPr cp(X, out);
             if (X->paren) {
                 out.write("(");
@@ -768,12 +768,12 @@ void PrettyPrinter::Print(AstNode *ast) {
     }
 }
 
-void pretty_print(AstNode *ast, ostream& out) {
-    PrettyPrinter(out).Print(ast);
+void pretty_print(AstNode *node, ostream& out) {
+    PrettyPrinter(out).Print(node);
 }
 
-string pretty_to_string(AstNode *ast) {
+string pretty_to_string(AstNode *node) {
     stringstream ss;
-    pretty_print(ast, ss);
+    pretty_print(node, ss);
     return ss.str();
 }

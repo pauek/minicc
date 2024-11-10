@@ -188,7 +188,7 @@ struct Expr : public AstNode {
 
 template <AstNodeType T>
 struct ExprDerived : Expr {
-    static bool is_instance(const AstNode *ast) { return ast->type() == T; }
+    static bool is_instance(const AstNode *node) { return node->type() == T; }
 
     ExprDerived() { type_ = T; }
 };
@@ -241,7 +241,7 @@ struct Identifier : ExprDerived<AstNodeType::Identifier> {
     Identifier               *GetPotentialNamespaceOrClass() const;
     std::vector<Identifier *> GetNonNamespaces();
 
-    static bool is_instance(const AstNode *ast) { return ast->type() == AstNodeType::Identifier; }
+    static bool is_instance(const AstNode *node) { return node->type() == AstNodeType::Identifier; }
 };
 
 struct TypeSpec : public AstDerived<AstNodeType::TypeSpec> {
@@ -288,7 +288,7 @@ template <AstNodeType T>
 struct UnaryExprDerived : UnaryExpr {
     UnaryExprDerived() { type_ = T; }
 
-    static bool is_instance(const AstNode *ast) { return ast->type() == T; }
+    static bool is_instance(const AstNode *node) { return node->type() == T; }
 };
 
 struct SignExpr : public UnaryExprDerived<AstNodeType::SignExpr> {
@@ -344,7 +344,7 @@ struct Decl : public AstNode {
 
 template <AstNodeType T>
 struct DeclDerived : Decl {
-    static bool is_instance(const AstNode *ast) { return ast->type() == T; }
+    static bool is_instance(const AstNode *node) { return node->type() == T; }
 
     DeclDerived() { type_ = T; }
 };
@@ -403,7 +403,7 @@ struct Stmt : public AstNode {};
 
 template <AstNodeType T>
 struct StmtDerived : Stmt {
-    static bool is_instance(const AstNode *ast) { return ast->type() == T; }
+    static bool is_instance(const AstNode *node) { return node->type() == T; }
 
     StmtDerived() { type_ = T; }
 };
@@ -462,16 +462,17 @@ struct JumpStmt : public StmtDerived<AstNodeType::JumpStmt> {
         Goto = 2,
     };
 
-    Kind        kind = Unknown;
+    Kind kind = Unknown;
+
     std::string label;
     static Kind KeywordToType(std::string s);
 };
 
-std::string describe(AstNode *ast);
-bool        has_errors(AstNode *ast);
-bool        is_read_expr(AstNode *ast);
-bool        is_write_expr(AstNode *ast);
-bool        is_assignment(AstNode *ast);
-void        collect_rights(AstNode *ast, std::list<Expr *>& L);
+std::string describe(AstNode *node);
+bool        has_errors(AstNode *node);
+bool        is_read_expr(AstNode *node);
+bool        is_write_expr(AstNode *node);
+bool        is_assignment(AstNode *node);
+void        collect_rights(AstNode *node, std::list<Expr *>& L);
 
 #endif

@@ -376,11 +376,11 @@ bool Interpreter::bind_field(Value obj, string method_name) {
 }
 
 // Eval
-void Interpreter::eval(AstNode *ast) {
-    assert(ast != nullptr);
-    switch (ast->type()) {
+void Interpreter::eval(AstNode *node) {
+    assert(node != nullptr);
+    switch (node->type()) {
         case AstNodeType::Program: {
-            Program *X = cast<Program>(ast);
+            Program *X = cast<Program>(node);
             program_prepare(X);
             find_main();
             _curr.as<Callable>().call(vector<Value>());
@@ -389,19 +389,19 @@ void Interpreter::eval(AstNode *ast) {
         case AstNodeType::Macro:
             break;
         case AstNodeType::Using: {
-            Using *X = cast<Using>(ast);
+            Using *X = cast<Using>(node);
             if (!using_namespace(X->namespc)) {
                 _error(_T("No se ha encontrado el \"namespace\" '%s'.", X->namespc.c_str()));
             }
             break;
         }
         case AstNodeType::Include: {
-            Include *X = cast<Include>(ast);
+            Include *X = cast<Include>(node);
             include_header_file(X->filename);
             break;
         }
         case AstNodeType::FuncDecl: {
-            FuncDecl *X = cast<FuncDecl>(ast);
+            FuncDecl *X = cast<FuncDecl>(node);
             string    funcname = X->FuncName();
             auto     *return_type = get_type(X->return_typespec);  // return_type == 0 means 'void'
             Function *functype = new Function(return_type);
@@ -416,7 +416,7 @@ void Interpreter::eval(AstNode *ast) {
             break;
         }
         case AstNodeType::StructDecl: {
-            StructDecl *X = cast<StructDecl>(ast);
+            StructDecl *X = cast<StructDecl>(node);
             Struct     *type = new Struct(X->name);
             for (int i = 0; i < X->decls.size(); i++) {
                 DeclStmt&   decl = *X->decls[i];
@@ -440,7 +440,7 @@ void Interpreter::eval(AstNode *ast) {
             break;
         }
         case AstNodeType::Identifier: {
-            Identifier *X = cast<Identifier>(ast);
+            Identifier *X = cast<Identifier>(node);
             Value       v;
             // Try a namespace
             Identifier *namespc_or_class = X->GetPotentialNamespaceOrClass();
@@ -483,7 +483,7 @@ void Interpreter::eval(AstNode *ast) {
             break;
         }
         case AstNodeType::Literal: {
-            Literal *X = cast<Literal>(ast);
+            Literal *X = cast<Literal>(node);
             switch (X->kind) {
                 case Literal::String:
                     _curr = Value(*X->val.as_string.s);
@@ -506,7 +506,7 @@ void Interpreter::eval(AstNode *ast) {
             break;
         }
         case AstNodeType::BinaryExpr: {
-            BinaryExpr *X = cast<BinaryExpr>(ast);
+            BinaryExpr *X = cast<BinaryExpr>(node);
             eval(X->left);
             Value left = _curr;
             if (X->kind != Expr::Eq) {
@@ -671,14 +671,14 @@ void Interpreter::eval(AstNode *ast) {
             break;
         }
         case AstNodeType::Block: {
-            Block *X = cast<Block>(ast);
+            Block *X = cast<Block>(node);
             for (Stmt *stmt : X->stmts) {
                 eval(stmt);
             }
             break;
         }
         case AstNodeType::VarDecl: {
-            VarDecl    *X = cast<VarDecl>(ast);
+            VarDecl    *X = cast<VarDecl>(node);
             string      type_name = X->typespec->TypeStr();
             const Type *type = get_type(X->typespec);
             if (type == 0) {
@@ -696,7 +696,7 @@ void Interpreter::eval(AstNode *ast) {
             break;
         }
         case AstNodeType::ArrayDecl: {
-            ArrayDecl  *X = cast<ArrayDecl>(ast);
+            ArrayDecl  *X = cast<ArrayDecl>(node);
             Value       init = _curr;
             vector<int> sizes;
             for (int i = 0; i < X->sizes.size(); i++) {
@@ -721,7 +721,7 @@ void Interpreter::eval(AstNode *ast) {
             break;
         }
         case AstNodeType::ObjDecl: {
-            ObjDecl    *X = cast<ObjDecl>(ast);
+            ObjDecl    *X = cast<ObjDecl>(node);
             const Type *type = get_type(X->typespec);
             if (type != 0) {
                 vector<Value> args;
@@ -747,7 +747,7 @@ void Interpreter::eval(AstNode *ast) {
             break;
         }
         case AstNodeType::DeclStmt: {
-            DeclStmt *X = cast<DeclStmt>(ast);
+            DeclStmt *X = cast<DeclStmt>(node);
             for (DeclStmt::Item& item : X->items) {
                 if (item.init) {
                     eval(item.init);
@@ -759,7 +759,7 @@ void Interpreter::eval(AstNode *ast) {
             break;
         }
         case AstNodeType::ExprStmt: {
-            ExprStmt *X = cast<ExprStmt>(ast);
+            ExprStmt *X = cast<ExprStmt>(node);
             if (X->expr) {
                 eval(X->expr);
                 if (X->is_return) {
@@ -769,7 +769,7 @@ void Interpreter::eval(AstNode *ast) {
             break;
         }
         case AstNodeType::IfStmt: {
-            IfStmt *X = cast<IfStmt>(ast);
+            IfStmt *X = cast<IfStmt>(node);
             eval(X->cond);
             _curr = Reference::deref(_curr);
             if (!_curr.is<Bool>()) {
@@ -787,7 +787,7 @@ void Interpreter::eval(AstNode *ast) {
             break;
         }
         case AstNodeType::ForStmt: {
-            ForStmt *X = cast<ForStmt>(ast);
+            ForStmt *X = cast<ForStmt>(node);
             pushenv("");
             if (X->init) {
                 eval(X->init);
@@ -812,7 +812,7 @@ void Interpreter::eval(AstNode *ast) {
             break;
         }
         case AstNodeType::WhileStmt: {
-            WhileStmt *X = cast<WhileStmt>(ast);
+            WhileStmt *X = cast<WhileStmt>(node);
             pushenv("");
             while (true) {
                 eval(X->cond);
@@ -831,7 +831,7 @@ void Interpreter::eval(AstNode *ast) {
             break;
         }
         case AstNodeType::CallExpr: {
-            CallExpr     *X = cast<CallExpr>(ast);
+            CallExpr     *X = cast<CallExpr>(node);
             vector<Value> args;
             eval_arguments(X->args, args);
             if (type_conversion(X, args)) {
@@ -842,7 +842,7 @@ void Interpreter::eval(AstNode *ast) {
             break;
         }
         case AstNodeType::IndexExpr: {
-            IndexExpr *X = cast<IndexExpr>(ast);
+            IndexExpr *X = cast<IndexExpr>(node);
             eval(X->base);
             Value base = Reference::deref(_curr);
             eval(X->index);
@@ -867,7 +867,7 @@ void Interpreter::eval(AstNode *ast) {
             break;
         }
         case AstNodeType::FieldExpr: {
-            FieldExpr *X = cast<FieldExpr>(ast);
+            FieldExpr *X = cast<FieldExpr>(node);
             eval(X->base);
             _curr = Reference::deref(_curr);
             if (X->pointer) {
@@ -894,7 +894,7 @@ void Interpreter::eval(AstNode *ast) {
             break;
         }
         case AstNodeType::CondExpr: {
-            CondExpr *X = cast<CondExpr>(ast);
+            CondExpr *X = cast<CondExpr>(node);
             eval(X->cond);
             _curr = Reference::deref(_curr);
             if (!_curr.is<Bool>()) {
@@ -913,7 +913,7 @@ void Interpreter::eval(AstNode *ast) {
             break;
         }
         case AstNodeType::ExprList: {
-            ExprList      *X = cast<ExprList>(ast);
+            ExprList      *X = cast<ExprList>(node);
             Value          v = VectorValue::make();
             vector<Value>& vals = v.as<VectorValue>();
             for (Expr *e : X->exprs) {
@@ -924,7 +924,7 @@ void Interpreter::eval(AstNode *ast) {
             break;
         }
         case AstNodeType::SignExpr: {
-            SignExpr *X = cast<SignExpr>(ast);
+            SignExpr *X = cast<SignExpr>(node);
             eval(X->expr);
             if (X->kind == SignExpr::Positive) {
                 return;
@@ -944,7 +944,7 @@ void Interpreter::eval(AstNode *ast) {
             break;
         }
         case AstNodeType::IncrExpr: {
-            IncrExpr *X = cast<IncrExpr>(ast);
+            IncrExpr *X = cast<IncrExpr>(node);
             eval(X->expr);
             if (!_curr.is<Reference>()) {
                 _error(_T("Hay que incrementar una variable, no un valor"));
@@ -974,7 +974,7 @@ void Interpreter::eval(AstNode *ast) {
             break;
         }
         case AstNodeType::NegExpr: {
-            NegExpr *X = cast<NegExpr>(ast);
+            NegExpr *X = cast<NegExpr>(node);
             eval(X->expr);
             if (!_curr.is<Bool>()) {
                 _error(_T("Para negar una expresión ésta debe ser de tipo 'bool'"));
@@ -983,7 +983,7 @@ void Interpreter::eval(AstNode *ast) {
             break;
         }
         case AstNodeType::TypedefDecl: {
-            TypedefDecl *X = cast<TypedefDecl>(ast);
+            TypedefDecl *X = cast<TypedefDecl>(node);
             string       name = X->decl->name;
             const Type  *type = get_type(X->decl->typespec);
             assert(type != 0);
@@ -1009,7 +1009,7 @@ void Interpreter::eval(AstNode *ast) {
             break;
         }
         case AstNodeType::DerefExpr: {
-            DerefExpr *X = cast<DerefExpr>(ast);
+            DerefExpr *X = cast<DerefExpr>(node);
             eval(X->expr);
             _curr = Reference::deref(_curr);
             if (!call_operator("*")) {
@@ -1022,6 +1022,6 @@ void Interpreter::eval(AstNode *ast) {
     }
 }
 
-void eval(AstNode *ast, std::istream& in, std::ostream& out) {
-    Interpreter(&in, &out).eval(ast);
+void eval(AstNode *node, std::istream& in, std::ostream& out) {
+    Interpreter(&in, &out).eval(node);
 }

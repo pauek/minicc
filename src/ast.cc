@@ -277,10 +277,10 @@ void collect_rights(AstNode *node, list<Expr *>& L) {
     }
 }
 
-bool is_read_expr(AstNode *ast) {
-    switch (ast->type()) {
+bool is_read_expr(AstNode *node) {
+    switch (node->type()) {
         case AstNodeType::BinaryExpr: {
-            BinaryExpr *X = cast<BinaryExpr>(ast);
+            BinaryExpr *X = cast<BinaryExpr>(node);
             if (is_a<Identifier>(X->left)) {
                 Identifier *id = cast<Identifier>(X->left);
                 return id->name == "cin";
@@ -293,10 +293,10 @@ bool is_read_expr(AstNode *ast) {
     }
 }
 
-bool is_write_expr(AstNode *ast) {
-    switch (ast->type()) {
+bool is_write_expr(AstNode *node) {
+    switch (node->type()) {
         case AstNodeType::BinaryExpr: {
-            BinaryExpr *X = cast<BinaryExpr>(ast);
+            BinaryExpr *X = cast<BinaryExpr>(node);
             if (is_a<Identifier>(X->left)) {
                 Identifier *id = cast<Identifier>(X->left);
                 return id->name == "cout";

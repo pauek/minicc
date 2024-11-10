@@ -11,7 +11,7 @@ struct Walker {
 
     Walker(Delegate& D_) : D(D_) {}
 
-    void walk(AstNode *ast);
+    void walk(AstNode *node);
 };
 
 template <typename Delegate>
@@ -309,8 +309,8 @@ void Walker<Delegate>::walk(AstNode *node) {
 }
 
 template <typename Delegate>
-void walk(AstNode *ast, Delegate&& D) {
-    Walker<Delegate>(D).walk(ast);
+void walk(AstNode *node, Delegate&& D) {
+    Walker<Delegate>(D).walk(node);
 }
 
 std::vector<Error *> collect_errors(AstNode *X);

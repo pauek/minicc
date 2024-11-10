@@ -46,7 +46,7 @@ struct AstPrinter {
 
     AstPrinter(ostream& o) : out(o) {}
 
-    void Print(AstNode *ast);
+    void Print(AstNode *node);
 };
 
 void AstPrinter::Print(AstNode *node) {
@@ -529,6 +529,6 @@ void AstPrinter::Print(AstNode *node) {
     }
 }
 
-void ast_print(AstNode *ast, ostream& out) {
-    AstPrinter(out).Print(ast);
+void ast_print(AstNode *node, ostream& out) {
+    AstPrinter(out).Print(node);
 }

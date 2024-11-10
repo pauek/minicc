@@ -15,12 +15,12 @@ struct ErrorCollector {
     }
 };
 
-std::vector<Error *> collect_errors(AstNode *ast) {
+std::vector<Error *> collect_errors(AstNode *node) {
     std::vector<Error *> result;
-    if (ast == 0) {
+    if (node == 0) {
         return result;
     }
-    walk(ast, ErrorCollector(result));
+    walk(node, ErrorCollector(result));
     for (int i = 0; i < result.size(); i++) {
         if (result[i]->stopper) {
             result.resize(i + 1);

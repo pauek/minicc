@@ -50,7 +50,7 @@ struct SemanticAnalyzer : public WithEnvironment {
     template <class Op>
     bool eval_comparison(Value left, Value right);
 
-    void analyze(AstNode *ast);
+    void analyze(AstNode *node);
 };
 
 struct _Add {
@@ -1434,6 +1434,6 @@ void SemanticAnalyzer::analyze(AstNode *node) {
     }
 }
 
-void analyze_semantics(AstNode *ast) {
-    SemanticAnalyzer().analyze(ast);
+void analyze_semantics(AstNode *node) {
+    SemanticAnalyzer().analyze(node);
 }
