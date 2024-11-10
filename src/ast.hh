@@ -452,8 +452,6 @@ struct FuncDecl : public AstDerived<AstNodeType::FuncDecl> {
     std::vector<Param *> params;
     Block               *block;
 
-    FuncDecl(Identifier *_id) : id(_id) {}
-
     std::string FuncName() const { return id->name; }
 };
 

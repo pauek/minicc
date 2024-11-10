@@ -285,7 +285,8 @@ AstNode *Parser::parse_func_or_var(AstNode *parent) {
     c[1] = _lexer.skip();
     if (_lexer.curr() == '(') {
         _lexer.discard();
-        FuncDecl *fn = new FuncDecl(id);
+        FuncDecl *fn = new FuncDecl();
+		fn->id = id;
         fn->parent = parent;
         id->parent = fn;
         fn->comments.assign(c, c + 2);
