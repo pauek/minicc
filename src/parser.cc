@@ -24,21 +24,21 @@ static const char *_basic_types[] = {
 };
 
 Parser::Parser(istream *i, std::ostream *err) : _lexer(i), _err(err) {
+	_ast = new Ast();
     for (int i = 0; i < sizeof(_basic_types) / sizeof(char *); i++) {
         _types.insert(_basic_types[i]);
     }
 }
 
 StmtError *Parser::stmt_error(string msg) {
-    StmtError *s = new StmtError();
+    StmtError *s = _ast->create_node<StmtError>();
     s->code = _lexer.skip_to(";");
     error(s, msg);
     return s;
 }
 
 AstNode *Parser::parse() {
-    Ast     *ast = new Ast();
-    Program *prog = ast->create_node<Program>();
+    Program *prog = _ast->create_node<Program>();
     if (!_lexer.next()) {
         error(prog, _T("Error when reading input"));
         return prog;
@@ -113,13 +113,13 @@ AstNode *Parser::parse_macro(AstNode *parent) {
         _lexer.skip_to("\n");
         Pos macro_fin = _lexer.pos();
         _lexer.next();
-        Macro *m = new Macro();
+        Macro *m = _ast->create_node<Macro>();
         m->macro = _lexer.substr(macro_ini, macro_fin);
         m->span = Span(ini, macro_fin);
         fatal_error(macro_fin, _T("Macro '#%s' unknown.", macro_name.c_str()));
         return m;
     }
-    Include *inc = new Include();
+    Include *inc = _ast->create_node<Include>();
     _skip(inc);
     char open = _lexer.curr();
     if (open != '"' && open != '<') {
@@ -156,7 +156,7 @@ AstNode *Parser::parse_macro(AstNode *parent) {
 }
 
 AstNode *Parser::parse_using_declaration(AstNode *parent) {
-    Using *u = new Using();
+    Using *u = _ast->create_node<Using>();
     Pos    ini = _lexer.pos();
     _lexer.consume("using");
     _skip(u);
@@ -178,8 +178,9 @@ AstNode *Parser::parse_using_declaration(AstNode *parent) {
 }
 
 Identifier *Parser::parse_ident(AstNode *parent, Token tok, Pos ini) {
-    Identifier *id = new Identifier(_lexer.substr(tok));
-    Pos         fin = _lexer.pos();
+    Identifier *id = new Identifier();
+    id->name = _lexer.substr(tok);
+    Pos fin = _lexer.pos();
     while (true) {
         tok = _lexer.peek_token();
         if (_is_type(id->name) and tok.type == Token::LT) {  // template_id
@@ -218,7 +219,8 @@ bool Parser::_parse_type_process_token(TypeSpec *type, Token tok, Pos p) {
         if (type->id != 0) {
             error(type, _T("Basic types are not templates"));
         }
-        type->id = new Identifier(_lexer.substr(tok));
+        type->id = new Identifier();
+		type->id->name = _lexer.substr(tok);
         return true;
     }
     if (tok.is_type_qual()) {

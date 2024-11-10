@@ -346,8 +346,6 @@ struct Identifier : ExprDerived<AstNodeType::Identifier> {
     std::vector<TypeSpec *>   subtypes;
     bool                      is_namespace = false;  // (used by the interpreter)
 
-    Identifier(std::string name_) : name(name_) {}
-
     bool is_template() const { return !subtypes.empty(); }
 
     std::string               TypeStr() const;

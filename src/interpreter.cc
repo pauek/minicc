@@ -476,10 +476,9 @@ void Interpreter::eval(AstNode *ast) {
             break;
         }
         case AstNodeType::FuncDecl: {
-            FuncDecl   *X = cast<FuncDecl>(ast);
-            string      funcname = X->FuncName();
-            const Type *return_type =
-                get_type(X->return_typespec);  // return_type == 0 means 'void'
+            FuncDecl *X = cast<FuncDecl>(ast);
+            string    funcname = X->FuncName();
+            auto     *return_type = get_type(X->return_typespec);  // return_type == 0 means 'void'
             Function *functype = new Function(return_type);
             for (auto p : X->params) {
                 const Type *param_type = get_type(p->typespec);
@@ -536,7 +535,8 @@ void Interpreter::eval(AstNode *ast) {
             }
             // Try a static variable in a class
             if (namespc_or_class != 0) {
-                Identifier  fid(namespc_or_class->name);
+                Identifier fid;
+                fid.name = namespc_or_class->name;
                 TypeSpec    spec(&fid);
                 const Type *type = get_type(&spec);
                 if (type != 0 and !type->get_static(X->name, v)) {

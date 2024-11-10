@@ -17,6 +17,7 @@ struct ParseError {
 };
 
 class Parser {
+    Ast                  *_ast;
     Lexer                 _lexer;
     std::ostream         *_err;
     std::set<std::string> _types;  // things known as types

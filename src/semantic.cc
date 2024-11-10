@@ -865,7 +865,8 @@ void SemanticAnalyzer::analyze(AstNode *ast) {
             }
             // Try a static variable in a class
             if (namespc_or_class != 0) {
-                Identifier  fid(namespc_or_class->name);
+                Identifier  fid;
+				fid.name = namespc_or_class->name;
                 TypeSpec    spec(&fid);
                 const Type *type = get_type(&spec);
                 if (type != 0 and !type->get_static(X->name, v)) {
