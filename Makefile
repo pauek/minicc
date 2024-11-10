@@ -9,11 +9,8 @@ CXXFLAGS=-std=c++17
 
 all: debug
 
-depend: .depend
-
-src/.depend: $(SOURCES) $(HEADERS)
+./src/.depend: $(SOURCES) $(HEADERS)
 	@rm -f ./src/.depend
-	@echo "Computing dependencies..."
 	@$(CC) $(CXXFLAGS) -MM $^ >> ./src/.depend;
 
 -include ./src/.depend
