@@ -7,7 +7,7 @@
 void parse_test_file(string filename, string& code, string& in, string& out, string& err);
 void compare_result(string filename, string sout, string serr, string out, string err);
 
-typedef void (*TestFunc)(Ast *, std::istream&, std::ostream&);
+typedef void (*TestFunc)(AstNode *, std::istream&, std::ostream&);
 
 template <TestFunc func>
 int test(Args& args) {
@@ -18,7 +18,7 @@ int test(Args& args) {
         std::istringstream scode(code), sin(in);
         std::ostringstream sout, serr;
         try {
-            Ast *program = Parser(&scode, &serr).parse();
+            AstNode *program = Parser(&scode, &serr).parse();
             func(program, sin, sout);
             for (Error *e : collect_errors(program)) {
                 serr << filename << "[" << e->span << "]: " << e->msg << endl;

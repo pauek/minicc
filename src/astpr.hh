@@ -3,5 +3,5 @@
 #include <assert.h>
 #include <iostream>
 #include "ast.hh"
-void ast_print(Ast *ast, std::ostream& o = std::cout);
+void ast_print(AstNode *ast, std::ostream& o = std::cout);
 #endif

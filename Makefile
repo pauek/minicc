@@ -5,7 +5,7 @@ SOURCES=$(wildcard src/*.cc)
 HEADERS=$(wildcard src/*.hh)
 OBJECTS=$(patsubst src/%.cc,src/%.o,$(SOURCES))
 
-CXXFLAGS=-std=c++17
+CXXFLAGS=-std=c++20
 
 all: debug
 

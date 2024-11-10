@@ -45,7 +45,7 @@ class Interpreter : WithEnvironment {
    public:
     Interpreter(std::istream *i, std::ostream *o) : WithEnvironment(i, o) {}
 
-    void eval(Ast *ast);
+    void eval(AstNode *ast);
     friend class UserFunc;
 };
 
@@ -61,5 +61,5 @@ struct UserFunc : public Func {
     }
 };
 
-void eval(Ast *ast, std::istream& in, std::ostream& out);
+void eval(AstNode *ast, std::istream& in, std::ostream& out);
 #endif

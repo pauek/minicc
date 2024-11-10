@@ -48,7 +48,7 @@ int cmd_ast(Args& args) {
     string   filename = args.shift();
     ifstream codefile(filename);
     Parser   P(&codefile);
-    Ast     *program = P.parse();
+    AstNode *program = P.parse();
     ast_print(program);
     return 0;
 }
@@ -60,7 +60,7 @@ int cmd_prettyprint(Args& args) {
     }
     string filename = args.shift();
     try {
-        Ast *program = parse_file(filename);
+        AstNode *program = parse_file(filename);
         pretty_print(program);
     } catch (Error *e) {
         cerr << _T("Pretty Print Error")
@@ -70,7 +70,7 @@ int cmd_prettyprint(Args& args) {
     return 0;
 }
 
-void _analyze_semantics(Ast *program, string filename) {
+void _analyze_semantics(AstNode *program, string filename) {
     analyze_semantics(program);
     vector<Error *> errors = collect_errors(program);
     for (Error *e : errors) {
@@ -90,7 +90,7 @@ int cmd_eval(Args& args) {
         string   filename = args.shift();
         ifstream codefile(filename);
         Parser   P(&codefile);
-        Ast     *program = P.parse();
+        AstNode *program = P.parse();
         _analyze_semantics(program, filename);
         eval(program, cin, cout);
         vector<Error *> errors = collect_errors(program);
@@ -117,7 +117,7 @@ int cmd_step(Args& args) {
         string   filename = args.shift();
         ifstream codefile(filename);
         Parser   P(&codefile);
-        Ast     *program = P.parse();
+        AstNode *program = P.parse();
         _analyze_semantics(program, filename);
         Stepper S;
         S.Step(program);

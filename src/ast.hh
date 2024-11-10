@@ -40,10 +40,11 @@ struct Comment {
 
 struct CommentSeq {
     std::vector<Comment> comments;
-    bool                 has_endln() const;
-    bool                 ends_with_empty_line() const;
-    void                 remove_endlns();
-    void                 only_one_endln_at_end();
+
+    bool has_endln() const;
+    bool ends_with_empty_line() const;
+    void remove_endlns();
+    void only_one_endln_at_end();
 
     bool starts_with_endln() const {
         return !comments.empty() and comments.front().kind == Comment::EndLine;
@@ -57,7 +58,7 @@ struct CommentSeq {
 class AstVisitor;
 struct TypeSpec;
 
-enum class AstType {
+enum class AstNodeType {
     Program,
     Include,
     Macro,
@@ -94,121 +95,135 @@ enum class AstType {
     Block,
 };
 
-struct Ast {
+struct Ast;
+struct AstNode {
+    Ast                      *ast;
     Span                      span;
     std::vector<Error *>      errors;
     std::vector<CommentSeq *> comments;
-    Ast                      *parent;
+    AstNode                  *parent;
 
     void add_error(std::string msg);
     void add_error(Pos ini, Pos fin, std::string msg);
 
     bool has_errors() const { return !errors.empty(); }
 
-    AstType Type() const { return type_; }
+    AstNodeType Type() const { return type_; }
 
    protected:
-    AstType type_;
+    AstNodeType type_;
 };
 
-template <AstType T>
-struct AstDerived : Ast {
-    static bool is_instance(const Ast *ast) { return ast->Type() == T; }
+template <AstNodeType T>
+struct AstDerived : AstNode {
+    static bool is_instance(const AstNode *node) { return node->Type() == T; }
 
     AstDerived() { type_ = T; }
 };
 
-struct Program : public AstDerived<AstType::Program> {
-    std::vector<Ast *> nodes;
+template<class T>
+concept IsAstNode = std::is_base_of_v<AstNode, T>;
 
-    void add(Ast *n) {
-        nodes.push_back(n);
-        n->parent = this;
+struct Ast {
+    template <class T>
+    T *make() {
+        T *n = new T();
+        n->ast = this;
+        return n;
     }
 };
 
-struct Include : public AstDerived<AstType::Include> {
+struct Program : public AstDerived<AstNodeType::Program> {
+    std::vector<AstNode *> nodes;
+
+    void add(AstNode *n) {
+        n->parent = this;
+        nodes.push_back(n);
+    }
+};
+
+struct Include : public AstDerived<AstNodeType::Include> {
     std::string filename;
     bool        global;
 
     Include(std::string f = "", bool g = false) : filename(f), global(g) {}
 };
 
-struct Macro : public AstDerived<AstType::Macro> {
+struct Macro : public AstDerived<AstNodeType::Macro> {
     std::string macro;
 
     Macro(std::string m) : macro(m) {}
 };
 
-struct Using : public AstDerived<AstType::Using> {
+struct Using : public AstDerived<AstNodeType::Using> {
     std::string namespc;
 };
 // Statements //////////////////////////////////////////////
 struct Expr;
 
-struct Stmt : public Ast {};
+struct Stmt : public AstNode {};
 
-template <AstType T>
+template <AstNodeType T>
 struct StmtDerived : Stmt {
-    static bool is_instance(const Ast *ast) { return ast->Type() == T; }
+    static bool is_instance(const AstNode *ast) { return ast->Type() == T; }
 
     StmtDerived() { type_ = T; }
 };
 
-struct StmtError : public StmtDerived<AstType::StmtError> {
+struct StmtError : public StmtDerived<AstNodeType::StmtError> {
     std::string code;
 };
 
-struct ExprStmt : public StmtDerived<AstType::ExprStmt> {
+struct ExprStmt : public StmtDerived<AstNodeType::ExprStmt> {
     Expr *expr = 0;
     bool  is_return = false;
 };
 
-struct IfStmt : public StmtDerived<AstType::IfStmt> {
+struct IfStmt : public StmtDerived<AstNodeType::IfStmt> {
     Expr *cond = 0;
     Stmt *then = 0, *els = 0;
 };
 
-struct ForStmt : public StmtDerived<AstType::ForStmt> {
+struct ForStmt : public StmtDerived<AstNodeType::ForStmt> {
     Stmt *init = 0;
     Expr *cond = 0, *post = 0;
     Stmt *substmt = 0;
 };
 
-struct WhileStmt : public StmtDerived<AstType::WhileStmt> {
+struct WhileStmt : public StmtDerived<AstNodeType::WhileStmt> {
     Expr *cond = 0;
     Stmt *substmt = 0;
 };
 
-struct Decl : public Ast {
+struct Decl : public AstNode {
     enum Kind { Normal, Pointer };
 
     TypeSpec   *typespec = 0;
     std::string name;
 };
 
-template <AstType T>
+template <AstNodeType T>
 struct DeclDerived : Decl {
-    static bool is_instance(const Ast *ast) { return ast->Type() == T; }
+    static bool is_instance(const AstNode *ast) { return ast->Type() == T; }
 
     DeclDerived() { type_ = T; }
 };
 
-struct VarDecl : public DeclDerived<AstType::VarDecl> {
+struct VarDecl : public DeclDerived<AstNodeType::VarDecl> {
     Kind kind = Normal;
 };
 
-struct ArrayDecl : public DeclDerived<AstType::ArrayDecl> {
+struct ArrayDecl : public DeclDerived<AstNodeType::ArrayDecl> {
     std::vector<Expr *> sizes;
     Kind                kind = Normal;
     std::string         TypeStr() const;
 };
 
-struct ObjDecl : public DeclDerived<AstType::ObjDecl> {
+struct ObjDecl : public DeclDerived<AstNodeType::ObjDecl> {
     std::vector<Expr *> args;
 };
 
-struct DeclStmt : public StmtDerived<AstType::DeclStmt> {
+struct DeclStmt : public StmtDerived<AstNodeType::DeclStmt> {
     TypeSpec *typespec;
 
     struct Item {
@@ -219,7 +234,7 @@ struct DeclStmt : public StmtDerived<AstType::DeclStmt> {
     std::vector<Item> items;
 };
 
-struct JumpStmt : public StmtDerived<AstType::JumpStmt> {
+struct JumpStmt : public StmtDerived<AstNodeType::JumpStmt> {
     enum Kind {
         Unknown = -1,
         Break = 0,
@@ -232,12 +247,12 @@ struct JumpStmt : public StmtDerived<AstType::JumpStmt> {
     static Kind KeywordToType(std::string s);
 };
 
-struct Block : public StmtDerived<AstType::Block> {
+struct Block : public StmtDerived<AstNodeType::Block> {
     std::vector<Stmt *> stmts;
 };
 
 // Expressions /////////////////////////////////////////////
-struct Expr : public Ast {
+struct Expr : public AstNode {
     enum Kind {
         Unknown,
         // pm_expression
@@ -264,18 +279,18 @@ struct Expr : public Ast {
     struct Error;
 };
 
-template <AstType T>
+template <AstNodeType T>
 struct ExprDerived : Expr {
-    static bool is_instance(const Ast *ast) { return ast->Type() == T; }
+    static bool is_instance(const AstNode *ast) { return ast->Type() == T; }
 
     ExprDerived() { type_ = T; }
 };
 
-struct ExprError : public ExprDerived<AstType::ExprError> {
+struct ExprError : public ExprDerived<AstNodeType::ExprError> {
     std::string code;
 };
 
-struct Literal : public ExprDerived<AstType::Literal> {
+struct Literal : public ExprDerived<AstNodeType::Literal> {
     enum Kind {
         Bool,
         Int,
@@ -308,7 +323,7 @@ struct Literal : public ExprDerived<AstType::Literal> {
     static std::string Escape(std::string s, char delim);
 };
 
-struct Identifier : ExprDerived<AstType::Identifier> {
+struct Identifier : ExprDerived<AstNodeType::Identifier> {
     std::string               name;
     std::vector<Identifier *> prefix;
     std::vector<TypeSpec *>   subtypes;
@@ -323,10 +338,10 @@ struct Identifier : ExprDerived<AstType::Identifier> {
     Identifier               *GetPotentialNamespaceOrClass() const;
     std::vector<Identifier *> GetNonNamespaces();
 
-    static bool is_instance(const Ast *ast) { return ast->Type() == AstType::Identifier; }
+    static bool is_instance(const AstNode *ast) { return ast->Type() == AstNodeType::Identifier; }
 };
 
-struct TypeSpec : public AstDerived<AstType::TypeSpec> {
+struct TypeSpec : public AstDerived<AstNodeType::TypeSpec> {
     enum Qualifier {
         Const = 0b000001,
         Volatile = 0b000010,
@@ -356,7 +371,7 @@ struct TypeSpec : public AstDerived<AstType::TypeSpec> {
     Identifier *GetPotentialNamespaceOrClass() const;
 };
 
-struct BinaryExpr : public ExprDerived<AstType::BinaryExpr> {
+struct BinaryExpr : public ExprDerived<AstNodeType::BinaryExpr> {
     Kind        kind;
     std::string op, str;
     Expr       *left, *right;
@@ -368,14 +383,14 @@ struct UnaryExpr : public Expr {
     Expr *expr = 0;
 };
 
-template <AstType T>
+template <AstNodeType T>
 struct UnaryExprDerived : UnaryExpr {
     UnaryExprDerived() { type_ = T; }
 
-    static bool is_instance(const Ast *ast) { return ast->Type() == T; }
+    static bool is_instance(const AstNode *ast) { return ast->Type() == T; }
 };
 
-struct SignExpr : public UnaryExprDerived<AstType::SignExpr> {
+struct SignExpr : public UnaryExprDerived<AstNodeType::SignExpr> {
     enum Kind {
         Positive,
         Negative,
@@ -386,7 +401,7 @@ struct SignExpr : public UnaryExprDerived<AstType::SignExpr> {
     SignExpr(Kind k) : kind(k) {}
 };
 
-struct IncrExpr : public UnaryExprDerived<AstType::IncrExpr> {
+struct IncrExpr : public UnaryExprDerived<AstNodeType::IncrExpr> {
     enum Kind {
         Positive,
         Negative,
@@ -398,37 +413,37 @@ struct IncrExpr : public UnaryExprDerived<AstType::IncrExpr> {
     IncrExpr(Kind k, bool pre = false) : kind(k), preincr(pre) {}
 };
 
-struct NegExpr : public UnaryExprDerived<AstType::NegExpr> {};
+struct NegExpr : public UnaryExprDerived<AstNodeType::NegExpr> {};
 
-struct AddrExpr : public UnaryExprDerived<AstType::AddrExpr> {};
+struct AddrExpr : public UnaryExprDerived<AstNodeType::AddrExpr> {};
 
-struct DerefExpr : public UnaryExprDerived<AstType::DerefExpr> {};
+struct DerefExpr : public UnaryExprDerived<AstNodeType::DerefExpr> {};
 
-struct CallExpr : public ExprDerived<AstType::CallExpr> {
+struct CallExpr : public ExprDerived<AstNodeType::CallExpr> {
     Expr               *func = 0;
     std::vector<Expr *> args;
 };
 
-struct IndexExpr : public ExprDerived<AstType::IndexExpr> {
+struct IndexExpr : public ExprDerived<AstNodeType::IndexExpr> {
     Expr *base = 0, *index = 0;
 };
 
-struct FieldExpr : public ExprDerived<AstType::FieldExpr> {
+struct FieldExpr : public ExprDerived<AstNodeType::FieldExpr> {
     Expr       *base = 0;
     std::string field;
     bool        pointer;
 };
 
-struct CondExpr : public ExprDerived<AstType::CondExpr> {
+struct CondExpr : public ExprDerived<AstNodeType::CondExpr> {
     Expr *cond = 0, *then = 0, *els = 0;
 };
 
-struct ExprList : public ExprDerived<AstType::ExprList> {
+struct ExprList : public ExprDerived<AstNodeType::ExprList> {
     std::vector<Expr *> exprs;
 };
 
 // Declarations ////////////////////////////////////////////
-struct FuncDecl : public AstDerived<AstType::FuncDecl> {
+struct FuncDecl : public AstDerived<AstNodeType::FuncDecl> {
     struct Param {
         Pos         ini, fin;
         TypeSpec   *typespec = 0;
@@ -445,17 +460,17 @@ struct FuncDecl : public AstDerived<AstType::FuncDecl> {
     std::string FuncName() const { return id->name; }
 };
 
-struct StructDecl : public AstDerived<AstType::StructDecl> {
+struct StructDecl : public AstDerived<AstNodeType::StructDecl> {
     std::string             name;
     std::vector<DeclStmt *> decls;
     std::string             TypeStr() const;
 };
 
-struct TypedefDecl : public AstDerived<AstType::TypedefDecl> {
+struct TypedefDecl : public AstDerived<AstNodeType::TypedefDecl> {
     Decl *decl = 0;
 };
 
-struct EnumDecl : public AstDerived<AstType::EnumDecl> {
+struct EnumDecl : public AstDerived<AstNodeType::EnumDecl> {
     struct Value {
         std::string id;
         bool        has_val;
@@ -468,11 +483,11 @@ struct EnumDecl : public AstDerived<AstType::EnumDecl> {
     std::vector<Value> values;
 };
 
-std::string describe(Ast *ast);
-bool        has_errors(Ast *ast);
-bool        is_read_expr(Ast *ast);
-bool        is_write_expr(Ast *ast);
-bool        is_assignment(Ast *ast);
-void        collect_rights(Ast *ast, std::list<Expr *>& L);
+std::string describe(AstNode *ast);
+bool        has_errors(AstNode *ast);
+bool        is_read_expr(AstNode *ast);
+bool        is_write_expr(AstNode *ast);
+bool        is_assignment(AstNode *ast);
+void        collect_rights(AstNode *ast, std::list<Expr *>& L);
 
 #endif

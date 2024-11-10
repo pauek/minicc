@@ -30,9 +30,9 @@ class Stepper {
 
     void _error(std::string msg) { _errors.push_back(msg); }
 
-    void eval(Ast *X) { I.eval(X); }
+    void eval(AstNode *X) { I.eval(X); }
 
-    void              generic_visit(Ast *x);
+    void              generic_visit(AstNode *x);
     void              visit_assignment(BinaryExpr *x);
     std::stringstream _out;
     std::stringstream _in;
@@ -88,7 +88,7 @@ class Stepper {
     void        visit_fieldexpr(FieldExpr *x);
     void        visit_fullident(Identifier *x);
     void        visit_indexexpr(IndexExpr *x);
-    void        Step(Ast *);
+    void        Step(AstNode *);
 
     struct PopState : public StepperState {
         Span spn;

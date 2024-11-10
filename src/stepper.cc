@@ -34,15 +34,15 @@ Todo Stepper::PopState::step(Stepper *S) {
     return Next;
 }
 
-void Stepper::generic_visit(Ast *X) {
+void Stepper::generic_visit(AstNode *X) {
     I.eval(X);
     status(describe(X));
     push(new PopState(X->span));
 }
 
-void Stepper::Step(Ast *ast) {
+void Stepper::Step(AstNode *ast) {
     switch (ast->Type()) {
-        case AstType::Program: {
+        case AstNodeType::Program: {
             Program *X = cast<Program>(ast);
             I.program_prepare(X);
             I.find_main();
@@ -55,7 +55,7 @@ void Stepper::Step(Ast *ast) {
             push(new ProgramVisitState(main));
             break;
         }
-        case AstType::Block: {
+        case AstNodeType::Block: {
             Block *X = cast<Block>(ast);
             if (!X->stmts.empty()) {
                 push(new BlockVisitState(X));
@@ -63,17 +63,17 @@ void Stepper::Step(Ast *ast) {
             }
             break;
         }
-        case AstType::BinaryExpr: {
+        case AstNodeType::BinaryExpr: {
             BinaryExpr *X = cast<BinaryExpr>(ast);
             generic_visit(X);
             break;
         }
-        case AstType::IncrExpr: {
+        case AstNodeType::IncrExpr: {
             IncrExpr *X = cast<IncrExpr>(ast);
             generic_visit(X);
             break;
         }
-        case AstType::ExprStmt: {
+        case AstNodeType::ExprStmt: {
             ExprStmt *X = cast<ExprStmt>(ast);
             if (is_assignment(X->expr)) {
                 visit_assignment(cast<BinaryExpr>(X->expr));
@@ -98,12 +98,12 @@ void Stepper::Step(Ast *ast) {
             }
             break;
         }
-        case AstType::DeclStmt: {
+        case AstNodeType::DeclStmt: {
             DeclStmt *X = cast<DeclStmt>(ast);
             generic_visit(X);
             break;
         }
-        case AstType::IfStmt: {
+        case AstNodeType::IfStmt: {
             IfStmt *X = cast<IfStmt>(ast);
             I.eval(X->cond);
             Value cond = I._curr;
@@ -126,20 +126,20 @@ void Stepper::Step(Ast *ast) {
             push(new IfVisitState(X->cond->span, next));
             break;
         }
-        case AstType::ForStmt: {
+        case AstNodeType::ForStmt: {
             ForStmt *X = cast<ForStmt>(ast);
             push(new ForVisitState(X));
             Step(X->init);
             break;
         }
-        case AstType::WhileStmt: {
+        case AstNodeType::WhileStmt: {
             WhileStmt       *X = cast<WhileStmt>(ast);
             WhileVisitState *s = new WhileVisitState(X);
             s->step(this);
             push(s);
             break;
         }
-        case AstType::CallExpr: {
+        case AstNodeType::CallExpr: {
             CallExpr     *X = cast<CallExpr>(ast);
             vector<Value> args;
             I.eval_arguments(X->args, args);
@@ -167,22 +167,22 @@ void Stepper::Step(Ast *ast) {
             push(s);
             break;
         }
-        case AstType::Literal: {
+        case AstNodeType::Literal: {
             Literal *X = cast<Literal>(ast);
             eval(X);
             break;
         }
-        case AstType::FieldExpr: {
+        case AstNodeType::FieldExpr: {
             FieldExpr *X = cast<FieldExpr>(ast);
             eval(X);
             break;
         }
-        case AstType::Identifier: {
+        case AstNodeType::Identifier: {
             Identifier *X = cast<Identifier>(ast);
             eval(X);
             break;
         }
-        case AstType::IndexExpr: {
+        case AstNodeType::IndexExpr: {
             IndexExpr *X = cast<IndexExpr>(ast);
             eval(X);
             break;

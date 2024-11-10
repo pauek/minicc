@@ -4,7 +4,7 @@
 #include <iostream>
 #include "ast.hh"
 
-void        pretty_print(Ast *ast, std::ostream& out = std::cout);
-std::string pretty_to_string(Ast *ast);
+void        pretty_print(AstNode *ast, std::ostream& out = std::cout);
+std::string pretty_to_string(AstNode *ast);
 
 #endif

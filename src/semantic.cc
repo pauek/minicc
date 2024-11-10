@@ -16,7 +16,7 @@ struct UserFunc : public Func {
 
 struct SemanticAnalyzer : public WithEnvironment {
     std::string _curr_varname;
-    Ast        *_curr_node;
+    AstNode    *_curr_node;
     Value       _curr, _ret;
 
     void eval_binary_expr_assignment(BinaryExpr *x, Value left, Value right);
@@ -32,7 +32,7 @@ struct SemanticAnalyzer : public WithEnvironment {
     bool bind_field(Value obj, string method_name);
     bool call_operator(string op, const std::vector<Value>& args = std::vector<Value>());
     void CheckCondition(Expr *cond, std::string who);
-    void CheckUnknown(Value v, Ast *x, string varname);
+    void CheckUnknown(Value v, AstNode *x, string varname);
 
     void eval_arguments(const std::vector<Expr *>& args, std::vector<Value>& argvals);
 
@@ -51,7 +51,7 @@ struct SemanticAnalyzer : public WithEnvironment {
     template <class Op>
     bool eval_comparison(Value left, Value right);
 
-    void analyze(Ast *ast);
+    void analyze(AstNode *ast);
 };
 
 struct _Add {
@@ -456,7 +456,7 @@ void SemanticAnalyzer::CheckCondition(Expr *cond, string who) {
     }
 }
 
-void SemanticAnalyzer::CheckUnknown(Value v, Ast *X, string varname) {
+void SemanticAnalyzer::CheckUnknown(Value v, AstNode *X, string varname) {
     if (v.is_unknown()) {
         X->add_error(_T("Utilizas la variable '%s' sin haberla inicializado.", varname.c_str()));
     }
@@ -556,20 +556,20 @@ bool SemanticAnalyzer::eval_comparison(Value left, Value right) {
 }
 
 // Analyze
-void SemanticAnalyzer::analyze(Ast *ast) {
+void SemanticAnalyzer::analyze(AstNode *ast) {
     switch (ast->Type()) {
-        case AstType::Program: {
+        case AstNodeType::Program: {
             Program *X = cast<Program>(ast);
             _curr_node = X;
             prepare_global_environment();
-            for (Ast *n : X->nodes) {
+            for (AstNode *n : X->nodes) {
                 analyze(n);
             }
             break;
         }
-        case AstType::Macro:
+        case AstNodeType::Macro:
             break;
-        case AstType::Using: {
+        case AstNodeType::Using: {
             Using *X = cast<Using>(ast);
             _curr_node = X;
             if (!using_namespace(X->namespc)) {
@@ -577,7 +577,7 @@ void SemanticAnalyzer::analyze(Ast *ast) {
             }
             break;
         }
-        case AstType::Include: {
+        case AstNodeType::Include: {
             Include *X = cast<Include>(ast);
             _curr_node = X;
             if (!include_header_file(X->filename)) {
@@ -585,7 +585,7 @@ void SemanticAnalyzer::analyze(Ast *ast) {
             }
             break;
         }
-        case AstType::FuncDecl: {
+        case AstNodeType::FuncDecl: {
             FuncDecl *X = cast<FuncDecl>(ast);
             _curr_node = X;
             string      funcname = X->FuncName();
@@ -625,7 +625,7 @@ void SemanticAnalyzer::analyze(Ast *ast) {
             setenv(funcname, callable, Hidden);
             break;
         }
-        case AstType::BinaryExpr: {
+        case AstNodeType::BinaryExpr: {
             BinaryExpr *X = cast<BinaryExpr>(ast);
             _curr_node = X;
             // left
@@ -799,7 +799,7 @@ void SemanticAnalyzer::analyze(Ast *ast) {
             );
             break;
         }
-        case AstType::StructDecl: {
+        case AstNodeType::StructDecl: {
             StructDecl *X = cast<StructDecl>(ast);
             _curr_node = X;
             // Create a new Struct type now
@@ -844,7 +844,7 @@ void SemanticAnalyzer::analyze(Ast *ast) {
             register_type(X->name, type);
             break;
         }
-        case AstType::Identifier: {
+        case AstNodeType::Identifier: {
             Identifier *X = cast<Identifier>(ast);
             _curr_node = X;
             Value v;
@@ -893,7 +893,7 @@ void SemanticAnalyzer::analyze(Ast *ast) {
             _curr = (v.is<Reference>() ? v : Reference::mkref(v));
             break;
         }
-        case AstType::Literal: {
+        case AstNodeType::Literal: {
             Literal *X = cast<Literal>(ast);
             _curr_node = X;
             switch (X->kind) {
@@ -920,7 +920,7 @@ void SemanticAnalyzer::analyze(Ast *ast) {
             }
             break;
         }
-        case AstType::Block: {
+        case AstNodeType::Block: {
             Block *X = cast<Block>(ast);
             _curr_node = X;
             for (Stmt *stmt : X->stmts) {
@@ -928,7 +928,7 @@ void SemanticAnalyzer::analyze(Ast *ast) {
             }
             break;
         }
-        case AstType::VarDecl: {
+        case AstNodeType::VarDecl: {
             VarDecl *X = cast<VarDecl>(ast);
             _curr_node = X;
             Value prev, init = Reference::deref(_curr);
@@ -979,7 +979,7 @@ void SemanticAnalyzer::analyze(Ast *ast) {
             setenv(X->name, init);
             break;
         }
-        case AstType::ArrayDecl: {
+        case AstNodeType::ArrayDecl: {
             ArrayDecl *X = cast<ArrayDecl>(ast);
             _curr_node = X;
             Value       init = _curr;
@@ -1028,7 +1028,7 @@ void SemanticAnalyzer::analyze(Ast *ast) {
             setenv(X->name, init);
             break;
         }
-        case AstType::ObjDecl: {
+        case AstNodeType::ObjDecl: {
             ObjDecl *X = cast<ObjDecl>(ast);
             _curr_node = X;
             const Type *type = get_type(X->typespec);
@@ -1057,7 +1057,7 @@ void SemanticAnalyzer::analyze(Ast *ast) {
             );
             break;
         }
-        case AstType::DeclStmt: {
+        case AstNodeType::DeclStmt: {
             DeclStmt *X = cast<DeclStmt>(ast);
             _curr_node = X;
             const Type *type = get_type(X->typespec);
@@ -1075,7 +1075,7 @@ void SemanticAnalyzer::analyze(Ast *ast) {
             }
             break;
         }
-        case AstType::ExprStmt: {
+        case AstNodeType::ExprStmt: {
             ExprStmt *X = cast<ExprStmt>(ast);
             _curr_node = X;
             if (X->expr) {
@@ -1115,7 +1115,7 @@ void SemanticAnalyzer::analyze(Ast *ast) {
             }
             break;
         }
-        case AstType::IfStmt: {
+        case AstNodeType::IfStmt: {
             IfStmt *X = cast<IfStmt>(ast);
             _curr_node = X;
             CheckCondition(X->cond, "if");
@@ -1125,7 +1125,7 @@ void SemanticAnalyzer::analyze(Ast *ast) {
             }
             break;
         }
-        case AstType::ForStmt: {
+        case AstNodeType::ForStmt: {
             ForStmt *X = cast<ForStmt>(ast);
             _curr_node = X;
             pushenv("");
@@ -1140,7 +1140,7 @@ void SemanticAnalyzer::analyze(Ast *ast) {
             popenv();
             break;
         }
-        case AstType::WhileStmt: {
+        case AstNodeType::WhileStmt: {
             WhileStmt *X = cast<WhileStmt>(ast);
             _curr_node = X;
             pushenv("");
@@ -1149,7 +1149,7 @@ void SemanticAnalyzer::analyze(Ast *ast) {
             popenv();
             break;
         }
-        case AstType::CallExpr: {
+        case AstNodeType::CallExpr: {
             CallExpr *X = cast<CallExpr>(ast);
             _curr_node = X;
             vector<Value> argvals;
@@ -1186,7 +1186,7 @@ void SemanticAnalyzer::analyze(Ast *ast) {
             }
             break;
         }
-        case AstType::IndexExpr: {
+        case AstNodeType::IndexExpr: {
             IndexExpr *X = cast<IndexExpr>(ast);
             _curr_node = X;
             analyze(X->base);
@@ -1231,7 +1231,7 @@ void SemanticAnalyzer::analyze(Ast *ast) {
             }
             break;
         }
-        case AstType::FieldExpr: {
+        case AstNodeType::FieldExpr: {
             FieldExpr *X = cast<FieldExpr>(ast);
             _curr_node = X;
             analyze(X->base);
@@ -1276,7 +1276,7 @@ void SemanticAnalyzer::analyze(Ast *ast) {
             }
             break;
         }
-        case AstType::CondExpr: {
+        case AstNodeType::CondExpr: {
             CondExpr *X = cast<CondExpr>(ast);
             _curr_node = X;
             analyze(X->cond);
@@ -1308,7 +1308,7 @@ void SemanticAnalyzer::analyze(Ast *ast) {
             }
             break;
         }
-        case AstType::ExprList: {
+        case AstNodeType::ExprList: {
             ExprList *X = cast<ExprList>(ast);
             _curr_node = X;
             Value          v = VectorValue::make();
@@ -1320,7 +1320,7 @@ void SemanticAnalyzer::analyze(Ast *ast) {
             _curr = v;
             break;
         }
-        case AstType::SignExpr: {
+        case AstNodeType::SignExpr: {
             SignExpr *X = cast<SignExpr>(ast);
             _curr_node = X;
             analyze(X->expr);
@@ -1341,7 +1341,7 @@ void SemanticAnalyzer::analyze(Ast *ast) {
             }
             break;
         }
-        case AstType::IncrExpr: {
+        case AstNodeType::IncrExpr: {
             IncrExpr *X = cast<IncrExpr>(ast);
             _curr_node = X;
             analyze(X->expr);
@@ -1377,7 +1377,7 @@ void SemanticAnalyzer::analyze(Ast *ast) {
             _curr = (X->preincr ? before : after);
             break;
         }
-        case AstType::NegExpr: {
+        case AstNodeType::NegExpr: {
             NegExpr *X = cast<NegExpr>(ast);
             _curr_node = X;
             analyze(X->expr);
@@ -1389,19 +1389,19 @@ void SemanticAnalyzer::analyze(Ast *ast) {
             _curr.as<Bool>() = !_curr.as<Bool>();
             break;
         }
-        case AstType::TypedefDecl: {
+        case AstNodeType::TypedefDecl: {
             TypedefDecl *X = cast<TypedefDecl>(ast);
             _curr_node = X;
             string      name = X->decl->name;
             const Type *type = get_type(X->decl->typespec);
             assert(type != 0);
             switch (X->decl->Type()) {
-                case AstType::VarDecl: {
+                case AstNodeType::VarDecl: {
                     const VarDecl *var = cast<VarDecl>(X->decl);
                     register_type(var->name, type);
                     break;
                 }
-                case AstType::ArrayDecl: {
+                case AstNodeType::ArrayDecl: {
                     const ArrayDecl *array = cast<ArrayDecl>(X->decl);
                     analyze(array->sizes[0]);
                     if (!_curr.is<Int>()) {
@@ -1416,7 +1416,7 @@ void SemanticAnalyzer::analyze(Ast *ast) {
             }
             break;
         }
-        case AstType::DerefExpr: {
+        case AstNodeType::DerefExpr: {
             DerefExpr *X = cast<DerefExpr>(ast);
             _curr_node = X;
             // TODO: deal with pointers
@@ -1435,6 +1435,6 @@ void SemanticAnalyzer::analyze(Ast *ast) {
     }
 }
 
-void analyze_semantics(Ast *ast) {
+void analyze_semantics(AstNode *ast) {
     SemanticAnalyzer().analyze(ast);
 }
