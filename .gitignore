@@ -10,3 +10,4 @@ doc
 .dependweb
 build
 err
+errors.log
