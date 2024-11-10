@@ -2,7 +2,8 @@
 #define COMMANDS_HH
 
 #include <cstring>
-#include <string>
+#include <iostream>
+#include <vector>
 
 struct Args {
     int    nargs;
@@ -29,7 +30,7 @@ struct Command {
     const char *help;
 };
 
-inline const Command *find_command(string name, const vector<Command>& commands) {
+inline const Command *find_command(std::string name, const std::vector<Command>& commands) {
     for (const auto& cmd : commands) {
         if (cmd.name == name) {
             return &cmd;
@@ -38,19 +39,19 @@ inline const Command *find_command(string name, const vector<Command>& commands)
     return nullptr;
 }
 
-inline void help(const vector<Command>& commands) {
-    cout << "usage: minicc <command> [...args]" << endl << endl;
-    cout << "Commands: " << endl;
-    cout << "  help" << endl;
+inline void help(const std::vector<Command>& commands) {
+    std::cout << "usage: minicc <command> [...args]" << std::endl << std::endl;
+    std::cout << "Commands: " << std::endl;
+    std::cout << "  help" << std::endl;
     size_t max_width = 0;
     for (const auto& cmd : commands) {
-        max_width = max(max_width, std::strlen(cmd.name));
+        max_width = std::max(max_width, std::strlen(cmd.name));
     }
     for (const auto& cmd : commands) {
-        string __space__(max_width - std::strlen(cmd.name) + 4, ' ');
-        cout << "  " << cmd.name << __space__ << cmd.help << endl;
+        std::string __space__(max_width - std::strlen(cmd.name) + 4, ' ');
+        std::cout << "  " << cmd.name << __space__ << cmd.help << std::endl;
     }
-    cout << endl;
+    std::cout << std::endl;
     exit(1);
 }
 

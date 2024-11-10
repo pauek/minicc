@@ -1,8 +1,7 @@
-
+#include "test.hh"
 #include <fstream>
 #include <iostream>
 #include <map>
-using namespace std;
 #include "astpr.hh"
 #include "commands.hh"
 #include "interpreter.hh"
@@ -10,10 +9,10 @@ using namespace std;
 #include "pprint.hh"
 #include "semantic.hh"
 #include "stepper.hh"
-#include "test.hh"
 #include "translator.hh"
 #include "vm.hh"
 #include "walker.hh"
+using namespace std;
 
 // Detect lines like:
 //

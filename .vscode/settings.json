@@ -72,7 +72,8 @@
 	"variant": "cpp",
 	"text_encoding": "cpp",
 	"__nullptr": "cpp",
-	"__locale": "cpp"
+	"__locale": "cpp",
+	"cerrno": "cpp"
 },
   "files.exclude": {
     "**/*.o": true

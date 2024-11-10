@@ -4,12 +4,9 @@
 #include <iostream>
 #include <vector>
 #include "ast.hh"
+#include "error.hh"
 #include "types.hh"
 #include "value.hh"
-
-struct EvalError : public Error {
-    EvalError(std::string _msg) : Error(_msg) {}
-};
 
 class Interpreter : WithEnvironment {
     Value _curr, _ret;

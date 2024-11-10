@@ -9,6 +9,7 @@
 #include <sstream>
 #include <string>
 #include <vector>
+#include "error.hh"
 #include "lexer.hh"
 
 template <typename Derived, typename Base>
@@ -27,26 +28,6 @@ template <typename Derived, typename Base>
 Derived *cast(Base *obj) {
     assert(Derived::is_instance(obj));
     return static_cast<Derived *>(obj);
-};
-
-struct ErrorOptions {
-    bool stopper = false;
-};
-
-struct Error {
-    Span        span;
-    std::string msg;
-    bool        stopper;  // this error should eclipse the following errors
-                          // (probably an avalanche of parsing errors)
-
-    Error(std::string m) : stopper(false), msg(m) {}
-
-    Error(Pos p, std::string m) : stopper(false), span(p), msg(m) {}
-
-    Error(Span s, std::string m, ErrorOptions options = {.stopper = false})
-        : stopper(options.stopper), span(s), msg(m) {}
-
-    void to_json(std::ostream& o) const;
 };
 
 struct Comment {
