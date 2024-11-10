@@ -15,10 +15,10 @@ struct Walker {
 };
 
 template <typename Delegate>
-void Walker<Delegate>::walk(AstNode *ast) {
-    switch (ast->type()) {
+void Walker<Delegate>::walk(AstNode *node) {
+    switch (node->type()) {
         case AstNodeType::Program: {
-            Program *X = cast<Program>(ast);
+            auto *X = cast<Program>(node);
             D.walk(X);
             for (AstNode *n : X->nodes) {
                 walk(n);
@@ -26,62 +26,62 @@ void Walker<Delegate>::walk(AstNode *ast) {
             break;
         }
         case AstNodeType::Include: {
-            Include *X = cast<Include>(ast);
+            auto *X = cast<Include>(node);
             D.walk(X);
             break;
         }
         case AstNodeType::Using: {
-            Using *X = cast<Using>(ast);
+            auto *X = cast<Using>(node);
             D.walk(X);
             break;
         }
         case AstNodeType::Macro: {
-            Macro *X = cast<Macro>(ast);
+            auto *X = cast<Macro>(node);
             D.walk(X);
             break;
         }
         case AstNodeType::Literal: {
-            Literal *X = cast<Literal>(ast);
+            auto *X = cast<Literal>(node);
             D.walk(X);
             break;
         }
         case AstNodeType::JumpStmt: {
-            JumpStmt *X = cast<JumpStmt>(ast);
+            auto *X = cast<JumpStmt>(node);
             D.walk(X);
             break;
         }
         case AstNodeType::StmtError: {
-            StmtError *X = cast<StmtError>(ast);
+            auto *X = cast<StmtError>(node);
             D.walk(X);
             break;
         }
         case AstNodeType::ExprError: {
-            ExprError *X = cast<ExprError>(ast);
+            auto *X = cast<ExprError>(node);
             D.walk(X);
             break;
         }
         case AstNodeType::VarDecl: {
-            VarDecl *X = cast<VarDecl>(ast);
+            auto *X = cast<VarDecl>(node);
             D.walk(X);
             break;
         }
         case AstNodeType::ArrayDecl: {
-            ArrayDecl *X = cast<ArrayDecl>(ast);
+            auto *X = cast<ArrayDecl>(node);
             D.walk(X);
             break;
         }
         case AstNodeType::ObjDecl: {
-            ObjDecl *X = cast<ObjDecl>(ast);
+            auto *X = cast<ObjDecl>(node);
             D.walk(X);
             break;
         }
         case AstNodeType::EnumDecl: {
-            EnumDecl *X = cast<EnumDecl>(ast);
+            auto *X = cast<EnumDecl>(node);
             D.walk(X);
             break;
         }
         case AstNodeType::Identifier: {
-            Identifier *X = cast<Identifier>(ast);
+            auto *X = cast<Identifier>(node);
             D.walk(X);
             for (Identifier *pre : X->prefix) {
                 walk(pre);
@@ -92,7 +92,7 @@ void Walker<Delegate>::walk(AstNode *ast) {
             break;
         }
         case AstNodeType::TypeSpec: {
-            TypeSpec *X = cast<TypeSpec>(ast);
+            auto *X = cast<TypeSpec>(node);
             D.walk(X);
             if (X->id) {
                 walk(X->id);
@@ -100,7 +100,7 @@ void Walker<Delegate>::walk(AstNode *ast) {
             break;
         }
         case AstNodeType::TypedefDecl: {
-            TypedefDecl *X = cast<TypedefDecl>(ast);
+            auto *X = cast<TypedefDecl>(node);
             D.walk(X);
             if (X->decl) {
                 walk(X->decl);
@@ -108,7 +108,7 @@ void Walker<Delegate>::walk(AstNode *ast) {
             break;
         }
         case AstNodeType::StructDecl: {
-            StructDecl *X = cast<StructDecl>(ast);
+            auto *X = cast<StructDecl>(node);
             D.walk(X);
             for (auto decl : X->decls) {
                 walk(decl);
@@ -116,7 +116,7 @@ void Walker<Delegate>::walk(AstNode *ast) {
             break;
         }
         case AstNodeType::FuncDecl: {
-            FuncDecl *X = cast<FuncDecl>(ast);
+            auto *X = cast<FuncDecl>(node);
             D.walk(X);
             if (X->return_typespec) {
                 walk(X->return_typespec);
@@ -127,7 +127,7 @@ void Walker<Delegate>::walk(AstNode *ast) {
             break;
         }
         case AstNodeType::Block: {
-            Block *X = cast<Block>(ast);
+            auto *X = cast<Block>(node);
             D.walk(X);
             for (Stmt *s : X->stmts) {
                 if (s) {
@@ -137,7 +137,7 @@ void Walker<Delegate>::walk(AstNode *ast) {
             break;
         }
         case AstNodeType::BinaryExpr: {
-            BinaryExpr *X = cast<BinaryExpr>(ast);
+            auto *X = cast<BinaryExpr>(node);
             D.walk(X);
             if (X->left) {
                 walk(X->left);
@@ -148,12 +148,12 @@ void Walker<Delegate>::walk(AstNode *ast) {
             break;
         }
         case AstNodeType::DeclStmt: {
-            DeclStmt *X = cast<DeclStmt>(ast);
+            auto *X = cast<DeclStmt>(node);
             D.walk(X);
             if (X->typespec) {
                 walk(X->typespec);
             }
-            for (DeclStmt::Item item : X->items) {
+            for (auto& item : X->items) {
                 walk(item.decl);
                 if (item.init) {
                     walk(item.init);
@@ -162,7 +162,7 @@ void Walker<Delegate>::walk(AstNode *ast) {
             break;
         }
         case AstNodeType::ExprStmt: {
-            ExprStmt *X = cast<ExprStmt>(ast);
+            auto *X = cast<ExprStmt>(node);
             D.walk(X);
             if (X->expr) {
                 walk(X->expr);
@@ -170,7 +170,7 @@ void Walker<Delegate>::walk(AstNode *ast) {
             break;
         }
         case AstNodeType::IfStmt: {
-            IfStmt *X = cast<IfStmt>(ast);
+            auto *X = cast<IfStmt>(node);
             D.walk(X);
             if (X->cond) {
                 walk(X->cond);
@@ -184,7 +184,7 @@ void Walker<Delegate>::walk(AstNode *ast) {
             break;
         }
         case AstNodeType::WhileStmt: {
-            WhileStmt *X = cast<WhileStmt>(ast);
+            auto *X = cast<WhileStmt>(node);
             D.walk(X);
             if (X->cond) {
                 walk(X->cond);
@@ -195,7 +195,7 @@ void Walker<Delegate>::walk(AstNode *ast) {
             break;
         }
         case AstNodeType::ForStmt: {
-            ForStmt *X = cast<ForStmt>(ast);
+            auto *X = cast<ForStmt>(node);
             D.walk(X);
             if (X->init) {
                 walk(X->init);
@@ -212,7 +212,7 @@ void Walker<Delegate>::walk(AstNode *ast) {
             break;
         }
         case AstNodeType::CallExpr: {
-            CallExpr *X = cast<CallExpr>(ast);
+            auto *X = cast<CallExpr>(node);
             D.walk(X);
             if (X->func) {
                 walk(X->func);
@@ -223,7 +223,7 @@ void Walker<Delegate>::walk(AstNode *ast) {
             break;
         }
         case AstNodeType::IndexExpr: {
-            IndexExpr *X = cast<IndexExpr>(ast);
+            auto *X = cast<IndexExpr>(node);
             D.walk(X);
             if (X->base) {
                 walk(X->base);
@@ -234,7 +234,7 @@ void Walker<Delegate>::walk(AstNode *ast) {
             break;
         }
         case AstNodeType::FieldExpr: {
-            FieldExpr *X = cast<FieldExpr>(ast);
+            auto *X = cast<FieldExpr>(node);
             D.walk(X);
             if (X->base) {
                 walk(X->base);
@@ -242,7 +242,7 @@ void Walker<Delegate>::walk(AstNode *ast) {
             break;
         }
         case AstNodeType::CondExpr: {
-            CondExpr *X = cast<CondExpr>(ast);
+            auto *X = cast<CondExpr>(node);
             D.walk(X);
             if (X->cond) {
                 walk(X->cond);
@@ -256,7 +256,7 @@ void Walker<Delegate>::walk(AstNode *ast) {
             break;
         }
         case AstNodeType::ExprList: {
-            ExprList *X = cast<ExprList>(ast);
+            auto *X = cast<ExprList>(node);
             D.walk(X);
             for (Expr *e : X->exprs) {
                 if (e) {
@@ -266,7 +266,7 @@ void Walker<Delegate>::walk(AstNode *ast) {
             break;
         }
         case AstNodeType::SignExpr: {
-            SignExpr *X = cast<SignExpr>(ast);
+            auto *X = cast<SignExpr>(node);
             D.walk(X);
             if (X->expr) {
                 walk(X->expr);
@@ -274,7 +274,7 @@ void Walker<Delegate>::walk(AstNode *ast) {
             break;
         }
         case AstNodeType::IncrExpr: {
-            IncrExpr *X = cast<IncrExpr>(ast);
+            auto *X = cast<IncrExpr>(node);
             D.walk(X);
             if (X->expr) {
                 walk(X->expr);
@@ -282,7 +282,7 @@ void Walker<Delegate>::walk(AstNode *ast) {
             break;
         }
         case AstNodeType::NegExpr: {
-            NegExpr *X = cast<NegExpr>(ast);
+            auto *X = cast<NegExpr>(node);
             D.walk(X);
             if (X->expr) {
                 walk(X->expr);
@@ -290,7 +290,7 @@ void Walker<Delegate>::walk(AstNode *ast) {
             break;
         }
         case AstNodeType::AddrExpr: {
-            AddrExpr *X = cast<AddrExpr>(ast);
+            auto *X = cast<AddrExpr>(node);
             D.walk(X);
             if (X->expr) {
                 walk(X->expr);
@@ -298,7 +298,7 @@ void Walker<Delegate>::walk(AstNode *ast) {
             break;
         }
         case AstNodeType::DerefExpr: {
-            DerefExpr *X = cast<DerefExpr>(ast);
+            auto *X = cast<DerefExpr>(node);
             D.walk(X);
             if (X->expr) {
                 walk(X->expr);
