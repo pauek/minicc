@@ -1,8 +1,0 @@
-TYPE(bool,   Type_Bool,   1, 1, false)
-TYPE(char,   Type_Char,   1, 1, false)
-TYPE(uchar,  Type_Char,   1, 1, true)
-TYPE(int,    Type_Int,    4, 4, false)
-TYPE(uint,   Type_Int,    4, 4, true)
-TYPE(float,  Type_Float,  4, 4, false)
-TYPE(double, Type_Double, 8, 8, false)
-TYPE(enum,   Type_Enum,   4, 4, false)
