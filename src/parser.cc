@@ -24,7 +24,7 @@ static const char *_basic_types[] = {
 };
 
 Parser::Parser(istream *i, std::ostream *err) : _lexer(i), _err(err) {
-	_ast = new Ast();
+    _ast = new Ast();
     for (int i = 0; i < sizeof(_basic_types) / sizeof(char *); i++) {
         _types.insert(_basic_types[i]);
     }
@@ -178,7 +178,7 @@ AstNode *Parser::parse_using_declaration(AstNode *parent) {
 }
 
 Identifier *Parser::parse_ident(AstNode *parent, Token tok, Pos ini) {
-    Identifier *id = new Identifier();
+    Identifier *id = _ast->create_node<Identifier>();
     id->name = _lexer.substr(tok);
     Pos fin = _lexer.pos();
     while (true) {
@@ -219,8 +219,8 @@ bool Parser::_parse_type_process_token(TypeSpec *type, Token tok, Pos p) {
         if (type->id != 0) {
             error(type, _T("Basic types are not templates"));
         }
-        type->id = new Identifier();
-		type->id->name = _lexer.substr(tok);
+        type->id = _ast->create_node<Identifier>();
+        type->id->name = _lexer.substr(tok);
         return true;
     }
     if (tok.is_type_qual()) {
@@ -260,7 +260,7 @@ bool Parser::_parse_type_process_token(TypeSpec *type, Token tok, Pos p) {
 }
 
 TypeSpec *Parser::parse_typespec(AstNode *parent) {
-    TypeSpec *type = new TypeSpec();
+    TypeSpec *type = _ast->create_node<TypeSpec>();
     type->parent = parent;
     Pos p = _lexer.pos();
     _lexer.save();
@@ -287,7 +287,7 @@ AstNode *Parser::parse_func_or_var(AstNode *parent) {
     c[1] = _lexer.skip();
     if (_lexer.curr() == '(') {
         _lexer.discard();
-        FuncDecl *fn = new FuncDecl();
+        FuncDecl *fn = _ast->create_node<FuncDecl>();
         fn->id = id;
         fn->parent = parent;
         id->parent = fn;
@@ -506,7 +506,8 @@ Expr *Parser::parse_primary_expr(AstNode *parent) {
         }
         case Token::True:
         case Token::False: {
-            Literal *lit = new Literal(Literal::Bool);
+            Literal *lit = new Literal();
+            lit->kind = Literal::Bool;
             lit->parent = parent;
             lit->val.as_bool = (tok.type == Token::True);
             lit->span = Span(ini, _lexer.pos());
@@ -515,7 +516,8 @@ Expr *Parser::parse_primary_expr(AstNode *parent) {
             break;
         }
         case Token::IntLiteral: {
-            Literal *lit = new Literal(Literal::Int);
+            Literal *lit = new Literal();
+            lit->kind = Literal::Int;
             lit->parent = parent;
             lit->val.as_int = atoi(_lexer.substr(tok).c_str());
             lit->span = Span(ini, _lexer.pos());
@@ -524,7 +526,8 @@ Expr *Parser::parse_primary_expr(AstNode *parent) {
             break;
         }
         case Token::CharLiteral: {
-            Literal *lit = new Literal(Literal::Char);
+            Literal *lit = new Literal();
+            lit->kind = Literal::Char;
             lit->parent = parent;
             lit->val.as_char = _translate_Escapes(_lexer.substr(tok))[0];
             lit->span = Span(ini, _lexer.pos());
@@ -535,11 +538,9 @@ Expr *Parser::parse_primary_expr(AstNode *parent) {
         case Token::Dot:
         case Token::FloatLiteral:
         case Token::DoubleLiteral: {
-            Literal::Kind kind = Literal::Double;
-            if (tok.type == Token::FloatLiteral) {
-                kind = Literal::Float;
-            }
-            Literal      *lit = new Literal(kind);
+            Literal *lit = new Literal();
+            lit->kind = (tok.type == Token::FloatLiteral ? Literal::Float : Literal::Double);
+
             istringstream S(_lexer.substr(tok));
             S >> lit->val.as_double;
             lit->parent = parent;
@@ -549,7 +550,8 @@ Expr *Parser::parse_primary_expr(AstNode *parent) {
             break;
         }
         case Token::StringLiteral: {
-            Literal *lit = new Literal(Literal::String);
+            Literal *lit = new Literal();
+			lit->kind = Literal::String;
             lit->parent = parent;
             lit->val.as_string.s =
                 new string(_translate_Escapes(_lexer.substr(tok)));  // FIXME: Shouldn't copy string

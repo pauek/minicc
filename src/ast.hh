@@ -334,8 +334,6 @@ struct Literal : public ExprDerived<AstNodeType::Literal> {
     Data val;
     bool L;  // for strings
 
-    Literal(Kind k) : kind(k) {}
-
     static std::string Escape(char c, char delim);
     static std::string Escape(std::string s, char delim);
 };
