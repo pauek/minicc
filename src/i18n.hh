@@ -1,9 +1,10 @@
-#ifndef TRANSLATOR_HH
-#define TRANSLATOR_HH
+#ifndef I18N_HH
+#define I18N_HH
 
 #include <cassert>
 #include <cstdarg>
 #include <cstdio>
+#include <cstring>
 #include <iostream>
 #include <map>
 #include <string>
@@ -18,16 +19,10 @@ enum class Language {
 };
 
 class Translator {
-    Language                   language;
-    std::map<std::string, int> _index;
+    Language                    language;
+    std::map<const char *, int> _index;
 
-    void build_index() {
-        int i = 0;
-        while (std::string(_translations[i][0]) != "END") {
-            _index[_translations[i][0]] = i;
-            i++;
-        }
-    }
+    void build_index();
 
     static const int   NUM_LANGS = 3;
     static const char *_translations[1000][Translator::NUM_LANGS];
@@ -37,7 +32,7 @@ class Translator {
 
     void set_language(Language lang) { language = lang; }
 
-    std::string translate(std::string message) const {
+    const char *translate(const char *message) const {
         auto it = _index.find(message);
         if (it == _index.end()) {
             return message;
@@ -49,9 +44,9 @@ class Translator {
     static Translator translator;
 };
 
-inline std::string _T(std::string message) {
-    std::string t = Translator::translator.translate(message);
-    return (t != "" ? t : message);
+inline std::string _T(const char *message) {
+    const char *t = Translator::translator.translate(message);
+    return (t != nullptr ? t : message);
 }
 
 template <typename T1>

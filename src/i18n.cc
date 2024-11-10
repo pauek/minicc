@@ -6,6 +6,16 @@ using namespace std;
 
 Translator Translator::translator;
 
+void Translator::build_index() {
+    int i = 0;
+    while (0 != strcmp(_translations[i][0], "END")) {
+        _index[_translations[i][0]] = i;
+        _index[_translations[i][1]] = i;
+        _index[_translations[i][2]] = i;
+        i++;
+    }
+}
+
 const char *numeral[MAX_NUMERAL + 1] = {
     "zeroth",
     "first",
@@ -19,7 +29,7 @@ const char *numeral[MAX_NUMERAL + 1] = {
     "nineth",
 };
 
-const char *Translator::_translations[1000][Translator::NUM_LANGS] = {
+const char *Translator::_translations[][Translator::NUM_LANGS] = {
     {
      "usage: minicc <filename>", "uso:   minicc <fichero>",
      "ús:    minicc <fitxer>", },
