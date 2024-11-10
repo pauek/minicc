@@ -372,8 +372,6 @@ struct BinaryExpr : public ExprDerived<AstNodeType::BinaryExpr> {
     Kind        kind;
     std::string op, str;
     Expr       *left, *right;
-
-    BinaryExpr(Kind k = Unknown) : kind(k), op("") {}
 };
 
 struct UnaryExpr : public Expr {
