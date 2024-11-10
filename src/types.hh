@@ -77,11 +77,11 @@ class Type {
 
 	virtual int properties() const = 0;
 
+	virtual const Type *get_inner_class(std::string name) const = 0;
+
 	virtual int get_field(Value self, std::string, std::vector<Value>& M) const { return false; }
 
 	virtual bool get_static(std::string, Value& v) const { return false; }
-
-	virtual const Type *get_inner_class(std::string) const { return 0; }
 
 	virtual const Type *instantiate(std::vector<const Type *>& s) const {
 		assert(false);
@@ -143,12 +143,14 @@ class UnknownType : public Type {
 
 	int properties() const { return Type::Unknown; }
 
+	const Type *get_inner_class(std::string name) const { return 0; }
+
 	Value create() const { return Value(this, Value::unknown); }
 
 	Value convert(Value v) const;
 
 	void destroy(void *data) const {
-		assert(data == Value::unknown or
+		assert(data == Value::unknown ||
 			   data == Value::abstract);  // should only be used in abstract/unknown values.
 	}
 
@@ -161,6 +163,8 @@ class BaseType : public Type {
 	BaseType(std::string name) : Type(name) {}
 
 	int properties() const { return Internal; }
+
+	const Type *get_inner_class(std::string name) const { return 0; }
 
 	typedef TestClass cpp_type;
 
@@ -261,6 +265,8 @@ class Reference : public Type {
 
 	int properties() const { return Basic; }
 
+	const Type *get_inner_class(std::string name) const { return 0; }
+
 	void *alloc(Value& x) const;
 	void  destroy(void *data) const;
 
@@ -343,7 +349,7 @@ template <class Base>
 class Class : public Base {
 	std::multimap<std::string, Value> _methods;
 	std::map<std::string, Value>	  _statics;
-	SimpleTable<Type *>				  _inner_classes;
+	SimpleTable<const Type *>		  _inner_classes;
 
    protected:
 	void _add_static(std::string, Value);
@@ -359,8 +365,8 @@ class Class : public Base {
 	bool get_static(std::string name, Value& result) const;
 	int	 get_field(Value self, std::string name, std::vector<Value>& result) const;
 
-	Type *get_inner_class(std::string name) {
-		Type *t;
+	const Type *get_inner_class(std::string name) const {
+		const Type *t;
 		return (_inner_classes.get(name, t) ? t : 0);
 	}
 };
@@ -522,6 +528,8 @@ class Array : public BaseType<std::vector<Value>> {
    public:
 	Array(const Type *celltype, int sz)
 		: BaseType<std::vector<Value>>("<array>"), _celltype(celltype), _sz(sz) {}
+
+	const Type *get_inner_class(std::string name) const { return 0; }
 
 	static const Type *mkarray(
 		const Type			   *celltype,
@@ -704,6 +712,8 @@ class VectorValue : public BaseType<std::vector<Value>> {
    public:
 	VectorValue() : BaseType<std::vector<Value>>("<vector-value>") {}
 
+	const Type *get_inner_class(std::string name) const { return 0; }
+
 	typedef std::vector<Value> cpp_type;
 
 	Value create() const { return Value(this, new std::vector<Value>()); }
@@ -840,10 +850,11 @@ class Environment {
 //
 class WithEnvironment {
 	typedef std::map<std::string, Environment *> NamespaceMap;
-	Environment									*_env;
-	NamespaceMap								 _namespaces;
-	std::istream								*_in;
-	std::ostream								*_out;
+
+	Environment	 *_env;
+	NamespaceMap  _namespaces;
+	std::istream *_in;
+	std::ostream *_out;
 
    public:
 	WithEnvironment() : _env(0), _in(0), _out(0) {}

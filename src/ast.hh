@@ -311,7 +311,7 @@ struct Identifier : ExprDerived<AstType::Identifier> {
 
 	Identifier(std::string name_) : name(name_) {}
 
-	bool IsTemplate() const { return !subtypes.empty(); }
+	bool is_template() const { return !subtypes.empty(); }
 
 	std::string				  TypeStr() const;
 	void					  Shift(std::string new_id);
@@ -347,7 +347,7 @@ struct TypeSpec : public AstDerived<AstType::TypeSpec> {
 
 	std::string TypeStr() const;
 
-	bool IsTemplate() const { return !id->subtypes.empty(); }
+	bool is_template() const { return !id->subtypes.empty(); }
 
 	Identifier *GetPotentialNamespaceOrClass() const;
 };

@@ -47,8 +47,8 @@ struct SimpleTable {
 		return i != 0;
 	}
 
-	bool get(std::string name, TestClass& res) {
-		Item *i = _get(name);
+	bool get(std::string name, TestClass& res) const {
+		const Item *i = _get(name);
 		if (i) {
 			res = i->_value.second;
 		}

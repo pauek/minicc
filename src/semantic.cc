@@ -546,8 +546,9 @@ void SemanticAnalyzer::analyze(Ast *ast) {
 		case AstType::FuncDecl: {
 			FuncDecl *X = cast<FuncDecl>(ast);
 			_curr_node = X;
-			string	  funcname = X->FuncName();
-			const Type	 *return_type = get_type(X->return_typespec);  // return_type == 0 means 'void'
+			string		funcname = X->FuncName();
+			const Type *return_type =
+				get_type(X->return_typespec);  // return_type == 0 means 'void'
 			Function *functype = new Function(return_type);
 
 			// reverse use of '_ret' to check all return statements
@@ -756,8 +757,8 @@ void SemanticAnalyzer::analyze(Ast *ast) {
 			// Create a new Struct type now
 			Struct *type = new Struct(X->name);
 			for (int i = 0; i < X->decls.size(); i++) {
-				DeclStmt& decl = *X->decls[i];
-				const Type	 *field_type = get_type(decl.typespec);
+				DeclStmt&	decl = *X->decls[i];
+				const Type *field_type = get_type(decl.typespec);
 				if (field_type == 0) {
 					decl.add_error(_T("El tipo '%s' no existe.", decl.typespec->TypeStr().c_str()));
 					field_type = new UnknownType(decl.typespec->TypeStr());
@@ -1318,8 +1319,8 @@ void SemanticAnalyzer::analyze(Ast *ast) {
 		case AstType::TypedefDecl: {
 			TypedefDecl *X = cast<TypedefDecl>(ast);
 			_curr_node = X;
-			string name = X->decl->name;
-			const Type  *type = get_type(X->decl->typespec);
+			string		name = X->decl->name;
+			const Type *type = get_type(X->decl->typespec);
 			assert(type != 0);
 			switch (X->decl->Type()) {
 				case AstType::VarDecl: {
@@ -1356,6 +1357,8 @@ void SemanticAnalyzer::analyze(Ast *ast) {
 			*/
 			break;
 		}
+		default:
+			assert(false);
 	}
 }
 

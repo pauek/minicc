@@ -51,7 +51,7 @@ inline std::string _T(std::string message) {
 
 template <typename T1>
 inline std::string _T(const char *format, const T1& t1) {
-	static char buffer[200];
+	static char buffer[200]; // FIXME: buffer overflow
 	std::string f = Translator::translator.translate(format);
 	std::sprintf(buffer, f.c_str(), t1);
 	return std::string(buffer);
@@ -59,7 +59,7 @@ inline std::string _T(const char *format, const T1& t1) {
 
 template <typename T1, typename T2>
 inline std::string _T(const char *format, const T1& t1, const T2& t2) {
-	static char buffer[200];
+	static char buffer[200]; // FIXME: buffer overflow
 	std::string f = Translator::translator.translate(format);
 	std::sprintf(buffer, f.c_str(), t1, t2);
 	return std::string(buffer);
@@ -67,7 +67,7 @@ inline std::string _T(const char *format, const T1& t1, const T2& t2) {
 
 template <typename T1, typename T2, typename T3>
 inline std::string _T(const char *format, const T1& t1, const T2& t2, const T3& t3) {
-	static char buffer[200];
+	static char buffer[200]; // FIXME: buffer overflow
 	std::string f = Translator::translator.translate(format);
 	std::sprintf(buffer, f.c_str(), t1, t2, t3);
 	return std::string(buffer);
@@ -75,7 +75,7 @@ inline std::string _T(const char *format, const T1& t1, const T2& t2, const T3& 
 
 template <typename T1, typename T2, typename T3, typename T4>
 inline std::string _T(const char *format, const T1& t1, const T2& t2, const T3& t3, const T4& t4) {
-	static char buffer[200];
+	static char buffer[200]; // FIXME: buffer overflow
 	std::string f = Translator::translator.translate(format);
 	std::sprintf(buffer, f.c_str(), t1, t2, t3, t4);
 	return std::string(buffer);
@@ -88,7 +88,7 @@ inline std::string _T(const char *format,
 					  const T3&	  t3,
 					  const T4&	  t4,
 					  const T5&	  t5) {
-	static char buffer[200];
+	static char buffer[200]; // FIXME: buffer overflow
 	std::string f = Translator::translator.translate(format);
 	std::sprintf(buffer, f.c_str(), t1, t2, t3, t4, t5);
 	return std::string(buffer);

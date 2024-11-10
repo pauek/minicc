@@ -77,7 +77,7 @@ const Type *TypeMap::get_type(TypeSpec *spec, Environment *topmost) {
 				return 0;
 			}
 			T = it->second;
-			if (spec0->IsTemplate()) {
+			if (spec0->is_template()) {
 				T = instantiate_template(spec0->subtypes, T, topmost);
 			}
 		}
@@ -1313,7 +1313,9 @@ std::string Map::to_json(void *data) const {
 
 // Array /////////////////////////////////////////////////////////////
 
-const Type *Array::_mkarray(const Type *celltype, vector<int>::const_iterator curr, const vector<int>& sizes) {
+const Type *Array::_mkarray(const Type				   *celltype,
+							vector<int>::const_iterator curr,
+							const vector<int>&			sizes) {
 	if (curr == sizes.end()) {
 		return celltype;
 	} else {
@@ -1394,7 +1396,7 @@ bool Struct::contains_unknowns(void *data) const {
 	SimpleTable<Value> *tab = static_cast<SimpleTable<Value> *>(data);
 	for (int i = 0; i < _fields.size(); i++) {
 		pair<std::string, const Type *> f = _fields[i];
-		Value					  v;
+		Value							v;
 		if (!tab->get(f.first, v)) {
 			return true;
 		} else if (v.is_unknown() or v.contains_unknowns()) {
@@ -1978,7 +1980,7 @@ void OStream::_add_ostream_methods() {
 		}
 	};
 
-	Func				 *output_op = new OutputOperator();
+	Func					   *output_op = new OutputOperator();
 	static vector<const Type *> BasicTypes = {
 		Int::self,	 Char::self,   Bool::self,
 		Float::self, Double::self, String::self /* FIXME: move to String */
@@ -2009,7 +2011,7 @@ void IStream::_add_istream_methods() {
 		}
 	};
 
-	Func				 *input_op = new InputOperator();
+	Func					   *input_op = new InputOperator();
 	static vector<const Type *> BasicTypes = {
 		Int::self,	 Char::self,   Bool::self,
 		Float::self, Double::self, String::self /* FIXME: move to String */

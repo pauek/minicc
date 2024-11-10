@@ -190,7 +190,7 @@ string Identifier::TypeStr() const {
 }
 
 Identifier *Identifier::GetPotentialNamespaceOrClass() const {
-	if (prefix.size() == 1 and !prefix[0]->IsTemplate()) {
+	if (prefix.size() == 1 and !prefix[0]->is_template()) {
 		return prefix[0];
 	}
 	return 0;

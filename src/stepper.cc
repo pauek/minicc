@@ -190,6 +190,8 @@ void Stepper::Step(Ast *ast) {
 			eval(X);
 			break;
 		}
+		default:
+			assert(false);
 	}
 }
 

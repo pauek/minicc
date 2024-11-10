@@ -26,6 +26,8 @@ bool Token::is_type_spec() const {
 		case Token::Virtual:
 		case Token::Explicit:
 			return true;
+		default:
+			return false;
 	}
 	return false;
 }
@@ -71,6 +73,8 @@ bool Token::is_operator() const {
 		case Token::PlusPlus:
 		case Token::MinusMinus:
 			return true;
+		default:
+			return false;
 	}
 	return false;
 }
@@ -87,6 +91,8 @@ bool Token::is_basic_type() const {
 		case Token::Double:
 		case Token::String:
 			return true;
+		default:
+			return false;
 	}
 	return false;
 }
@@ -102,6 +108,8 @@ bool Token::is_type_qual() const {
 		case Token::Extern:
 		case Token::Mutable:
 			return true;
+		default:
+			return false;
 	}
 	return false;
 }
