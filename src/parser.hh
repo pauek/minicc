@@ -29,24 +29,25 @@ class Parser {
         n->comments.push_back(_lexer.skip());
     }
 
-    void error(AstNode *n, std::string msg, ErrorOptions options = {.stopper = false}) {
-        error(n, n->span, msg, options);
+    void _error(AstNode *n, std::string msg, ErrorOptions options = {.stopper = false}) {
+        _error(n, n->span, msg, options);
     }
 
-    void error(AstNode *n, Span span, std::string msg, ErrorOptions options = {.stopper = false}) {
+    void _error(AstNode *n, Span span, std::string msg, ErrorOptions options = {.stopper = false}) {
         n->errors.push_back(new Error(span, msg, options));
     }
 
-    void fatal_error(Pos pos, std::string msg) { throw ParseError(pos, msg); }
+    void _fatal_error(Pos pos, std::string msg) { throw ParseError(pos, msg); }
 
     template <class Node>
-    typename Node::Error *error(std::string msg);
+    typename Node::Error *_error(std::string msg);
 
-    StmtError *stmt_error(std::string msg);
-    void       parse_expr_seq(AstNode *n, std::vector<Expr *>& v);
-    void       parse_type_seq(AstNode *n, std::vector<TypeSpec *>& v);
-    bool       _parse_type_process_token(TypeSpec *type, Token tok, Pos p);
-    Decl      *_parse_vardecl(AstNode *parent, std::string name, Decl::Kind kind, CommentSeq *comm);
+    StmtError *_stmt_error(std::string msg);
+
+    void  _parse_expr_seq(AstNode *n, std::vector<Expr *>& v);
+    void  _parse_type_seq(AstNode *n, std::vector<TypeSpec *>& v);
+    bool  _parse_type_process_token(TypeSpec *type, Token tok, Pos p);
+    Decl *_parse_vardecl(AstNode *parent, std::string name, Decl::Kind kind, CommentSeq *comm);
     Decl *_parse_arraydecl(AstNode *parent, std::string name, Decl::Kind kind, CommentSeq *comm);
     Decl *_parse_objdecl(AstNode *parent, std::string name, CommentSeq *comm);
 
@@ -90,10 +91,10 @@ class Parser {
 };
 
 template <class Node>
-typename Node::Error *Parser::error(std::string msg) {
+typename Node::Error *Parser::_error(std::string msg) {
     typename Node::Error *s = new typename Node::Error();
     s->code = _lexer.skip_to(";");
-    error(s, msg);
+    _error(s, msg);
     return s;
 }
 
