@@ -1,9 +1,1 @@
-- La VM resuelve todo, a full con ella.
-
-- El sistema de tipos es un gran embrollo ahora mismo.
-  Pero no hay que arreglarlo, la VM lo deja atrás.
-
-- Porqué queremos tener los errores en el AST??
-  Eso fue una idea mala... ahora se crean los errores 'adjuntos'
-  al AST y luego hay que recuperarlos... una currada innecesaria.
-  Arreglar eso.
+- Sacar errores del AST.
