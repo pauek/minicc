@@ -42,7 +42,7 @@ void Stepper::generic_visit(AstNode *X) {
 void Stepper::Step(AstNode *ast) {
     switch (ast->type()) {
         case AstNodeType::Program: {
-            Program *X = cast<Program>(ast);
+            auto *X = cast<Program>(ast);
             I.program_prepare(X);
             I.find_main();
             status(_T("The program begins."));
@@ -55,7 +55,7 @@ void Stepper::Step(AstNode *ast) {
             break;
         }
         case AstNodeType::Block: {
-            Block *X = cast<Block>(ast);
+            auto *X = cast<Block>(ast);
             if (!X->stmts.empty()) {
                 push(new BlockVisitState(X));
                 Step(X->stmts[0]);
@@ -63,22 +63,22 @@ void Stepper::Step(AstNode *ast) {
             break;
         }
         case AstNodeType::BinaryExpr: {
-            BinaryExpr *X = cast<BinaryExpr>(ast);
+            auto *X = cast<BinaryExpr>(ast);
             generic_visit(X);
             break;
         }
         case AstNodeType::IncrExpr: {
-            IncrExpr *X = cast<IncrExpr>(ast);
+            auto *X = cast<IncrExpr>(ast);
             generic_visit(X);
             break;
         }
         case AstNodeType::ExprStmt: {
-            ExprStmt *X = cast<ExprStmt>(ast);
+            auto *X = cast<ExprStmt>(ast);
             if (is_assignment(X->expr)) {
                 visit_assignment(cast<BinaryExpr>(X->expr));
             } else if (is_write_expr(X->expr)) {
-                BinaryExpr *e = cast<BinaryExpr>(X->expr);
-                auto       *ws = new WriteExprVisitState(e);
+                auto *e = cast<BinaryExpr>(X->expr);
+                auto *ws = new WriteExprVisitState(e);
                 collect_rights(e, ws->exprs);
                 push(ws);
                 ws->step(this);
@@ -98,12 +98,12 @@ void Stepper::Step(AstNode *ast) {
             break;
         }
         case AstNodeType::DeclStmt: {
-            DeclStmt *X = cast<DeclStmt>(ast);
+            auto *X = cast<DeclStmt>(ast);
             generic_visit(X);
             break;
         }
         case AstNodeType::IfStmt: {
-            IfStmt *X = cast<IfStmt>(ast);
+            auto *X = cast<IfStmt>(ast);
             I.eval(X->cond);
             Value cond = I._curr;
             if (!cond.is<Bool>()) {
@@ -126,20 +126,20 @@ void Stepper::Step(AstNode *ast) {
             break;
         }
         case AstNodeType::ForStmt: {
-            ForStmt *X = cast<ForStmt>(ast);
+            auto *X = cast<ForStmt>(ast);
             push(new ForVisitState(X));
             Step(X->init);
             break;
         }
         case AstNodeType::WhileStmt: {
-            WhileStmt       *X = cast<WhileStmt>(ast);
-            WhileVisitState *s = new WhileVisitState(X);
+            auto *X = cast<WhileStmt>(ast);
+            auto *s = new WhileVisitState(X);
             s->step(this);
             push(s);
             break;
         }
         case AstNodeType::CallExpr: {
-            CallExpr     *X = cast<CallExpr>(ast);
+            auto         *X = cast<CallExpr>(ast);
             vector<Value> args;
             I.eval_arguments(X->args, args);
             if (I.type_conversion(X, args)) {
@@ -160,29 +160,29 @@ void Stepper::Step(AstNode *ast) {
             }
             FuncDecl *fn = userfunc->decl;
             assert(fn != 0);
-            CallExprVisitState *s = new CallExprVisitState(X, fn);
+            auto *s = new CallExprVisitState(X, fn);
             I.pushenv(fn->FuncName());
             s->step(this);
             push(s);
             break;
         }
         case AstNodeType::Literal: {
-            Literal *X = cast<Literal>(ast);
+            auto *X = cast<Literal>(ast);
             eval(X);
             break;
         }
         case AstNodeType::FieldExpr: {
-            FieldExpr *X = cast<FieldExpr>(ast);
+            auto *X = cast<FieldExpr>(ast);
             eval(X);
             break;
         }
         case AstNodeType::Identifier: {
-            Identifier *X = cast<Identifier>(ast);
+            auto *X = cast<Identifier>(ast);
             eval(X);
             break;
         }
         case AstNodeType::IndexExpr: {
-            IndexExpr *X = cast<IndexExpr>(ast);
+            auto *X = cast<IndexExpr>(ast);
             eval(X);
             break;
         }
