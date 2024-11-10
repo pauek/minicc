@@ -37,7 +37,8 @@ StmtError *Parser::stmt_error(string msg) {
 }
 
 AstNode *Parser::parse() {
-    Program *prog = new Program();
+    Ast     *ast = new Ast();
+    Program *prog = ast->create_node<Program>();
     if (!_lexer.next()) {
         error(prog, _T("Error when reading input"));
         return prog;
@@ -112,7 +113,8 @@ AstNode *Parser::parse_macro(AstNode *parent) {
         _lexer.skip_to("\n");
         Pos macro_fin = _lexer.pos();
         _lexer.next();
-        Macro *m = new Macro(_lexer.substr(macro_ini, macro_fin));
+        Macro *m = new Macro();
+        m->macro = _lexer.substr(macro_ini, macro_fin);
         m->span = Span(ini, macro_fin);
         fatal_error(macro_fin, _T("Macro '#%s' unknown.", macro_name.c_str()));
         return m;

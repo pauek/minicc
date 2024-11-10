@@ -96,6 +96,7 @@ enum class AstNodeType {
 };
 
 struct Ast;
+
 struct AstNode {
     Ast                      *ast;
     Span                      span;
@@ -121,12 +122,12 @@ struct AstDerived : AstNode {
     AstDerived() { type_ = T; }
 };
 
-template<class T>
-concept IsAstNode = std::is_base_of_v<AstNode, T>;
+template <class T>
+concept AstNodeClass = std::is_base_of_v<AstNode, T>;
 
 struct Ast {
-    template <class T>
-    T *make() {
+    template <AstNodeClass T>
+    T *create_node() {
         T *n = new T();
         n->ast = this;
         return n;
@@ -145,14 +146,10 @@ struct Program : public AstDerived<AstNodeType::Program> {
 struct Include : public AstDerived<AstNodeType::Include> {
     std::string filename;
     bool        global;
-
-    Include(std::string f = "", bool g = false) : filename(f), global(g) {}
 };
 
 struct Macro : public AstDerived<AstNodeType::Macro> {
     std::string macro;
-
-    Macro(std::string m) : macro(m) {}
 };
 
 struct Using : public AstDerived<AstNodeType::Using> {
