@@ -1,5 +1,5 @@
-# CXX=clang++
-CXX=g++
+CXX=clang++
+# CXX=g++
 
 SOURCES=$(wildcard src/*.cc)
 HEADERS=$(wildcard src/*.hh)
@@ -28,7 +28,10 @@ minicc: ./src/.depend $(OBJECTS)
 	$(CXX) -o minicc $(OBJECTS)
 
 clean:
-	rm -f ./src/.depend minicc tester $(OBJECTS)
+	@rm -f ./src/.depend minicc tester $(OBJECTS)
+
+format:
+	@clang-format -i $(SOURCES) $(HEADERS)
 
 test: minicc
 	@./test.sh
