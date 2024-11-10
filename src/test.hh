@@ -1,5 +1,6 @@
 #ifndef TEST_HH
 #define TEST_HH
+
 #include <sstream>
 #include "commands.hh"
 #include "walker.hh"

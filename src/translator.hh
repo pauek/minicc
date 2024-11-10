@@ -1,15 +1,21 @@
 #ifndef TRANSLATOR_HH
 #define TRANSLATOR_HH
+
 #include <cassert>
 #include <cstdarg>
 #include <cstdio>
 #include <iostream>
 #include <map>
 #include <string>
+
 const int          MAX_NUMERAL = 9;
 extern const char *numeral[MAX_NUMERAL + 1];
 
-enum Language { en = 0, es = 1, ca = 2 };
+enum class Language {
+    en = 0,
+    es = 1,
+    ca = 2,
+};
 
 class Translator {
     Language                   language;
@@ -27,16 +33,17 @@ class Translator {
     static const char *_translations[1000][Translator::NUM_LANGS];
 
    public:
-    Translator() : language(es) { build_index(); }
+    Translator() : language(Language::es) { build_index(); }
 
-    void set_language(Language lang) {
-        assert(lang >= 0 and lang < NUM_LANGS);
-        language = lang;
-    }
+    void set_language(Language lang) { language = lang; }
 
     std::string translate(std::string message) const {
         auto it = _index.find(message);
-        return (it == _index.end() ? message : _translations[it->second][language]);
+		if (it == _index.end()) {
+			return message;
+		}
+		auto i = static_cast<int>(language);
+		return _translations[it->second][i];
     }
 
     static Translator translator;

@@ -1,5 +1,6 @@
 #ifndef TOKEN_HH
 #define TOKEN_HH
+
 #include "pos.hh"
 
 struct Token {
@@ -113,4 +114,5 @@ struct Token {
     bool is_type_qual() const;
     bool is_operator() const;
 };
+
 #endif
