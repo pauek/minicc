@@ -286,7 +286,7 @@ AstNode *Parser::parse_func_or_var(AstNode *parent) {
     if (_lexer.curr() == '(') {
         _lexer.discard();
         FuncDecl *fn = new FuncDecl();
-		fn->id = id;
+        fn->id = id;
         fn->parent = parent;
         id->parent = fn;
         fn->comments.assign(c, c + 2);
@@ -687,8 +687,8 @@ Expr *Parser::parse_unary_expr(AstNode *parent) {
         }
         case Token::MinusMinus:
         case Token::PlusPlus: {
-            IncrExpr *ie =
-                new IncrExpr(tok.type == Token::PlusPlus ? IncrExpr::Positive : IncrExpr::Negative);
+            IncrExpr *ie = new IncrExpr();
+            ie->kind = tok.type == Token::PlusPlus ? IncrExpr::Positive : IncrExpr::Negative;
             _lexer.consume(tok.type == Token::PlusPlus ? "++" : "--");
             CommentSeq *comm = _lexer.skip();
             ie->expr = parse_unary_expr(ie);
@@ -809,8 +809,8 @@ Expr *Parser::parse_fieldexpr(Expr *x, Token tok) {
 }
 
 Expr *Parser::parse_increxpr(Expr *x, Token tok) {
-    IncrExpr *e =
-        new IncrExpr(tok.type == Token::PlusPlus ? IncrExpr::Positive : IncrExpr::Negative);
+    IncrExpr *e = new IncrExpr();
+    e->kind = tok.type == Token::PlusPlus ? IncrExpr::Positive : IncrExpr::Negative;
     e->expr = x;
     _lexer.consume(tok.type == Token::PlusPlus ? "++" : "--");
     e->span = Span(x->span.begin, _lexer.pos());

@@ -399,15 +399,10 @@ struct SignExpr : public UnaryExprDerived<AstNodeType::SignExpr> {
 };
 
 struct IncrExpr : public UnaryExprDerived<AstNodeType::IncrExpr> {
-    enum Kind {
-        Positive,
-        Negative,
-    };
+    enum Kind { Positive, Negative };
 
     Kind kind;
     bool preincr;
-
-    IncrExpr(Kind k, bool pre = false) : kind(k), preincr(pre) {}
 };
 
 struct NegExpr : public UnaryExprDerived<AstNodeType::NegExpr> {};
