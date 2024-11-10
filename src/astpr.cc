@@ -49,11 +49,11 @@ struct AstPrinter {
     void Print(AstNode *ast);
 };
 
-void AstPrinter::Print(AstNode *ast) {
-    assert(ast != nullptr);
-    switch (ast->type()) {
+void AstPrinter::Print(AstNode *node) {
+    assert(node != nullptr);
+    switch (node->type()) {
         case AstNodeType::Program: {
-            auto *X = cast<Program>(ast);
+            auto *X = cast<Program>(node);
             out.Line("Program{");
             out.indent();
             for (AstNode *child : X->nodes) {
@@ -66,7 +66,7 @@ void AstPrinter::Print(AstNode *ast) {
             break;
         }
         case AstNodeType::Include: {
-            auto  *X = cast<Include>(ast);
+            auto  *X = cast<Include>(node);
             string D = (X->global ? "<>" : "\"\"");
             out.write("Include(");
             out.write(D[0], X->filename, D[1]);
@@ -74,17 +74,17 @@ void AstPrinter::Print(AstNode *ast) {
             break;
         }
         case AstNodeType::Macro: {
-            auto *X = cast<Macro>(ast);
+            auto *X = cast<Macro>(node);
             out.write("Macro(", X->macro, ")");
             break;
         }
         case AstNodeType::Using: {
-            auto *X = cast<Using>(ast);
+            auto *X = cast<Using>(node);
             out.write("Using(", X->namespc, ")");
             break;
         }
         case AstNodeType::TypeSpec: {
-            auto *X = cast<TypeSpec>(ast);
+            auto *X = cast<TypeSpec>(node);
             out.write("Type");
             if (X->reference) {
                 out.write("<&>");
@@ -114,7 +114,7 @@ void AstPrinter::Print(AstNode *ast) {
             break;
         }
         case AstNodeType::EnumDecl: {
-            auto *X = cast<EnumDecl>(ast);
+            auto *X = cast<EnumDecl>(node);
             out.write("EnumDecl(\"", X->name, "\", {");
             for (int i = 0; i < X->values.size(); i++) {
                 if (i > 0) {
@@ -129,14 +129,14 @@ void AstPrinter::Print(AstNode *ast) {
             break;
         }
         case AstNodeType::TypedefDecl: {
-            auto *X = cast<TypedefDecl>(ast);
+            auto *X = cast<TypedefDecl>(node);
             out.write("TypedefDecl(\"", X->decl->name, "\" = ");
             Print(X->decl->typespec);
             out.write(")");
             break;
         }
         case AstNodeType::StructDecl: {
-            auto *X = cast<StructDecl>(ast);
+            auto *X = cast<StructDecl>(node);
             out.write("StructDecl('", X->name, "', {");
             out.endln();
             out.indent();
@@ -151,7 +151,7 @@ void AstPrinter::Print(AstNode *ast) {
             break;
         }
         case AstNodeType::FuncDecl: {
-            auto *X = cast<FuncDecl>(ast);
+            auto *X = cast<FuncDecl>(node);
             out.write("FuncDecl(");
             Print(X->id);
             out.write(", ");
@@ -178,7 +178,7 @@ void AstPrinter::Print(AstNode *ast) {
             break;
         }
         case AstNodeType::Block: {
-            auto *X = cast<Block>(ast);
+            auto *X = cast<Block>(node);
             out.write("Block(");
             if (X->stmts.empty()) {
                 out.write("{})");
@@ -198,7 +198,7 @@ void AstPrinter::Print(AstNode *ast) {
             break;
         }
         case AstNodeType::Identifier: {
-            auto *X = cast<Identifier>(ast);
+            auto *X = cast<Identifier>(node);
             out.write("id:");
             if (!X->prefix.empty()) {
                 out.write("[");
@@ -224,7 +224,7 @@ void AstPrinter::Print(AstNode *ast) {
             break;
         }
         case AstNodeType::Literal: {
-            auto *X = cast<Literal>(ast);
+            auto *X = cast<Literal>(node);
             if (X->paren) {
                 out.write("(");
             }
@@ -257,7 +257,7 @@ void AstPrinter::Print(AstNode *ast) {
             break;
         }
         case AstNodeType::BinaryExpr: {
-            auto *X = cast<BinaryExpr>(ast);
+            auto *X = cast<BinaryExpr>(node);
             if (X->paren) {
                 out.write("(");
             }
@@ -272,7 +272,7 @@ void AstPrinter::Print(AstNode *ast) {
             break;
         }
         case AstNodeType::VarDecl: {
-            auto *X = cast<VarDecl>(ast);
+            auto *X = cast<VarDecl>(node);
             if (X->kind == Decl::Pointer) {
                 out.write("*");
             }
@@ -280,7 +280,7 @@ void AstPrinter::Print(AstNode *ast) {
             break;
         }
         case AstNodeType::ArrayDecl: {
-            auto *X = cast<ArrayDecl>(ast);
+            auto *X = cast<ArrayDecl>(node);
             out.write('"', X->name, "\"(");
             if (X->sizes.size() == 1) {
                 out.write("Size = ");
@@ -299,7 +299,7 @@ void AstPrinter::Print(AstNode *ast) {
             break;
         }
         case AstNodeType::ExprList: {
-            auto *X = cast<ExprList>(ast);
+            auto *X = cast<ExprList>(node);
             out.write("{");
             for (int i = 0; i < X->exprs.size(); i++) {
                 if (i > 0) {
@@ -311,7 +311,7 @@ void AstPrinter::Print(AstNode *ast) {
             break;
         }
         case AstNodeType::ObjDecl: {
-            auto *X = cast<ObjDecl>(ast);
+            auto *X = cast<ObjDecl>(node);
             out.write('"', X->name, "\"(");
             if (!X->args.empty()) {
                 out.write("Args = {");
@@ -327,7 +327,7 @@ void AstPrinter::Print(AstNode *ast) {
             break;
         }
         case AstNodeType::DeclStmt: {
-            auto *X = cast<DeclStmt>(ast);
+            auto *X = cast<DeclStmt>(node);
             out.write("DeclStmt(");
             Print(X->typespec);
             out.write(", Vars = {");
@@ -345,7 +345,7 @@ void AstPrinter::Print(AstNode *ast) {
             break;
         }
         case AstNodeType::ExprStmt: {
-            auto *X = cast<ExprStmt>(ast);
+            auto *X = cast<ExprStmt>(node);
             out.write("ExprStmt");
             if (X->is_return) {
                 out.write("<return>");
@@ -358,7 +358,7 @@ void AstPrinter::Print(AstNode *ast) {
             break;
         }
         case AstNodeType::IfStmt: {
-            auto *X = cast<IfStmt>(ast);
+            auto *X = cast<IfStmt>(node);
             out.write("IfStmt(");
             Print(X->cond);
             out.write(", ");
@@ -371,7 +371,7 @@ void AstPrinter::Print(AstNode *ast) {
             break;
         }
         case AstNodeType::ForStmt: {
-            auto *X = cast<ForStmt>(ast);
+            auto *X = cast<ForStmt>(node);
             out.write("ForStmt(");
             if (X->init) {
                 Print(X->init);
@@ -402,7 +402,7 @@ void AstPrinter::Print(AstNode *ast) {
             break;
         }
         case AstNodeType::WhileStmt: {
-            auto *X = cast<WhileStmt>(ast);
+            auto *X = cast<WhileStmt>(node);
             out.write("WhileStmt(");
             Print(X->cond);
             out.write(", {");
@@ -417,7 +417,7 @@ void AstPrinter::Print(AstNode *ast) {
             break;
         }
         case AstNodeType::JumpStmt: {
-            auto         *X = cast<JumpStmt>(ast);
+            auto         *X = cast<JumpStmt>(node);
             static string keyword[] = {"break", "continue", "goto"};
             out.write("JumpStmt<", keyword[X->kind], ">(");
             if (X->kind == JumpStmt::Goto) {
@@ -427,7 +427,7 @@ void AstPrinter::Print(AstNode *ast) {
             break;
         }
         case AstNodeType::CallExpr: {
-            auto *X = cast<CallExpr>(ast);
+            auto *X = cast<CallExpr>(node);
             out.write("CallExpr(");
             Print(X->func);
             out.write(", Args = {");
@@ -441,7 +441,7 @@ void AstPrinter::Print(AstNode *ast) {
             break;
         }
         case AstNodeType::IndexExpr: {
-            auto *X = cast<IndexExpr>(ast);
+            auto *X = cast<IndexExpr>(node);
             out.write("IndexExpr(");
             Print(X->base);
             out.write(", ");
@@ -450,7 +450,7 @@ void AstPrinter::Print(AstNode *ast) {
             break;
         }
         case AstNodeType::FieldExpr: {
-            auto *X = cast<FieldExpr>(ast);
+            auto *X = cast<FieldExpr>(node);
             out.write("FieldExpr");
             if (X->pointer) {
                 out.write("<pointer>");
@@ -461,7 +461,7 @@ void AstPrinter::Print(AstNode *ast) {
             break;
         }
         case AstNodeType::CondExpr: {
-            auto *X = cast<CondExpr>(ast);
+            auto *X = cast<CondExpr>(node);
             if (X->paren) {
                 out.write("(");
             }
@@ -478,21 +478,21 @@ void AstPrinter::Print(AstNode *ast) {
             break;
         }
         case AstNodeType::SignExpr: {
-            auto *X = cast<SignExpr>(ast);
+            auto *X = cast<SignExpr>(node);
             out.write("SignExpr<", (X->kind == SignExpr::Positive ? '+' : '-'), ">(");
             Print(X->expr);
             out.write(")");
             break;
         }
         case AstNodeType::NegExpr: {
-            auto *X = cast<NegExpr>(ast);
+            auto *X = cast<NegExpr>(node);
             out.write("NegExpr(");
             Print(X->expr);
             out.write(")");
             break;
         }
         case AstNodeType::IncrExpr: {
-            auto *X = cast<IncrExpr>(ast);
+            auto *X = cast<IncrExpr>(node);
             out.write("IncrExpr<", X->kind == IncrExpr::Positive ? "++" : "--");
             out.write(", ", (X->preincr ? "pre" : "post"), ">(");
             Print(X->expr);
@@ -500,26 +500,26 @@ void AstPrinter::Print(AstNode *ast) {
             break;
         }
         case AstNodeType::AddrExpr: {
-            auto *X = cast<AddrExpr>(ast);
+            auto *X = cast<AddrExpr>(node);
             out.write("AddrExpr(");
             Print(X->expr);
             out.write(")");
             break;
         }
         case AstNodeType::DerefExpr: {
-            auto *X = cast<DerefExpr>(ast);
+            auto *X = cast<DerefExpr>(node);
             out.write("DerefExpr(");
             Print(X->expr);
             out.write(")");
             break;
         }
         case AstNodeType::StmtError: {
-            auto *X = cast<StmtError>(ast);
+            auto *X = cast<StmtError>(node);
             out.write("ErrorStmt(\"", X->code, "\")");
             break;
         }
         case AstNodeType::ExprError: {
-            auto *X = cast<ExprError>(ast);
+            auto *X = cast<ExprError>(node);
             out.write("ErrorExpr(\"", X->code, "\")");
             break;
         }
