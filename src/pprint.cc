@@ -18,8 +18,8 @@ class OutputWriter {
 
     void indentation() { out_ << std::string(indent_, ' '); }
 
-    template <typename TestClass>
-    void write(const TestClass& t) {
+    template <typename T>
+    void write(const T& t) {
         out_ << t;
     }
 

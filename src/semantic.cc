@@ -54,127 +54,127 @@ struct SemanticAnalyzer : public WithEnvironment {
 };
 
 struct _Add {
-    template <typename TestClass>
-    static TestClass eval(const TestClass& a, const TestClass& b) {
+    template <typename T>
+    static T eval(const T& a, const T& b) {
         return a + b;
     }
 };
 
 struct _Sub {
-    template <typename TestClass>
-    static TestClass eval(const TestClass& a, const TestClass& b) {
+    template <typename T>
+    static T eval(const T& a, const T& b) {
         return a - b;
     }
 };
 
 struct _Mul {
-    template <typename TestClass>
-    static TestClass eval(const TestClass& a, const TestClass& b) {
+    template <typename T>
+    static T eval(const T& a, const T& b) {
         return a * b;
     }
 };
 
 struct _Div {
-    template <typename TestClass>
-    static TestClass eval(const TestClass& a, const TestClass& b) {
+    template <typename T>
+    static T eval(const T& a, const T& b) {
         return a / b;
     }
 };
 
 struct _And {
-    template <typename TestClass>
-    static TestClass eval(const TestClass& a, const TestClass& b) {
+    template <typename T>
+    static T eval(const T& a, const T& b) {
         return a & b;
     }
 };
 
 struct _Or {
-    template <typename TestClass>
-    static TestClass eval(const TestClass& a, const TestClass& b) {
+    template <typename T>
+    static T eval(const T& a, const T& b) {
         return a | b;
     }
 };
 
 struct _Xor {
-    template <typename TestClass>
-    static TestClass eval(const TestClass& a, const TestClass& b) {
+    template <typename T>
+    static T eval(const T& a, const T& b) {
         return a ^ b;
     }
 };
 
 struct _AAdd {
-    template <typename TestClass>
-    static void eval(TestClass& a, const TestClass& b) {
+    template <typename T>
+    static void eval(T& a, const T& b) {
         a += b;
     }
 };
 
 struct _ASub {
-    template <typename TestClass>
-    static void eval(TestClass& a, const TestClass& b) {
+    template <typename T>
+    static void eval(T& a, const T& b) {
         a -= b;
     }
 };
 
 struct _AMul {
-    template <typename TestClass>
-    static void eval(TestClass& a, const TestClass& b) {
+    template <typename T>
+    static void eval(T& a, const T& b) {
         a *= b;
     }
 };
 
 struct _ADiv {
-    template <typename TestClass>
-    static void eval(TestClass& a, const TestClass& b) {
+    template <typename T>
+    static void eval(T& a, const T& b) {
         a /= b;
     }
 };
 
 struct _AAnd {
-    template <typename TestClass>
-    static void eval(TestClass& a, const TestClass& b) {
+    template <typename T>
+    static void eval(T& a, const T& b) {
         a &= b;
     }
 };
 
 struct _AOr {
-    template <typename TestClass>
-    static void eval(TestClass& a, const TestClass& b) {
+    template <typename T>
+    static void eval(T& a, const T& b) {
         a |= b;
     }
 };
 
 struct _AXor {
-    template <typename TestClass>
-    static void eval(TestClass& a, const TestClass& b) {
+    template <typename T>
+    static void eval(T& a, const T& b) {
         a ^= b;
     }
 };
 
 struct _Lt {
-    template <typename TestClass>
-    static bool eval(const TestClass& a, const TestClass& b) {
+    template <typename T>
+    static bool eval(const T& a, const T& b) {
         return a < b;
     }
 };
 
 struct _Le {
-    template <typename TestClass>
-    static bool eval(const TestClass& a, const TestClass& b) {
+    template <typename T>
+    static bool eval(const T& a, const T& b) {
         return a <= b;
     }
 };
 
 struct _Gt {
-    template <typename TestClass>
-    static bool eval(const TestClass& a, const TestClass& b) {
+    template <typename T>
+    static bool eval(const T& a, const T& b) {
         return a > b;
     }
 };
 
 struct _Ge {
-    template <typename TestClass>
-    static bool eval(const TestClass& a, const TestClass& b) {
+    template <typename T>
+    static bool eval(const T& a, const T& b) {
         return a >= b;
     }
 };
@@ -1246,7 +1246,7 @@ void SemanticAnalyzer::analyze(AstNode *node) {
             Value obj = _curr;
             if (obj.is<Struct>()) {
                 // FIXME: Move this to 'get_field' in 'Struct' class???
-                SimpleTable<Value>& fields = obj.as<Struct>();
+                Table<Value>& fields = obj.as<Struct>();
                 Value               v;
                 if (!fields.get(X->field, v)) {
                     X->add_error(_T("El campo '%s' no existe.", X->field.c_str()));

@@ -1,5 +1,6 @@
 #ifndef INTERPRETER_HH
 #define INTERPRETER_HH
+
 #include <iostream>
 #include <vector>
 #include "ast.hh"
@@ -62,4 +63,5 @@ struct UserFunc : public Func {
 };
 
 void eval(AstNode *ast, std::istream& in, std::ostream& out);
+
 #endif

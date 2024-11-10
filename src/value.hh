@@ -1,8 +1,10 @@
 #ifndef VALUE_HH
 #define VALUE_HH
+
 #include <cstring>
 #include "ast.hh"
-#include "util.hh"
+#include "table.hh"
+
 /*
 
 A value can be:
@@ -68,12 +70,12 @@ class Value {  // new value
     void set_const(bool cnst) { _const = cnst; }
 
     void clear_touched();
-    template <typename TestClass>
+    template <typename T>
     bool is() const;
-    template <typename TestClass>
-    typename TestClass::cpp_type& as();
-    template <typename TestClass>
-    typename TestClass::cpp_type& as() const;
+    template <typename T>
+    typename T::cpp_type& as();
+    template <typename T>
+    typename T::cpp_type& as() const;
 
     bool has_type(const Type *t) const { return _box->type == t; }
 
@@ -118,4 +120,5 @@ class Value {  // new value
 
 std::ostream& operator<<(std::ostream& o, const Value& v);
 std::istream& operator>>(std::istream& o, Value& v);
+
 #endif

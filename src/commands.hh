@@ -1,5 +1,6 @@
 #ifndef COMMANDS_HH
 #define COMMANDS_HH
+
 #include <cstring>
 #include <string>
 
@@ -52,4 +53,5 @@ inline void help(const vector<Command>& commands) {
     cout << endl;
     exit(1);
 }
+
 #endif

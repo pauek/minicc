@@ -94,4 +94,5 @@ _T(const char *format, const T1& t1, const T2& t2, const T3& t3, const T4& t4, c
     std::sprintf(buffer, f.c_str(), t1, t2, t3, t4, t5);
     return std::string(buffer);
 }
+
 #endif

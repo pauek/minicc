@@ -11,8 +11,8 @@ struct OutputWriter {
 
     void dedent() { indent_ -= 3; }
 
-    template <typename TestClass>
-    void write(const TestClass& t) {
+    template <typename T>
+    void write(const T& t) {
         out_ << t;
     }
 

@@ -192,8 +192,8 @@ string Reference::to_json(void *data) const {
     return O.str();
 }
 
-template <typename TestClass>
-bool BaseType<TestClass>::accepts(const Type *t) const {
+template <typename T>
+bool BaseType<T>::accepts(const Type *t) const {
     if (t->is<Reference>()) {
         t = t->as<Reference>()->subtype();
     }
@@ -1400,7 +1400,7 @@ Value Array::convert(Value init) const {
 }
 
 bool Struct::contains_unknowns(void *data) const {
-    SimpleTable<Value> *tab = static_cast<SimpleTable<Value> *>(data);
+    Table<Value> *tab = static_cast<Table<Value> *>(data);
     for (int i = 0; i < _fields.size(); i++) {
         pair<std::string, const Type *> f = _fields[i];
         Value                           v;
@@ -1414,7 +1414,7 @@ bool Struct::contains_unknowns(void *data) const {
 }
 
 Value Struct::create() const {
-    SimpleTable<Value> *tab = new SimpleTable<Value>();
+    Table<Value> *tab = new Table<Value>();
     for (int i = 0; i < _fields.size(); i++) {
         pair<std::string, const Type *> f = _fields[i];
         tab->set(f.first, f.second->create());
@@ -1423,7 +1423,7 @@ Value Struct::create() const {
 }
 
 Value Struct::create_abstract() const {
-    SimpleTable<Value> *tab = new SimpleTable<Value>();
+    Table<Value> *tab = new Table<Value>();
     for (int i = 0; i < _fields.size(); i++) {
         pair<std::string, const Type *> f = _fields[i];
         tab->set(f.first, f.second->create_abstract());
@@ -1440,7 +1440,7 @@ Value Struct::convert(Value init) const {
         if (values.size() > _fields.size()) {
             _error("Demasiados valores al inicializar la tupla de tipo '" + name() + "'");
         }
-        SimpleTable<Value> *tab = new SimpleTable<Value>();
+        Table<Value> *tab = new Table<Value>();
         int                 k = 0;
         for (int i = 0; i < _fields.size(); i++) {
             pair<std::string, const Type *> f = _fields[i];
@@ -1461,8 +1461,8 @@ void *Struct::clone(void *data) const {
     // The copy constructor in SimpleTable<Value> doesn't clone Values
     // which is what we want here
     //
-    SimpleTable<Value> *from = static_cast<SimpleTable<Value> *>(data);
-    SimpleTable<Value> *to = new SimpleTable<Value>();
+    Table<Value> *from = static_cast<Table<Value> *>(data);
+    Table<Value> *to = new Table<Value>();
     for (int i = 0; i < from->size(); i++) {
         const pair<string, Value>& f = (*from)[i];
         to->set(f.first, f.second.clone());
@@ -1471,14 +1471,14 @@ void *Struct::clone(void *data) const {
 }
 
 void Struct::clear_touched(void *data) const {
-    SimpleTable<Value> *_tab = static_cast<SimpleTable<Value> *>(data);
+    Table<Value> *_tab = static_cast<Table<Value> *>(data);
     for (int i = 0; i < _tab->size(); i++) {
         (*_tab)[i].second.clear_touched();
     }
 }
 
 string Struct::to_json(void *data) const {
-    SimpleTable<Value>& tab = *static_cast<SimpleTable<Value> *>(data);
+    Table<Value>& tab = *static_cast<Table<Value> *>(data);
     ostringstream       json;
     json << "{\"<type>\":\"struct\"";
     for (int i = 0; i < tab.size(); i++) {

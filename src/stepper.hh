@@ -1,5 +1,6 @@
 #ifndef STEPPER_HH
 #define STEPPER_HH
+
 #include <assert.h>
 #include <iostream>
 #include <list>
@@ -200,4 +201,5 @@ class Stepper {
         Span span() const;
     };
 };
+
 #endif

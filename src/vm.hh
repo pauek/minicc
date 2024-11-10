@@ -144,12 +144,12 @@ class Memory {
 
     void         stack_pop();
     const Chunk *get(ChunkIndex index) const;
-    template <typename TestClass>
-    bool read(ChunkIndex index, size_t offset, TestClass& value);
+    template <typename T>
+    bool read(ChunkIndex index, size_t offset, T& value);
 };
 
-template <typename TestClass>
-bool Memory::read(ChunkIndex index, size_t offset, TestClass& value) {
+template <typename T>
+bool Memory::read(ChunkIndex index, size_t offset, T& value) {
     const Chunk *chunk = get(index);
     if (chunk == 0) {
         return false;
@@ -157,10 +157,10 @@ bool Memory::read(ChunkIndex index, size_t offset, TestClass& value) {
     /****************************************************************************
          TODO: Check that the offset has the requested type (matches the layout!)
     ****************************************************************************/
-    if (offset + sizeof(TestClass) > chunk->size) {
+    if (offset + sizeof(T) > chunk->size) {
         return false;
     }
-    value = *(TestClass *)(_data + chunk->start + offset);
+    value = *(T *)(_data + chunk->start + offset);
     return true;
 }
 
