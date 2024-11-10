@@ -352,7 +352,6 @@ struct ExprList : public ExprDerived<AstNodeType::ExprList> {
     std::vector<Expr *> exprs;
 };
 
-
 // Declarations ////////////////////////////////////////////
 
 struct Decl : public AstNode {
@@ -384,6 +383,7 @@ struct ObjDecl : public DeclDerived<AstNodeType::ObjDecl> {
 };
 
 struct Block;
+
 struct FuncDecl : public AstDerived<AstNodeType::FuncDecl> {
     struct Param {
         Pos         ini, fin;
