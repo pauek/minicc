@@ -77,8 +77,8 @@ void Stepper::Step(AstNode *ast) {
             if (is_assignment(X->expr)) {
                 visit_assignment(cast<BinaryExpr>(X->expr));
             } else if (is_write_expr(X->expr)) {
-                BinaryExpr          *e = cast<BinaryExpr>(X->expr);
-                WriteExprVisitState *ws = new WriteExprVisitState(e);
+                BinaryExpr *e = cast<BinaryExpr>(X->expr);
+                auto       *ws = new WriteExprVisitState(e);
                 collect_rights(e, ws->exprs);
                 push(ws);
                 ws->step(this);
