@@ -1960,8 +1960,7 @@ int Function::check_signature(const std::vector<Value>& args) const {
 			if (tyParam == tyArgDeref) {
 				score++;
 			}
-		}
-		if (!_param_types[i]->accepts(args[i].type())) {
+		} else if (!_param_types[i]->accepts(args[i].type())) {
 			return -1;
 		}
 	}

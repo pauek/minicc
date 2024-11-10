@@ -5,5 +5,6 @@
 #include "ast.hh"
 
 void pretty_print(Ast *ast, std::ostream& out = std::cout);
+std::string pretty_to_string(Ast *ast);
 
 #endif

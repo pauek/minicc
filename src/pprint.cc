@@ -777,3 +777,9 @@ void PrettyPrinter::Print(Ast *ast) {
 void pretty_print(Ast *ast, ostream& out) {
 	PrettyPrinter(out).Print(ast);
 }
+
+string pretty_to_string(Ast *ast) {
+	stringstream ss;
+	pretty_print(ast, ss);
+	return ss.str();
+}
