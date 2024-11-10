@@ -21,7 +21,8 @@ Parser::Parser(istream *i, std::ostream *err) : _lexer(i), _err(err) {
         "list",
         "map",
         "set",
-        "pair"};
+        "pair"
+    };
     for (int i = 0; i < sizeof(basic_types) / sizeof(char *); i++) {
         _types.insert(basic_types[i]);
     }
@@ -139,8 +140,8 @@ Ast *Parser::parse() {
 Ast *Parser::parse_macro(Ast *parent) {
     Pos ini = _lexer.pos();
     _lexer.consume(Token::Sharp);
-    _lexer.skip(
-        Lexer::Skip::SpaceTab);  // comments between '#' and the macro name are gobbled up...
+    _lexer.skip(Lexer::Skip::SpaceTab
+    );  // comments between '#' and the macro name are gobbled up...
     Pos macro_ini = _lexer.pos();
     if (!_lexer.expect("include")) {
         Token  tok = _lexer.read_ident();
@@ -487,7 +488,8 @@ Stmt *Parser::parse_jumpstmt(Ast *parent) {
         error(
             stmt,
             _lexer.pos().str() + ": " +
-                _T("Esperaba un ';' después de '%s'.", _lexer.substr(tok).c_str()));
+                _T("Esperaba un ';' después de '%s'.", _lexer.substr(tok).c_str())
+        );
         _lexer.skip_to(";\n");  // resync...
     }
     return stmt;
@@ -996,7 +998,8 @@ Expr *Parser::parse_exprlist(Ast *parent) {
             break;
         }
         elist->exprs.push_back(
-            _lexer.curr() == '{' ? parse_exprlist(parent) : parse_expr(parent, Expr::Eq));
+            _lexer.curr() == '{' ? parse_exprlist(parent) : parse_expr(parent, Expr::Eq)
+        );
     } while (_lexer.curr() == ',');
     if (!_lexer.expect(Token::RBrace)) {
         error(elist, _lexer.pos().str() + ": " + _T("Expected '%s' here.", "}"));
@@ -1085,8 +1088,8 @@ DeclStmt *Parser::parse_declstmt(Ast *parent, bool is_typedef) {
             _lexer.next();
             _skip(stmt);
             item.init =
-                (_lexer.curr() == '{' ? parse_exprlist(item.decl)
-                                      : parse_expr(item.decl, Expr::Eq));
+                (_lexer.curr() == '{' ? parse_exprlist(item.decl) : parse_expr(item.decl, Expr::Eq)
+                );
         }
         item.decl->typespec = stmt->typespec;
         item.decl->span.end = _lexer.pos();

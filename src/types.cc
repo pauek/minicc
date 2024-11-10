@@ -42,7 +42,8 @@ map<string, const Type *> Type::reference_types;
 const Type *TypeMap::instantiate_template(
     const vector<TypeSpec *>& subtypespecs,
     const Type               *T,
-    Environment              *topmost) {
+    Environment              *topmost
+) {
     assert(T->is(Type::Template));
     vector<const Type *> subtypes;
     for (int i = 0; i < subtypespecs.size(); i++) {
@@ -462,9 +463,11 @@ Vector::Vector(const Type *celltype) : Class("vector"), _celltype(celltype) {
 
     _add_method(
         (new Function(Void))->add_params(Int::self, celltype),  // literals!!
-        new Resize2Method());
+        new Resize2Method()
+    );
     _add_method(
-        (new Function(Void))->add_params(Int::self, new Reference(celltype)), new Resize2Method());
+        (new Function(Void))->add_params(Int::self, new Reference(celltype)), new Resize2Method()
+    );
 
     // front
     struct FrontMethod : public Func {
@@ -553,7 +556,8 @@ Vector::Vector(const Type *celltype) : Class("vector"), _celltype(celltype) {
 
     _add_method(
         (new Function(iterator_type))->add_params(iterator_type, celltype),
-        new InsertMethod(iterator_type));
+        new InsertMethod(iterator_type)
+    );
 
     // erase
     struct EraseMethod : public Func {
@@ -571,7 +575,8 @@ Vector::Vector(const Type *celltype) : Class("vector"), _celltype(celltype) {
     };
 
     _add_method(
-        (new Function(iterator_type))->add_params(iterator_type), new EraseMethod(iterator_type));
+        (new Function(iterator_type))->add_params(iterator_type), new EraseMethod(iterator_type)
+    );
 
     // []
     struct IndexedAccessOperator : public Func {
@@ -592,14 +597,16 @@ Vector::Vector(const Type *celltype) : Class("vector"), _celltype(celltype) {
             if (!the_index.is<Int>()) {
                 x->add_error(
                     _T("El índice a una casilla de un vector debe ser un 'int' (no '%s').",
-                       the_index.type()->name().c_str()));
+                       the_index.type()->name().c_str())
+                );
             }
             return true;
         }
     };
 
     _add_method(
-        (new Function(Type::mkref(celltype)))->add_params(Int::self), new IndexedAccessOperator());
+        (new Function(Type::mkref(celltype)))->add_params(Int::self), new IndexedAccessOperator()
+    );
 }
 
 const Type *Vector::instantiate(vector<const Type *>& subtypes) const {
@@ -813,9 +820,11 @@ List::List(const Type *celltype) : Class("list"), _celltype(celltype) {
 
     _add_method(
         (new Function(Void))->add_params(Int::self, celltype),  // literals!
-        new Resize2Method());
+        new Resize2Method()
+    );
     _add_method(
-        (new Function(Void))->add_params(Int::self, new Reference(celltype)), new Resize2Method());
+        (new Function(Void))->add_params(Int::self, new Reference(celltype)), new Resize2Method()
+    );
 
     // front
     struct FrontMethod : public Func {
@@ -962,7 +971,8 @@ List::List(const Type *celltype) : Class("list"), _celltype(celltype) {
 
     _add_method(
         (new Function(iterator_type))->add_params(iterator_type, celltype),
-        new InsertMethod(iterator_type));
+        new InsertMethod(iterator_type)
+    );
 
     // erase
     struct EraseMethod : public Func {
@@ -980,7 +990,8 @@ List::List(const Type *celltype) : Class("list"), _celltype(celltype) {
     };
 
     _add_method(
-        (new Function(iterator_type))->add_params(iterator_type), new EraseMethod(iterator_type));
+        (new Function(iterator_type))->add_params(iterator_type), new EraseMethod(iterator_type)
+    );
 }
 
 const Type *List::instantiate(vector<const Type *>& subtypes) const {
@@ -1183,7 +1194,8 @@ Map::Map(const Type *k, const Type *v) : Class("map"), _key(k), _value(v) {
     const Type *insert_return_type = new Pair(iterator_type, Bool::self);
     _add_method(
         (new Function(insert_return_type))->add_params(_pair_type),
-        new InsertMethod(iterator_type, insert_return_type));
+        new InsertMethod(iterator_type, insert_return_type)
+    );
 
     // find
     struct FindMethod : public Func {
@@ -1433,13 +1445,15 @@ Value Struct::convert(Value init) const {
         for (int i = 0; i < _fields.size(); i++) {
             pair<std::string, const Type *> f = _fields[i];
             tab->set(
-                f.first, (i < values.size() ? f.second->convert(values[i]) : f.second->create()));
+                f.first, (i < values.size() ? f.second->convert(values[i]) : f.second->create())
+            );
         }
         return Value(this, tab);
     }
     _error(
         "Para inicializar una tupla hace falta otra tupla igual"
-        " o una lista de expresiones entre '{' y '}'");
+        " o una lista de expresiones entre '{' y '}'"
+    );
     return Value::null;
 }
 
@@ -1665,7 +1679,8 @@ String::String() : Class("string") {
             Value   the_len = Reference::deref(args[1]);
             Value   the_replacement = Reference::deref(args[2]);
             return Value(the_string.replace(
-                the_pos.as<Int>(), the_len.as<Int>(), the_replacement.as<String>()));
+                the_pos.as<Int>(), the_len.as<Int>(), the_replacement.as<String>()
+            ));
         }
     };
 

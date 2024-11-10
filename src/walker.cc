@@ -20,8 +20,7 @@ std::vector<Error *> collect_errors(Ast *ast) {
     if (ast == 0) {
         return result;
     }
-    ErrorCollector error_collector(result);
-    walk(ast, error_collector);
+    walk(ast, ErrorCollector(result));
     for (int i = 0; i < result.size(); i++) {
         if (result[i]->stopper) {
             result.resize(i + 1);

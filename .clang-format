@@ -18,9 +18,9 @@ AllowShortIfStatementsOnASingleLine: Never
 AllowShortLoopsOnASingleLine: false
 AlignConsecutiveShortCaseStatements: 
   Enabled: true
-AlignAfterOpenBracket: AlwaysBreak
 AlignArrayOfStructures: Left
 BinPackArguments: false
 InsertBraces: true
 BreakBeforeBraces: Attach
 MaxEmptyLinesToKeep: 1
+AlignAfterOpenBracket: BlockIndent

@@ -31,15 +31,18 @@ class Parser {
     void stopper_error(Ast *n, std::string msg);
     void stopper_error(Ast *n, Span span, std::string msg);
     void fatal_error(Pos p, std::string msg);
+
     template <class Node>
     typename Node::Error *error(std::string msg);
-    StmtError            *stmt_error(std::string msg);
-    void                  parse_expr_seq(Ast *n, std::vector<Expr *>& v);
-    void                  parse_type_seq(Ast *n, std::vector<TypeSpec *>& v);
-    bool                  _parse_type_process_token(TypeSpec *type, Token tok, Pos p);
-    Decl       *_parse_vardecl(Ast *parent, std::string name, Decl::Kind kind, CommentSeq *comm);
-    Decl       *_parse_arraydecl(Ast *parent, std::string name, Decl::Kind kind, CommentSeq *comm);
-    Decl       *_parse_objdecl(Ast *parent, std::string name, CommentSeq *comm);
+
+    StmtError *stmt_error(std::string msg);
+    void       parse_expr_seq(Ast *n, std::vector<Expr *>& v);
+    void       parse_type_seq(Ast *n, std::vector<TypeSpec *>& v);
+    bool       _parse_type_process_token(TypeSpec *type, Token tok, Pos p);
+    Decl      *_parse_vardecl(Ast *parent, std::string name, Decl::Kind kind, CommentSeq *comm);
+    Decl      *_parse_arraydecl(Ast *parent, std::string name, Decl::Kind kind, CommentSeq *comm);
+    Decl      *_parse_objdecl(Ast *parent, std::string name, CommentSeq *comm);
+
     std::string _translate_Escapes(std::string s);
 
    public:

@@ -266,14 +266,16 @@ void Interpreter::eval_binary_expr_assignment(Value left, Value right) {
             _T("La asignación no se puede hacer porque los "
                "tipos no son compatibles (%s) vs (%s)",
                left.type_name().c_str(),
-               right.type_name().c_str()));
+               right.type_name().c_str())
+        );
     }
     if (!left.assign(right)) {
         _error(
             _T("La asignación no se puede hacer porque los "
                "tipos no son compatibles (%s) vs (%s)",
                left.type_name().c_str(),
-               right.type_name().c_str()));
+               right.type_name().c_str())
+        );
     }
     _curr = left;
 }
@@ -374,7 +376,8 @@ void Interpreter::check_arguments(const Function *func_type, const vector<Value>
                    "(%s vs %s)",
                    i + 1,
                    t1.c_str(),
-                   t2.c_str()));
+                   t2.c_str())
+            );
         }
     }
 }
@@ -390,10 +393,9 @@ void Interpreter::check_result(Binding& fn, const Function *func_type) {
     if (_ret == Value::null && !func_type->is_void()) {
         string      name = fn.func.as<Function>().ptr->name;
         const Type *return_type = func_type->return_type();
-        _error(
-            _T("La función '%s' debería devolver un '%s'",
-               name.c_str(),
-               return_type->TypeStr().c_str()));
+        _error(_T(
+            "La función '%s' debería devolver un '%s'", name.c_str(), return_type->TypeStr().c_str()
+        ));
     }
 }
 
@@ -528,7 +530,8 @@ void Interpreter::eval(Ast *ast) {
                     _error(
                         _T("No se ha encontrado '%s' en el namespace '%s'.",
                            X->name.c_str(),
-                           namespc_or_class->name.c_str()));
+                           namespc_or_class->name.c_str())
+                    );
                     return;
                 }
             }
@@ -541,7 +544,8 @@ void Interpreter::eval(Ast *ast) {
                     _error(
                         _T("No se ha encontrado '%s' en la clase '%s'.",
                            X->name.c_str(),
-                           namespc_or_class->name.c_str()));
+                           namespc_or_class->name.c_str())
+                    );
                 }
                 goto found;
             }
@@ -588,8 +592,8 @@ void Interpreter::eval(Ast *ast) {
             // second part
             //
             if (X->op == "&&" or X->op == "and" or X->op == "||" or X->op == "or") {
-                if (left.is<
-                        Bool>() /* and right.is<Bool>() // FIXME: Check in SemanticAnalyzer!! */) {
+                if (left.is<Bool>(
+                    ) /* and right.is<Bool>() // FIXME: Check in SemanticAnalyzer!! */) {
                     // do not evaluate right hand side if already enough with left
                     if (X->op == "&&" or X->op == "and") {
                         if (!left.as<Bool>()) {
@@ -607,7 +611,8 @@ void Interpreter::eval(Ast *ast) {
                     right = Reference::deref(right);
                     _curr = Value(
                         X->op == "&&" or X->op == "and" ? left.as<Bool>() and right.as<Bool>()
-                                                        : left.as<Bool>() or right.as<Bool>());
+                                                        : left.as<Bool>() or right.as<Bool>()
+                    );
                     return;
                 }
                 _error(_T("Los operandos de '%s' no son de tipo 'bool'", X->op.c_str()));
@@ -672,7 +677,8 @@ void Interpreter::eval(Ast *ast) {
                         _error(
                             _T("El tipo '%s' no tiene 'operator%s'",
                                _curr.type()->TypeStr().c_str(),
-                               X->op.c_str()));
+                               X->op.c_str())
+                        );
                     }
                     ret = true;
                 }
@@ -689,7 +695,8 @@ void Interpreter::eval(Ast *ast) {
             } else if (X->op == "%=") {
                 if (!left.is<Reference>()) {
                     _error(_T(
-                        "Para usar '%s' se debe poner una variable a la izquierda", X->op.c_str()));
+                        "Para usar '%s' se debe poner una variable a la izquierda", X->op.c_str()
+                    ));
                 }
                 left = Reference::deref(left);
                 if (left.is<Int>() and right.is<Int>()) {
@@ -721,7 +728,8 @@ void Interpreter::eval(Ast *ast) {
                         _error(
                             _T("El tipo '%s' no tiene 'operator%s'",
                                _curr.type()->TypeStr().c_str(),
-                               X->op.c_str()));
+                               X->op.c_str())
+                        );
                     }
                     ret = true;
                 }
@@ -810,8 +818,8 @@ void Interpreter::eval(Ast *ast) {
                 setenv(X->name, new_obj);
                 return;
             }
-            _error(
-                _T("The type '%s' is not implemented in MiniCC", X->typespec->TypeStr().c_str()));
+            _error(_T("The type '%s' is not implemented in MiniCC", X->typespec->TypeStr().c_str())
+            );
             break;
         }
         case AstType::DeclStmt: {
@@ -940,8 +948,8 @@ void Interpreter::eval(Ast *ast) {
             _curr = Reference::deref(_curr);
             if (X->pointer) {
                 if (!call_operator("*")) {
-                    _error(
-                        _T("El tipo '%s' no tiene 'operator*'", _curr.type()->TypeStr().c_str()));
+                    _error(_T("El tipo '%s' no tiene 'operator*'", _curr.type()->TypeStr().c_str())
+                    );
                 }
                 _curr = Reference::deref(_curr);
             }
@@ -968,7 +976,8 @@ void Interpreter::eval(Ast *ast) {
             if (!_curr.is<Bool>()) {
                 _error(
                     _T("Una expresión condicional debe tener valor "
-                       "de tipo 'bool' antes del interrogante"));
+                       "de tipo 'bool' antes del interrogante")
+                );
             }
             if (_curr.as<Bool>()) {
                 eval(X->then);
@@ -1005,7 +1014,8 @@ void Interpreter::eval(Ast *ast) {
                 _curr.as<Double>() = -_curr.as<Double>();
             } else {
                 _error(
-                    _T("El cambio de signo para '%s' no tiene sentido", _curr.type_name().c_str()));
+                    _T("El cambio de signo para '%s' no tiene sentido", _curr.type_name().c_str())
+                );
             }
             break;
         }
@@ -1032,7 +1042,8 @@ void Interpreter::eval(Ast *ast) {
                     _error(
                         _T("El tipo '%s' no tiene 'operator%s'",
                            _curr.type()->TypeStr().c_str(),
-                           op.c_str()));
+                           op.c_str())
+                    );
                 }
             }
             _curr = (X->preincr ? before : after);

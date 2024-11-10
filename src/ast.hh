@@ -48,8 +48,10 @@ struct CommentSeq {
         return !comments.empty() and comments.back().kind == Comment::EndLine;
     }
 };
+
 class AstVisitor;
 struct TypeSpec;
+
 enum class AstType {
     Program,
     Include,
@@ -92,8 +94,9 @@ struct Ast {
     std::vector<Error *>      errors;
     std::vector<CommentSeq *> comments;
     Ast                      *parent;
-    void                      add_error(std::string msg);
-    void                      add_error(Pos ini, Pos fin, std::string msg);
+
+    void add_error(std::string msg);
+    void add_error(Pos ini, Pos fin, std::string msg);
 
     bool has_errors() const { return !errors.empty(); }
 
@@ -212,7 +215,12 @@ struct DeclStmt : public StmtDerived<AstType::DeclStmt> {
 };
 
 struct JumpStmt : public StmtDerived<AstType::JumpStmt> {
-    enum Kind { Unknown = -1, Break = 0, Continue = 1, Goto = 2 };
+    enum Kind {
+        Unknown = -1,
+        Break = 0,
+        Continue = 1,
+        Goto = 2,
+    };
 
     Kind        kind = Unknown;
     std::string label;
@@ -263,7 +271,14 @@ struct ExprError : public ExprDerived<AstType::ExprError> {
 };
 
 struct Literal : public ExprDerived<AstType::Literal> {
-    enum Kind { Bool, Int, String, Char, Float, Double };
+    enum Kind {
+        Bool,
+        Int,
+        String,
+        Char,
+        Float,
+        Double,
+    };
 
     struct StringData {
         std::string *s;
@@ -356,7 +371,10 @@ struct UnaryExprDerived : UnaryExpr {
 };
 
 struct SignExpr : public UnaryExprDerived<AstType::SignExpr> {
-    enum Kind { Positive, Negative };
+    enum Kind {
+        Positive,
+        Negative,
+    };
 
     Kind kind;
 
@@ -364,7 +382,10 @@ struct SignExpr : public UnaryExprDerived<AstType::SignExpr> {
 };
 
 struct IncrExpr : public UnaryExprDerived<AstType::IncrExpr> {
-    enum Kind { Positive, Negative };
+    enum Kind {
+        Positive,
+        Negative,
+    };
 
     Kind kind;
     bool preincr;
@@ -448,4 +469,5 @@ bool        is_read_expr(Ast *ast);
 bool        is_write_expr(Ast *ast);
 bool        is_assignment(Ast *ast);
 void        collect_rights(Ast *ast, std::list<Expr *>& L);
+
 #endif

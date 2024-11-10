@@ -24,10 +24,10 @@ bool CommentSeq::ends_with_empty_line() const {
 void CommentSeq::remove_endlns() {
     comments.erase(
         std::remove_if(
-            comments.begin(),
-            comments.end(),
-            [](Comment& c) { return c.kind == Comment::EndLine; }),
-        comments.end());
+            comments.begin(), comments.end(), [](Comment& c) { return c.kind == Comment::EndLine; }
+        ),
+        comments.end()
+    );
 }
 
 void CommentSeq::only_one_endln_at_end() {
@@ -367,7 +367,8 @@ string describe(Ast *ast) {
 bool has_errors(Ast *ast) {
 #define CHECK_ERRORS(n) \
     if (has_errors(n))  \
-    return true
+        return true;
+
     if (ast == 0) {
         return false;
     }
@@ -523,5 +524,6 @@ bool has_errors(Ast *ast) {
         default:
             return ast->has_errors();
     }
+
 #undef CHECK_ERRORS
 }

@@ -43,7 +43,8 @@ class Value {  // new value
     explicit Value(
         const Type *t,
         void       *d = 0,
-        bool        cnst = false);  // with data = 0 creates an 'abstract' Value
+        bool        cnst = false
+    );  // with data = 0 creates an 'abstract' Value
     Value(const Value& v);
     explicit Value(int x);
     explicit Value(char x);

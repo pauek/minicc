@@ -118,10 +118,12 @@ class Environment;
 class TypeMap {
     std::map<std::string, const Type *> _typemap;
     std::map<std::string, const Type *> _typecache;  // all types indexed by typestr
-    const Type                         *instantiate_template(
-                                const std::vector<TypeSpec *>& subtypespecs,
-                                const Type                    *T,
-                                Environment                   *topmost);
+
+    const Type *instantiate_template(
+        const std::vector<TypeSpec *>& subtypespecs,
+        const Type                    *T,
+        Environment                   *topmost
+    );
 
    public:
     void        register_type(std::string name, const Type *);
@@ -145,8 +147,8 @@ class UnknownType : public Type {
 
     void destroy(void *data) const {
         assert(
-            data == Value::unknown ||
-            data == Value::abstract);  // should only be used in abstract/unknown values.
+            data == Value::unknown || data == Value::abstract
+        );  // should only be used in abstract/unknown values.
     }
 
     static const UnknownType *self;
@@ -262,13 +264,14 @@ class Reference : public Type {
 
     const Type *get_inner_class(std::string name) const { return 0; }
 
-    void                   *alloc(Value& x) const;
-    void                    destroy(void *data) const;
-    Value                   convert(Value init) const;
-    static Value            mkref(Value& v);        // create a reference to a value
-    static Value            deref(const Value& v);  // obtain the referenced value
-    void                    clear_touched(void *data) const;
-    std::string             to_json(void *data) const;
+    void        *alloc(Value& x) const;
+    void         destroy(void *data) const;
+    Value        convert(Value init) const;
+    static Value mkref(Value& v);        // create a reference to a value
+    static Value deref(const Value& v);  // obtain the referenced value
+    void         clear_touched(void *data) const;
+    std::string  to_json(void *data) const;
+
     static const Reference *self;
 };
 
@@ -276,8 +279,9 @@ class Int : public BasicType<int> {
    public:
     Int() : BasicType("int") {}
 
-    Value             convert(Value init) const;
-    bool              accepts(const Type *t) const;
+    Value convert(Value init) const;
+    bool  accepts(const Type *t) const;
+
     static const Int *self;
 };
 
@@ -285,8 +289,9 @@ class Float : public BasicType<float> {
    public:
     Float() : BasicType("float") {}
 
-    Value               convert(Value init) const;
-    bool                accepts(const Type *t) const;
+    Value convert(Value init) const;
+    bool  accepts(const Type *t) const;
+
     static const Float *self;
 };
 
@@ -294,8 +299,9 @@ class Double : public BasicType<double> {
    public:
     Double() : BasicType("double") {}
 
-    Value                convert(Value init) const;
-    bool                 accepts(const Type *t) const;
+    Value convert(Value init) const;
+    bool  accepts(const Type *t) const;
+
     static const Double *self;
 };
 
@@ -304,10 +310,11 @@ class Char : public BasicType<char> {
    public:
     Char(bool destroy = true) : _destroy(destroy), BasicType("char") {}
 
-    Value              convert(Value init) const;
-    bool               accepts(const Type *t) const;
-    void               destroy(void *data) const;
-    std::string        to_json(void *data) const;
+    Value       convert(Value init) const;
+    bool        accepts(const Type *t) const;
+    void        destroy(void *data) const;
+    std::string to_json(void *data) const;
+
     static const Char *self;
     static const Char *self_ref;
 };
@@ -325,8 +332,9 @@ class Bool : public BasicType<bool> {
    public:
     Bool() : BasicType("bool") {}
 
-    Value              convert(Value init) const;
-    bool               accepts(const Type *t) const;
+    Value convert(Value init) const;
+    bool  accepts(const Type *t) const;
+
     static const Bool *self;
 
     std::string to_json(void *data) const { return (*(bool *)data ? "true" : "false"); }
@@ -471,7 +479,8 @@ class Overloaded : public BaseType<OverloadedValue> {
 
     Value convert(Value init) const { assert(false); }
 
-    Value                    mkvalue(Value self, const std::vector<Value>& candidates) const;
+    Value mkvalue(Value self, const std::vector<Value>& candidates) const;
+
     static const Overloaded *self;
     typedef OverloadedValue  cpp_type;
 };
@@ -490,12 +499,13 @@ class Struct : public BaseType<SimpleTable<Value>> {
 
     int properties() const { return Type::UserDefined | Type::Composite; }
 
-    Value                      create() const;
-    Value                      convert(Value init) const;
-    Value                      create_abstract() const;
-    void                      *clone(void *data) const;
-    void                       clear_touched(void *data) const;
-    std::string                to_json(void *data) const;
+    Value       create() const;
+    Value       convert(Value init) const;
+    Value       create_abstract() const;
+    void       *clone(void *data) const;
+    void        clear_touched(void *data) const;
+    std::string to_json(void *data) const;
+
     typedef SimpleTable<Value> cpp_type;
 };
 
@@ -506,7 +516,8 @@ class Array : public BaseType<std::vector<Value>> {
     static const Type *_mkarray(
         const Type                      *celltype,
         std::vector<int>::const_iterator curr,
-        const std::vector<int>&          sizes);
+        const std::vector<int>&          sizes
+    );
 
    public:
     Array(const Type *celltype, int sz)
@@ -516,7 +527,8 @@ class Array : public BaseType<std::vector<Value>> {
 
     static const Type *mkarray(
         const Type             *celltype,
-        const std::vector<int>& sizes);  // use this as constructor for 2D and up...
+        const std::vector<int>& sizes
+    );  // use this as constructor for 2D and up...
 
     int properties() const { return Basic | Composite; }
 
@@ -548,10 +560,12 @@ class Vector : public Class<BaseType<std::vector<Value>>> {
 
     Value create() const { return Value(this, new std::vector<Value>()); }
 
-    void                                 clear_touched(void *data) const;
-    std::string                          TypeStr() const;
-    std::string                          to_json(void *data) const;
-    static const Vector                 *self;
+    void        clear_touched(void *data) const;
+    std::string TypeStr() const;
+    std::string to_json(void *data) const;
+
+    static const Vector *self;
+
     typedef std::vector<Value>           cpp_type;
     typedef std::vector<Value>::iterator cpp_iterator;
 
@@ -576,9 +590,11 @@ class List : public Class<BaseType<std::list<Value>>> {
 
     const Type *celltype() const { return _celltype; }
 
-    std::string                        TypeStr() const;
-    std::string                        to_json(void *data) const;
-    static const List                 *self;
+    std::string TypeStr() const;
+    std::string to_json(void *data) const;
+
+    static const List *self;
+
     typedef std::list<Value>           cpp_type;
     typedef std::list<Value>::iterator cpp_iterator;
 
@@ -605,11 +621,13 @@ class Pair : public Class<BaseType<std::pair<Value, Value>>> {
 
     const Type *second() const { return _second; }
 
-    bool               less_than(void *a, void *b) const;
-    int                get_field(Value self, std::string name, std::vector<Value>& result) const;
-    std::string        TypeStr() const;
-    std::string        to_json(void *data) const;
+    bool        less_than(void *a, void *b) const;
+    int         get_field(Value self, std::string name, std::vector<Value>& result) const;
+    std::string TypeStr() const;
+    std::string to_json(void *data) const;
+
     static const Pair *self;
+
     typedef std::pair<Value, Value> cpp_type;
 };
 
@@ -635,9 +653,11 @@ class Map : public Class<BaseType<std::map<Value, Value>>> {
 
     const Type *celltype() const { return _pair_type; }
 
-    std::string                              TypeStr() const;
-    std::string                              to_json(void *data) const;
-    static const Map                        *self;
+    std::string TypeStr() const;
+    std::string to_json(void *data) const;
+
+    static const Map *self;
+
     typedef std::map<Value, Value>           cpp_type;
     typedef std::map<Value, Value>::iterator cpp_iterator;
 
@@ -655,7 +675,8 @@ class Iterator : public Class<BaseType<typename C::cpp_iterator>> {
 
     std::string TypeStr() const { return _container_type->TypeStr() + "::iterator"; }
 
-    std::string                      to_json(void *data) const;
+    std::string to_json(void *data) const;
+
     typedef typename C::cpp_iterator cpp_type;
 };
 
@@ -817,10 +838,11 @@ class Environment {
 //
 class WithEnvironment {
     typedef std::map<std::string, Environment *> NamespaceMap;
-    Environment                                 *_env;
-    NamespaceMap                                 _namespaces;
-    std::istream                                *_in;
-    std::ostream                                *_out;
+
+    Environment  *_env;
+    NamespaceMap  _namespaces;
+    std::istream *_in;
+    std::ostream *_out;
 
    public:
     WithEnvironment() : _env(0), _in(0), _out(0) {}

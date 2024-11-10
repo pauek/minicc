@@ -310,7 +310,7 @@ void Walker<Delegate>::walk(Ast *ast) {
 }
 
 template <typename Delegate>
-void walk(Ast *ast, Delegate& D) {
+void walk(Ast *ast, Delegate&& D) {
     Walker<Delegate>(D).walk(ast);
 }
 

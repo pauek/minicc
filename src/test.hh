@@ -3,8 +3,10 @@
 #include <sstream>
 #include "commands.hh"
 #include "walker.hh"
+
 void parse_test_file(string filename, string& code, string& in, string& out, string& err);
 void compare_result(string filename, string sout, string serr, string out, string err);
+
 typedef void (*TestFunc)(Ast *, std::istream&, std::ostream&);
 
 template <TestFunc func>
@@ -36,4 +38,5 @@ int test(Args& args) {
 }
 
 int cmd_test(Args& args);
+
 #endif
