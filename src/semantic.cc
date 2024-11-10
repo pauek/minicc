@@ -1,6 +1,6 @@
 #include "semantic.hh"
 #include "ast.hh"
-#include "translator.hh"
+#include "i18n.hh"
 #include "types.hh"
 #include "value.hh"
 using namespace std;

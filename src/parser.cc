@@ -3,7 +3,7 @@
 #include <cstdlib>
 #include <fstream>
 #include <sstream>
-#include "translator.hh"
+#include "i18n.hh"
 using namespace std;
 
 static const char *_basic_types[] = {

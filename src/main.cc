@@ -11,7 +11,7 @@ using namespace std;
 #include "semantic.hh"
 #include "stepper.hh"
 #include "test.hh"
-#include "translator.hh"
+#include "i18n.hh"
 #include "vm.hh"
 #include "walker.hh"
 

@@ -2,7 +2,7 @@
 #include <sstream>
 #include <vector>
 using namespace std;
-#include "translator.hh"
+#include "i18n.hh"
 #include "types.hh"
 
 void _error(std::string msg) {

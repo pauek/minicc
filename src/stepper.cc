@@ -4,7 +4,7 @@
 #include <vector>
 using namespace std;
 #include "stepper.hh"
-#include "translator.hh"
+#include "i18n.hh"
 
 bool Stepper::step() {
     _err = 0;

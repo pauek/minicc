@@ -1,4 +1,4 @@
-#include "translator.hh"
+#include "i18n.hh"
 #include <cassert>
 #include <iostream>
 #include <map>
