@@ -1,5 +1,6 @@
 #ifndef PARSER_H
 #define PARSER_H
+#include <fstream>
 #include <set>
 #include "ast.hh"
 #include "lexer.hh"
@@ -16,10 +17,11 @@ struct ParseError {
 };
 
 class Parser {
-    Lexer            _lexer;
-    std::ostream    *_err;
-    set<std::string> _types;  // things known as types
-    bool             _is_type(std::string);
+    Lexer                 _lexer;
+    std::ostream         *_err;
+    std::set<std::string> _types;  // things known as types
+
+    bool _is_type(std::string s) { return _types.find(s) != _types.end(); }
 
     template <typename X>
     void _skip(X *n) {
@@ -30,7 +32,8 @@ class Parser {
     void error(Ast *n, Span span, std::string msg);
     void stopper_error(Ast *n, std::string msg);
     void stopper_error(Ast *n, Span span, std::string msg);
-    void fatal_error(Pos p, std::string msg);
+
+    void fatal_error(Pos pos, std::string msg) { throw ParseError(pos, msg); }
 
     template <class Node>
     typename Node::Error *error(std::string msg);
@@ -57,7 +60,7 @@ class Parser {
     void         parse_function(FuncDecl *fn);
     Block       *parse_block(Ast *parent);
     Stmt        *parse_stmt(Ast *parent);
-    Stmt        *parse_iterstmt(Ast *parent, string which);
+    Stmt        *parse_iterstmt(Ast *parent, std::string which);
     Stmt        *parse_while(Ast *parent);
     Stmt        *parse_for(Ast *parent);
     Stmt        *parse_ifstmt(Ast *parent);
@@ -82,12 +85,20 @@ class Parser {
     Expr        *parse_exprlist(Ast *parent);
 };
 
+template <class Node>
+typename Node::Error *Parser::error(std::string msg) {
+    typename Node::Error *s = new typename Node::Error();
+    s->code = _lexer.skip_to(";");
+    error(s, msg);
+    return s;
+}
+
 inline Ast *parse(std::istream& in) {
     return Parser(&in).parse();
 }
 
-inline Ast *parse_file(string filename) {
-    ifstream codefile(filename);
+inline Ast *parse_file(std::string filename) {
+    std::ifstream codefile(filename);
     return parse(codefile);
 }
 #endif

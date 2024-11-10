@@ -1,35 +1,32 @@
+#include "parser.hh"
 #include <assert.h>
 #include <cstdlib>
 #include <fstream>
 #include <sstream>
-using namespace std;
-#include "parser.hh"
 #include "translator.hh"
+using namespace std;
+
+static const char *_basic_types[] = {
+    "int",
+    "char",
+    "string",
+    "double",
+    "float",
+    "short",
+    "long",
+    "bool",
+    "void",
+    "vector",
+    "list",
+    "map",
+    "set",
+    "pair"
+};
 
 Parser::Parser(istream *i, std::ostream *err) : _lexer(i), _err(err) {
-    static const char *basic_types[] = {
-        "int",
-        "char",
-        "string",
-        "double",
-        "float",
-        "short",
-        "long",
-        "bool",
-        "void",
-        "vector",
-        "list",
-        "map",
-        "set",
-        "pair"
-    };
-    for (int i = 0; i < sizeof(basic_types) / sizeof(char *); i++) {
-        _types.insert(basic_types[i]);
+    for (int i = 0; i < sizeof(_basic_types) / sizeof(char *); i++) {
+        _types.insert(_basic_types[i]);
     }
-}
-
-bool Parser::_is_type(string s) {
-    return _types.find(s) != _types.end();
 }
 
 void Parser::error(Ast *n, string msg) {
@@ -59,18 +56,6 @@ StmtError *Parser::stmt_error(string msg) {
     s->code = _lexer.skip_to(";");
     error(s, msg);
     return s;
-}
-
-template <class Node>
-typename Node::Error *Parser::error(string msg) {
-    typename Node::Error *s = new typename Node::Error();
-    s->code = _lexer.skip_to(";");
-    error(s, msg);
-    return s;
-}
-
-void Parser::fatal_error(Pos pos, string msg) {
-    throw ParseError(pos, msg);
 }
 
 Ast *Parser::parse() {
