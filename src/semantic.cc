@@ -342,7 +342,7 @@ bool SemanticAnalyzer::type_conversion(CallExpr *X, const vector<Value>& args) {
     if (is_a<Identifier>(X->func)) {
         Identifier *id = cast<Identifier>(X->func);
         TypeSpec    spec(id);
-        const Type *type = get_type(&spec);
+        auto       *type = get_type(&spec);
         if (type != 0) {
             if (args.size() != 1) {
                 X->add_error(_T("La conversión de tipo recibe un solo argumento."));
@@ -378,7 +378,7 @@ void SemanticAnalyzer::check_arguments(
         return;
     }
     for (int i = 0; i < argvals.size(); i++) {
-        const Type *param_type = func_type->param(i);
+        auto *param_type = func_type->param(i);
         if ((args != 0 and has_errors((*args)[i])) or param_type == Any) {
             continue;
         }
@@ -587,9 +587,8 @@ void SemanticAnalyzer::analyze(AstNode *ast) {
         case AstNodeType::FuncDecl: {
             FuncDecl *X = cast<FuncDecl>(ast);
             _curr_node = X;
-            string      funcname = X->FuncName();
-            const Type *return_type =
-                get_type(X->return_typespec);  // return_type == 0 means 'void'
+            string    funcname = X->FuncName();
+            auto     *return_type = get_type(X->return_typespec);  // return_type == 0 means 'void'
             Function *functype = new Function(return_type);
             // reverse use of '_ret' to check all return statements
             if (return_type) {
@@ -604,7 +603,7 @@ void SemanticAnalyzer::analyze(AstNode *ast) {
                 if (getenv(p->name, v)) {
                     X->add_error(p->ini, p->fin, _T("El parámetro %d está repetido.", i + 1));
                 }
-                const Type *param_type = get_type(p->typespec);
+                auto *param_type = get_type(p->typespec);
                 if (param_type == 0) {
                     X->add_error(
                         p->ini,
@@ -804,8 +803,8 @@ void SemanticAnalyzer::analyze(AstNode *ast) {
             // Create a new Struct type now
             Struct *type = new Struct(X->name);
             for (int i = 0; i < X->decls.size(); i++) {
-                DeclStmt&   decl = *X->decls[i];
-                const Type *field_type = get_type(decl.typespec);
+                DeclStmt& decl = *X->decls[i];
+                auto     *field_type = get_type(decl.typespec);
                 if (field_type == 0) {
                     decl.add_error(_T("El tipo '%s' no existe.", decl.typespec->TypeStr().c_str()));
                     field_type = new UnknownType(decl.typespec->TypeStr());
@@ -833,7 +832,7 @@ void SemanticAnalyzer::analyze(AstNode *ast) {
                                 sizes.push_back(_curr.as<Int>());
                             }
                         }
-                        const Type *arraytype = Array::mkarray(field_type, sizes);
+                        auto *arraytype = Array::mkarray(field_type, sizes);
                         type->add_field(item.decl->name, arraytype);
                     } else {
                         type->add_field(item.decl->name, field_type);
@@ -865,10 +864,10 @@ void SemanticAnalyzer::analyze(AstNode *ast) {
             }
             // Try a static variable in a class
             if (namespc_or_class != 0) {
-                Identifier  fid;
-				fid.name = namespc_or_class->name;
-                TypeSpec    spec(&fid);
-                const Type *type = get_type(&spec);
+                Identifier fid;
+                fid.name = namespc_or_class->name;
+                TypeSpec spec(&fid);
+                auto    *type = get_type(&spec);
                 if (type != 0 and !type->get_static(X->name, v)) {
                     X->add_error(
                         _T("No se ha encontrado '%s' en la clase '%s'.",
@@ -884,7 +883,7 @@ void SemanticAnalyzer::analyze(AstNode *ast) {
                 goto found;
             } else {
                 X->add_error(_T("No se ha declarado '%s'.", X->name.c_str()));
-                const Type *type = new UnknownType(X->name.c_str());
+                auto *type = new UnknownType(X->name.c_str());
                 _curr = type->create_abstract();
                 // TODO: Pistas para 'cout', 'cin', 'endl', 'string', etc.
             }
@@ -940,7 +939,7 @@ void SemanticAnalyzer::analyze(AstNode *ast) {
                 }
                 return;
             }
-            const Type *type = get_type(X->typespec);
+            auto *type = get_type(X->typespec);
             if (type == 0) {
                 string typestr = X->typespec->TypeStr();
                 type = new UnknownType(typestr);
@@ -998,13 +997,13 @@ void SemanticAnalyzer::analyze(AstNode *ast) {
                     sizes.push_back(sz);
                 }
             }
-            const Type *celltype = get_type(X->typespec);
+            auto *celltype = get_type(X->typespec);
             if (celltype == 0) {
                 X->add_error(_T("El tipo '%s' no existe", X->typespec->TypeStr().c_str()));
                 celltype = UnknownType::self;
             }
             // FIXME: don't create new Array type every time?
-            const Type *arraytype = Array::mkarray(celltype, sizes);
+            auto *arraytype = Array::mkarray(celltype, sizes);
             if (init.is_null()) {
                 if (X->typespec->HasQualifier(TypeSpec::Const)) {
                     X->add_error(_T("Las tablas constantes deben tener un valor inicial."));
@@ -1031,7 +1030,7 @@ void SemanticAnalyzer::analyze(AstNode *ast) {
         case AstNodeType::ObjDecl: {
             ObjDecl *X = cast<ObjDecl>(ast);
             _curr_node = X;
-            const Type *type = get_type(X->typespec);
+            auto *type = get_type(X->typespec);
             if (type != 0) {
                 vector<Value>  argvals;
                 vector<Expr *> args;
@@ -1060,7 +1059,7 @@ void SemanticAnalyzer::analyze(AstNode *ast) {
         case AstNodeType::DeclStmt: {
             DeclStmt *X = cast<DeclStmt>(ast);
             _curr_node = X;
-            const Type *type = get_type(X->typespec);
+            auto *type = get_type(X->typespec);
             if (type == 0) {
                 string typestr = X->typespec->TypeStr();
                 X->add_error(_T("El tipo '%s' no existe.", typestr.c_str()));
@@ -1172,7 +1171,7 @@ void SemanticAnalyzer::analyze(AstNode *ast) {
                 // TODO
                 // TODO: call the function abstractly!!
                 // TODO
-                const Type *return_type = func_type->return_type();
+                auto *return_type = func_type->return_type();
                 if (return_type != 0) {
                     _curr = _ret = return_type->create_abstract();
                 } else {
@@ -1181,7 +1180,7 @@ void SemanticAnalyzer::analyze(AstNode *ast) {
             } else {
                 ostringstream oss;
                 oss << "CallExpr(" << X << ")";
-                const Type *rettype = new UnknownType(oss.str());
+                auto *rettype = new UnknownType(oss.str());
                 _curr = rettype->create_abstract();
             }
             break;
@@ -1217,7 +1216,7 @@ void SemanticAnalyzer::analyze(AstNode *ast) {
                     );  // abstract arrays have exactly one abstract element
                 } else {
                     if (i < 0 || i >= array.size()) {
-                        const Type *celltype = static_cast<const Array *>(base.type())->celltype();
+                        auto *celltype = static_cast<const Array *>(base.type())->celltype();
                         _curr = Type::mkref(celltype)->create_abstract();
                     } else {
                         _curr = Reference::mkref(array[i]);
@@ -1392,8 +1391,8 @@ void SemanticAnalyzer::analyze(AstNode *ast) {
         case AstNodeType::TypedefDecl: {
             TypedefDecl *X = cast<TypedefDecl>(ast);
             _curr_node = X;
-            string      name = X->decl->name;
-            const Type *type = get_type(X->decl->typespec);
+            string name = X->decl->name;
+            auto  *type = get_type(X->decl->typespec);
             assert(type != 0);
             switch (X->decl->type()) {
                 case AstNodeType::VarDecl: {
