@@ -388,14 +388,9 @@ struct UnaryExprDerived : UnaryExpr {
 };
 
 struct SignExpr : public UnaryExprDerived<AstNodeType::SignExpr> {
-    enum Kind {
-        Positive,
-        Negative,
-    };
+    enum Kind { Positive, Negative };
 
     Kind kind;
-
-    SignExpr(Kind k) : kind(k) {}
 };
 
 struct IncrExpr : public UnaryExprDerived<AstNodeType::IncrExpr> {

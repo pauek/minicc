@@ -658,8 +658,8 @@ Expr *Parser::parse_unary_expr(AstNode *parent) {
         }
         case Token::Plus:
         case Token::Minus: {
-            SignExpr *se =
-                new SignExpr(tok.type == Token::Plus ? SignExpr::Positive : SignExpr::Negative);
+            SignExpr *se = new SignExpr();
+            se->kind = tok.type == Token::Plus ? SignExpr::Positive : SignExpr::Negative;
             _lexer.next();
             _skip(se);
             se->expr = parse_unary_expr(se);
