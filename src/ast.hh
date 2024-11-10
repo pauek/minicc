@@ -11,6 +11,12 @@
 #include <vector>
 #include "lexer.hh"
 
+template<typename Derived, typename Base>
+const bool is_a(const Base *obj) {
+	static_assert(std::is_base_of_v<Base, Derived>);
+	return Derived::is_instance(obj);
+}
+
 template <typename Derived, typename Base>
 const Derived *cast(const Base *obj) {
     assert(Derived::is_instance(obj));
@@ -124,8 +130,6 @@ struct AstNode {
     bool has_errors() const { return !errors.empty(); }
 
     AstNodeType type() const { return type_; }
-
-    bool is(AstNodeType t) const { return type() == t; }
 
    protected:
     AstNodeType type_;

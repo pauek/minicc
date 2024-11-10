@@ -339,7 +339,7 @@ void SemanticAnalyzer::get_func(CallExpr *X) {
 bool SemanticAnalyzer::type_conversion(CallExpr *X, const vector<Value>& args) {
     _curr_node = X;
     _curr_varname = "";
-    if (X->func->is(AstNodeType::Identifier)) {
+    if (is_a<Identifier>(X->func)) {
         Identifier *id = cast<Identifier>(X->func);
         TypeSpec    spec(id);
         const Type *type = get_type(&spec);
@@ -814,7 +814,7 @@ void SemanticAnalyzer::analyze(AstNode *ast) {
                     if (type->has_field(item.decl->name)) {
                         decl.add_error(_T("El campo '%s' está repetido.", item.decl->name.c_str()));
                     }
-                    if (item.decl->is(AstNodeType::ArrayDecl)) {
+                    if (is_a<ArrayDecl>(item.decl)) {
                         ArrayDecl  *array_decl = cast<ArrayDecl>(item.decl);
                         vector<int> sizes;
                         for (Expr *size_expr : array_decl->sizes) {
@@ -1258,7 +1258,7 @@ void SemanticAnalyzer::analyze(AstNode *ast) {
             if (!bind_field(obj, X->field)) {
                 if (obj.type()->is(Type::Class)) {
                     const char *msg;
-                    if (X->parent and X->parent->is(AstNodeType::CallExpr)) {
+                    if (X->parent and is_a<CallExpr>(X->parent)) {
                         msg = "La clase '%s' no tiene método '%s'.";
                     } else {
                         msg = "La clase '%s' no tiene campo '%s'.";

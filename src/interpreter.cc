@@ -399,7 +399,7 @@ void Interpreter::check_result(Binding& fn, const Function *func_type) {
 }
 
 bool Interpreter::type_conversion(CallExpr *X, const vector<Value>& args) {
-    if (X->func->is(AstNodeType::Identifier)) {
+    if (is_a<Identifier>(X->func)) {
         Identifier *id = cast<Identifier>(X->func);
         TypeSpec    spec(id);
         const Type *type = get_type(&spec);
@@ -499,7 +499,7 @@ void Interpreter::eval(AstNode *ast) {
                 const Type *field_type = get_type(decl.typespec);
                 assert(type != 0);
                 for (DeclStmt::Item& item : decl.items) {
-                    if (item.decl->is(AstNodeType::ArrayDecl)) {
+                    if (is_a<ArrayDecl>(item.decl)) {
                         Expr    *size_expr = cast<ArrayDecl>(item.decl)->sizes[0];
                         Literal *size_lit = cast<Literal>(size_expr);
                         assert(size_lit != 0);

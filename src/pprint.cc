@@ -142,8 +142,8 @@ void PrettyPrinter::Print(AstNode *ast) {
                 cp.comment();
                 AstNode *n = X->nodes[i];
                 if ((!cp.last_was_empty() and !cp.last_had_endln()) or
-                    (i > 0 and n->is(AstNodeType::FuncDecl) and
-                     (X->comments[i] and !X->comments[i]->ends_with_empty_line()))) {
+                    (i > 0 and is_a<FuncDecl>(n)) and
+                     (X->comments[i] and !X->comments[i]->ends_with_empty_line())) {
                     out.endln();
                 }
                 Print(n);
@@ -568,7 +568,7 @@ void PrettyPrinter::Print(AstNode *ast) {
             if (!cp.last_had_endln()) {
                 out.write(" ");
             }
-            if (not X->substmt->is(AstNodeType::Block) and cp.last_had_endln()) {
+            if (not is_a<Block>(X->substmt) and cp.last_had_endln()) {
                 out.indentation();
             }
             Print(X->substmt);
@@ -590,7 +590,7 @@ void PrettyPrinter::Print(AstNode *ast) {
             if (!cp.last_had_endln()) {
                 out.write(" ");
             }
-            if (not X->substmt->is(AstNodeType::Block) and cp.last_had_endln()) {
+            if (not is_a<Block>(X->substmt) and cp.last_had_endln()) {
                 out.indentation();
             }
             Print(X->substmt);

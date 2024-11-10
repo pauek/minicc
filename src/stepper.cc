@@ -82,7 +82,7 @@ void Stepper::Step(AstNode *ast) {
                 collect_rights(e, ws->exprs);
                 push(ws);
                 ws->step(this);
-            } else if (X->expr->is(AstNodeType::CallExpr)) {
+            } else if (is_a<CallExpr>(X->expr)) {
                 Step(X->expr);
             } else {
                 I.eval(X->expr);

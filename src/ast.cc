@@ -269,7 +269,7 @@ void Identifier::Shift(string new_id) {
 }
 
 void collect_rights(AstNode *node, list<Expr *>& L) {
-    if (node->is(AstNodeType::BinaryExpr)) {
+    if (is_a<BinaryExpr>(node)) {
         BinaryExpr *X = cast<BinaryExpr>(node);
         L.push_front(X->right);
         collect_rights(X->left, L);
@@ -280,7 +280,7 @@ bool is_read_expr(AstNode *ast) {
     switch (ast->type()) {
         case AstNodeType::BinaryExpr: {
             BinaryExpr *X = cast<BinaryExpr>(ast);
-            if (X->left->is(AstNodeType::Identifier)) {
+            if (is_a<Identifier>(X->left)) {
                 Identifier *id = cast<Identifier>(X->left);
                 return id->name == "cin";
             } else {
@@ -296,7 +296,7 @@ bool is_write_expr(AstNode *ast) {
     switch (ast->type()) {
         case AstNodeType::BinaryExpr: {
             BinaryExpr *X = cast<BinaryExpr>(ast);
-            if (X->left->is(AstNodeType::Identifier)) {
+            if (is_a<Identifier>(X->left)) {
                 Identifier *id = cast<Identifier>(X->left);
                 return id->name == "cout";
             } else {
@@ -308,30 +308,30 @@ bool is_write_expr(AstNode *ast) {
     }
 }
 
-bool is_assignment(AstNode *ast) {
-    if (ast->is(AstNodeType::BinaryExpr)) {
-        BinaryExpr *X = cast<BinaryExpr>(ast);
+bool is_assignment(AstNode *node) {
+    if (is_a<BinaryExpr>(node)) {
+        BinaryExpr *X = cast<BinaryExpr>(node);
         return X->kind == Expr::Eq;
     }
     return false;
 }
 
-string describe(AstNode *ast) {
-    switch (ast->type()) {
+string describe(AstNode *node) {
+    switch (node->type()) {
         case AstNodeType::ExprStmt: {
-            ExprStmt *X = cast<ExprStmt>(ast);
+            ExprStmt *X = cast<ExprStmt>(node);
             return describe(X->expr);
         }
         case AstNodeType::IncrExpr: {
-            IncrExpr *X = cast<IncrExpr>(ast);
-            if (X->expr->is(AstNodeType::Identifier)) {
+            IncrExpr *X = cast<IncrExpr>(node);
+            if (is_a<Identifier>(X->expr)) {
                 Identifier *id = cast<Identifier>(X->expr);
                 return _T("Se incrementa la variable '%s'.", id->name.c_str());
             }
             return _T("UNIMPLEMENTED");
         }
         case AstNodeType::BinaryExpr: {
-            BinaryExpr *X = cast<BinaryExpr>(ast);
+            BinaryExpr *X = cast<BinaryExpr>(node);
             if (is_write_expr(X)) {
                 return _T("Some output is written.");
             }
@@ -341,7 +341,7 @@ string describe(AstNode *ast) {
             return _T("UNIMPLEMENTED");
         }
         case AstNodeType::DeclStmt: {
-            DeclStmt *X = cast<DeclStmt>(ast);
+            DeclStmt *X = cast<DeclStmt>(node);
             if (X->items.size() == 1) {
                 return _T("Se declara la variable '%s'.", X->items[0].decl->name.c_str());
             }
@@ -363,17 +363,17 @@ string describe(AstNode *ast) {
     }
 }
 
-bool has_errors(AstNode *ast) {
+bool has_errors(AstNode *node) {
 #define CHECK_ERRORS(n) \
     if (has_errors(n))  \
         return true;
 
-    if (ast == 0) {
+    if (node == 0) {
         return false;
     }
-    switch (ast->type()) {
+    switch (node->type()) {
         case AstNodeType::Program: {
-            Program *X = cast<Program>(ast);
+            Program *X = cast<Program>(node);
             for (AstNode *n : X->nodes) {
                 if (has_errors(n)) {
                     return true;
@@ -382,19 +382,19 @@ bool has_errors(AstNode *ast) {
             return X->has_errors();
         }
         case AstNodeType::ExprStmt: {
-            ExprStmt *X = cast<ExprStmt>(ast);
+            ExprStmt *X = cast<ExprStmt>(node);
             CHECK_ERRORS(X->expr);
             return X->has_errors();
         }
         case AstNodeType::IfStmt: {
-            IfStmt *X = cast<IfStmt>(ast);
+            IfStmt *X = cast<IfStmt>(node);
             CHECK_ERRORS(X->cond);
             CHECK_ERRORS(X->then);
             CHECK_ERRORS(X->els);
             return X->has_errors();
         }
         case AstNodeType::ForStmt: {
-            ForStmt *X = cast<ForStmt>(ast);
+            ForStmt *X = cast<ForStmt>(node);
             CHECK_ERRORS(X->init);
             CHECK_ERRORS(X->cond);
             CHECK_ERRORS(X->post);
@@ -402,13 +402,13 @@ bool has_errors(AstNode *ast) {
             return X->has_errors();
         }
         case AstNodeType::WhileStmt: {
-            WhileStmt *X = cast<WhileStmt>(ast);
+            WhileStmt *X = cast<WhileStmt>(node);
             CHECK_ERRORS(X->cond);
             CHECK_ERRORS(X->substmt);
             return X->has_errors();
         }
         case AstNodeType::DeclStmt: {
-            DeclStmt *X = cast<DeclStmt>(ast);
+            DeclStmt *X = cast<DeclStmt>(node);
             CHECK_ERRORS(X->typespec);
             for (DeclStmt::Item i : X->items) {
                 CHECK_ERRORS(i.decl);
@@ -417,14 +417,14 @@ bool has_errors(AstNode *ast) {
             return X->has_errors();
         }
         case AstNodeType::Block: {
-            Block *X = cast<Block>(ast);
+            Block *X = cast<Block>(node);
             for (Stmt *s : X->stmts) {
                 CHECK_ERRORS(s);
             }
             return X->has_errors();
         }
         case AstNodeType::Identifier: {
-            Identifier *X = cast<Identifier>(ast);
+            Identifier *X = cast<Identifier>(node);
             for (Identifier *id : X->prefix) {
                 CHECK_ERRORS(id);
             }
@@ -434,48 +434,48 @@ bool has_errors(AstNode *ast) {
             return X->has_errors();
         }
         case AstNodeType::BinaryExpr: {
-            BinaryExpr *X = cast<BinaryExpr>(ast);
+            BinaryExpr *X = cast<BinaryExpr>(node);
             CHECK_ERRORS(X->left);
             CHECK_ERRORS(X->right);
             return X->has_errors();
         }
         case AstNodeType::CallExpr: {
-            CallExpr *X = cast<CallExpr>(ast);
+            CallExpr *X = cast<CallExpr>(node);
             CHECK_ERRORS(X->func);
             return X->has_errors();
         }
         case AstNodeType::IndexExpr: {
-            IndexExpr *X = cast<IndexExpr>(ast);
+            IndexExpr *X = cast<IndexExpr>(node);
             CHECK_ERRORS(X->base);
             CHECK_ERRORS(X->index);
             return X->has_errors();
         }
         case AstNodeType::FieldExpr: {
-            FieldExpr *X = cast<FieldExpr>(ast);
+            FieldExpr *X = cast<FieldExpr>(node);
             CHECK_ERRORS(X->base);
             return X->has_errors();
         }
         case AstNodeType::CondExpr: {
-            CondExpr *X = cast<CondExpr>(ast);
+            CondExpr *X = cast<CondExpr>(node);
             CHECK_ERRORS(X->cond);
             CHECK_ERRORS(X->then);
             CHECK_ERRORS(X->els);
             return X->has_errors();
         }
         case AstNodeType::ExprList: {
-            ExprList *X = cast<ExprList>(ast);
+            ExprList *X = cast<ExprList>(node);
             for (Expr *e : X->exprs) {
                 CHECK_ERRORS(e);
             }
             return X->has_errors();
         }
         case AstNodeType::TypeSpec: {
-            TypeSpec *X = cast<TypeSpec>(ast);
+            TypeSpec *X = cast<TypeSpec>(node);
             CHECK_ERRORS(X->id);
             return X->has_errors();
         }
         case AstNodeType::FuncDecl: {
-            FuncDecl *X = cast<FuncDecl>(ast);
+            FuncDecl *X = cast<FuncDecl>(node);
             CHECK_ERRORS(X->return_typespec);
             CHECK_ERRORS(X->block);
             for (FuncDecl::Param *p : X->params) {
@@ -484,44 +484,44 @@ bool has_errors(AstNode *ast) {
             return X->has_errors();
         }
         case AstNodeType::StructDecl: {
-            StructDecl *X = cast<StructDecl>(ast);
+            StructDecl *X = cast<StructDecl>(node);
             for (DeclStmt *d : X->decls) {
                 CHECK_ERRORS(d);
             }
             return X->has_errors();
         }
         case AstNodeType::TypedefDecl: {
-            TypedefDecl *X = cast<TypedefDecl>(ast);
+            TypedefDecl *X = cast<TypedefDecl>(node);
             CHECK_ERRORS(X->decl);
             return X->has_errors();
         }
         case AstNodeType::SignExpr: {
-            SignExpr *X = cast<SignExpr>(ast);
+            SignExpr *X = cast<SignExpr>(node);
             CHECK_ERRORS(X->expr);
             return X->has_errors();
         }
         case AstNodeType::IncrExpr: {
-            IncrExpr *X = cast<IncrExpr>(ast);
+            IncrExpr *X = cast<IncrExpr>(node);
             CHECK_ERRORS(X->expr);
             return X->has_errors();
         }
         case AstNodeType::NegExpr: {
-            NegExpr *X = cast<NegExpr>(ast);
+            NegExpr *X = cast<NegExpr>(node);
             CHECK_ERRORS(X->expr);
             return X->has_errors();
         }
         case AstNodeType::AddrExpr: {
-            AddrExpr *X = cast<AddrExpr>(ast);
+            AddrExpr *X = cast<AddrExpr>(node);
             CHECK_ERRORS(X->expr);
             return X->has_errors();
         }
         case AstNodeType::DerefExpr: {
-            DerefExpr *X = cast<DerefExpr>(ast);
+            DerefExpr *X = cast<DerefExpr>(node);
             CHECK_ERRORS(X->expr);
             return X->has_errors();
         }
         default:
-            return ast->has_errors();
+            return node->has_errors();
     }
 
 #undef CHECK_ERRORS
