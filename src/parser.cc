@@ -29,28 +29,6 @@ Parser::Parser(istream *i, std::ostream *err) : _lexer(i), _err(err) {
     }
 }
 
-void Parser::error(Ast *n, string msg) {
-    Error *err = new Error(n->span, msg);
-    n->errors.push_back(err);
-}
-
-void Parser::error(Ast *n, Span span, string msg) {
-    Error *err = new Error(span, msg);
-    n->errors.push_back(err);
-}
-
-void Parser::stopper_error(Ast *n, string msg) {
-    Error *err = new Error(n->span, msg);
-    err->stopper = true;
-    n->errors.push_back(err);
-}
-
-void Parser::stopper_error(Ast *n, Span span, string msg) {
-    Error *err = new Error(span, msg);
-    err->stopper = true;
-    n->errors.push_back(err);
-}
-
 StmtError *Parser::stmt_error(string msg) {
     StmtError *s = new StmtError();
     s->code = _lexer.skip_to(";");
@@ -1056,7 +1034,7 @@ DeclStmt *Parser::parse_declstmt(Ast *parent, bool is_typedef) {
             name = _lexer.substr(id);
         }
         if (!id.is_ident()) {
-            stopper_error(stmt, _T("Expected a variable name here."));
+            error(stmt, _T("Expected a variable name here."), {.stopper = true});
         }
         after_id = _lexer.pos();
         DeclStmt::Item item;
@@ -1088,7 +1066,7 @@ DeclStmt *Parser::parse_declstmt(Ast *parent, bool is_typedef) {
     }
     stmt->span.end = _lexer.pos();
     if (!_lexer.expect(Token::SemiColon)) {
-        stopper_error(stmt, _T("Expected '%s' here.", ";"));
+        error(stmt, _T("Expected '%s' here.", ";"), {.stopper = true});
     }
     return stmt;
 }

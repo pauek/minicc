@@ -28,10 +28,13 @@ class Parser {
         n->comments.push_back(_lexer.skip());
     }
 
-    void error(Ast *n, std::string msg);
-    void error(Ast *n, Span span, std::string msg);
-    void stopper_error(Ast *n, std::string msg);
-    void stopper_error(Ast *n, Span span, std::string msg);
+    void error(Ast *n, std::string msg, ErrorOptions options = {.stopper = false}) {
+        error(n, n->span, msg, options);
+    }
+
+    void error(Ast *n, Span span, std::string msg, ErrorOptions options = {.stopper = false}) {
+        n->errors.push_back(new Error(span, msg, options));
+    }
 
     void fatal_error(Pos pos, std::string msg) { throw ParseError(pos, msg); }
 
