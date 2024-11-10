@@ -3,18 +3,29 @@
   // for the documentation about the tasks.json format
   "version": "2.0.0",
   "tasks": [
-    {
-      "label": "Makefile",
-      "type": "shell",
-      "command": "make",
-      "args": ["debug"],
-      "problemMatcher": {
-        "base": "$gcc"
-      },
-      "group": {
-        "kind": "build",
-        "isDefault": true
-      }
-    }
-  ]
+	{
+		"label": "Makefile",
+		"type": "shell",
+		"command": "make",
+		"args": [
+			"debug"
+		],
+		"problemMatcher": {
+			"base": "$gcc"
+		},
+		"group": {
+			"kind": "build",
+			"isDefault": true
+		}
+	},
+	{
+		"label": "Clean",
+		"type": "shell",
+		"command": "make",
+		"args": [
+			"clean"
+		],
+		"problemMatcher": []
+	}
+]
 }

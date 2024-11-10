@@ -354,7 +354,7 @@ void Interpreter::get_func(CallExpr *X) {
 
 void Interpreter::check_arguments(const Function *func_type, const vector<Value>& args) {
 	for (int i = 0; i < args.size(); i++) {
-		Type *param_type = func_type->param(i);
+		const Type *param_type = func_type->param(i);
 		if (param_type == Any) {
 			continue;
 		}
@@ -395,7 +395,7 @@ bool Interpreter::type_conversion(CallExpr *X, const vector<Value>& args) {
 	if (isa<Identifier>(X->func)) {
 		Identifier *id = cast<Identifier>(X->func);
 		TypeSpec	spec(id);
-		Type	   *type = get_type(&spec);
+		const Type *type = get_type(&spec);
 		if (type != 0) {
 			if (args.size() != 1) {
 				_error(_T("La conversión de tipo recibe un solo argumento"));
@@ -470,12 +470,13 @@ void Interpreter::eval(Ast *ast) {
 			break;
 		}
 		case AstType::FuncDecl: {
-			FuncDecl *X = cast<FuncDecl>(ast);
-			string	  funcname = X->FuncName();
-			Type	 *return_type = get_type(X->return_typespec);  // return_type == 0 means 'void'
+			FuncDecl   *X = cast<FuncDecl>(ast);
+			string		funcname = X->FuncName();
+			const Type *return_type =
+				get_type(X->return_typespec);  // return_type == 0 means 'void'
 			Function *functype = new Function(return_type);
 			for (auto p : X->params) {
-				Type *param_type = get_type(p->typespec);
+				const Type *param_type = get_type(p->typespec);
 				assert(param_type != 0);
 				functype->add_params(param_type);
 			}
@@ -488,8 +489,8 @@ void Interpreter::eval(Ast *ast) {
 			StructDecl *X = cast<StructDecl>(ast);
 			Struct	   *type = new Struct(X->name);
 			for (int i = 0; i < X->decls.size(); i++) {
-				DeclStmt& decl = *X->decls[i];
-				Type	 *field_type = get_type(decl.typespec);
+				DeclStmt&	decl = *X->decls[i];
+				const Type *field_type = get_type(decl.typespec);
 				assert(type != 0);
 				for (DeclStmt::Item& item : decl.items) {
 					if (isa<ArrayDecl>(item.decl)) {
@@ -526,9 +527,9 @@ void Interpreter::eval(Ast *ast) {
 			}
 			// Try a static variable in a class
 			if (namespc_or_class != 0) {
-				Identifier fid(namespc_or_class->name);
-				TypeSpec   spec(&fid);
-				Type	  *type = get_type(&spec);
+				Identifier	fid(namespc_or_class->name);
+				TypeSpec	spec(&fid);
+				const Type *type = get_type(&spec);
 				if (type != 0 and !type->get_static(X->name, v)) {
 					_error(_T("No se ha encontrado '%s' en la clase '%s'.", X->name.c_str(),
 							  namespc_or_class->name.c_str()));
@@ -733,9 +734,9 @@ void Interpreter::eval(Ast *ast) {
 			break;
 		}
 		case AstType::VarDecl: {
-			VarDecl *X = cast<VarDecl>(ast);
-			string	 type_name = X->typespec->TypeStr();
-			Type	*type = get_type(X->typespec);
+			VarDecl	   *X = cast<VarDecl>(ast);
+			string		type_name = X->typespec->TypeStr();
+			const Type *type = get_type(X->typespec);
 			if (type == 0) {
 				_error(_T("El tipo '%s' no existe.", type_name.c_str()));
 			}
@@ -766,18 +767,18 @@ void Interpreter::eval(Ast *ast) {
 				const int sz = _curr.as<Int>();
 				sizes.push_back(sz);
 			}
-			Type *celltype = get_type(X->typespec);
+			const Type *celltype = get_type(X->typespec);
 			if (celltype == 0) {
 				_error(_T("El tipo '%s' no existe", X->typespec->TypeStr().c_str()));
 			}
 			// TODO: don't create new Array type every time?
-			Type *arraytype = Array::mkarray(celltype, sizes);
+			const Type *arraytype = Array::mkarray(celltype, sizes);
 			setenv(X->name, (init.is_null() ? arraytype->create() : arraytype->convert(init)));
 			break;
 		}
 		case AstType::ObjDecl: {
-			ObjDecl *X = cast<ObjDecl>(ast);
-			Type	*type = get_type(X->typespec);
+			ObjDecl	   *X = cast<ObjDecl>(ast);
+			const Type *type = get_type(X->typespec);
 			if (type != 0) {
 				vector<Value> args;
 				eval_arguments(X->args, args);
@@ -1037,7 +1038,7 @@ void Interpreter::eval(Ast *ast) {
 		case AstType::TypedefDecl: {
 			TypedefDecl *X = cast<TypedefDecl>(ast);
 			string		 name = X->decl->name;
-			Type		*type = get_type(X->decl->typespec);
+			const Type	*type = get_type(X->decl->typespec);
 			assert(type != 0);
 			switch (X->decl->Type()) {
 				case AstType::VarDecl: {

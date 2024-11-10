@@ -81,12 +81,14 @@ class Type {
 
 	virtual bool get_static(std::string, Value& v) const { return false; }
 
-	virtual Type *get_inner_class(std::string) { return 0; }
+	virtual const Type *get_inner_class(std::string) const { return 0; }
 
-	virtual Type *instantiate(std::vector<Type *>& s) const { assert(false); }	// for templates
+	virtual const Type *instantiate(std::vector<const Type *>& s) const {
+		assert(false);
+	}  // for templates
 
 	//     subtypes ----^
-	virtual Value create() { assert(false); }
+	virtual Value create() const { assert(false); }
 
 	virtual Value create_abstract() const { return Value(this, Value::abstract); }
 
@@ -115,22 +117,22 @@ class Type {
 	friend class Reference;
 };
 
-extern Type *Void, *Any;
+extern const Type *Void, *Any;
 
 class Environment;
 
 class TypeMap {
-	std::map<std::string, Type *> _typemap;
-	std::map<std::string, Type *> _typecache;  // all types indexed by typestr
+	std::map<std::string, const Type *> _typemap;
+	std::map<std::string, const Type *> _typecache;	 // all types indexed by typestr
 
-	Type *instantiate_template(const std::vector<TypeSpec *>& subtypespecs,
-							   Type							 *T,
-							   Environment					 *topmost);
+	const Type *instantiate_template(const std::vector<TypeSpec *>& subtypespecs,
+									 const Type					   *T,
+									 Environment				   *topmost);
 
    public:
-	void  register_type(std::string name, Type *);
-	Type *get_type(TypeSpec *spec, Environment *topmost);
-	void  clear();
+	void		register_type(std::string name, const Type *);
+	const Type *get_type(TypeSpec *spec, Environment *topmost);
+	void		clear();
 };
 
 class UnknownType : public Type {
@@ -141,7 +143,7 @@ class UnknownType : public Type {
 
 	int properties() const { return Type::Unknown; }
 
-	Value create() { return Value(this, Value::unknown); }
+	Value create() const { return Value(this, Value::unknown); }
 
 	Value convert(Value v) const;
 
@@ -150,7 +152,7 @@ class UnknownType : public Type {
 			   data == Value::abstract);  // should only be used in abstract/unknown values.
 	}
 
-	static UnknownType *self;
+	static const UnknownType *self;
 };
 
 template <typename TestClass>
@@ -193,7 +195,7 @@ class BaseType : public Type {
 		return new TestClass(*static_cast<TestClass *>(data));
 	}
 
-	Value create() { return Value(this, Value::unknown); }
+	Value create() const { return Value(this, Value::unknown); }
 
 	Value convert(Value init) const {
 		if (init.has_type(this)) {
@@ -271,34 +273,34 @@ class Reference : public Type {
 
 	std::string to_json(void *data) const;
 
-	static Reference *self;
+	static const Reference *self;
 };
 
 class Int : public BasicType<int> {
    public:
 	Int() : BasicType("int") {}
 
-	Value		convert(Value init) const;
-	bool		accepts(const Type *t) const;
-	static Int *self;
+	Value			  convert(Value init) const;
+	bool			  accepts(const Type *t) const;
+	static const Int *self;
 };
 
 class Float : public BasicType<float> {
    public:
 	Float() : BasicType("float") {}
 
-	Value		  convert(Value init) const;
-	bool		  accepts(const Type *t) const;
-	static Float *self;
+	Value				convert(Value init) const;
+	bool				accepts(const Type *t) const;
+	static const Float *self;
 };
 
 class Double : public BasicType<double> {
    public:
 	Double() : BasicType("double") {}
 
-	Value		   convert(Value init) const;
-	bool		   accepts(const Type *t) const;
-	static Double *self;
+	Value				 convert(Value init) const;
+	bool				 accepts(const Type *t) const;
+	static const Double *self;
 };
 
 class Char : public BasicType<char> {
@@ -306,12 +308,12 @@ class Char : public BasicType<char> {
    public:
 	Char(bool destroy = true) : _destroy(destroy), BasicType("char") {}
 
-	Value		 convert(Value init) const;
-	bool		 accepts(const Type *t) const;
-	void		 destroy(void *data) const;
-	std::string	 to_json(void *data) const;
-	static Char *self;
-	static Char *self_ref;
+	Value			   convert(Value init) const;
+	bool			   accepts(const Type *t) const;
+	void			   destroy(void *data) const;
+	std::string		   to_json(void *data) const;
+	static const Char *self;
+	static const Char *self_ref;
 };
 
 /*
@@ -328,9 +330,9 @@ class Bool : public BasicType<bool> {
    public:
 	Bool() : BasicType("bool") {}
 
-	Value		 convert(Value init) const;
-	bool		 accepts(const Type *t) const;
-	static Bool *self;
+	Value			   convert(Value init) const;
+	bool			   accepts(const Type *t) const;
+	static const Bool *self;
 
 	std::string to_json(void *data) const { return (*(bool *)data ? "true" : "false"); }
 };
@@ -345,7 +347,7 @@ class Class : public Base {
 
    protected:
 	void _add_static(std::string, Value);
-	void _add_method(Function *type, Func *f);
+	void _add_method(const Function *type, Func *f);
 
 	void _add_inner_class(Type *type) { _inner_classes.set(type->name(), type); }
 
@@ -366,13 +368,13 @@ class Class : public Base {
 class String : public Class<BasicType<std::string>> {
    public:
 	String();
-	static String *self;
+	static const String *self;
 
 	int properties() const { return Internal | Class<BasicType<std::string>>::properties(); }
 
 	std::string to_json(void *data) const;
 
-	Value create() { return Value((Type *)this, (void *)(new std::string())); }
+	Value create() const { return Value((Type *)this, (void *)(new std::string())); }
 };
 
 struct FuncPtr {
@@ -388,24 +390,24 @@ struct FuncPtr {
 };
 
 class Function : public BaseType<FuncPtr> {
-	const Type		   *_return_type;
-	std::vector<Type *> _param_types;
+	const Type				 *_return_type;
+	std::vector<const Type *> _param_types;
 
    public:
 	Function(const Type *t) : BaseType<FuncPtr>("<function>"), _return_type(t) {}
 
-	Function *add_params(Type *t) {
+	Function *add_params(const Type *t) {
 		_param_types.push_back(t);
 		return this;
 	}
 
-	Function *add_params(Type *t1, Type *t2) {
+	Function *add_params(const Type *t1, const Type *t2) {
 		_param_types.push_back(t1);
 		_param_types.push_back(t2);
 		return this;
 	}
 
-	Function *add_params(Type *t1, Type *t2, Type *t3) {
+	Function *add_params(const Type *t1, const Type *t2, const Type *t3) {
 		_param_types.push_back(t1);
 		_param_types.push_back(t2);
 		_param_types.push_back(t3);
@@ -414,7 +416,7 @@ class Function : public BaseType<FuncPtr> {
 
 	int num_params() const { return _param_types.size(); }
 
-	Type *param(int i) const { return (i < _param_types.size() ? _param_types[i] : 0); }
+	const Type *param(int i) const { return (i < _param_types.size() ? _param_types[i] : 0); }
 
 	const Type *return_type() const { return _return_type; }
 
@@ -424,7 +426,7 @@ class Function : public BaseType<FuncPtr> {
 
 	std::string TypeStr() const;
 
-	Value mkvalue(Func *f) {
+	Value mkvalue(Func *f) const {
 		// FIXME: Too many boxes, I should be able to call
 		// Value(this, f). But this changes Function and I guess
 		// cannot derive from BaseType<T> anymore...
@@ -455,10 +457,10 @@ class Callable : public BaseType<Binding> {
    public:
 	Callable() : BaseType<Binding>("<callable>") {}
 
-	Value mkvalue(Value self, Value func) { return Value(this, new Binding(self, func)); }
+	Value mkvalue(Value self, Value func) const { return Value(this, new Binding(self, func)); }
 
-	static Callable *self;
-	typedef Binding	 cpp_type;
+	static const Callable *self;
+	typedef Binding		   cpp_type;
 };
 
 struct OverloadedValue {
@@ -476,19 +478,19 @@ class Overloaded : public BaseType<OverloadedValue> {
 
 	Value convert(Value init) const { assert(false); }
 
-	Value mkvalue(Value self, const std::vector<Value>& candidates);
+	Value mkvalue(Value self, const std::vector<Value>& candidates) const;
 
-	static Overloaded	   *self;
-	typedef OverloadedValue cpp_type;
+	static const Overloaded *self;
+	typedef OverloadedValue	 cpp_type;
 };
 
 class Struct : public BaseType<SimpleTable<Value>> {
-	SimpleTable<Type *> _fields;
+	SimpleTable<const Type *> _fields;
 
    public:
 	Struct(std::string name) : BaseType<SimpleTable<Value>>(name) {}
 
-	void add_field(std::string field_name, Type *t) { _fields.set(field_name, t); }
+	void add_field(std::string field_name, const Type *t) { _fields.set(field_name, t); }
 
 	bool has_field(std::string field_name) const { return _fields.exists(field_name); }
 
@@ -496,7 +498,7 @@ class Struct : public BaseType<SimpleTable<Value>> {
 
 	int properties() const { return Type::UserDefined | Type::Composite; }
 
-	Value create();
+	Value create() const;
 	Value convert(Value init) const;
 	Value create_abstract() const;
 	void *clone(void *data) const;
@@ -510,28 +512,28 @@ class Struct : public BaseType<SimpleTable<Value>> {
 /*------  TODO: Arrays multidimensionales!!!  ------*/
 
 class Array : public BaseType<std::vector<Value>> {
-	Type *_celltype;
-	int	  _sz;
+	const Type *_celltype;
+	int			_sz;
 
-	static Type *_mkarray(Type							  *celltype,
-						  std::vector<int>::const_iterator curr,
-						  const std::vector<int>&		   sizes);
+	static const Type *_mkarray(const Type						*celltype,
+								std::vector<int>::const_iterator curr,
+								const std::vector<int>&			 sizes);
 
    public:
-	Array(Type *celltype, int sz)
+	Array(const Type *celltype, int sz)
 		: BaseType<std::vector<Value>>("<array>"), _celltype(celltype), _sz(sz) {}
 
-	static Type *mkarray(
-		Type				   *celltype,
+	static const Type *mkarray(
+		const Type			   *celltype,
 		const std::vector<int>& sizes);	 // use this as constructor for 2D and up...
 
 	int properties() const { return Basic | Composite; }
 
 	std::string TypeStr() const { return _celltype->TypeStr() + "[]"; }
 
-	Type *celltype() const { return _celltype; }
+	const Type *celltype() const { return _celltype; }
 
-	Value create();
+	Value create() const;
 	Value create_abstract() const;
 	Value convert(Value init) const;
 	void  clear_touched(void *data) const;
@@ -541,83 +543,83 @@ class Array : public BaseType<std::vector<Value>> {
 };
 
 class Vector : public Class<BaseType<std::vector<Value>>> {
-	Type *_celltype;  // celltype == 0 means it's the template
+	const Type *_celltype;	// celltype == 0 means it's the template
    public:
 	Vector() : Class("vector"), _celltype(0) {}
 
-	Vector(Type *t);
+	Vector(const Type *t);
 
 	int properties() const { return Template | Emulated | Type::Class; }
 
-	Value convert(Value init) const;
-	Type *instantiate(std::vector<Type *>& args) const;
+	Value		convert(Value init) const;
+	const Type *instantiate(std::vector<const Type *>& args) const;
 
-	Type *celltype() const { return _celltype; }
+	const Type *celltype() const { return _celltype; }
 
-	Value create() { return Value(this, new std::vector<Value>()); }
+	Value create() const { return Value(this, new std::vector<Value>()); }
 
 	void clear_touched(void *data) const;
 
 	std::string TypeStr() const;
 	std::string to_json(void *data) const;
 
-	static Vector *self;
+	static const Vector *self;
 
 	typedef std::vector<Value>			 cpp_type;
 	typedef std::vector<Value>::iterator cpp_iterator;
 
-	static Value elem_to_value(Vector *, const Value& v) { return v; }
+	static Value elem_to_value(const Vector *, const Value& v) { return v; }
 };
 
 class List : public Class<BaseType<std::list<Value>>> {
-	Type *_celltype;  // celltype == 0 means it's the template
+	const Type *_celltype;	// celltype == 0 means it's the template
    public:
 	List() : Class("list"), _celltype(0) {}
 
-	List(Type *t);
+	List(const Type *t);
 
-	Value create() { return Value(this, new std::list<Value>()); }
+	Value create() const { return Value(this, new std::list<Value>()); }
 
 	void clear_touched(void *data) const;
 
 	int properties() const { return Template | Emulated; }
 
-	Value convert(Value init) const;
-	Type *instantiate(std::vector<Type *>& args) const;
+	Value		convert(Value init) const;
+	const Type *instantiate(std::vector<const Type *>& args) const;
 
-	Type *celltype() const { return _celltype; }
+	const Type *celltype() const { return _celltype; }
 
 	std::string TypeStr() const;
 	std::string to_json(void *data) const;
 
-	static List *self;
+	static const List *self;
 
 	typedef std::list<Value>		   cpp_type;
 	typedef std::list<Value>::iterator cpp_iterator;
 
-	static Value elem_to_value(List *, const Value& v) { return v; }
+	static Value elem_to_value(const List *, const Value& v) { return v; }
 };
 
 class Pair : public Class<BaseType<std::pair<Value, Value>>> {
-	Type *_first, *_second;	 // (_first == 0 && _second == 0) means it's the template
+	const Type *_first, *_second;  // (_first == 0 && _second == 0) means it's the template
 
 	typedef Class<BaseType<std::pair<Value, Value>>> Base;
 
    public:
 	Pair() : Class("pair"), _first(0), _second(0) {}
 
-	Pair(Type *_1, Type *_2);
+	Pair(const Type *_1, const Type *_2);
 
-	Value create() { return Value(this, new std::pair<Value, Value>()); }
+	Value create() const { return Value(this, new std::pair<Value, Value>()); }
 
 	int properties() const { return Template | Emulated; }
 
-	Value convert(Value init) const;
-	Type *instantiate(std::vector<Type *>& args) const;
+	Value		convert(Value init) const;
+	const Type *instantiate(std::vector<const Type *>& args) const;
 
-	Type *first() const { return _first; }
+	const Type *first() const { return _first; }
 
-	Type *second() const { return _second; }
+	const Type *second() const { return _second; }
 
 	bool less_than(void *a, void *b) const;
 	int	 get_field(Value self, std::string name, std::vector<Value>& result) const;
@@ -625,53 +627,53 @@ class Pair : public Class<BaseType<std::pair<Value, Value>>> {
 	std::string TypeStr() const;
 	std::string to_json(void *data) const;
 
-	static Pair *self;
+	static const Pair *self;
 
 	typedef std::pair<Value, Value> cpp_type;
 };
 
 class Map : public Class<BaseType<std::map<Value, Value>>> {
-	Type *_pair_type;
-	Type *_key, *_value;  // (_first == 0 && _second == 0) means it's the template
+	const Type *_pair_type;
+	const Type *_key, *_value;	// (_first == 0 && _second == 0) means it's the template
 
 	typedef Class<BaseType<std::map<Value, Value>>> Base;
 
    public:
 	Map() : Class("map"), _key(0), _value(0), _pair_type(0) {}
 
-	Map(Type *k, Type *v);
+	Map(const Type *k, const Type *v);
 
-	Value create() { return Value(this, new std::map<Value, Value>()); }
+	Value create() const { return Value(this, new std::map<Value, Value>()); }
 
 	int properties() const { return Template | Emulated; }
 
-	Type *instantiate(std::vector<Type *>& args) const;
+	const Type *instantiate(std::vector<const Type *>& args) const;
 
-	Type *key() const { return _key; }
+	const Type *key() const { return _key; }
 
-	Type *value() const { return _value; }
+	const Type *value() const { return _value; }
 
-	Type *celltype() const { return _pair_type; }
+	const Type *celltype() const { return _pair_type; }
 
 	std::string TypeStr() const;
 	std::string to_json(void *data) const;
 
-	static Map *self;
+	static const Map *self;
 
 	typedef std::map<Value, Value>			 cpp_type;
 	typedef std::map<Value, Value>::iterator cpp_iterator;
 
-	static Value elem_to_value(Map *map_type, const std::pair<Value, Value>& elem) {
+	static Value elem_to_value(const Map *map_type, const std::pair<Value, Value>& elem) {
 		return Value(map_type->_pair_type, (void *)(new std::pair<Value, Value>(elem)));
 	}
 };
 
 template <class C> /* C == Container */
 class Iterator : public Class<BaseType<typename C::cpp_iterator>> {
-	C *_container_type;
+	const C *_container_type;
 
    public:
-	Iterator(C *type);
+	Iterator(const C *type);
 
 	std::string TypeStr() const { return _container_type->TypeStr() + "::iterator"; }
 
@@ -683,19 +685,19 @@ class Iterator : public Class<BaseType<typename C::cpp_iterator>> {
 template <class C>
 class ForwardIterator : public Iterator<C> {
    public:
-	ForwardIterator(C *type);
+	ForwardIterator(const C *type);
 };
 
 template <class C>
 class BidirectionalIterator : public ForwardIterator<C> {
    public:
-	BidirectionalIterator(C *type);
+	BidirectionalIterator(const C *type);
 };
 
 template <class C>
 class RandomAccessIterator : public BidirectionalIterator<C> {
    public:
-	RandomAccessIterator(C *type);
+	RandomAccessIterator(const C *type);
 };
 
 class VectorValue : public BaseType<std::vector<Value>> {
@@ -704,11 +706,11 @@ class VectorValue : public BaseType<std::vector<Value>> {
 
 	typedef std::vector<Value> cpp_type;
 
-	Value create() { return Value(this, new std::vector<Value>()); }
+	Value create() const { return Value(this, new std::vector<Value>()); }
 
 	static Value make() { return self->create(); }
 
-	static VectorValue *self;
+	static const VectorValue *self;
 };
 
 class OStream : public Class<Type> {
@@ -724,7 +726,7 @@ class OStream : public Class<Type> {
 
 	int properties() const { return Emulated; }
 
-	static OStream *self;
+	static const OStream *self;
 
 	static std::ostream& cast(void *data) { return *static_cast<std::ostream *>(data); }
 
@@ -744,7 +746,7 @@ class IStream : public Class<Type> {
 
 	int properties() const { return Emulated; }
 
-	static IStream *self;
+	static const IStream *self;
 
 	static std::istream& cast(void *data) { return *static_cast<std::istream *>(data); }
 
@@ -754,9 +756,9 @@ class IStream : public Class<Type> {
 class IStringStream : public IStream {
    public:
 	IStringStream();
-	static IStringStream *self;
+	static const IStringStream *self;
 
-	Value create() { return Value(this, new std::istringstream()); }
+	Value create() const { return Value(this, new std::istringstream()); }
 
 	static std::istringstream& cast(void *data) { return *static_cast<std::istringstream *>(data); }
 
@@ -767,9 +769,9 @@ class OStringStream : public OStream {
    public:
 	OStringStream();
 
-	Value create() { return Value(this, new std::ostringstream()); }
+	Value create() const { return Value(this, new std::ostringstream()); }
 
-	static OStringStream *self;
+	static const OStringStream *self;
 
 	static std::ostringstream& cast(void *data) { return *static_cast<std::ostringstream *>(data); }
 
@@ -816,10 +818,9 @@ class Environment {
 
 	Environment *pop();
 	void		 set_active(bool x);
-
-	void  using_namespace(Environment *nmspc);
-	void  register_type(std::string name, Type *);
-	Type *get_type(TypeSpec *spec, Environment *topmost = 0);
+	void		 using_namespace(Environment *nmspc);
+	void		 register_type(std::string name, const Type *);
+	const Type	*get_type(TypeSpec *spec, Environment *topmost = 0);
 
 	bool get(std::string name, Value& res);
 
@@ -865,8 +866,8 @@ class WithEnvironment {
 
 	void clear_touched() { _env->clear_touched(); }
 
-	Type *get_type(TypeSpec *spec);
-	void  register_type(std::string name, Type *);
+	const Type *get_type(TypeSpec *spec);
+	void		register_type(std::string name, const Type *);
 
 	Environment *get_namespace(string name);
 	bool		 using_namespace(string name);

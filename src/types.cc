@@ -11,27 +11,27 @@ void _error(std::string msg) {
 }
 
 // static + Globals
-Type		  *Void = 0;
-Type		  *Any = (Type *)1;
-UnknownType	  *UnknownType::self = new UnknownType();
-Int			  *Int::self = new Int();
-Float		  *Float::self = new Float();
-Double		  *Double::self = new Double();
-Char		  *Char::self = new Char();
-Char		  *Char::self_ref = new Char(false);
-Bool		  *Bool::self = new Bool();
-String		  *String::self = new String();
-OStream		  *OStream::self = new OStream();
-IStream		  *IStream::self = new IStream();
-VectorValue	  *VectorValue::self = new VectorValue();
-Vector		  *Vector::self = new Vector();
-List		  *List::self = new List();
-Pair		  *Pair::self = new Pair();
-Map			  *Map::self = new Map();
-Overloaded	  *Overloaded::self = new Overloaded();
-Callable	  *Callable::self = new Callable();
-OStringStream *OStringStream::self = new OStringStream();
-IStringStream *IStringStream::self = new IStringStream();
+const Type			*Void = 0;
+const Type			*Any = (const Type *)1;
+const UnknownType	*UnknownType::self = new UnknownType();
+const Int			*Int::self = new Int();
+const Float			*Float::self = new Float();
+const Double		*Double::self = new Double();
+const Char			*Char::self = new Char();
+const Char			*Char::self_ref = new Char(false);
+const Bool			*Bool::self = new Bool();
+const String		*String::self = new String();
+const OStream		*OStream::self = new OStream();
+const IStream		*IStream::self = new IStream();
+const VectorValue	*VectorValue::self = new VectorValue();
+const Vector		*Vector::self = new Vector();
+const List			*List::self = new List();
+const Pair			*Pair::self = new Pair();
+const Map			*Map::self = new Map();
+const Overloaded	*Overloaded::self = new Overloaded();
+const Callable		*Callable::self = new Callable();
+const OStringStream *OStringStream::self = new OStringStream();
+const IStringStream *IStringStream::self = new IStringStream();
 
 string String::to_json(void *data) const {
 	return string("\"") + Literal::Escape(*(string *)data, '"') + "\"";
@@ -41,18 +41,18 @@ map<string, const Type *> Type::reference_types;
 
 // Methods
 
-Type *TypeMap::instantiate_template(const vector<TypeSpec *>& subtypespecs,
-									Type					 *T,
-									Environment				 *topmost) {
+const Type *TypeMap::instantiate_template(const vector<TypeSpec *>& subtypespecs,
+										  const Type			   *T,
+										  Environment			   *topmost) {
 	assert(T->is(Type::Template));
-	vector<Type *> subtypes;
+	vector<const Type *> subtypes;
 	for (int i = 0; i < subtypespecs.size(); i++) {
 		subtypes.push_back(topmost->get_type(subtypespecs[i], topmost));
 	}
 	return T->instantiate(subtypes);
 }
 
-Type *TypeMap::get_type(TypeSpec *spec, Environment *topmost) {
+const Type *TypeMap::get_type(TypeSpec *spec, Environment *topmost) {
 	// 1. If typestr already registered, return the type
 	{
 		auto it = _typecache.find(spec->TypeStr());
@@ -66,7 +66,7 @@ Type *TypeMap::get_type(TypeSpec *spec, Environment *topmost) {
 		assert(!path.empty());
 
 		// find first type
-		Type	   *T;
+		const Type *T;
 		Identifier *spec0 = path[0];
 		auto		it = _typecache.find(spec0->TypeStr());
 		if (it != _typecache.end()) {
@@ -83,7 +83,7 @@ Type *TypeMap::get_type(TypeSpec *spec, Environment *topmost) {
 		}
 		// traverse inner classes
 		for (int i = 1; i < path.size(); i++) {
-			Type *inner = T->get_inner_class(path[i]->name);
+			const Type *inner = T->get_inner_class(path[i]->name);
 			if (inner == 0) {
 				return 0;
 			}
@@ -97,7 +97,7 @@ Type *TypeMap::get_type(TypeSpec *spec, Environment *topmost) {
 	}
 }
 
-void TypeMap::register_type(string name, Type *typespec) {
+void TypeMap::register_type(string name, const Type *typespec) {
 	auto it = _typemap.find(name);
 	assert(it == _typemap.end() or it->second->TypeStr() == typespec->TypeStr());
 	_typemap[name] = typespec;
@@ -325,7 +325,7 @@ bool Bool::accepts(const Type *t) const {
 // Valor por defecto para cada tipo según constructores de
 // vector, list y map en la STL...
 //
-Value default_value_for(Type *t) {
+Value default_value_for(const Type *t) {
 	if (t->is<Int>()) {
 		return Value(0);
 	} else if (t->is<Bool>()) {
@@ -341,12 +341,12 @@ Value default_value_for(Type *t) {
 	}
 }
 
-Vector::Vector(Type *celltype) : Class("vector"), _celltype(celltype) {
+Vector::Vector(const Type *celltype) : Class("vector"), _celltype(celltype) {
 	// vector(size)
 	struct VectorConstructor1 : public Func {
-		Type *celltype;
+		const Type *celltype;
 
-		VectorConstructor1(Type *t) : Func("vector"), celltype(t) {}
+		VectorConstructor1(const Type *t) : Func("vector"), celltype(t) {}
 
 		Value call(Value self, const vector<Value>& args) {
 			vector<Value>& the_vector = self.as<Vector>();
@@ -436,9 +436,9 @@ Vector::Vector(Type *celltype) : Class("vector"), _celltype(celltype) {
 
 	// resize(int)
 	struct Resize1Method : public Func {
-		Type *celltype;
+		const Type *celltype;
 
-		Resize1Method(Type *t) : Func("resize"), celltype(t) {}
+		Resize1Method(const Type *t) : Func("resize"), celltype(t) {}
 
 		Value call(Value self, const vector<Value>& args) {
 			vector<Value>& the_vector = self.as<Vector>();
@@ -512,9 +512,9 @@ Vector::Vector(Type *celltype) : Class("vector"), _celltype(celltype) {
 
 	// begin
 	struct BeginMethod : public Func {
-		Type *iter_type;
+		const Type *iter_type;
 
-		BeginMethod(Type *t) : Func("begin"), iter_type(t) {}
+		BeginMethod(const Type *t) : Func("begin"), iter_type(t) {}
 
 		Value call(Value self, const vector<Value>& args) {
 			vector<Value>& the_vector = self.as<Vector>();
@@ -526,9 +526,9 @@ Vector::Vector(Type *celltype) : Class("vector"), _celltype(celltype) {
 
 	// end
 	struct EndMethod : public Func {
-		Type *iter_type;
+		const Type *iter_type;
 
-		EndMethod(Type *t) : Func("end"), iter_type(t) {}
+		EndMethod(const Type *t) : Func("end"), iter_type(t) {}
 
 		Value call(Value self, const vector<Value>& args) {
 			vector<Value>& the_vector = self.as<Vector>();
@@ -540,9 +540,9 @@ Vector::Vector(Type *celltype) : Class("vector"), _celltype(celltype) {
 
 	// insert
 	struct InsertMethod : public Func {
-		Type *iter_type;
+		const Type *iter_type;
 
-		InsertMethod(Type *t) : Func("insert"), iter_type(t) {}
+		InsertMethod(const Type *t) : Func("insert"), iter_type(t) {}
 
 		Value call(Value self, const vector<Value>& args) {
 			vector<Value>&			the_vector = self.as<Vector>();
@@ -559,9 +559,9 @@ Vector::Vector(Type *celltype) : Class("vector"), _celltype(celltype) {
 
 	// erase
 	struct EraseMethod : public Func {
-		Type *iter_type;
+		const Type *iter_type;
 
-		EraseMethod(Type *t) : Func("erase"), iter_type(t) {}
+		EraseMethod(const Type *t) : Func("erase"), iter_type(t) {}
 
 		Value call(Value self, const vector<Value>& args) {
 			vector<Value>&			the_vector = self.as<Vector>();
@@ -593,7 +593,7 @@ Vector::Vector(Type *celltype) : Class("vector"), _celltype(celltype) {
 			Value the_index = Reference::deref(args[0]);
 			if (!the_index.is<Int>()) {
 				x->add_error(_T("El índice a una casilla de un vector debe ser un 'int' (no '%s').",
-							   the_index.type()->name().c_str()));
+								the_index.type()->name().c_str()));
 			}
 			return true;
 		}
@@ -603,7 +603,7 @@ Vector::Vector(Type *celltype) : Class("vector"), _celltype(celltype) {
 				new IndexedAccessOperator());
 }
 
-Type *Vector::instantiate(vector<Type *>& subtypes) const {
+const Type *Vector::instantiate(vector<const Type *>& subtypes) const {
 	assert(subtypes.size() == 1);
 	assert(subtypes[0] != 0);
 	return new Vector(subtypes[0]);
@@ -649,12 +649,12 @@ void Vector::clear_touched(void *data) const {
 
 // List //////////////////////////////////////////////////////////////
 
-List::List(Type *celltype) : Class("list"), _celltype(celltype) {
+List::List(const Type *celltype) : Class("list"), _celltype(celltype) {
 	// list(size)
 	struct ListConstructor1 : public Func {
-		Type *celltype;
+		const Type *celltype;
 
-		ListConstructor1(Type *t) : Func("list"), celltype(t) {}
+		ListConstructor1(const Type *t) : Func("list"), celltype(t) {}
 
 		Value call(Value self, const vector<Value>& args) {
 			list<Value>& the_list = self.as<List>();
@@ -770,9 +770,9 @@ List::List(Type *celltype) : Class("list"), _celltype(celltype) {
 
 	// resize(int)
 	struct Resize1Method : public Func {
-		Type *celltype;
+		const Type *celltype;
 
-		Resize1Method(Type *t) : Func("resize"), celltype(t) {}
+		Resize1Method(const Type *t) : Func("resize"), celltype(t) {}
 
 		Value call(Value self, const vector<Value>& args) {
 			list<Value>& the_list = self.as<List>();
@@ -921,9 +921,9 @@ List::List(Type *celltype) : Class("list"), _celltype(celltype) {
 
 	// begin
 	struct BeginMethod : public Func {
-		Type *iter_type;
+		const Type *iter_type;
 
-		BeginMethod(Type *t) : Func("begin"), iter_type(t) {}
+		BeginMethod(const Type *t) : Func("begin"), iter_type(t) {}
 
 		Value call(Value self, const vector<Value>& args) {
 			list<Value>& the_list = self.as<List>();
@@ -935,9 +935,9 @@ List::List(Type *celltype) : Class("list"), _celltype(celltype) {
 
 	// end
 	struct EndMethod : public Func {
-		Type *iter_type;
+		const Type *iter_type;
 
-		EndMethod(Type *t) : Func("end"), iter_type(t) {}
+		EndMethod(const Type *t) : Func("end"), iter_type(t) {}
 
 		Value call(Value self, const vector<Value>& args) {
 			list<Value>& the_list = self.as<List>();
@@ -949,9 +949,9 @@ List::List(Type *celltype) : Class("list"), _celltype(celltype) {
 
 	// insert
 	struct InsertMethod : public Func {
-		Type *iter_type;
+		const Type *iter_type;
 
-		InsertMethod(Type *t) : Func("insert"), iter_type(t) {}
+		InsertMethod(const Type *t) : Func("insert"), iter_type(t) {}
 
 		Value call(Value self, const vector<Value>& args) {
 			list<Value>&		  the_list = self.as<List>();
@@ -967,9 +967,9 @@ List::List(Type *celltype) : Class("list"), _celltype(celltype) {
 
 	// erase
 	struct EraseMethod : public Func {
-		Type *iter_type;
+		const Type *iter_type;
 
-		EraseMethod(Type *t) : Func("erase"), iter_type(t) {}
+		EraseMethod(const Type *t) : Func("erase"), iter_type(t) {}
 
 		Value call(Value self, const vector<Value>& args) {
 			list<Value>&		  the_list = self.as<List>();
@@ -984,7 +984,7 @@ List::List(Type *celltype) : Class("list"), _celltype(celltype) {
 				new EraseMethod(iterator_type));
 }
 
-Type *List::instantiate(vector<Type *>& subtypes) const {
+const Type *List::instantiate(vector<const Type *>& subtypes) const {
 	assert(subtypes.size() == 1);
 	assert(subtypes[0] != 0);
 	return new List(subtypes[0]);
@@ -1040,7 +1040,7 @@ bool pair_less_than(const pair<Value, Value>& a, const pair<Value, Value>& b) {
 	}
 }
 
-Pair::Pair(Type *_1, Type *_2) : Class("pair"), _first(_1), _second(_2) {
+Pair::Pair(const Type *_1, const Type *_2) : Class("pair"), _first(_1), _second(_2) {
 	// <
 	struct LessThanOperator : public Func {
 		LessThanOperator() : Func("<") {}
@@ -1093,7 +1093,7 @@ Value Pair::convert(Value x) const {
 	return Value::null;
 }
 
-Type *Pair::instantiate(vector<Type *>& subtypes) const {
+const Type *Pair::instantiate(vector<const Type *>& subtypes) const {
 	assert(subtypes.size() == 2);
 	assert(subtypes[0] != 0);
 	assert(subtypes[1] != 0);
@@ -1117,7 +1117,7 @@ std::string Pair::to_json(void *data) const {
 
 // Map ///////////////////////////////////////////////////////////////
 
-Map::Map(Type *k, Type *v) : Class("map"), _key(k), _value(v) {
+Map::Map(const Type *k, const Type *v) : Class("map"), _key(k), _value(v) {
 	_pair_type = new Pair(_key, _value);
 
 	// size
@@ -1167,9 +1167,9 @@ Map::Map(Type *k, Type *v) : Class("map"), _key(k), _value(v) {
 
 	// insert
 	struct InsertMethod : public Func {
-		Type *iterator_type, *insert_return_type;
+		const Type *iterator_type, *insert_return_type;
 
-		InsertMethod(Type *t1, Type *t2)
+		InsertMethod(const Type *t1, const Type *t2)
 			: Func("insert"), iterator_type(t1), insert_return_type(t2) {}
 
 		Value call(Value self, const vector<Value>& args) {
@@ -1184,15 +1184,15 @@ Map::Map(Type *k, Type *v) : Class("map"), _key(k), _value(v) {
 		}
 	};
 
-	Type *insert_return_type = new Pair(iterator_type, Bool::self);
+	const Type *insert_return_type = new Pair(iterator_type, Bool::self);
 	_add_method((new Function(insert_return_type))->add_params(_pair_type),
 				new InsertMethod(iterator_type, insert_return_type));
 
 	// find
 	struct FindMethod : public Func {
-		Type *iterator_type;
+		const Type *iterator_type;
 
-		FindMethod(Type *t) : Func("find"), iterator_type(t) {}
+		FindMethod(const Type *t) : Func("find"), iterator_type(t) {}
 
 		Value call(Value self, const vector<Value>& args) {
 			map<Value, Value>&			the_map = self.as<Map>();
@@ -1234,9 +1234,9 @@ Map::Map(Type *k, Type *v) : Class("map"), _key(k), _value(v) {
 
 	// begin
 	struct BeginMethod : public Func {
-		Type *iter_type;
+		const Type *iter_type;
 
-		BeginMethod(Type *t) : Func("begin"), iter_type(t) {}
+		BeginMethod(const Type *t) : Func("begin"), iter_type(t) {}
 
 		Value call(Value self, const vector<Value>& args) {
 			map<Value, Value>& the_map = self.as<Map>();
@@ -1248,9 +1248,9 @@ Map::Map(Type *k, Type *v) : Class("map"), _key(k), _value(v) {
 
 	// end
 	struct EndMethod : public Func {
-		Type *iter_type;
+		const Type *iter_type;
 
-		EndMethod(Type *t) : Func("end"), iter_type(t) {}
+		EndMethod(const Type *t) : Func("end"), iter_type(t) {}
 
 		Value call(Value self, const vector<Value>& args) {
 			map<Value, Value>& the_map = self.as<Map>();
@@ -1262,9 +1262,9 @@ Map::Map(Type *k, Type *v) : Class("map"), _key(k), _value(v) {
 
 	// []
 	struct FindOperator : public Func {
-		Type *value_type;
+		const Type *value_type;
 
-		FindOperator(Type *t) : Func("[]"), value_type(t) {}
+		FindOperator(const Type *t) : Func("[]"), value_type(t) {}
 
 		Value call(Value self, const vector<Value>& args) {
 			map<Value, Value>& the_map = self.as<Map>();
@@ -1283,7 +1283,7 @@ Map::Map(Type *k, Type *v) : Class("map"), _key(k), _value(v) {
 	_add_method((new Function(_value))->add_params(_key), new FindOperator(_value));
 }
 
-Type *Map::instantiate(vector<Type *>& subtypes) const {
+const Type *Map::instantiate(vector<const Type *>& subtypes) const {
 	assert(subtypes.size() == 2);
 	assert(subtypes[0] != 0);
 	assert(subtypes[1] != 0);
@@ -1313,7 +1313,7 @@ std::string Map::to_json(void *data) const {
 
 // Array /////////////////////////////////////////////////////////////
 
-Type *Array::_mkarray(Type *celltype, vector<int>::const_iterator curr, const vector<int>& sizes) {
+const Type *Array::_mkarray(const Type *celltype, vector<int>::const_iterator curr, const vector<int>& sizes) {
 	if (curr == sizes.end()) {
 		return celltype;
 	} else {
@@ -1322,7 +1322,7 @@ Type *Array::_mkarray(Type *celltype, vector<int>::const_iterator curr, const ve
 	}
 }
 
-Type *Array::mkarray(Type *celltype, const vector<int>& sizes) {
+const Type *Array::mkarray(const Type *celltype, const vector<int>& sizes) {
 	return _mkarray(celltype, sizes.begin(), sizes);
 }
 
@@ -1357,7 +1357,7 @@ bool Array::contains_unknowns(void *data) const {
 	return false;
 }
 
-Value Array::create() {
+Value Array::create() const {
 	vector<Value> *array = new vector<Value>(_sz);
 	for (int i = 0; i < _sz; i++) {
 		(*array)[i] = _celltype->create();
@@ -1393,7 +1393,7 @@ Value Array::convert(Value init) const {
 bool Struct::contains_unknowns(void *data) const {
 	SimpleTable<Value> *tab = static_cast<SimpleTable<Value> *>(data);
 	for (int i = 0; i < _fields.size(); i++) {
-		pair<std::string, Type *> f = _fields[i];
+		pair<std::string, const Type *> f = _fields[i];
 		Value					  v;
 		if (!tab->get(f.first, v)) {
 			return true;
@@ -1404,10 +1404,10 @@ bool Struct::contains_unknowns(void *data) const {
 	return false;
 }
 
-Value Struct::create() {
+Value Struct::create() const {
 	SimpleTable<Value> *tab = new SimpleTable<Value>();
 	for (int i = 0; i < _fields.size(); i++) {
-		pair<std::string, Type *> f = _fields[i];
+		pair<std::string, const Type *> f = _fields[i];
 		tab->set(f.first, f.second->create());
 	}
 	return Value(this, tab);
@@ -1416,7 +1416,7 @@ Value Struct::create() {
 Value Struct::create_abstract() const {
 	SimpleTable<Value> *tab = new SimpleTable<Value>();
 	for (int i = 0; i < _fields.size(); i++) {
-		pair<std::string, Type *> f = _fields[i];
+		pair<std::string, const Type *> f = _fields[i];
 		tab->set(f.first, f.second->create_abstract());
 	}
 	return Value(this, tab);
@@ -1434,7 +1434,7 @@ Value Struct::convert(Value init) const {
 		SimpleTable<Value> *tab = new SimpleTable<Value>();
 		int					k = 0;
 		for (int i = 0; i < _fields.size(); i++) {
-			pair<std::string, Type *> f = _fields[i];
+			pair<std::string, const Type *> f = _fields[i];
 			tab->set(f.first,
 					 (i < values.size() ? f.second->convert(values[i]) : f.second->create()));
 		}
@@ -1526,7 +1526,7 @@ int Class<Base>::get_field(Value self, string name, vector<Value>& result) const
 }
 
 template <class Base>
-void Class<Base>::_add_method(Function *type, Func *f) {
+void Class<Base>::_add_method(const Function *type, Func *f) {
 	_methods.insert(make_pair(f->name, type->mkvalue(f)));
 }
 
@@ -1740,15 +1740,15 @@ String::String() : Class("string") {
 }
 
 template <class C>
-Iterator<C>::Iterator(C *type)
+Iterator<C>::Iterator(const C *type)
 	: Class<BaseType<typename C::cpp_iterator>>("iterator"), _container_type(type) {
 	typedef Class<BaseType<typename C::cpp_iterator>> _Class;  // shut up, clang...
 
 	// *
 	struct DerefOperator : public Func {
-		C *type;
+		const C *type;
 
-		DerefOperator(C *t) : Func("*"), type(t) {}
+		DerefOperator(const C *t) : Func("*"), type(t) {}
 
 		Value call(Value self, const vector<Value>& args) {
 			typename C::cpp_iterator& the_iterator = self.as<Iterator<C>>();
@@ -1769,7 +1769,7 @@ string Iterator<C>::to_json(void *data) const {
 }
 
 template <class C>
-ForwardIterator<C>::ForwardIterator(C *type) : Iterator<C>(type) {
+ForwardIterator<C>::ForwardIterator(const C *type) : Iterator<C>(type) {
 	typedef Class<BaseType<typename C::cpp_iterator>> _Class;  // shut up, clang...
 
 	// ++
@@ -1787,7 +1787,7 @@ ForwardIterator<C>::ForwardIterator(C *type) : Iterator<C>(type) {
 }
 
 template <class C>
-BidirectionalIterator<C>::BidirectionalIterator(C *type) : ForwardIterator<C>(type) {
+BidirectionalIterator<C>::BidirectionalIterator(const C *type) : ForwardIterator<C>(type) {
 	typedef Class<BaseType<typename C::cpp_iterator>> _Class;  // shut up, clang...
 
 	// --
@@ -1805,7 +1805,7 @@ BidirectionalIterator<C>::BidirectionalIterator(C *type) : ForwardIterator<C>(ty
 }
 
 template <class C>
-RandomAccessIterator<C>::RandomAccessIterator(C *type) : BidirectionalIterator<C>(type) {
+RandomAccessIterator<C>::RandomAccessIterator(const C *type) : BidirectionalIterator<C>(type) {
 	typedef Class<BaseType<typename C::cpp_iterator>> _Class;  // shut up, clang...
 
 	// +
@@ -1840,15 +1840,15 @@ string Environment::to_json() const {
 	return json.str();
 }
 
-void Environment::register_type(string name, Type *type) {
+void Environment::register_type(string name, const Type *type) {
 	_curr_namespace.register_type(name, type);
 }
 
-Type *Environment::get_type(TypeSpec *spec, Environment *topmost) {
+const Type *Environment::get_type(TypeSpec *spec, Environment *topmost) {
 	if (topmost == 0) {
 		topmost = this;
 	}
-	Type *type = _curr_namespace.get_type(spec, topmost);
+	const Type *type = _curr_namespace.get_type(spec, topmost);
 	if (type != 0) {
 		return type;
 	}
@@ -1927,7 +1927,7 @@ Value OverloadedValue::resolve(const vector<Value>& args) {
 	return Callable::self->mkvalue(_self, winner);
 }
 
-Value Overloaded::mkvalue(Value self, const vector<Value>& candidates) {
+Value Overloaded::mkvalue(Value self, const vector<Value>& candidates) const {
 	assert(candidates.size() > 0);
 	if (candidates.size() == 1) {
 		return candidates[0];
@@ -1948,8 +1948,16 @@ int Function::check_signature(const std::vector<Value>& args) const {
 		// Char_ref! Por eso se usa typestr en vez de comparar los punteros
 		// directamente
 		//
-		if (_param_types[i]->TypeStr() == args[i].type()->TypeStr()) {
+		auto tyParam = _param_types[i]->TypeStr();
+		auto tyArg = args[i].type()->TypeStr();
+		if (tyParam == tyArg) {
 			score++;
+		} else if (args[i].type()->is<Reference>()) {
+			// If the second type is a reference, try to dereference it
+			auto tyArgDeref = args[i].type()->as<Reference>()->subtype()->TypeStr();
+			if (tyParam == tyArgDeref) {
+				score++;
+			}
 		}
 		if (!_param_types[i]->accepts(args[i].type())) {
 			return -1;
@@ -1971,7 +1979,7 @@ void OStream::_add_ostream_methods() {
 	};
 
 	Func				 *output_op = new OutputOperator();
-	static vector<Type *> BasicTypes = {
+	static vector<const Type *> BasicTypes = {
 		Int::self,	 Char::self,   Bool::self,
 		Float::self, Double::self, String::self /* FIXME: move to String */
 	};
@@ -2002,7 +2010,7 @@ void IStream::_add_istream_methods() {
 	};
 
 	Func				 *input_op = new InputOperator();
-	static vector<Type *> BasicTypes = {
+	static vector<const Type *> BasicTypes = {
 		Int::self,	 Char::self,   Bool::self,
 		Float::self, Double::self, String::self /* FIXME: move to String */
 	};
@@ -2115,7 +2123,7 @@ void WithEnvironment::prepare_global_environment() {
 	_env = global;
 }
 
-Type *WithEnvironment::get_type(TypeSpec *spec) {
+const Type *WithEnvironment::get_type(TypeSpec *spec) {
 	Identifier *namespc = spec->GetPotentialNamespaceOrClass();
 	if (namespc != 0) {
 		auto it = _namespaces.find(namespc->name);
@@ -2128,7 +2136,7 @@ Type *WithEnvironment::get_type(TypeSpec *spec) {
 	return _env->get_type(spec);
 }
 
-void WithEnvironment::register_type(string name, Type *type) {
+void WithEnvironment::register_type(string name, const Type *type) {
 	_env->register_type(name, type);
 }
 

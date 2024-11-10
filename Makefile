@@ -7,7 +7,7 @@ OBJECTS=$(patsubst src/%.cc,src/%.o,$(SOURCES))
 
 CXXFLAGS=-std=c++17
 
-all: minicc
+all: debug
 
 depend: .depend
 
