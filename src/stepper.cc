@@ -3,7 +3,6 @@
 #include <sstream>
 #include <vector>
 using namespace std;
-#include "cast.h"
 #include "stepper.hh"
 #include "translator.hh"
 
@@ -41,7 +40,7 @@ void Stepper::generic_visit(AstNode *X) {
 }
 
 void Stepper::Step(AstNode *ast) {
-    switch (ast->Type()) {
+    switch (ast->type()) {
         case AstNodeType::Program: {
             Program *X = cast<Program>(ast);
             I.program_prepare(X);
@@ -83,7 +82,7 @@ void Stepper::Step(AstNode *ast) {
                 collect_rights(e, ws->exprs);
                 push(ws);
                 ws->step(this);
-            } else if (isa<CallExpr>(X->expr)) {
+            } else if (X->expr->is(AstNodeType::CallExpr)) {
                 Step(X->expr);
             } else {
                 I.eval(X->expr);

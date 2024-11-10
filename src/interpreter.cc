@@ -3,7 +3,6 @@
 #include <assert.h>
 #include <iostream>
 #include "ast.hh"
-#include "cast.h"
 #include "translator.hh"
 #include "types.hh"
 #include "value.hh"
@@ -400,7 +399,7 @@ void Interpreter::check_result(Binding& fn, const Function *func_type) {
 }
 
 bool Interpreter::type_conversion(CallExpr *X, const vector<Value>& args) {
-    if (isa<Identifier>(X->func)) {
+    if (X->func->is(AstNodeType::Identifier)) {
         Identifier *id = cast<Identifier>(X->func);
         TypeSpec    spec(id);
         const Type *type = get_type(&spec);
@@ -454,7 +453,7 @@ bool Interpreter::bind_field(Value obj, string method_name) {
 // Eval
 void Interpreter::eval(AstNode *ast) {
     assert(ast != nullptr);
-    switch (ast->Type()) {
+    switch (ast->type()) {
         case AstNodeType::Program: {
             Program *X = cast<Program>(ast);
             program_prepare(X);
@@ -500,7 +499,7 @@ void Interpreter::eval(AstNode *ast) {
                 const Type *field_type = get_type(decl.typespec);
                 assert(type != 0);
                 for (DeclStmt::Item& item : decl.items) {
-                    if (isa<ArrayDecl>(item.decl)) {
+                    if (item.decl->is(AstNodeType::ArrayDecl)) {
                         Expr    *size_expr = cast<ArrayDecl>(item.decl)->sizes[0];
                         Literal *size_lit = cast<Literal>(size_expr);
                         assert(size_lit != 0);
@@ -1063,7 +1062,7 @@ void Interpreter::eval(AstNode *ast) {
             string       name = X->decl->name;
             const Type  *type = get_type(X->decl->typespec);
             assert(type != 0);
-            switch (X->decl->Type()) {
+            switch (X->decl->type()) {
                 case AstNodeType::VarDecl: {
                     const VarDecl *var = cast<VarDecl>(X->decl);
                     register_type(var->name, type);

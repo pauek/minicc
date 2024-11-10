@@ -3,7 +3,6 @@
 #include <sstream>
 using namespace std;
 #include "ast.hh"
-#include "cast.h"
 #include "translator.hh"
 
 bool CommentSeq::has_endln() const {
@@ -269,19 +268,19 @@ void Identifier::Shift(string new_id) {
     name = new_id;
 }
 
-void collect_rights(AstNode *ast, list<Expr *>& L) {
-    if (isa<BinaryExpr>(ast)) {
-        BinaryExpr *X = cast<BinaryExpr>(ast);
+void collect_rights(AstNode *node, list<Expr *>& L) {
+    if (node->is(AstNodeType::BinaryExpr)) {
+        BinaryExpr *X = cast<BinaryExpr>(node);
         L.push_front(X->right);
         collect_rights(X->left, L);
     }
 }
 
 bool is_read_expr(AstNode *ast) {
-    switch (ast->Type()) {
+    switch (ast->type()) {
         case AstNodeType::BinaryExpr: {
             BinaryExpr *X = cast<BinaryExpr>(ast);
-            if (isa<Identifier>(X->left)) {
+            if (X->left->is(AstNodeType::Identifier)) {
                 Identifier *id = cast<Identifier>(X->left);
                 return id->name == "cin";
             } else {
@@ -294,10 +293,10 @@ bool is_read_expr(AstNode *ast) {
 }
 
 bool is_write_expr(AstNode *ast) {
-    switch (ast->Type()) {
+    switch (ast->type()) {
         case AstNodeType::BinaryExpr: {
             BinaryExpr *X = cast<BinaryExpr>(ast);
-            if (isa<Identifier>(X->left)) {
+            if (X->left->is(AstNodeType::Identifier)) {
                 Identifier *id = cast<Identifier>(X->left);
                 return id->name == "cout";
             } else {
@@ -310,7 +309,7 @@ bool is_write_expr(AstNode *ast) {
 }
 
 bool is_assignment(AstNode *ast) {
-    if (isa<BinaryExpr>(ast)) {
+    if (ast->is(AstNodeType::BinaryExpr)) {
         BinaryExpr *X = cast<BinaryExpr>(ast);
         return X->kind == Expr::Eq;
     }
@@ -318,14 +317,14 @@ bool is_assignment(AstNode *ast) {
 }
 
 string describe(AstNode *ast) {
-    switch (ast->Type()) {
+    switch (ast->type()) {
         case AstNodeType::ExprStmt: {
             ExprStmt *X = cast<ExprStmt>(ast);
             return describe(X->expr);
         }
         case AstNodeType::IncrExpr: {
             IncrExpr *X = cast<IncrExpr>(ast);
-            if (isa<Identifier>(X->expr)) {
+            if (X->expr->is(AstNodeType::Identifier)) {
                 Identifier *id = cast<Identifier>(X->expr);
                 return _T("Se incrementa la variable '%s'.", id->name.c_str());
             }
@@ -372,7 +371,7 @@ bool has_errors(AstNode *ast) {
     if (ast == 0) {
         return false;
     }
-    switch (ast->Type()) {
+    switch (ast->type()) {
         case AstNodeType::Program: {
             Program *X = cast<Program>(ast);
             for (AstNode *n : X->nodes) {

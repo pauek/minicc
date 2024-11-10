@@ -1,6 +1,5 @@
 #include "semantic.hh"
 #include "ast.hh"
-#include "cast.h"
 #include "translator.hh"
 #include "types.hh"
 #include "value.hh"
@@ -340,7 +339,7 @@ void SemanticAnalyzer::get_func(CallExpr *X) {
 bool SemanticAnalyzer::type_conversion(CallExpr *X, const vector<Value>& args) {
     _curr_node = X;
     _curr_varname = "";
-    if (isa<Identifier>(X->func)) {
+    if (X->func->is(AstNodeType::Identifier)) {
         Identifier *id = cast<Identifier>(X->func);
         TypeSpec    spec(id);
         const Type *type = get_type(&spec);
@@ -557,7 +556,7 @@ bool SemanticAnalyzer::eval_comparison(Value left, Value right) {
 
 // Analyze
 void SemanticAnalyzer::analyze(AstNode *ast) {
-    switch (ast->Type()) {
+    switch (ast->type()) {
         case AstNodeType::Program: {
             Program *X = cast<Program>(ast);
             _curr_node = X;
@@ -815,7 +814,7 @@ void SemanticAnalyzer::analyze(AstNode *ast) {
                     if (type->has_field(item.decl->name)) {
                         decl.add_error(_T("El campo '%s' está repetido.", item.decl->name.c_str()));
                     }
-                    if (isa<ArrayDecl>(item.decl)) {
+                    if (item.decl->is(AstNodeType::ArrayDecl)) {
                         ArrayDecl  *array_decl = cast<ArrayDecl>(item.decl);
                         vector<int> sizes;
                         for (Expr *size_expr : array_decl->sizes) {
@@ -1259,7 +1258,7 @@ void SemanticAnalyzer::analyze(AstNode *ast) {
             if (!bind_field(obj, X->field)) {
                 if (obj.type()->is(Type::Class)) {
                     const char *msg;
-                    if (X->parent and isa<CallExpr>(X->parent)) {
+                    if (X->parent and X->parent->is(AstNodeType::CallExpr)) {
                         msg = "La clase '%s' no tiene método '%s'.";
                     } else {
                         msg = "La clase '%s' no tiene campo '%s'.";
@@ -1395,7 +1394,7 @@ void SemanticAnalyzer::analyze(AstNode *ast) {
             string      name = X->decl->name;
             const Type *type = get_type(X->decl->typespec);
             assert(type != 0);
-            switch (X->decl->Type()) {
+            switch (X->decl->type()) {
                 case AstNodeType::VarDecl: {
                     const VarDecl *var = cast<VarDecl>(X->decl);
                     register_type(var->name, type);

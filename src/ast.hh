@@ -1,13 +1,27 @@
 #ifndef AST_H
 #define AST_H
-#include <assert.h>
+
 #include <algorithm>
+#include <cassert>
 #include <list>
 #include <map>
+#include <memory>
 #include <sstream>
 #include <string>
 #include <vector>
 #include "lexer.hh"
+
+template <typename Derived, typename Base>
+const Derived *cast(const Base *obj) {
+    assert(Derived::is_instance(obj));
+    return static_cast<const Derived *>(obj);
+};
+
+template <typename Derived, typename Base>
+Derived *cast(Base *obj) {
+    assert(Derived::is_instance(obj));
+    return static_cast<Derived *>(obj);
+};
 
 struct ErrorOptions {
     bool stopper = false;
@@ -109,7 +123,9 @@ struct AstNode {
 
     bool has_errors() const { return !errors.empty(); }
 
-    AstNodeType Type() const { return type_; }
+    AstNodeType type() const { return type_; }
+
+    bool is(AstNodeType t) const { return type() == t; }
 
    protected:
     AstNodeType type_;
@@ -117,7 +133,7 @@ struct AstNode {
 
 template <AstNodeType T>
 struct AstDerived : AstNode {
-    static bool is_instance(const AstNode *node) { return node->Type() == T; }
+    static bool is_instance(const AstNode *node) { return node->type() == T; }
 
     AstDerived() { type_ = T; }
 };
@@ -162,7 +178,7 @@ struct Stmt : public AstNode {};
 
 template <AstNodeType T>
 struct StmtDerived : Stmt {
-    static bool is_instance(const AstNode *ast) { return ast->Type() == T; }
+    static bool is_instance(const AstNode *ast) { return ast->type() == T; }
 
     StmtDerived() { type_ = T; }
 };
@@ -201,7 +217,7 @@ struct Decl : public AstNode {
 
 template <AstNodeType T>
 struct DeclDerived : Decl {
-    static bool is_instance(const AstNode *ast) { return ast->Type() == T; }
+    static bool is_instance(const AstNode *ast) { return ast->type() == T; }
 
     DeclDerived() { type_ = T; }
 };
@@ -278,7 +294,7 @@ struct Expr : public AstNode {
 
 template <AstNodeType T>
 struct ExprDerived : Expr {
-    static bool is_instance(const AstNode *ast) { return ast->Type() == T; }
+    static bool is_instance(const AstNode *ast) { return ast->type() == T; }
 
     ExprDerived() { type_ = T; }
 };
@@ -335,7 +351,7 @@ struct Identifier : ExprDerived<AstNodeType::Identifier> {
     Identifier               *GetPotentialNamespaceOrClass() const;
     std::vector<Identifier *> GetNonNamespaces();
 
-    static bool is_instance(const AstNode *ast) { return ast->Type() == AstNodeType::Identifier; }
+    static bool is_instance(const AstNode *ast) { return ast->type() == AstNodeType::Identifier; }
 };
 
 struct TypeSpec : public AstDerived<AstNodeType::TypeSpec> {
@@ -382,7 +398,7 @@ template <AstNodeType T>
 struct UnaryExprDerived : UnaryExpr {
     UnaryExprDerived() { type_ = T; }
 
-    static bool is_instance(const AstNode *ast) { return ast->Type() == T; }
+    static bool is_instance(const AstNode *ast) { return ast->type() == T; }
 };
 
 struct SignExpr : public UnaryExprDerived<AstNodeType::SignExpr> {

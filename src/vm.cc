@@ -1,6 +1,6 @@
 
 #include "vm.hh"
-#include "cast.h"
+#include "ast.hh"
 
 namespace vm {
 // TypeTable ///////////////////////////////////////////////////////////////////

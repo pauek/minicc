@@ -4,7 +4,6 @@
 #include <iostream>
 #include <vector>
 #include "ast.hh"
-#include "cast.h"
 
 template <typename Delegate>
 struct Walker {
@@ -17,7 +16,7 @@ struct Walker {
 
 template <typename Delegate>
 void Walker<Delegate>::walk(AstNode *ast) {
-    switch (ast->Type()) {
+    switch (ast->type()) {
         case AstNodeType::Program: {
             Program *X = cast<Program>(ast);
             D.walk(X);

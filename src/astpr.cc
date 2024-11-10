@@ -2,7 +2,6 @@
 #include <algorithm>
 #include <sstream>
 #include "ast.hh"
-#include "cast.h"
 using namespace std;
 
 struct OutputWriter {
@@ -52,7 +51,7 @@ struct AstPrinter {
 
 void AstPrinter::Print(AstNode *ast) {
     assert(ast != nullptr);
-    switch (ast->Type()) {
+    switch (ast->type()) {
         case AstNodeType::Program: {
             Program *X = cast<Program>(ast);
             out.Line("Program{");
