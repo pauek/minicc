@@ -39,11 +39,11 @@ class Translator {
 
     std::string translate(std::string message) const {
         auto it = _index.find(message);
-		if (it == _index.end()) {
-			return message;
-		}
-		auto i = static_cast<int>(language);
-		return _translations[it->second][i];
+        if (it == _index.end()) {
+            return message;
+        }
+        auto i = static_cast<int>(language);
+        return _translations[it->second][i];
     }
 
     static Translator translator;

@@ -1441,7 +1441,7 @@ Value Struct::convert(Value init) const {
             _error("Demasiados valores al inicializar la tupla de tipo '" + name() + "'");
         }
         Table<Value> *tab = new Table<Value>();
-        int                 k = 0;
+        int           k = 0;
         for (int i = 0; i < _fields.size(); i++) {
             pair<std::string, const Type *> f = _fields[i];
             tab->set(
@@ -1479,7 +1479,7 @@ void Struct::clear_touched(void *data) const {
 
 string Struct::to_json(void *data) const {
     Table<Value>& tab = *static_cast<Table<Value> *>(data);
-    ostringstream       json;
+    ostringstream json;
     json << "{\"<type>\":\"struct\"";
     for (int i = 0; i < tab.size(); i++) {
         json << ",";

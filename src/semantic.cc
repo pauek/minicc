@@ -1247,7 +1247,7 @@ void SemanticAnalyzer::analyze(AstNode *node) {
             if (obj.is<Struct>()) {
                 // FIXME: Move this to 'get_field' in 'Struct' class???
                 Table<Value>& fields = obj.as<Struct>();
-                Value               v;
+                Value         v;
                 if (!fields.get(X->field, v)) {
                     X->add_error(_T("El campo '%s' no existe.", X->field.c_str()));
                 } else {
