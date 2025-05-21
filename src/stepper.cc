@@ -226,6 +226,7 @@ Todo Stepper::ProgramVisitState::step(Stepper *S) {
         }
         default:
             assert(false);
+            return Stop;
     }
 }
 
