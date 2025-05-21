@@ -190,5 +190,7 @@ const char *Translator::_translations[1000][Translator::NUM_LANGS] = {
     {
      "The type '%s' is not implemented in MiniCC.", "El tipo '%s' no se ha implementado en MiniCC.",
      "El tipus '%s' no està implementat a MiniCC.", },
+    {"Do not end function definitions with a semi-colon.",
+     "No termines las definiciones de funciones con un punto y coma.", "No acabis les definicions de funcions amb un punt i coma."},
     {"END"}
 };
