@@ -1026,7 +1026,7 @@ Stmt *Parser::parse_ifstmt(AstNode *parent) {
 
     stmt->cond = parse_expr(stmt);
 
-    // _skip(stmt);
+    _skip(stmt);
 
     if (!_lexer.expect(Token::RParen)) {
         _error(stmt, _lexer.pos().str() + ": " + _T("Expected '%s' here.", ")"));
