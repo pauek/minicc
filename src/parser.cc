@@ -163,7 +163,8 @@ AstNode *Parser::parse_macro(AstNode *parent) {
     // Catch possible mistake: put a ';' here
     auto tok = _lexer.peek_token();
     if (tok.type == Token::SemiColon) {
-        _error(inc, Span(_lexer.pos()), "Don't put semicolons after an #include");
+        _error(inc, Span(_lexer.pos()), _T("Don't end #includes with a semicolon."));
+        _lexer.read_token(); // consume it!
     }
 
     return inc;
