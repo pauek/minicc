@@ -929,6 +929,8 @@ Expr *Parser::parse_increxpr(Expr *x, Token tok) {
     e->kind = tok.type == Token::PlusPlus ? IncrExpr::Positive : IncrExpr::Negative;
     e->expr = x;
 
+    _skip(e);
+
     _lexer.consume(tok.type == Token::PlusPlus ? "++" : "--");
     e->span = Span(x->span.begin, _lexer.pos());
     return e;
