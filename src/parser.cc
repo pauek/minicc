@@ -159,6 +159,13 @@ AstNode *Parser::parse_macro(AstNode *parent) {
     inc->filename = filename;
     inc->global = (close == '>');
     inc->span = Span(ini, _lexer.pos());
+
+    // Catch possible mistake: put a ';' here
+    auto tok = _lexer.peek_token();
+    if (tok.type == Token::SemiColon) {
+        _error(inc, Span(_lexer.pos()), "Don't put semicolons after an #include");
+    }
+
     return inc;
 }
 
