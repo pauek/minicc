@@ -18,7 +18,7 @@ all: debug
 debug: CXXFLAGS += -g3 -O0
 debug: minicc
 
-release: CXXFLAGS += -O3
+release: CXXFLAGS += -O3 -DNDEBUG
 release: minicc
 
 minicc: ./src/.depend $(OBJECTS)
