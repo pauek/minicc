@@ -62,6 +62,8 @@ const char *Translator::_translations[1000][Translator::NUM_LANGS] = {
     {
      "Unexpected '%s' here.", "No esperaba '%s' aquí.",
      "No esperava '%s' aquí.", },
+    {"Don't end #includes with a semicolon.",
+     "No termines los #includes con punto y coma.", "No acabis els #includes amb un punt i coma."},
     {
      "Macro '#%s' unknown.", "Macro '#%s' desconocida.",
      "Macro '#%s' desconeguda.", },
