@@ -92,7 +92,7 @@ AstNode *Parser::parse() {
                     break;
                 }
                 string s = _lexer.substr(tok);
-                _error(prog, _T("Unexpected '%s' here.", s.c_str()));
+                _error(prog, Span(_lexer.pos()), _T("Unexpected '%s' here.", s.c_str()));
                 _lexer.read_token();
                 break;
         }
@@ -160,11 +160,11 @@ AstNode *Parser::parse_macro(AstNode *parent) {
     inc->global = (close == '>');
     inc->span = Span(ini, _lexer.pos());
 
-    // Catch possible mistake: put a ';' here
+    // Catch possible mistake: ending #include with ';'
     auto tok = _lexer.peek_token();
     if (tok.type == Token::SemiColon) {
         _error(inc, Span(_lexer.pos()), _T("Don't end #includes with a semicolon."));
-        _lexer.read_token(); // consume it!
+        _lexer.read_token();  // consume it!
     }
 
     return inc;
@@ -369,7 +369,11 @@ void Parser::parse_function(FuncDecl *fn) {
         } else if (_lexer.curr() == ',') {
             _lexer.consume(',');
         } else {
-            _error(fn, _T("Unexpected character '%c' in parameter list", _lexer.curr()));
+            _error(
+                fn,
+                Span(_lexer.pos()),
+                _T("Unexpected character '%c' in parameter list", _lexer.curr())
+            );
             _lexer.skip_to(")");
         }
     }
@@ -384,6 +388,13 @@ void Parser::parse_function(FuncDecl *fn) {
         fn->block = parse_block(fn);
     }
     fn->span.end = _lexer.pos();
+
+    // Catch possible mistake: ending a function definition with ';'
+    auto tok = _lexer.peek_token();
+    if (tok.type == Token::SemiColon) {
+        _error(fn, Span(_lexer.pos()), _T("Do not end function definitions with a semi-colon."));
+        _lexer.read_token();  // consume it!
+    }
 }
 
 Block *Parser::parse_block(AstNode *parent) {
@@ -410,7 +421,7 @@ Block *Parser::parse_block(AstNode *parent) {
         _skip(block);
     }
     if (!closing_curly) {
-        _error(block, _T("Expected '}' but end of text found"));
+        _error(block, Span(_lexer.pos()), _T("Expected '}' but end of text found"));
     }
     block->span = Span(ini, _lexer.pos());
 
