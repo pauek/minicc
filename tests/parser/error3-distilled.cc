@@ -43,3 +43,5 @@ int main(){
     cout << "PARELL: " << maxParellCount << endl;
     cout << "SENAR: " << maxSenarCount;
 }
+[[err]]-----------------------------------------------
+tests/parser/error3-distilled.cc[14:20-14:20]: No termines los #includes con punto y coma.
