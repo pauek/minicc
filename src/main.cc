@@ -14,6 +14,7 @@ using namespace std;
 #include "translator.hh"
 #include "vm.hh"
 #include "walker.hh"
+#include "instrumenter.hh"
 
 int cmd_vm(Args& args) {
     using namespace vm;
@@ -165,15 +166,26 @@ int cmd_step(Args& args) {
     }
 }
 
+int cmd_instrument(Args& args) {
+    string   filename = args.shift();
+    ifstream codefile(filename);
+    Parser   P(&codefile);
+    AstNode *program = P.parse();
+    Instrumenter().instrument(program);
+    pretty_print(program);
+    return 0;
+}
+
 vector<Command> commands = {
-    {"tok",      cmd_tokenize,    "Tokenize a program"                            },
-    {"ast",      cmd_ast,         "Show the AST of a program"                     },
-    {"canparse", cmd_canparse,    "Parse a program an return 0 if it was possible"},
-    {"pprint",   cmd_prettyprint, "Pretty print a program"                        },
-    {"eval",     cmd_eval,        "Evaluate a program"                            },
-    {"step",     cmd_step,        "Evaluate a program step by step"               },
-    {"vm",       cmd_vm,          "TODO: virtual machine"                         },
-    {"test",     cmd_test,        "Test MiniCC"                                   },
+    {"tok",        cmd_tokenize,    "Tokenize a program"                            },
+    {"ast",        cmd_ast,         "Show the AST of a program"                     },
+    {"canparse",   cmd_canparse,    "Parse a program an return 0 if it was possible"},
+    {"instrument", cmd_instrument,  "Instrument program"                            },
+    {"pprint",     cmd_prettyprint, "Pretty print a program"                        },
+    {"eval",       cmd_eval,        "Evaluate a program"                            },
+    {"step",       cmd_step,        "Evaluate a program step by step"               },
+    {"vm",         cmd_vm,          "TODO: virtual machine"                         },
+    {"test",       cmd_test,        "Test MiniCC"                                   },
 };
 
 int main(int argc, char *argv[]) {
