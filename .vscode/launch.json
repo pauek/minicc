@@ -9,12 +9,13 @@
       "type": "cppdbg",
       "request": "launch",
       "program": "${workspaceFolder}/minicc",
-      "args": ["test", "interpreter", "tests/interpreter/maps/map08.cc", "tests/interpreter/maps/map08.cc"],
+      "args": ["canparse", "./tests/parser/error1-distilled.cc"],
       "stopAtEntry": false,
       "cwd": "${workspaceFolder}",
       "environment": [],
       "externalConsole": false,
       "MIMode": "gdb",
+      "preLaunchTask": "Makefile",
       "setupCommands": [
         {
           "description": "Enable pretty-printing for gdb",
