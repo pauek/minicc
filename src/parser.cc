@@ -712,9 +712,10 @@ Expr *Parser::parse_unary_expr(AstNode *parent) {
     Pos   ini = _lexer.pos();
     Token tok = _lexer.peek_token();
     switch (tok.type) {
-        case Token::Not: {
+        case Token::Not:
+        case Token::Excl: {
             auto *ne = _ast->create_node<NegExpr>();
-            _lexer.next();
+            _lexer.read_token();
 
             _skip(ne);
 

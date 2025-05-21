@@ -201,7 +201,7 @@ Token Lexer::read_token() {
         case '=':
             RESULT_1_2('=', Eq, EqEq);
         case '!':
-            RESULT_1_2('=', Not, NotEq);
+            RESULT_1_2('=', Excl, ExclEq);
         case '*':
             RESULT_1_2('=', Star, StarEq);
         case '/':
@@ -475,6 +475,8 @@ Token Lexer::read_ident() {
                 tok.type = Token::Int;
             } else if (s == "for") {
                 tok.type = Token::For;
+            } else if (s == "not") {
+                tok.type = Token::Not;
             }
             break;
         }

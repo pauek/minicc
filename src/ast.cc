@@ -99,7 +99,7 @@ Expr::Kind Expr::TokenToKind(Token::Type tokkind) {
         case Token::Amp:
             return Expr::BitAnd;
         case Token::EqEq:
-        case Token::NotEq:
+        case Token::ExclEq:
             return Expr::Equality;
         case Token::LT:
         case Token::GT:

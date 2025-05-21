@@ -51,8 +51,9 @@ bool Token::is_operator() const {
         case Token::RShiftEq:
         case Token::Or:
         case Token::And:
+        case Token::Not:
         case Token::EqEq:
-        case Token::NotEq:
+        case Token::ExclEq:
         case Token::LT:
         case Token::GT:
         case Token::GE:
@@ -61,7 +62,7 @@ bool Token::is_operator() const {
         case Token::RShift:
         case Token::Dot:
         case Token::Arrow:
-        case Token::Not:
+        case Token::Excl:
         case Token::Amp:
         case Token::Bar:
         case Token::Xor:
