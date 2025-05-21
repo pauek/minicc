@@ -50,21 +50,21 @@ class Type {
     };
 
     //             void *alloc(T x) = a different method for every Type
-    virtual void destroy(void *data) const { assert(false); }
+    virtual void destroy(void *data) const  { assert(false); }
 
-    virtual bool equals(void *a, void *b) const { assert(false); }
+    virtual bool equals(void *a, void *b) const { assert(false); return false; }
 
-    virtual bool less_than(void *a, void *b) const { assert(false); }
+    virtual bool less_than(void *a, void *b) const { assert(false); return false; }
 
-    virtual bool assign(void *a, void *b) const { assert(false); }
+    virtual bool assign(void *a, void *b) const { assert(false); return false; }
 
-    virtual void *clone(void *data) const { assert(false); }
+    virtual void *clone(void *data) const { assert(false); return nullptr; }
 
     virtual void write(std::ostream& o, void *data) const { assert(false); }
 
-    virtual void *read(std::istream& i, void *data) const { assert(false); }
+    virtual void *read(std::istream& i, void *data) const { assert(false); return nullptr; }
 
-    virtual string to_json(void *data) const { assert(false); }
+    virtual string to_json(void *data) const { assert(false); return ""; }
 
     virtual void clear_touched(void *data) const { assert(false); }
 
@@ -83,14 +83,15 @@ class Type {
 
     virtual const Type *instantiate(std::vector<const Type *>& s) const {
         assert(false);
+        return nullptr;
     }  // for templates
 
     //     subtypes ----^
-    virtual Value create() const { assert(false); }
+    virtual Value create() const { assert(false); return Value(); }
 
     virtual Value create_abstract() const { return Value(this, Value::abstract); }
 
-    virtual Value convert(Value init) const { assert(false); }
+    virtual Value convert(Value init) const { assert(false); return Value(); }
 
     virtual bool accepts(const Type *t) const { return this == t; }
 
@@ -479,7 +480,7 @@ class Overloaded : public BaseType<OverloadedValue> {
    public:
     Overloaded() : BaseType<OverloadedValue>("<unresolved-function>") {}
 
-    Value convert(Value init) const { assert(false); }
+    Value convert(Value init) const { assert(false); return Value(); }
 
     Value mkvalue(Value self, const std::vector<Value>& candidates) const;
 

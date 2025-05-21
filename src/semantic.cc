@@ -10,7 +10,7 @@ struct UserFunc : public Func {
 
     UserFunc(std::string n, FuncDecl *d) : Func(n), decl(d) {}
 
-    Value call(Value self, const std::vector<Value>& args) { assert(false); }
+    Value call(Value self, const std::vector<Value>& args) { assert(false); return Value(); }
 };
 
 struct SemanticAnalyzer : public WithEnvironment {
