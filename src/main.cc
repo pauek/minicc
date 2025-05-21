@@ -64,18 +64,16 @@ int cmd_canparse(Args& args) {
         ifstream codefile(filename);
         Parser   P(&codefile);
         AstNode *program = P.parse();
-        if (has_errors(program)) {
-            cout << "ERRORS" << endl;
-            cerr << filename << ": ERRORS" << endl;
-        } else {
-            cout << "ok" << endl;
+        vector<Error *> errors = collect_errors(program);
+        for (Error *e : errors) {
+            cerr << filename << ":" << e->span.begin << ": " << e->msg << endl;
         }
         return has_errors(program) ? 127 : 0;
     } catch (ParseError& e) {
-        cerr << filename << ": ERRORS" << endl;
+        cerr << "ParseError" << endl << filename << ':' << e.pos << ": " << e.msg << endl;
         return 127;
     } catch (std::out_of_range& e) {
-        cerr << filename << ": ERRORS" << endl;
+        cerr << filename << ": Out of Range: " << e.what() << endl;
         return 127;
     }
 }
