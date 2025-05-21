@@ -532,6 +532,7 @@ void PrettyPrinter::print(AstNode *ast) {
             out.write("(");
             cp.comment_space();
             print(X->cond);
+            cp.comment_space();
             out.write(") ");
             cp.comment_space();
             print(X->then);
