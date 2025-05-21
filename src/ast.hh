@@ -100,10 +100,10 @@ struct Ast;
 
 struct AstNode {
     Ast                      *ast;
+    AstNode                  *parent;
     Span                      span;
     std::vector<Error *>      errors;
     std::vector<CommentSeq *> comments;
-    AstNode                  *parent;
 
     void add_error(std::string msg);
     void add_error(Pos ini, Pos fin, std::string msg);
