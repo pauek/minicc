@@ -59,12 +59,16 @@ int cmd_canparse(Args& args) {
         exit(1);
     }
     string filename = args.shift();
+    cout << filename << "... " << flush;
     try {
         ifstream codefile(filename);
         Parser   P(&codefile);
         AstNode *program = P.parse();
         if (has_errors(program)) {
+            cout << "ERRORS" << endl;
             cerr << filename << ": ERRORS" << endl;
+        } else {
+            cout << "ok" << endl;
         }
         return has_errors(program) ? 127 : 0;
     } catch (ParseError& e) {
