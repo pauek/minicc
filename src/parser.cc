@@ -92,7 +92,12 @@ AstNode *Parser::parse() {
                     break;
                 }
                 string s = _lexer.substr(tok);
-                _error(prog, Span(_lexer.pos()), _T("Unexpected '%s' here.", s.c_str()));
+                _error(
+                    prog,
+                    Span(_lexer.pos()),
+                    _T("Unexpected '%s' here.", s.c_str()),
+                    {.stopper = true}
+                );
                 _lexer.read_token();
                 break;
         }
@@ -316,7 +321,7 @@ AstNode *Parser::parse_func_or_var(AstNode *parent) {
     cseq[0] = _lexer.skip();
 
     Pos   id_ini = _lexer.pos();
-    Token tok = _lexer.read_ident(); // should be the function name
+    Token tok = _lexer.read_ident();  // should be the function name
     if (tok.type == Token::Unknown) {
         delete typespec;
         _lexer.restore();
