@@ -53,6 +53,29 @@ int cmd_ast(Args& args) {
     return 0;
 }
 
+int cmd_canparse(Args& args) {
+    if (args.empty()) {
+        cout << "usage: minicc ast <filename>" << endl;
+        exit(1);
+    }
+    string filename = args.shift();
+    try {
+        ifstream codefile(filename);
+        Parser   P(&codefile);
+        AstNode *program = P.parse();
+        if (has_errors(program)) {
+            cerr << filename << ": ERRORS" << endl;
+        }
+        return has_errors(program) ? 127 : 0;
+    } catch (ParseError& e) {
+        cerr << filename << ": ERRORS" << endl;
+        return 127;
+    } catch (std::out_of_range& e) {
+        cerr << filename << ": ERRORS" << endl;
+        return 127;
+    }
+}
+
 int cmd_prettyprint(Args& args) {
     if (args.empty()) {
         cout << "usage: minicc pprint <filename>" << endl;
@@ -142,13 +165,14 @@ int cmd_step(Args& args) {
 }
 
 vector<Command> commands = {
-    {"tok",    cmd_tokenize,    "Tokenize a program"             },
-    {"ast",    cmd_ast,         "Show the AST of a program"      },
-    {"pprint", cmd_prettyprint, "Pretty print a program"         },
-    {"eval",   cmd_eval,        "Evaluate a program"             },
-    {"step",   cmd_step,        "Evaluate a program step by step"},
-    {"vm",     cmd_vm,          "TODO: virtual machine"          },
-    {"test",   cmd_test,        "Test MiniCC"                    },
+    {"tok",      cmd_tokenize,    "Tokenize a program"                            },
+    {"ast",      cmd_ast,         "Show the AST of a program"                     },
+    {"canparse", cmd_canparse,    "Parse a program an return 0 if it was possible"},
+    {"pprint",   cmd_prettyprint, "Pretty print a program"                        },
+    {"eval",     cmd_eval,        "Evaluate a program"                            },
+    {"step",     cmd_step,        "Evaluate a program step by step"               },
+    {"vm",       cmd_vm,          "TODO: virtual machine"                         },
+    {"test",     cmd_test,        "Test MiniCC"                                   },
 };
 
 int main(int argc, char *argv[]) {
