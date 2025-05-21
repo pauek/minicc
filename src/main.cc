@@ -59,16 +59,17 @@ int cmd_canparse(Args& args) {
         exit(1);
     }
     string filename = args.shift();
-    cout << filename << "... " << flush;
     try {
         ifstream codefile(filename);
         Parser   P(&codefile);
         AstNode *program = P.parse();
-        vector<Error *> errors = collect_errors(program);
-        for (Error *e : errors) {
+        if (!has_errors(program)) {
+            return 0;
+        }
+        for (Error *e : collect_errors(program)) {
             cerr << filename << ":" << e->span.begin << ": " << e->msg << endl;
         }
-        return has_errors(program) ? 127 : 0;
+        return 127;
     } catch (ParseError& e) {
         cerr << "ParseError" << endl << filename << ':' << e.pos << ": " << e.msg << endl;
         return 127;
@@ -118,17 +119,15 @@ int cmd_eval(Args& args) {
         AstNode *program = P.parse();
         _analyze_semantics(program, filename);
         eval(program, cin, cout);
-        vector<Error *> errors = collect_errors(program);
-        if (errors.empty()) {
+        if (!has_errors(program)) {
             return 0;
         }
-        for (Error *e : errors) {
+        for (Error *e : collect_errors(program)) {
             cerr << e->msg << endl;
         }
         return 1;
     } catch (Error *e) {
-        cerr << _T("Execution Error")
-             << ": " << e->msg << endl;
+        cerr << _T("Execution Error") << ": " << e->msg << endl;
         return 1;
     }
 }
