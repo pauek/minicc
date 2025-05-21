@@ -129,10 +129,10 @@ struct PrettyPrinter {
 
     PrettyPrinter(ostream& o) : out(o) {}
 
-    void Print(AstNode *ast);
+    void print(AstNode *ast);
 };
 
-void PrettyPrinter::Print(AstNode *ast) {
+void PrettyPrinter::print(AstNode *ast) {
     assert(ast != nullptr);
     switch (ast->type()) {
         case AstNodeType::Program: {
@@ -146,7 +146,7 @@ void PrettyPrinter::Print(AstNode *ast) {
                         (X->comments[i] and !X->comments[i]->ends_with_empty_line())) {
                     out.endln();
                 }
-                Print(n);
+                print(n);
                 if (cp.Next() and !cp.Next()->starts_with_endln()) {
                     out.write(' ');
                 }
@@ -204,7 +204,7 @@ void PrettyPrinter::Print(AstNode *ast) {
             QUALIFIER(Auto, "auto")
             QUALIFIER(Extern, "extern")
 #undef QUALIFIER
-            Print(X->id);
+            print(X->id);
             if (X->reference) {
                 cp.space_comment_space();
                 out.write("&");
@@ -242,10 +242,10 @@ void PrettyPrinter::Print(AstNode *ast) {
             CmtPr cp(X, out);
             out.write("typedef ");
             cp.comment_space();
-            Print(X->decl->typespec);
+            print(X->decl->typespec);
             out.write(" ");
             cp.comment_space();
-            Print(X->decl);
+            print(X->decl);
             out.write(";");
             cp.space_comment();
             break;
@@ -265,7 +265,7 @@ void PrettyPrinter::Print(AstNode *ast) {
             // TODO: Alinear comentarios y nombres de variable verticalmente!
             for (DeclStmt *decl : X->decls) {
                 cp.space_comment_endln();
-                Print(decl);
+                print(decl);
             }
             out.dedent();
             // WARNING: g++ here optimizes and changes order of instructions!!!
@@ -278,11 +278,11 @@ void PrettyPrinter::Print(AstNode *ast) {
         case AstNodeType::FuncDecl: {
             auto *X = cast<FuncDecl>(ast);
             CmtPr cp(X, out);
-            Print(X->return_typespec);
+            print(X->return_typespec);
             // WARNING: g++ here optimizes and changes order of instructions!!!
             out.write(" ");
             cp.comment_space();
-            Print(X->id);
+            print(X->id);
             cp.space_comment_space();
             if (X->params.empty()) {
                 // WARNING: g++ here optimizes and changes order of instructions!!!
@@ -296,7 +296,7 @@ void PrettyPrinter::Print(AstNode *ast) {
                         out.write(", ");
                     }
                     cp.comment_space();
-                    Print(X->params[i]->typespec);
+                    print(X->params[i]->typespec);
                     // WARNING: g++ here optimizes and changes order of instructions!!!
                     out.write(" ");
                     cp.comment_space();
@@ -312,7 +312,7 @@ void PrettyPrinter::Print(AstNode *ast) {
                 // WARNING: g++ here optimizes and changes order of instructions!!!
                 out.write(" ");
                 cp.comment_space();
-                Print(X->block);
+                print(X->block);
             } else {
                 // WARNING: g++ here optimizes and changes order of instructions!!!
                 cp.space_comment();
@@ -337,7 +337,7 @@ void PrettyPrinter::Print(AstNode *ast) {
             out.write("{");
             for (Stmt *stmt : X->stmts) {
                 cp.space_comment_endln();
-                Print(stmt);
+                print(stmt);
             }
             out.dedent();
             cp.space_comment_endln();
@@ -349,7 +349,7 @@ void PrettyPrinter::Print(AstNode *ast) {
             auto *X = cast<Identifier>(ast);
             CmtPr cp(X, out);
             for (Identifier *pre : X->prefix) {
-                Print(pre);
+                print(pre);
                 // WARNING: g++ here optimizes and changes order of instructions!!!
                 cp.space_comment_space();
                 out.write("::");
@@ -367,7 +367,7 @@ void PrettyPrinter::Print(AstNode *ast) {
                         out.write(", ");
                         cp.comment_space();
                     }
-                    Print(X->subtypes[i]);
+                    print(X->subtypes[i]);
                     cp.space_comment();
                 }
                 out.write(">");
@@ -415,7 +415,7 @@ void PrettyPrinter::Print(AstNode *ast) {
                 out.write("(");
                 cp.comment_space();
             }
-            Print(X->left);
+            print(X->left);
             if (X->op != ",") {
                 // WARNING: g++ here optimizes and changes order of instructions!!!
                 cp.space_comment();
@@ -424,7 +424,7 @@ void PrettyPrinter::Print(AstNode *ast) {
             // WARNING: g++ here optimizes and changes order of instructions!!!
             out.write(X->op, " ");
             cp.comment_space();
-            Print(X->right);
+            print(X->right);
             if (X->paren) {
                 cp.space_comment();
                 out.write(")");
@@ -451,7 +451,7 @@ void PrettyPrinter::Print(AstNode *ast) {
                 if (i > 0) {
                     out.write(", ");
                 }
-                Print(X->exprs[i]);
+                print(X->exprs[i]);
             }
             out.write("}");
             break;
@@ -464,7 +464,7 @@ void PrettyPrinter::Print(AstNode *ast) {
             for (int i = 0; i < X->sizes.size(); i++) {
                 out.write("[");
                 cp.comment_space();
-                Print(X->sizes[i]);
+                print(X->sizes[i]);
                 out.write("]");
                 cp.space_comment();
             }
@@ -482,7 +482,7 @@ void PrettyPrinter::Print(AstNode *ast) {
                         out.write(", ");
                     }
                     cp.comment_space();
-                    Print(X->args[i]);
+                    print(X->args[i]);
                 }
                 out.write(")");
             }
@@ -491,7 +491,7 @@ void PrettyPrinter::Print(AstNode *ast) {
         case AstNodeType::DeclStmt: {
             auto *X = cast<DeclStmt>(ast);
             CmtPr cp(X, out);
-            Print(X->typespec);
+            print(X->typespec);
             out.write(" ");
             cp.comment_space();
             for (int i = 0; i < X->items.size(); i++) {
@@ -500,11 +500,11 @@ void PrettyPrinter::Print(AstNode *ast) {
                     cp.comment_space();
                 }
                 DeclStmt::Item& item = X->items[i];
-                Print(item.decl);
+                print(item.decl);
                 if (item.init) {
                     out.write(" = ");
                     cp.comment_space();
-                    Print(item.init);
+                    print(item.init);
                 }
             }
             out.write(";");
@@ -518,7 +518,7 @@ void PrettyPrinter::Print(AstNode *ast) {
                 cp.comment_space();
             }
             if (X->expr) {
-                Print(X->expr);
+                print(X->expr);
             }
             cp.space_comment();
             out.write(";");
@@ -531,10 +531,10 @@ void PrettyPrinter::Print(AstNode *ast) {
             cp.comment_space();
             out.write("(");
             cp.comment_space();
-            Print(X->cond);
+            print(X->cond);
             out.write(") ");
             cp.comment_space();
-            Print(X->then);
+            print(X->then);
             if (X->els) {
                 cp.space_comment();
                 if (!cp.last_had_endln()) {
@@ -542,7 +542,7 @@ void PrettyPrinter::Print(AstNode *ast) {
                 }
                 out.write("else ");
                 cp.comment_space();
-                Print(X->els);
+                print(X->els);
             }
             break;
         }
@@ -553,15 +553,15 @@ void PrettyPrinter::Print(AstNode *ast) {
             cp.comment_space();
             out.write("(");
             if (X->init) {
-                Print(X->init);
+                print(X->init);
             }
             out.write(" ");
             if (X->cond) {
-                Print(X->cond);
+                print(X->cond);
             }
             out.write("; ");
             if (X->post) {
-                Print(X->post);
+                print(X->post);
             }
             out.write(")");
             cp.space_comment();
@@ -571,7 +571,7 @@ void PrettyPrinter::Print(AstNode *ast) {
             if (not is_a<Block>(X->substmt) and cp.last_had_endln()) {
                 out.indentation();
             }
-            Print(X->substmt);
+            print(X->substmt);
             break;
         }
         case AstNodeType::WhileStmt: {
@@ -582,7 +582,7 @@ void PrettyPrinter::Print(AstNode *ast) {
             cp.comment_space();
             out.write("(");
             cp.comment_space();
-            Print(X->cond);
+            print(X->cond);
             // WARNING: g++ here optimizes and changes order of instructions!!!
             cp.space_comment();
             out.write(")");
@@ -593,7 +593,7 @@ void PrettyPrinter::Print(AstNode *ast) {
             if (not is_a<Block>(X->substmt) and cp.last_had_endln()) {
                 out.indentation();
             }
-            Print(X->substmt);
+            print(X->substmt);
             break;
         }
         case AstNodeType::JumpStmt: {
@@ -618,7 +618,7 @@ void PrettyPrinter::Print(AstNode *ast) {
             if (X->paren) {
                 out.write("(");
             }
-            Print(X->func);
+            print(X->func);
             if (cp.Next() and cp.Next()->ends_with_endln()) {
                 out.write(" ");
             }
@@ -630,7 +630,7 @@ void PrettyPrinter::Print(AstNode *ast) {
                     cp.comment_space();
                 }
                 cp.comment_space();
-                Print(X->args[i]);
+                print(X->args[i]);
             }
             out.write(")");
             if (X->paren) {
@@ -643,9 +643,9 @@ void PrettyPrinter::Print(AstNode *ast) {
             if (X->paren) {
                 out.write("(");
             }
-            Print(X->base);
+            print(X->base);
             out.write("[");
-            Print(X->index);
+            print(X->index);
             out.write("]");
             if (X->paren) {
                 out.write(")");
@@ -657,7 +657,7 @@ void PrettyPrinter::Print(AstNode *ast) {
             if (X->paren) {
                 out.write("(");
             }
-            Print(X->base);
+            print(X->base);
             out.write(X->pointer ? "->" : ".", X->field);
             if (X->paren) {
                 out.write(")");
@@ -670,17 +670,17 @@ void PrettyPrinter::Print(AstNode *ast) {
             if (X->paren) {
                 out.write("(");
             }
-            Print(X->cond);
+            print(X->cond);
             // WARNING: g++ here optimizes and changes order of instructions!!!
             cp.space_comment();
             out.write(" ? ");
             cp.comment_space();
-            Print(X->then);
+            print(X->then);
             // WARNING: g++ here optimizes and changes order of instructions!!!
             cp.space_comment();
             out.write(" : ");
             cp.comment_space();
-            Print(X->els);
+            print(X->els);
             if (X->paren) {
                 out.write(")");
             }
@@ -692,7 +692,7 @@ void PrettyPrinter::Print(AstNode *ast) {
                 out.write("(");
             }
             out.write(X->kind == SignExpr::Positive ? "+" : "-");
-            Print(X->expr);
+            print(X->expr);
             if (X->paren) {
                 out.write(")");
             }
@@ -707,9 +707,9 @@ void PrettyPrinter::Print(AstNode *ast) {
             if (X->preincr) {
                 out.write(X->kind == IncrExpr::Positive ? "++" : "--");
                 cp.space_comment_space();
-                Print(X->expr);
+                print(X->expr);
             } else {
-                Print(X->expr);
+                print(X->expr);
                 out.write(X->kind == IncrExpr::Positive ? "++" : "--");
                 cp.space_comment_space();
             }
@@ -726,7 +726,7 @@ void PrettyPrinter::Print(AstNode *ast) {
             }
             out.write("!");
             cp.space_comment_space();
-            Print(X->expr);
+            print(X->expr);
             if (X->paren) {
                 out.write(")");
             }
@@ -742,7 +742,7 @@ void PrettyPrinter::Print(AstNode *ast) {
             // WARNING: g++ here optimizes and changes order of instructions!!!
             out.write("&");
             cp.space_comment_space();
-            Print(X->expr);
+            print(X->expr);
             if (X->paren) {
                 out.write(")");
             }
@@ -756,7 +756,7 @@ void PrettyPrinter::Print(AstNode *ast) {
             }
             out.write("*");
             cp.space_comment_space();
-            Print(X->expr);
+            print(X->expr);
             if (X->paren) {
                 out.write(")");
             }
@@ -769,7 +769,7 @@ void PrettyPrinter::Print(AstNode *ast) {
 }
 
 void pretty_print(AstNode *ast, ostream& out) {
-    PrettyPrinter(out).Print(ast);
+    PrettyPrinter(out).print(ast);
 }
 
 string pretty_to_string(AstNode *ast) {

@@ -46,10 +46,10 @@ struct AstPrinter {
 
     AstPrinter(ostream& o) : out(o) {}
 
-    void Print(AstNode *ast);
+    void print(AstNode *ast);
 };
 
-void AstPrinter::Print(AstNode *node) {
+void AstPrinter::print(AstNode *node) {
     assert(node != nullptr);
     switch (node->type()) {
         case AstNodeType::Program: {
@@ -58,7 +58,7 @@ void AstPrinter::Print(AstNode *node) {
             out.indent();
             for (AstNode *child : X->nodes) {
                 out.beginln();
-                Print(child);
+                print(child);
                 out.endln();
             }
             out.dedent();
@@ -90,7 +90,7 @@ void AstPrinter::Print(AstNode *node) {
                 out.write("<&>");
             }
             out.write("(");
-            Print(X->id);
+            print(X->id);
             if (X->HasQualifiers()) {
                 int count = 0;
                 out.write(", {");
@@ -131,7 +131,7 @@ void AstPrinter::Print(AstNode *node) {
         case AstNodeType::TypedefDecl: {
             auto *X = cast<TypedefDecl>(node);
             out.write("TypedefDecl(\"", X->decl->name, "\" = ");
-            Print(X->decl->typespec);
+            print(X->decl->typespec);
             out.write(")");
             break;
         }
@@ -142,7 +142,7 @@ void AstPrinter::Print(AstNode *node) {
             out.indent();
             for (DeclStmt *decl : X->decls) {
                 out.beginln();
-                Print(decl);
+                print(decl);
                 out.endln();
             }
             out.dedent();
@@ -153,23 +153,23 @@ void AstPrinter::Print(AstNode *node) {
         case AstNodeType::FuncDecl: {
             auto *X = cast<FuncDecl>(node);
             out.write("FuncDecl(");
-            Print(X->id);
+            print(X->id);
             out.write(", ");
-            Print(X->return_typespec);
+            print(X->return_typespec);
             out.write(", Params = {");
             for (int i = 0; i < X->params.size(); i++) {
                 if (i > 0) {
                     out.write(", ");
                 }
                 out.write('"', X->params[i]->name, "\": ");
-                Print(X->params[i]->typespec);
+                print(X->params[i]->typespec);
             }
             if (X->block) {
                 out.write("}, {");
                 out.endln();
                 out.indent();
                 out.beginln();
-                Print(X->block);
+                print(X->block);
                 out.endln();
                 out.dedent();
                 out.beginln();
@@ -189,7 +189,7 @@ void AstPrinter::Print(AstNode *node) {
             out.indent();
             for (Stmt *stmt : X->stmts) {
                 out.beginln();
-                Print(stmt);
+                print(stmt);
                 out.endln();
             }
             out.dedent();
@@ -206,7 +206,7 @@ void AstPrinter::Print(AstNode *node) {
                     if (i > 0) {
                         out.write(", ");
                     }
-                    Print(X->prefix[i]);
+                    print(X->prefix[i]);
                 }
                 out.write("]");
             }
@@ -217,7 +217,7 @@ void AstPrinter::Print(AstNode *node) {
                     if (i > 0) {
                         out.write(", ");
                     }
-                    Print(X->subtypes[i]);
+                    print(X->subtypes[i]);
                 }
                 out.write(">");
             }
@@ -262,9 +262,9 @@ void AstPrinter::Print(AstNode *node) {
                 out.write("(");
             }
             out.write(X->op, "(");
-            Print(X->left);
+            print(X->left);
             out.write(", ");
-            Print(X->right);
+            print(X->right);
             out.write(")");
             if (X->paren) {
                 out.write(")");
@@ -284,14 +284,14 @@ void AstPrinter::Print(AstNode *node) {
             out.write('"', X->name, "\"(");
             if (X->sizes.size() == 1) {
                 out.write("Size = ");
-                Print(X->sizes[0]);
+                print(X->sizes[0]);
             } else {
                 out.write("Sizes = {");
                 for (int i = 0; i < X->sizes.size(); i++) {
                     if (i > 0) {
                         out.write(", ");
                     }
-                    Print(X->sizes[i]);
+                    print(X->sizes[i]);
                 }
                 out.write("}");
             }
@@ -305,7 +305,7 @@ void AstPrinter::Print(AstNode *node) {
                 if (i > 0) {
                     out.write(", ");
                 }
-                Print(X->exprs[i]);
+                print(X->exprs[i]);
             }
             out.write("}");
             break;
@@ -319,7 +319,7 @@ void AstPrinter::Print(AstNode *node) {
                     if (i > 0) {
                         out.write(", ");
                     }
-                    Print(X->args[i]);
+                    print(X->args[i]);
                 }
                 out.write("}");
             }
@@ -329,16 +329,16 @@ void AstPrinter::Print(AstNode *node) {
         case AstNodeType::DeclStmt: {
             auto *X = cast<DeclStmt>(node);
             out.write("DeclStmt(");
-            Print(X->typespec);
+            print(X->typespec);
             out.write(", Vars = {");
             for (int i = 0; i < X->items.size(); i++) {
                 if (i > 0) {
                     out.write(", ");
                 }
-                Print(X->items[i].decl);
+                print(X->items[i].decl);
                 if (X->items[i].init) {
                     out.write(" = ");
-                    Print(X->items[i].init);
+                    print(X->items[i].init);
                 }
             }
             out.write("})");
@@ -352,7 +352,7 @@ void AstPrinter::Print(AstNode *node) {
             }
             out.write("(");
             if (X->expr) {
-                Print(X->expr);
+                print(X->expr);
             }
             out.write(")");
             break;
@@ -360,12 +360,12 @@ void AstPrinter::Print(AstNode *node) {
         case AstNodeType::IfStmt: {
             auto *X = cast<IfStmt>(node);
             out.write("IfStmt(");
-            Print(X->cond);
+            print(X->cond);
             out.write(", ");
-            Print(X->then);
+            print(X->then);
             if (X->els) {
                 out.write(", ");
-                Print(X->els);
+                print(X->els);
             }
             out.write(")");
             break;
@@ -374,19 +374,19 @@ void AstPrinter::Print(AstNode *node) {
             auto *X = cast<ForStmt>(node);
             out.write("ForStmt(");
             if (X->init) {
-                Print(X->init);
+                print(X->init);
             } else {
                 out.write("_");
             }
             out.write(", ");
             if (X->cond) {
-                Print(X->cond);
+                print(X->cond);
             } else {
                 out.write("_");
             }
             out.write(", ");
             if (X->post) {
-                Print(X->post);
+                print(X->post);
             } else {
                 out.write("_");
             }
@@ -394,7 +394,7 @@ void AstPrinter::Print(AstNode *node) {
             out.endln();
             out.indent();
             out.beginln();
-            Print(X->substmt);
+            print(X->substmt);
             out.endln();
             out.dedent();
             out.beginln();
@@ -404,12 +404,12 @@ void AstPrinter::Print(AstNode *node) {
         case AstNodeType::WhileStmt: {
             auto *X = cast<WhileStmt>(node);
             out.write("WhileStmt(");
-            Print(X->cond);
+            print(X->cond);
             out.write(", {");
             out.endln();
             out.indent();
             out.beginln();
-            Print(X->substmt);
+            print(X->substmt);
             out.endln();
             out.dedent();
             out.beginln();
@@ -429,13 +429,13 @@ void AstPrinter::Print(AstNode *node) {
         case AstNodeType::CallExpr: {
             auto *X = cast<CallExpr>(node);
             out.write("CallExpr(");
-            Print(X->func);
+            print(X->func);
             out.write(", Args = {");
             for (int i = 0; i < X->args.size(); i++) {
                 if (i > 0) {
                     out.write(", ");
                 }
-                Print(X->args[i]);
+                print(X->args[i]);
             }
             out.write("})");
             break;
@@ -443,9 +443,9 @@ void AstPrinter::Print(AstNode *node) {
         case AstNodeType::IndexExpr: {
             auto *X = cast<IndexExpr>(node);
             out.write("IndexExpr(");
-            Print(X->base);
+            print(X->base);
             out.write(", ");
-            Print(X->index);
+            print(X->index);
             out.write(")");
             break;
         }
@@ -456,7 +456,7 @@ void AstPrinter::Print(AstNode *node) {
                 out.write("<pointer>");
             }
             out.write("(");
-            Print(X->base);
+            print(X->base);
             out.write(", '", X->field, "')");
             break;
         }
@@ -466,11 +466,11 @@ void AstPrinter::Print(AstNode *node) {
                 out.write("(");
             }
             out.write("CondExpr(");
-            Print(X->cond);
+            print(X->cond);
             out.write(", ");
-            Print(X->then);
+            print(X->then);
             out.write(", ");
-            Print(X->els);
+            print(X->els);
             out.write(")");
             if (X->paren) {
                 out.write(")");
@@ -480,14 +480,14 @@ void AstPrinter::Print(AstNode *node) {
         case AstNodeType::SignExpr: {
             auto *X = cast<SignExpr>(node);
             out.write("SignExpr<", (X->kind == SignExpr::Positive ? '+' : '-'), ">(");
-            Print(X->expr);
+            print(X->expr);
             out.write(")");
             break;
         }
         case AstNodeType::NegExpr: {
             auto *X = cast<NegExpr>(node);
             out.write("NegExpr(");
-            Print(X->expr);
+            print(X->expr);
             out.write(")");
             break;
         }
@@ -495,21 +495,21 @@ void AstPrinter::Print(AstNode *node) {
             auto *X = cast<IncrExpr>(node);
             out.write("IncrExpr<", X->kind == IncrExpr::Positive ? "++" : "--");
             out.write(", ", (X->preincr ? "pre" : "post"), ">(");
-            Print(X->expr);
+            print(X->expr);
             out.write(")");
             break;
         }
         case AstNodeType::AddrExpr: {
             auto *X = cast<AddrExpr>(node);
             out.write("AddrExpr(");
-            Print(X->expr);
+            print(X->expr);
             out.write(")");
             break;
         }
         case AstNodeType::DerefExpr: {
             auto *X = cast<DerefExpr>(node);
             out.write("DerefExpr(");
-            Print(X->expr);
+            print(X->expr);
             out.write(")");
             break;
         }
@@ -530,5 +530,5 @@ void AstPrinter::Print(AstNode *node) {
 }
 
 void ast_print(AstNode *ast, ostream& out) {
-    AstPrinter(out).Print(ast);
+    AstPrinter(out).print(ast);
 }
