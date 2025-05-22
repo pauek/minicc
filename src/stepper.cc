@@ -33,13 +33,13 @@ Todo Stepper::PopState::step(Stepper *S) {
     return Next;
 }
 
-void Stepper::generic_visit(AstNode *X) {
+void Stepper::generic_visit(AstNodeCore *X) {
     I.eval(X);
     status(describe(X));
     push(new PopState(X->span));
 }
 
-void Stepper::Step(AstNode *ast) {
+void Stepper::Step(AstNodeCore *ast) {
     switch (ast->type()) {
         case AstNodeType::Program: {
             auto *X = cast<Program>(ast);
@@ -161,7 +161,7 @@ void Stepper::Step(AstNode *ast) {
             FuncDecl *fn = userfunc->decl;
             assert(fn != 0);
             auto *s = new CallExprVisitState(X, fn);
-            I.pushenv(fn->FuncName());
+            I.pushenv(fn->func_name());
             s->step(this);
             push(s);
             break;
@@ -365,7 +365,7 @@ void Stepper::visit_assignment(BinaryExpr *e) {
     Value         right = Reference::deref(I._curr);
     ostringstream oss;
     oss << right;
-    string Escaped = Literal::Escape(oss.str(), '"');
+    string Escaped = Literal::escape(oss.str(), '"');
     status(_T("La expresión ha dado %s.", Escaped.c_str()));
     push(new AssignVisitState(e, right));
 }
@@ -431,7 +431,7 @@ Todo Stepper::CallExprVisitState::step(Stepper *S) {
         ++curr;
         return Stop;
     } else {
-        S->status(_T("We jump to function '%s'.", fn->FuncName().c_str()));
+        S->status(_T("We jump to function '%s'.", fn->func_name().c_str()));
         S->I.actenv();
         curr = Block;
         return Stop;

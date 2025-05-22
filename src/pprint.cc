@@ -50,13 +50,13 @@ class OutputWriter {
 
 class CmtPr {  // Comment Printer
     OutputWriter& out_;
-    AstNode      *ast_;
+    AstNodeCore      *ast_;
     int           index_;
     bool          was_empty_, had_endl_;
     void          _write_comment(bool pre, bool post, bool _endl);
 
    public:
-    CmtPr(AstNode *ast, OutputWriter& out)
+    CmtPr(AstNodeCore *ast, OutputWriter& out)
         : ast_(ast), out_(out), index_(0), had_endl_(false), was_empty_(true) {}
 
     CommentSeq *Next() const {
@@ -129,10 +129,10 @@ struct PrettyPrinter {
 
     PrettyPrinter(ostream& o) : out(o) {}
 
-    void print(AstNode *ast);
+    void print(AstNodeCore *ast);
 };
 
-void PrettyPrinter::print(AstNode *ast) {
+void PrettyPrinter::print(AstNodeCore *ast) {
     assert(ast != nullptr);
     switch (ast->type()) {
         case AstNodeType::Program: {
@@ -140,7 +140,7 @@ void PrettyPrinter::print(AstNode *ast) {
             CmtPr cp(X, out);
             for (int i = 0; i < X->nodes.size(); i++) {
                 cp.comment();
-                AstNode *n = X->nodes[i];
+                AstNodeCore *n = X->nodes[i];
                 if ((!cp.last_was_empty() and !cp.last_had_endln()) or
                     (i > 0 and is_a<FuncDecl>(n)) and
                         (X->comments[i] and !X->comments[i]->ends_with_empty_line())) {
@@ -193,7 +193,7 @@ void PrettyPrinter::print(AstNode *ast) {
             auto *X = cast<TypeSpec>(ast);
             CmtPr cp(X, out);
 #define QUALIFIER(qual, str)               \
-    if (X->HasQualifier(TypeSpec::qual)) { \
+    if (X->has_qualifier(TypeSpec::qual)) { \
         out.write(str, " ");               \
         cp.comment_space();                \
     }
@@ -391,10 +391,10 @@ void PrettyPrinter::print(AstNode *ast) {
                     out.write(X->val.as_double);
                     break;
                 case Literal::String:
-                    out.write('"', Literal::Escape(*X->val.as_string.s, '"'), '"');
+                    out.write('"', Literal::escape(*X->val.as_string.s, '"'), '"');
                     break;
                 case Literal::Char: {
-                    out.write("'", Literal::Escape(X->val.as_char, '\''), "'");
+                    out.write("'", Literal::escape(X->val.as_char, '\''), "'");
                     break;
                 }
                 default:
@@ -769,11 +769,11 @@ void PrettyPrinter::print(AstNode *ast) {
     }
 }
 
-void pretty_print(AstNode *ast, ostream& out) {
+void pretty_print(AstNodeCore *ast, ostream& out) {
     PrettyPrinter(out).print(ast);
 }
 
-string pretty_to_string(AstNode *ast) {
+string pretty_to_string(AstNodeCore *ast) {
     stringstream ss;
     pretty_print(ast, ss);
     return ss.str();

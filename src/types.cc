@@ -33,7 +33,7 @@ const OStringStream *OStringStream::self = new OStringStream();
 const IStringStream *IStringStream::self = new IStringStream();
 
 string String::to_json(void *data) const {
-    return string("\"") + Literal::Escape(*(string *)data, '"') + "\"";
+    return string("\"") + Literal::escape(*(string *)data, '"') + "\"";
 }
 
 map<string, const Type *> Type::reference_types;
@@ -55,19 +55,19 @@ const Type *TypeMap::instantiate_template(
 const Type *TypeMap::get_type(TypeSpec *spec, Environment *topmost) {
     // 1. If typestr already registered, return the type
     {
-        auto it = _typecache.find(spec->TypeStr());
+        auto it = _typecache.find(spec->type_str());
         if (it != _typecache.end()) {
             return it->second;
         }
     }
     // 2. Construct the Type from the TypeSpec
     {
-        vector<Identifier *> path = spec->id->GetNonNamespaces();
+        vector<Identifier *> path = spec->id->get_non_namespaces();
         assert(!path.empty());
         // find first type
         const Type *T;
         Identifier *spec0 = path[0];
-        auto        it = _typecache.find(spec0->TypeStr());
+        auto        it = _typecache.find(spec0->type_str());
         if (it != _typecache.end()) {
             T = it->second;
         } else {
@@ -91,7 +91,7 @@ const Type *TypeMap::get_type(TypeSpec *spec, Environment *topmost) {
         if (spec->reference) {
             T = new Reference(T);
         }
-        _typecache[spec->TypeStr()] = T;
+        _typecache[spec->type_str()] = T;
         return T;
     }
 }
@@ -296,7 +296,7 @@ bool Char::accepts(const Type *t) const {
 string Char::to_json(void *data) const {
     ostringstream json;
     string        ch(1, *(char *)data);
-    json << "{\"<type>\":\"char\",\"char\":\"" << Literal::Escape(ch, '"') << "\"}" << endl;
+    json << "{\"<type>\":\"char\",\"char\":\"" << Literal::escape(ch, '"') << "\"}" << endl;
     return json.str();
 }
 
@@ -592,7 +592,7 @@ Vector::Vector(const Type *celltype) : Class("vector"), _celltype(celltype) {
             return Reference::mkref(the_vector[k]);
         }
 
-        bool call_abstract(AstNode *x, Value self, const vector<Value>& args) {
+        bool call_abstract(AstNodeCore *x, Value self, const vector<Value>& args) {
             Value the_index = Reference::deref(args[0]);
             if (!the_index.is<Int>()) {
                 x->add_error(
@@ -2012,7 +2012,7 @@ void IStream::_add_istream_methods() {
             return self;
         }
 
-        bool call_abstract(AstNode *x, Value self, const vector<Value>& args) {
+        bool call_abstract(AstNodeCore *x, Value self, const vector<Value>& args) {
             Value holder = args[0];
             if (holder.is_unknown()) {
                 holder.to_abstract();
@@ -2136,7 +2136,7 @@ void WithEnvironment::prepare_global_environment() {
 }
 
 const Type *WithEnvironment::get_type(TypeSpec *spec) {
-    Identifier *namespc = spec->GetPotentialNamespaceOrClass();
+    Identifier *namespc = spec->get_potential_namespace_or_class();
     if (namespc != 0) {
         auto it = _namespaces.find(namespc->name);
         if (it != _namespaces.end()) {

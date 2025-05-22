@@ -15,7 +15,7 @@ struct UserFunc : public Func {
 
 struct SemanticAnalyzer : public WithEnvironment {
     std::string _curr_varname;
-    AstNode    *_curr_node;
+    AstNodeCore    *_curr_node;
     Value       _curr, _ret;
 
     void eval_binary_expr_assignment(BinaryExpr *x, Value left, Value right);
@@ -31,7 +31,7 @@ struct SemanticAnalyzer : public WithEnvironment {
     bool bind_field(Value obj, string method_name);
     bool call_operator(string op, const std::vector<Value>& args = std::vector<Value>());
     void CheckCondition(Expr *cond, std::string who);
-    void CheckUnknown(Value v, AstNode *x, string varname);
+    void CheckUnknown(Value v, AstNodeCore *x, string varname);
 
     void eval_arguments(const std::vector<Expr *>& args, std::vector<Value>& argvals);
 
@@ -50,7 +50,7 @@ struct SemanticAnalyzer : public WithEnvironment {
     template <class Op>
     bool eval_comparison(Value left, Value right);
 
-    void analyze(AstNode *ast);
+    void analyze(AstNodeCore *ast);
 };
 
 struct _Add {
@@ -350,7 +350,7 @@ bool SemanticAnalyzer::type_conversion(CallExpr *X, const vector<Value>& args) {
             _curr = type->convert(args[0]);
             if (_curr == Value::null) {
                 _curr = args[0];
-                if (!call_operator(id->TypeStr())) {
+                if (!call_operator(id->type_str())) {
                     X->add_error(
                         _T("No se puede convertir un '%s' en un '%s'.",
                            args[0].type()->TypeStr().c_str(),
@@ -455,7 +455,7 @@ void SemanticAnalyzer::CheckCondition(Expr *cond, string who) {
     }
 }
 
-void SemanticAnalyzer::CheckUnknown(Value v, AstNode *X, string varname) {
+void SemanticAnalyzer::CheckUnknown(Value v, AstNodeCore *X, string varname) {
     if (v.is_unknown()) {
         X->add_error(_T("Utilizas la variable '%s' sin haberla inicializado.", varname.c_str()));
     }
@@ -555,13 +555,13 @@ bool SemanticAnalyzer::eval_comparison(Value left, Value right) {
 }
 
 // Analyze
-void SemanticAnalyzer::analyze(AstNode *node) {
+void SemanticAnalyzer::analyze(AstNodeCore *node) {
     switch (node->type()) {
         case AstNodeType::Program: {
             auto *X = cast<Program>(node);
             _curr_node = X;
             prepare_global_environment();
-            for (AstNode *n : X->nodes) {
+            for (AstNodeCore *n : X->nodes) {
                 analyze(n);
             }
             break;
@@ -587,7 +587,7 @@ void SemanticAnalyzer::analyze(AstNode *node) {
         case AstNodeType::FuncDecl: {
             auto *X = cast<FuncDecl>(node);
             _curr_node = X;
-            string    funcname = X->FuncName();
+            string    funcname = X->func_name();
             auto     *return_type = get_type(X->return_typespec);  // return_type == 0 means 'void'
             Function *functype = new Function(return_type);
             // reverse use of '_ret' to check all return statements
@@ -596,7 +596,7 @@ void SemanticAnalyzer::analyze(AstNode *node) {
             } else {
                 _ret = Value::null;
             }
-            pushenv(X->FuncName());
+            pushenv(X->func_name());
             for (int i = 0; i < X->params.size(); i++) {
                 auto  p = X->params[i];
                 Value v;
@@ -608,7 +608,7 @@ void SemanticAnalyzer::analyze(AstNode *node) {
                     X->add_error(
                         p->ini,
                         p->fin,
-                        _T("El tipo '%s' no existe.", p->typespec->TypeStr().c_str())
+                        _T("El tipo '%s' no existe.", p->typespec->type_str().c_str())
                     );
                     // TODO: Maybe register some parameter type?
                 } else {
@@ -806,8 +806,8 @@ void SemanticAnalyzer::analyze(AstNode *node) {
                 DeclStmt& decl = *X->decls[i];
                 auto     *field_type = get_type(decl.typespec);
                 if (field_type == 0) {
-                    decl.add_error(_T("El tipo '%s' no existe.", decl.typespec->TypeStr().c_str()));
-                    field_type = new UnknownType(decl.typespec->TypeStr());
+                    decl.add_error(_T("El tipo '%s' no existe.", decl.typespec->type_str().c_str()));
+                    field_type = new UnknownType(decl.typespec->type_str());
                 }
                 for (DeclStmt::Item& item : decl.items) {
                     if (type->has_field(item.decl->name)) {
@@ -847,7 +847,7 @@ void SemanticAnalyzer::analyze(AstNode *node) {
             _curr_node = X;
             Value v;
             // Try a namespace
-            Identifier *namespc_or_class = X->GetPotentialNamespaceOrClass();
+            Identifier *namespc_or_class = X->get_potential_namespace_or_class();
             if (namespc_or_class != 0) {
                 Environment *namespc = get_namespace(namespc_or_class->name);
                 if (namespc != 0) {
@@ -941,11 +941,11 @@ void SemanticAnalyzer::analyze(AstNode *node) {
             }
             auto *type = get_type(X->typespec);
             if (type == 0) {
-                string typestr = X->typespec->TypeStr();
+                string typestr = X->typespec->type_str();
                 type = new UnknownType(typestr);
             }
             if (init.is_null()) {
-                if (X->typespec->HasQualifier(TypeSpec::Const)) {
+                if (X->typespec->has_qualifier(TypeSpec::Const)) {
                     X->add_error(_T("Las constantes deben tener un valor inicial."));
                 }
                 init = type->create();
@@ -965,14 +965,14 @@ void SemanticAnalyzer::analyze(AstNode *node) {
                 } catch (TypeError *e) {
                     X->add_error(e->msg);
                 }
-                if (X->typespec->HasQualifier(TypeSpec::Const) and type->is<Struct>() and
+                if (X->typespec->has_qualifier(TypeSpec::Const) and type->is<Struct>() and
                     init.contains_unknowns()) {
                     X->add_error(
                         _T("En una tupla constante hay que inicializar todas las casillas.")
                     );
                 }
             }
-            if (X->typespec->HasQualifier(TypeSpec::Const)) {
+            if (X->typespec->has_qualifier(TypeSpec::Const)) {
                 init.set_const(true);
             }
             setenv(X->name, init);
@@ -999,13 +999,13 @@ void SemanticAnalyzer::analyze(AstNode *node) {
             }
             auto *celltype = get_type(X->typespec);
             if (celltype == 0) {
-                X->add_error(_T("El tipo '%s' no existe", X->typespec->TypeStr().c_str()));
+                X->add_error(_T("El tipo '%s' no existe", X->typespec->type_str().c_str()));
                 celltype = UnknownType::self;
             }
             // FIXME: don't create new Array type every time?
             auto *arraytype = Array::mkarray(celltype, sizes);
             if (init.is_null()) {
-                if (X->typespec->HasQualifier(TypeSpec::Const)) {
+                if (X->typespec->has_qualifier(TypeSpec::Const)) {
                     X->add_error(_T("Las tablas constantes deben tener un valor inicial."));
                 }
                 init = arraytype->create();
@@ -1016,7 +1016,7 @@ void SemanticAnalyzer::analyze(AstNode *node) {
                     X->add_error(e.msg);
                     init = arraytype->create();
                 }
-                if (X->typespec->HasQualifier(TypeSpec::Const)) {
+                if (X->typespec->has_qualifier(TypeSpec::Const)) {
                     if (init.contains_unknowns()) {
                         X->add_error(
                             _T("En una tabla constante hay que inicializar todas las casillas.")
@@ -1052,7 +1052,7 @@ void SemanticAnalyzer::analyze(AstNode *node) {
                 return;
             }
             X->add_error(
-                _T("The type '%s' is not implemented in MiniCC", X->typespec->TypeStr().c_str())
+                _T("The type '%s' is not implemented in MiniCC", X->typespec->type_str().c_str())
             );
             break;
         }
@@ -1061,7 +1061,7 @@ void SemanticAnalyzer::analyze(AstNode *node) {
             _curr_node = X;
             auto *type = get_type(X->typespec);
             if (type == 0) {
-                string typestr = X->typespec->TypeStr();
+                string typestr = X->typespec->type_str();
                 X->add_error(_T("El tipo '%s' no existe.", typestr.c_str()));
             }
             for (DeclStmt::Item& item : X->items) {
@@ -1434,6 +1434,6 @@ void SemanticAnalyzer::analyze(AstNode *node) {
     }
 }
 
-void analyze_semantics(AstNode *ast) {
+void analyze_semantics(AstNodeCore *ast) {
     SemanticAnalyzer().analyze(ast);
 }

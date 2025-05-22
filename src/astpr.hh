@@ -5,6 +5,6 @@
 #include <iostream>
 #include "ast.hh"
 
-void ast_print(AstNode *ast, std::ostream& o = std::cout);
+void ast_print(AstNodeCore *ast, std::ostream& o = std::cout);
 
 #endif

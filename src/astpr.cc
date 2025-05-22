@@ -46,17 +46,17 @@ struct AstPrinter {
 
     AstPrinter(ostream& o) : out(o) {}
 
-    void print(AstNode *ast);
+    void print(AstNodeCore *ast);
 };
 
-void AstPrinter::print(AstNode *node) {
+void AstPrinter::print(AstNodeCore *node) {
     assert(node != nullptr);
     switch (node->type()) {
         case AstNodeType::Program: {
             auto *X = cast<Program>(node);
             out.Line("Program{");
             out.indent();
-            for (AstNode *child : X->nodes) {
+            for (AstNodeCore *child : X->nodes) {
                 out.beginln();
                 print(child);
                 out.endln();
@@ -91,7 +91,7 @@ void AstPrinter::print(AstNode *node) {
             }
             out.write("(");
             print(X->id);
-            if (X->HasQualifiers()) {
+            if (X->has_qualifiers()) {
                 int count = 0;
                 out.write(", {");
 #define QUALIFIER(qual, str)         \
@@ -233,7 +233,7 @@ void AstPrinter::print(AstNode *node) {
                     out.write("Bool<", X->val.as_bool ? "true" : "false", ">");
                     break;
                 case Literal::Char:
-                    out.write("Char<", Literal::Escape(X->val.as_char, '\''), ">");
+                    out.write("Char<", Literal::escape(X->val.as_char, '\''), ">");
                     break;
                 case Literal::Int:
                     out.write("Int<", X->val.as_int, ">");
@@ -245,7 +245,7 @@ void AstPrinter::print(AstNode *node) {
                     out.write("Double<", X->val.as_double, ">");
                     break;
                 case Literal::String:
-                    out.write("String<", Literal::Escape(*(X->val.as_string.s), '"'), ">");
+                    out.write("String<", Literal::escape(*(X->val.as_string.s), '"'), ">");
                     break;
                 default:
                     out.write("Literal<>");
@@ -529,6 +529,6 @@ void AstPrinter::print(AstNode *node) {
     }
 }
 
-void ast_print(AstNode *ast, ostream& out) {
+void ast_print(AstNodeCore *ast, ostream& out) {
     AstPrinter(out).print(ast);
 }

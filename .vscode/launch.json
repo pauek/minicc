@@ -9,7 +9,7 @@
       "type": "cppdbg",
       "request": "launch",
       "program": "${workspaceFolder}/minicc",
-      "args": ["canparse", "./tests/parser/error1-distilled.cc"],
+      "args": ["canparse", "./tests/parser/error5-distilled.cc"],
       "stopAtEntry": false,
       "cwd": "${workspaceFolder}",
       "environment": [],

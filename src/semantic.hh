@@ -2,6 +2,6 @@
 #define SEMANTIC_HH
 #include "ast.hh"
 
-void analyze_semantics(AstNode *ast);
+void analyze_semantics(AstNodeCore *ast);
 
 #endif

@@ -5,7 +5,7 @@
 
 class Instrumenter {
    public:
-    void instrument(AstNode *program);
+    void instrument(AstNodeCore *program);
 };
 
 #endif

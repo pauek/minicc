@@ -23,7 +23,7 @@ void Interpreter::invoke_func_prepare_arg(FuncDecl *fn, Value arg, int i) {
 
 void Interpreter::invoke_func_prepare(FuncDecl *fn, const vector<Value>& args) {
     if (fn->params.size() != args.size()) {
-        _error(_T("Error en el número de argumentos al llamar a '%s'", fn->FuncName().c_str()));
+        _error(_T("Error en el número de argumentos al llamar a '%s'", fn->func_name().c_str()));
     }
     for (int i = 0; i < args.size(); i++) {
         invoke_func_prepare_arg(fn, args[i], i);
@@ -32,7 +32,7 @@ void Interpreter::invoke_func_prepare(FuncDecl *fn, const vector<Value>& args) {
 
 void Interpreter::program_prepare(Program *X) {
     prepare_global_environment();
-    for (AstNode *n : X->nodes) {
+    for (AstNodeCore *n : X->nodes) {
         eval(n);
     }
 }
@@ -266,7 +266,7 @@ bool Interpreter::call_operator(string op, const vector<Value>& args) {
 }
 
 void Interpreter::invoke_user_func(FuncDecl *decl, const vector<Value>& args) {
-    pushenv(decl->FuncName());
+    pushenv(decl->func_name());
     invoke_func_prepare(decl, args);
     eval(decl->block);
     popenv();
@@ -335,7 +335,7 @@ bool Interpreter::type_conversion(CallExpr *X, const vector<Value>& args) {
             _curr = type->convert(args[0]);
             if (_curr == Value::null) {
                 _curr = args[0];
-                call_operator(id->TypeStr());
+                call_operator(id->type_str());
             }
             return true;
         }
@@ -376,7 +376,7 @@ bool Interpreter::bind_field(Value obj, string method_name) {
 }
 
 // Eval
-void Interpreter::eval(AstNode *ast) {
+void Interpreter::eval(AstNodeCore *ast) {
     assert(ast != nullptr);
     switch (ast->type()) {
         case AstNodeType::Program: {
@@ -402,7 +402,7 @@ void Interpreter::eval(AstNode *ast) {
         }
         case AstNodeType::FuncDecl: {
             FuncDecl *X = cast<FuncDecl>(ast);
-            string    funcname = X->FuncName();
+            string    funcname = X->func_name();
             auto     *return_type = get_type(X->return_typespec);  // return_type == 0 means 'void'
             Function *functype = new Function(return_type);
             for (auto p : X->params) {
@@ -443,7 +443,7 @@ void Interpreter::eval(AstNode *ast) {
             Identifier *X = cast<Identifier>(ast);
             Value       v;
             // Try a namespace
-            Identifier *namespc_or_class = X->GetPotentialNamespaceOrClass();
+            Identifier *namespc_or_class = X->get_potential_namespace_or_class();
             if (namespc_or_class != 0) {
                 Environment *namespc = get_namespace(namespc_or_class->name);
                 if (namespc != 0) {
@@ -679,14 +679,14 @@ void Interpreter::eval(AstNode *ast) {
         }
         case AstNodeType::VarDecl: {
             VarDecl    *X = cast<VarDecl>(ast);
-            string      type_name = X->typespec->TypeStr();
+            string      type_name = X->typespec->type_str();
             const Type *type = get_type(X->typespec);
             if (type == 0) {
                 _error(_T("El tipo '%s' no existe.", type_name.c_str()));
             }
             try {
                 Value init = (_curr.is_null() ? type->create() : type->convert(_curr));
-                if (X->typespec->HasQualifier(TypeSpec::Const)) {
+                if (X->typespec->has_qualifier(TypeSpec::Const)) {
                     init.set_const(true);
                 }
                 setenv(X->name, init);
@@ -713,7 +713,7 @@ void Interpreter::eval(AstNode *ast) {
             }
             const Type *celltype = get_type(X->typespec);
             if (celltype == 0) {
-                _error(_T("El tipo '%s' no existe", X->typespec->TypeStr().c_str()));
+                _error(_T("El tipo '%s' no existe", X->typespec->type_str().c_str()));
             }
             // TODO: don't create new Array type every time?
             const Type *arraytype = Array::mkarray(celltype, sizes);
@@ -742,7 +742,7 @@ void Interpreter::eval(AstNode *ast) {
                 setenv(X->name, new_obj);
                 return;
             }
-            _error(_T("The type '%s' is not implemented in MiniCC", X->typespec->TypeStr().c_str())
+            _error(_T("The type '%s' is not implemented in MiniCC", X->typespec->type_str().c_str())
             );
             break;
         }
@@ -1022,6 +1022,6 @@ void Interpreter::eval(AstNode *ast) {
     }
 }
 
-void eval(AstNode *ast, std::istream& in, std::ostream& out) {
+void eval(AstNodeCore *ast, std::istream& in, std::ostream& out) {
     Interpreter(&in, &out).eval(ast);
 }

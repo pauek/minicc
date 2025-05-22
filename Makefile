@@ -1,5 +1,5 @@
-CXX=clang++
-# CXX=g++
+# CXX=clang++
+CXX=g++
 
 SOURCES=$(wildcard src/*.cc)
 HEADERS=$(wildcard src/*.hh)

@@ -49,7 +49,7 @@ int cmd_ast(Args& args) {
     string   filename = args.shift();
     ifstream codefile(filename);
     Parser   P(&codefile);
-    AstNode *program = P.parse();
+    AstNodeCore *program = P.parse();
     ast_print(program);
     return 0;
 }
@@ -63,7 +63,7 @@ int cmd_canparse(Args& args) {
     try {
         ifstream codefile(filename);
         Parser   P(&codefile);
-        AstNode *program = P.parse();
+        AstNodeCore *program = P.parse();
         if (!has_errors(program)) {
             return 0;
         }
@@ -87,7 +87,7 @@ int cmd_prettyprint(Args& args) {
     }
     string filename = args.shift();
     try {
-        AstNode *program = parse_file(filename);
+        AstNodeCore *program = parse_file(filename);
         pretty_print(program);
     } catch (Error *e) {
         cerr << _T("Pretty Print Error")
@@ -97,7 +97,7 @@ int cmd_prettyprint(Args& args) {
     return 0;
 }
 
-void _analyze_semantics(AstNode *program, string filename) {
+void _analyze_semantics(AstNodeCore *program, string filename) {
     analyze_semantics(program);
     vector<Error *> errors = collect_errors(program);
     for (Error *e : errors) {
@@ -117,7 +117,7 @@ int cmd_eval(Args& args) {
         string   filename = args.shift();
         ifstream codefile(filename);
         Parser   P(&codefile);
-        AstNode *program = P.parse();
+        AstNodeCore *program = P.parse();
         _analyze_semantics(program, filename);
         eval(program, cin, cout);
         if (!has_errors(program)) {
@@ -142,7 +142,7 @@ int cmd_step(Args& args) {
         string   filename = args.shift();
         ifstream codefile(filename);
         Parser   P(&codefile);
-        AstNode *program = P.parse();
+        AstNodeCore *program = P.parse();
         _analyze_semantics(program, filename);
         Stepper S;
         S.Step(program);
@@ -170,7 +170,7 @@ int cmd_instrument(Args& args) {
     string   filename = args.shift();
     ifstream codefile(filename);
     Parser   P(&codefile);
-    AstNode *program = P.parse();
+    AstNodeCore *program = P.parse();
     Instrumenter().instrument(program);
     pretty_print(program);
     return 0;

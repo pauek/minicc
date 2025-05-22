@@ -8,14 +8,14 @@ struct ErrorCollector {
 
     ErrorCollector(std::vector<Error *>& v) : errors(v) {}
 
-    void walk(AstNode *n) {
+    void walk(AstNodeCore *n) {
         const std::vector<Error *>& ve = n->errors;
         errors.insert(errors.end(), ve.begin(), ve.end());
         n->errors.clear();
     }
 };
 
-std::vector<Error *> collect_errors(AstNode *ast) {
+std::vector<Error *> collect_errors(AstNodeCore *ast) {
     std::vector<Error *> result;
     if (ast == 0) {
         return result;

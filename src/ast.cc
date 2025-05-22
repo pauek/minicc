@@ -43,11 +43,11 @@ void CommentSeq::only_one_endln_at_end() {
     comments.resize(i + 1);
 }
 
-void AstNode::add_error(string msg) {
+void AstNodeCore::add_error(string msg) {
     errors.push_back(new Error(span, msg));
 }
 
-void AstNode::add_error(Pos _ini, Pos _fin, string msg) {
+void AstNodeCore::add_error(Pos _ini, Pos _fin, string msg) {
     errors.push_back(new Error(Span(_ini, _fin), msg));
 }
 
@@ -64,7 +64,7 @@ void Error::to_json(ostream& o) const {
     o << "}";
 }
 
-Expr::Kind Expr::TokenToKind(Token::Type tokkind) {
+Expr::Kind Expr::token_to_kind(Token::Type tokkind) {
     switch (tokkind) {
         case Token::Empty:
             return Expr::Unknown;
@@ -121,7 +121,7 @@ Expr::Kind Expr::TokenToKind(Token::Type tokkind) {
     }
 }
 
-JumpStmt::Kind JumpStmt::KeywordToType(string s) {
+JumpStmt::Kind JumpStmt::keyword_to_type(string s) {
     if (s == "break") {
         return JumpStmt::Break;
     } else if (s == "continue") {
@@ -133,7 +133,7 @@ JumpStmt::Kind JumpStmt::KeywordToType(string s) {
     }
 }
 
-string Literal::Escape(char c, char delim) {
+string Literal::escape(char c, char delim) {
     switch (c) {
         case '\a':
             return "\\a";
@@ -162,18 +162,18 @@ string Literal::Escape(char c, char delim) {
     }
 }
 
-string Literal::Escape(string s, char delim) {
+string Literal::escape(string s, char delim) {
     string r;
     for (char c : s) {
-        r += Escape(c, delim);
+        r += escape(c, delim);
     }
     return r;
 }
 
-string Identifier::TypeStr() const {
+string Identifier::type_str() const {
     string typestr;
     for (int i = 0; i < prefix.size(); i++) {
-        typestr += prefix[i]->TypeStr();
+        typestr += prefix[i]->type_str();
         typestr += "::";
     }
     typestr += name;
@@ -183,21 +183,21 @@ string Identifier::TypeStr() const {
             if (i > 0) {
                 typestr += ",";
             }
-            typestr += subtypes[i]->TypeStr();
+            typestr += subtypes[i]->type_str();
         }
         typestr += ">";
     }
     return typestr;
 }
 
-Identifier *Identifier::GetPotentialNamespaceOrClass() const {
+Identifier *Identifier::get_potential_namespace_or_class() const {
     if (prefix.size() == 1 and !prefix[0]->is_template()) {
         return prefix[0];
     }
     return 0;
 }
 
-vector<Identifier *> Identifier::GetNonNamespaces() {
+vector<Identifier *> Identifier::get_non_namespaces() {
     vector<Identifier *>::iterator it = prefix.begin();
     while (it != prefix.end() and (*it)->is_namespace) {
         it++;
@@ -207,14 +207,14 @@ vector<Identifier *> Identifier::GetNonNamespaces() {
     return result;
 }
 
-Identifier *TypeSpec::GetPotentialNamespaceOrClass() const {
-    return id->GetPotentialNamespaceOrClass();
+Identifier *TypeSpec::get_potential_namespace_or_class() const {
+    return id->get_potential_namespace_or_class();
 }
 
-string TypeSpec::TypeStr() const {
+string TypeSpec::type_str() const {
     string typestr;
 #define QUALIFIER(qual, str)  \
-    if (HasQualifier(qual)) { \
+    if (has_qualifier(qual)) { \
         typestr += str;       \
         typestr += ' ';       \
     }
@@ -225,35 +225,35 @@ string TypeSpec::TypeStr() const {
     QUALIFIER(Auto, "auto")
     QUALIFIER(Extern, "extern")
 #undef QUALIFIER
-    typestr += id->TypeStr();
+    typestr += id->type_str();
     if (reference) {
         typestr += "&";
     }
     return typestr;
 }
 
-string ArrayDecl::TypeStr() const {
+string ArrayDecl::type_str() const {
     string brackets;
     for (int i = 0; i < sizes.size(); i++) {
         brackets += "[]";
     }
-    return typespec->TypeStr() + brackets;
+    return typespec->type_str() + brackets;
 }
 
-string StructDecl::TypeStr() const {
+string StructDecl::type_str() const {
     string typestr;
     typestr += "struct{";
     for (int i = 0; i < decls.size(); i++) {
         if (i > 0) {
             typestr += ";";
         }
-        typestr += decls[i]->typespec->TypeStr();
+        typestr += decls[i]->typespec->type_str();
     }
     typestr += "}";
     return typestr;
 }
 
-void Identifier::Shift(string new_id) {
+void Identifier::shift(string new_id) {
     Identifier *pre = new Identifier();
     pre->name = name;
     pre->subtypes.swap(subtypes);
@@ -269,7 +269,7 @@ void Identifier::Shift(string new_id) {
     name = new_id;
 }
 
-void collect_rights(AstNode *node, list<Expr *>& L) {
+void collect_rights(AstNodeCore *node, list<Expr *>& L) {
     if (is_a<BinaryExpr>(node)) {
         BinaryExpr *X = cast<BinaryExpr>(node);
         L.push_front(X->right);
@@ -277,7 +277,7 @@ void collect_rights(AstNode *node, list<Expr *>& L) {
     }
 }
 
-bool is_read_expr(AstNode *ast) {
+bool is_read_expr(AstNodeCore *ast) {
     switch (ast->type()) {
         case AstNodeType::BinaryExpr: {
             BinaryExpr *X = cast<BinaryExpr>(ast);
@@ -293,7 +293,7 @@ bool is_read_expr(AstNode *ast) {
     }
 }
 
-bool is_write_expr(AstNode *ast) {
+bool is_write_expr(AstNodeCore *ast) {
     switch (ast->type()) {
         case AstNodeType::BinaryExpr: {
             BinaryExpr *X = cast<BinaryExpr>(ast);
@@ -309,7 +309,7 @@ bool is_write_expr(AstNode *ast) {
     }
 }
 
-bool is_assignment(AstNode *node) {
+bool is_assignment(AstNodeCore *node) {
     if (is_a<BinaryExpr>(node)) {
         BinaryExpr *X = cast<BinaryExpr>(node);
         return X->kind == Expr::Eq;
@@ -317,7 +317,7 @@ bool is_assignment(AstNode *node) {
     return false;
 }
 
-string describe(AstNode *node) {
+string describe(AstNodeCore *node) {
     switch (node->type()) {
         case AstNodeType::ExprStmt: {
             ExprStmt *X = cast<ExprStmt>(node);
@@ -364,7 +364,7 @@ string describe(AstNode *node) {
     }
 }
 
-bool has_errors(AstNode *node) {
+bool has_errors(AstNodeCore *node) {
 #define CHECK_ERRORS(n) \
     if (has_errors(n))  \
         return true;
@@ -375,7 +375,7 @@ bool has_errors(AstNode *node) {
     switch (node->type()) {
         case AstNodeType::Program: {
             Program *X = cast<Program>(node);
-            for (AstNode *n : X->nodes) {
+            for (AstNodeCore *n : X->nodes) {
                 if (has_errors(n)) {
                     return true;
                 }
