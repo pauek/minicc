@@ -76,23 +76,25 @@ int cmd_canparse(Args& args) {
         cout << "usage: minicc ast <filename>" << endl;
         exit(1);
     }
-    string filename = args.shift();
-    try {
-        ifstream codefile(filename);
-        Parser   P(&codefile);
-        AstNode *program = P.parse();
-        if (!has_errors(program)) {
-            return 0;
+    bool errors = false;
+    while (!args.empty()) {
+        string filename = args.shift();
+        try {
+            ifstream codefile(filename);
+            Parser   P(&codefile);
+            AstNode *program = P.parse();
+            if (has_errors(program)) {
+                show_errors(filename, program);
+            }
+        } catch (ParseError& e) {
+            cerr << "ParseError" << endl << filename << ':' << e.pos << ": " << e.msg << endl;
+            errors = true;
+        } catch (std::out_of_range& e) {
+            cerr << filename << ": Out of Range: " << e.what() << endl;
+            errors = true;
         }
-        show_errors(filename, program);
-        return 1;
-    } catch (ParseError& e) {
-        cerr << "ParseError" << endl << filename << ':' << e.pos << ": " << e.msg << endl;
-        return 1;
-    } catch (std::out_of_range& e) {
-        cerr << filename << ": Out of Range: " << e.what() << endl;
-        return 1;
     }
+    return errors ? 1 : 0;
 }
 
 int cmd_prettyprint(Args& args) {
@@ -177,12 +179,20 @@ int cmd_step(Args& args) {
 }
 
 int cmd_instrument(Args& args) {
-    string   filename = args.shift();
-    ifstream codefile(filename);
-    Parser   P(&codefile);
-    AstNode *program = P.parse();
-    Instrumenter().instrument(program);
-    pretty_print(program);
+    while (!args.empty()) {
+        string   filename = args.shift();
+        cout << filename << ":" << endl;
+        ifstream codefile(filename);
+        Parser   P(&codefile);
+        AstNode *program = P.parse();
+        if (!has_errors(program)) {
+            Instrumenter().instrument(program);
+        } else {
+            show_errors(filename, program);
+        }
+        pretty_print(program);
+        cout << endl;
+    }
     return 0;
 }
 
