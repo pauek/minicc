@@ -86,5 +86,5 @@ while(cin>>x ){
 }
  cout <<"PARELL: "<<maxpar<<endl;
 cout<<"SENAR: "<<maxsen<<endl;
-[[end]]-------------------------------------------------
-blis blas
+[[err]]------------------------------------
+tests/parser/error4-distilled.cc[87:9-87:9]: No esperaba 'PARELL: ' aquí.
