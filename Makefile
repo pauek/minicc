@@ -1,15 +1,16 @@
+BUILD_TARGETS := minicc release debug
+OTHER_TARGETS := format clean
 
 all: minicc
 
-minicc:
-	@make -j8 -C src
+$(BUILD_TARGETS):
+	@make -j8 -C src $@
 	@cp src/minicc .
 
-release:
-	@make -j8 -C src release
-	@cp src/minicc .
+$(OTHER_TARGETS):
+	@make -C src $@
 
-clean:
-	@make -C src clean
+test: debug
+	./test.sh
 
-.PHONY: clean minicc
+.PHONY: $(BUILD_TARGETS) $(OTHER_TARGETS)

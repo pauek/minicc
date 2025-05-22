@@ -36,7 +36,4 @@ clean:
 format:
 	@clang-format -i $(SOURCES) $(HEADERS)
 
-test: minicc
-	@./test.sh
-
 .PHONY: clean format 
