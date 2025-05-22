@@ -27,6 +27,9 @@ Parser::Parser(istream *i, std::ostream *err) : _lexer(i), _err(err) {
     for (int i = 0; i < sizeof(_basic_types) / sizeof(char *); i++) {
         _types.insert(_basic_types[i]);
     }
+    if (!_lexer.next()) {
+        throw new ParseError(_lexer.pos(), "Can't move to first position");
+    }
 }
 
 StmtError *Parser::_stmt_error(string msg) {
@@ -37,11 +40,9 @@ StmtError *Parser::_stmt_error(string msg) {
 
 AstNode *Parser::parse() {
     auto *prog = new Program();
-    if (!_lexer.next()) {
-        _error(prog, _T("Error when reading input"));
-        return prog;
-    }
+
     _skip(prog);
+
     while (!_lexer.end()) {
         Pos   pos = _lexer.pos();
         Token tok = _lexer.peek_token();
@@ -1123,9 +1124,8 @@ Expr *Parser::parse_exprlist(AstNode *parent) {
 }
 
 Decl *Parser::_parse_vardecl(AstNode *parent, string name, Decl::Kind kind, CommentSeq *comm) {
-    auto *decl = new VarDecl();
+    auto *decl = new VarDecl(name);
     decl->parent = parent;
-    decl->name = name;
     decl->kind = kind;
     decl->comments.push_back(comm);
     return decl;
