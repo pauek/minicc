@@ -218,6 +218,7 @@ struct Literal : public ExprSubtype<AstNodeType::Literal> {
     static std::string escape(std::string s, char delim);
 
     Literal(Kind kind) : kind(kind) {}
+    Literal(Kind kind, Data value) : kind(kind), val(value) {}
 };
 
 struct Identifier : ExprSubtype<AstNodeType::Identifier> {
@@ -270,6 +271,8 @@ struct BinaryExpr : public ExprSubtype<AstNodeType::BinaryExpr> {
     Kind        kind;
     std::string op, str;
     Expr       *left, *right;
+
+    BinaryExpr(Kind kind = Unknown) : kind(kind) {}
 };
 
 struct UnaryExpr : public Expr {
@@ -296,6 +299,8 @@ struct IncrExpr : public UnaryExprSubtype<AstNodeType::IncrExpr> {
 
     Kind kind;
     bool preincr;
+
+    IncrExpr(Kind kind = Kind::Positive, bool pre = false) : kind(kind), preincr(pre) {}
 };
 
 struct NegExpr : public UnaryExprSubtype<AstNodeType::NegExpr> {};
@@ -345,6 +350,11 @@ struct DeclSubtype : Decl {
 
 struct VarDecl : public DeclSubtype<AstNodeType::VarDecl> {
     Kind kind = Normal;
+
+    VarDecl(std::string _name, TypeSpec *_typespec = 0) {
+        typespec = _typespec;
+        name = _name;
+    }
 };
 
 struct ArrayDecl : public DeclSubtype<AstNodeType::ArrayDecl> {
@@ -417,8 +427,10 @@ struct StmtError : public StmtSubtype<AstNodeType::StmtError> {
 };
 
 struct ExprStmt : public StmtSubtype<AstNodeType::ExprStmt> {
-    Expr *expr = 0;
-    bool  is_return = false;
+    Expr *expr;
+    bool  is_return;
+
+    ExprStmt(Expr *e = nullptr, bool ret = false) : expr(e), is_return(ret) {}
 };
 
 struct IfStmt : public StmtSubtype<AstNodeType::IfStmt> {
@@ -446,6 +458,10 @@ struct DeclStmt : public StmtSubtype<AstNodeType::DeclStmt> {
     };
 
     std::vector<Item> items;
+
+    DeclStmt(TypeSpec *t = nullptr) : typespec(t) {}
+
+    void add(Item item) { items.push_back(item); }
 };
 
 struct StructDecl : public AstNodeSubtype<AstNodeType::StructDecl> {
