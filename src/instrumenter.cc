@@ -33,6 +33,11 @@ void increment_variable_in_loops(Block *block, std::string name) {
             if (stmt->substmt->type() == AstNodeType::Block) {
                 Block *block = cast<Block>(stmt->substmt);
                 add_var_incr(block, name);
+            } else {
+                auto block = new Block();
+                add_var_incr(block, name);                
+                block->stmts.push_back(stmt->substmt);
+                stmt->substmt = block;
             }
         }
     }
