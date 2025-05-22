@@ -328,8 +328,7 @@ AstNode *Parser::parse_func_or_var(AstNode *parent) {
 
     if (_lexer.curr() == '(') {
         _lexer.discard();
-        auto *fn = new FuncDecl();
-        fn->id = id;
+        auto *fn = new FuncDecl(id);
         fn->parent = parent;
         fn->comments.assign(cseq, cseq + 2);
         fn->return_typespec = typespec;

@@ -368,6 +368,8 @@ struct FuncDecl : public AstNodeSubtype<AstNodeType::FuncDecl> {
     Block               *block;
 
     std::string func_name() const { return id->name; }
+
+    FuncDecl(Identifier *id) : id(id) {}
 };
 
 struct TypedefDecl : public AstNodeSubtype<AstNodeType::TypedefDecl> {
