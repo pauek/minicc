@@ -38,8 +38,6 @@ class Lexer {
     void _error(std::string msg);
 
    public:
-    Lexer() : _in(0), _linepos(1) { _reset(); }
-
     Lexer(std::istream *i) : _in(i), _linepos(1) { _reset(); }
 
     bool next();

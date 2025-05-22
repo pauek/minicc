@@ -79,18 +79,18 @@ class CmtPr {  // Comment Printer
 };
 
 void CmtPr::_write_comment(bool pre, bool post, bool _endl) {
-    CommentSeq *C = 0;
+    CommentSeq *C = nullptr;
     if (index_ < ast_->comments.size()) {
         C = ast_->comments[index_];
     }
-    was_empty_ = (C == 0);
-    had_endl_ = (C != 0 ? C->has_endln() : false);
+    was_empty_ = (C == nullptr);
+    had_endl_ = (C != nullptr ? C->has_endln() : false);
     index_++;
-    if (C != 0 and !C->comments.empty()) {
+    if (C != nullptr and !C->comments.empty()) {
         if (pre and !C->starts_with_endln()) {
             out_.write(' ');
         }
-        if (C != 0) {
+        if (C != nullptr) {
             for (int i = 0; i < C->comments.size(); i++) {
                 const ::Comment& c = C->comments[i];  // UGLY
                 switch (c.kind) {
@@ -156,7 +156,7 @@ void PrettyPrinter::print(AstNode *ast) {
                 last->only_one_endln_at_end();
             }
             cp.comment();
-            if (last == 0 or !last->has_endln()) {
+            if (last == nullptr or !last->has_endln()) {
                 out.endln();
             }
             break;

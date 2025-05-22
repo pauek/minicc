@@ -3,8 +3,10 @@
 #include <iostream>
 #include <map>
 using namespace std;
+
 #include "astpr.hh"
 #include "commands.hh"
+#include "instrumenter.hh"
 #include "interpreter.hh"
 #include "parser.hh"
 #include "pprint.hh"
@@ -14,7 +16,14 @@ using namespace std;
 #include "translator.hh"
 #include "vm.hh"
 #include "walker.hh"
-#include "instrumenter.hh"
+
+bool show_errors(string filename, AstNode *program) {
+    const auto& errors = collect_errors(program);
+    for (Error *e : errors) {
+        cerr << filename << ":" << e->span.begin << ": " << e->msg << endl;
+    }
+    return errors.size() > 0;
+}
 
 int cmd_vm(Args& args) {
     using namespace vm;
@@ -43,14 +52,22 @@ int cmd_tokenize(Args& args) {
 
 int cmd_ast(Args& args) {
     if (args.empty()) {
-        cout << "usage: minicc ast <filename>" << endl;
+        cout << "usage: minicc ast <filename>..." << endl;
         exit(1);
     }
-    string   filename = args.shift();
-    ifstream codefile(filename);
-    Parser   P(&codefile);
-    AstNode *program = P.parse();
-    ast_print(program);
+    while (!args.empty()) {
+        string filename = args.shift();
+        cout << filename << endl;
+        ifstream codefile(filename);
+        Parser   P(&codefile);
+        AstNode *program = P.parse();
+        if (has_errors(program)) {
+            show_errors(filename, program);
+        } else {
+            ast_print(program);
+        }
+        cout << endl;
+    }
     return 0;
 }
 
@@ -67,16 +84,14 @@ int cmd_canparse(Args& args) {
         if (!has_errors(program)) {
             return 0;
         }
-        for (Error *e : collect_errors(program)) {
-            cerr << filename << ":" << e->span.begin << ": " << e->msg << endl;
-        }
-        return 127;
+        show_errors(filename, program);
+        return 1;
     } catch (ParseError& e) {
         cerr << "ParseError" << endl << filename << ':' << e.pos << ": " << e.msg << endl;
-        return 127;
+        return 1;
     } catch (std::out_of_range& e) {
         cerr << filename << ": Out of Range: " << e.what() << endl;
-        return 127;
+        return 1;
     }
 }
 
@@ -99,11 +114,8 @@ int cmd_prettyprint(Args& args) {
 
 void _analyze_semantics(AstNode *program, string filename) {
     analyze_semantics(program);
-    vector<Error *> errors = collect_errors(program);
-    for (Error *e : errors) {
-        cerr << filename << ":" << e->span.begin << ": " << e->msg << endl;
-    }
-    if (errors.size() > 0) {
+    if (has_errors(program)) {
+        show_errors(filename, program);
         exit(1);
     }
 }
@@ -123,9 +135,7 @@ int cmd_eval(Args& args) {
         if (!has_errors(program)) {
             return 0;
         }
-        for (Error *e : collect_errors(program)) {
-            cerr << e->msg << endl;
-        }
+        show_errors(filename, program);
         return 1;
     } catch (Error *e) {
         cerr << _T("Execution Error") << ": " << e->msg << endl;

@@ -52,6 +52,9 @@ CommentSeq *Lexer::skip(Skip skip) {
                 break;
             }
         }
+        if (curr() == '\r') {
+            next();
+        }
         if (curr() == '\n') {
             endls_in_a_row++;
             if (cs == 0) {
@@ -66,12 +69,12 @@ CommentSeq *Lexer::skip(Skip skip) {
         }
         switch (skip) {
             case Skip::SpaceTabNewline:
-                if (!(curr() == ' ' or curr() == '\t' or curr() == '\n')) {
+                if (!(curr() == ' ' || curr() == '\t' || curr() == '\n' || curr() == '\r')) {
                     goto finish;  // break would break from the switch only
                 }
                 break;
             case Skip::SpaceTab:
-                if (!(curr() == ' ' or curr() == '\t')) {
+                if (!(curr() == ' ' || curr() == '\t')) {
                     goto finish;
                 }
                 break;
@@ -109,7 +112,7 @@ void Lexer::discard() {
 }
 
 bool Lexer::next() {
-    if (_in == 0) {
+    if (_in == nullptr) {
         return false;
     }
     if (_curr == -1) {

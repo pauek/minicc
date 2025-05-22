@@ -428,7 +428,7 @@ Block *Parser::parse_block(AstNode *parent) {
         _skip(block);
     }
     if (!closing_curly) {
-        _error(block, Span(_lexer.pos()), _T("Expected '}' but end of text found"));
+        _error(block, Span(_lexer.pos()), _T("Expected '}' but end of text found."));
     }
     block->span = Span(ini, _lexer.pos());
 
@@ -464,7 +464,7 @@ Stmt *Parser::parse_stmt(AstNode *parent) {
                 return parse_exprstmt(parent);
             }
             Stmt *stmt = parse_decl_or_expr_stmt(parent);
-            if (stmt == 0) {
+            if (stmt == nullptr) {
                 _lexer.skip_to(";");
             }
             return stmt;
@@ -482,16 +482,9 @@ Stmt *Parser::parse_decl_or_expr_stmt(AstNode *parent) {
     _lexer.save();
 
     auto *exprstmt = parse_exprstmt(parent);
-    if (!has_errors(exprstmt)) {
-        delete declstmt;
-        _lexer.discard();
-        return exprstmt;
-    }
-    _lexer.restore();
-
-    // both have errors, return 0
-    delete exprstmt;
-    return 0;
+    delete declstmt;
+    _lexer.discard();
+    return exprstmt;
 }
 
 Stmt *Parser::parse_jumpstmt(AstNode *parent) {
@@ -555,7 +548,7 @@ ExprStmt *Parser::parse_exprstmt(AstNode *parent, bool is_return) {
 
     stmt->span.end = _lexer.pos();
     if (!_lexer.expect(Token::SemiColon)) {
-        _error(stmt, Span(_lexer.pos()), _T("Expected ';' after expression"));
+        _error(stmt, Span(_lexer.pos()), _T("Expected ';' after expression."));
         _lexer.skip_to(";\n");  // resync...
     }
 
@@ -959,20 +952,9 @@ Stmt *Parser::parse_for(AstNode *parent) {
 
     if (_lexer.curr() == ';') {
         _lexer.next();
-        stmt->init = 0;
+        stmt->init = nullptr;
     } else {
         stmt->init = parse_decl_or_expr_stmt(stmt);
-        if (stmt->init == 0) {
-            stmt->span.begin = _lexer.pos();
-            string wrong_code = _lexer.skip_to(")");
-            stmt->span.end = _lexer.pos();
-            if (wrong_for_with_commas(wrong_code)) {
-                _error(stmt, _T("El 'for' debe tener como separador el caracter ';' (y no ',')."));
-            } else {
-                _error(stmt, _T("'for' erróneo."));
-            }
-            goto finish_for;
-        }
     }
 
     _skip(stmt);
@@ -993,7 +975,7 @@ Stmt *Parser::parse_for(AstNode *parent) {
     _skip(stmt);
 
     if (_lexer.curr() == ')') {
-        stmt->post = 0;
+        stmt->post = nullptr;
     } else {
         stmt->post = parse_expr(stmt);
     }

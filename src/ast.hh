@@ -276,7 +276,7 @@ struct BinaryExpr : public ExprSubtype<AstNodeType::BinaryExpr> {
 };
 
 struct UnaryExpr : public Expr {
-    Expr *expr = 0;
+    Expr *expr = nullptr;
 };
 
 template <AstNodeType T>
@@ -310,22 +310,22 @@ struct AddrExpr : public UnaryExprSubtype<AstNodeType::AddrExpr> {};
 struct DerefExpr : public UnaryExprSubtype<AstNodeType::DerefExpr> {};
 
 struct CallExpr : public ExprSubtype<AstNodeType::CallExpr> {
-    Expr               *func = 0;
+    Expr               *func = nullptr;
     std::vector<Expr *> args;
 };
 
 struct IndexExpr : public ExprSubtype<AstNodeType::IndexExpr> {
-    Expr *base = 0, *index = 0;
+    Expr *base = nullptr, *index = nullptr;
 };
 
 struct FieldExpr : public ExprSubtype<AstNodeType::FieldExpr> {
-    Expr       *base = 0;
+    Expr       *base = nullptr;
     std::string field;
     bool        pointer;
 };
 
 struct CondExpr : public ExprSubtype<AstNodeType::CondExpr> {
-    Expr *cond = 0, *then = 0, *els = 0;
+    Expr *cond = nullptr, *then = nullptr, *els = nullptr;
 };
 
 struct ExprList : public ExprSubtype<AstNodeType::ExprList> {
@@ -337,7 +337,7 @@ struct ExprList : public ExprSubtype<AstNodeType::ExprList> {
 struct Decl : public AstNode {
     enum Kind { Normal, Pointer };
 
-    TypeSpec   *typespec = 0;
+    TypeSpec   *typespec = nullptr;
     std::string name;
 };
 
@@ -351,7 +351,7 @@ struct DeclSubtype : Decl {
 struct VarDecl : public DeclSubtype<AstNodeType::VarDecl> {
     Kind kind = Normal;
 
-    VarDecl(std::string _name, TypeSpec *_typespec = 0) {
+    VarDecl(std::string _name, TypeSpec *_typespec = nullptr) {
         typespec = _typespec;
         name = _name;
     }
@@ -372,7 +372,7 @@ struct Block;
 struct FuncDecl : public AstNodeSubtype<AstNodeType::FuncDecl> {
     struct Param {
         Pos         ini, fin;
-        TypeSpec   *typespec = 0;
+        TypeSpec   *typespec = nullptr;
         std::string name;
 
         Param(Pos ini) : ini(ini) {}
@@ -389,7 +389,7 @@ struct FuncDecl : public AstNodeSubtype<AstNodeType::FuncDecl> {
 };
 
 struct TypedefDecl : public AstNodeSubtype<AstNodeType::TypedefDecl> {
-    Decl *decl = 0;
+    Decl *decl = nullptr;
 };
 
 struct EnumDecl : public AstNodeSubtype<AstNodeType::EnumDecl> {
@@ -434,27 +434,27 @@ struct ExprStmt : public StmtSubtype<AstNodeType::ExprStmt> {
 };
 
 struct IfStmt : public StmtSubtype<AstNodeType::IfStmt> {
-    Expr *cond = 0;
-    Stmt *then = 0, *els = 0;
+    Expr *cond = nullptr;
+    Stmt *then = nullptr, *els = nullptr;
 };
 
 struct ForStmt : public StmtSubtype<AstNodeType::ForStmt> {
-    Stmt *init = 0;
-    Expr *cond = 0, *post = 0;
-    Stmt *substmt = 0;
+    Stmt *init = nullptr;
+    Expr *cond = nullptr, *post = nullptr;
+    Stmt *substmt = nullptr;
 };
 
 struct WhileStmt : public StmtSubtype<AstNodeType::WhileStmt> {
-    Expr *cond = 0;
-    Stmt *substmt = 0;
+    Expr *cond = nullptr;
+    Stmt *substmt = nullptr;
 };
 
 struct DeclStmt : public StmtSubtype<AstNodeType::DeclStmt> {
     TypeSpec *typespec;
 
     struct Item {
-        Decl *decl = 0;
-        Expr *init = 0;
+        Decl *decl = nullptr;
+        Expr *init = nullptr;
     };
 
     std::vector<Item> items;

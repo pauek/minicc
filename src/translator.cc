@@ -48,11 +48,11 @@ const char *Translator::_translations[1000][Translator::NUM_LANGS] = {
      "An if's condition needs to be a bool value", "La condición de un 'if' debe ser de tipo 'bool'",
      "La condició d'un 'if' ha de ser un valor Booleà", },
     {
-     "Expected '}' but end of text found", "Esperaba '}' pero he llegado al final del texto",
-     "Esperava '}' però he arribat al final del text", },
+     "Expected '}' but end of text found.", "Esperaba '}' pero he llegado al final del texto.",
+     "Esperava '}' però he arribat al final del text.", },
     {
-     "Expected ';' after expression", "Esperaba un ';' después de la expresión",
-     "Esperava un ';' després de l'expressió", },
+     "Expected ';' after expression.", "Esperaba ';' después de la expresión.",
+     "Esperava un ';' després de l'expressió.", },
     {
      "You should specify a filename", "No has indicado el fichero de código",
      "No has indicat el fitxer de codi", },
@@ -71,7 +71,7 @@ const char *Translator::_translations[1000][Translator::NUM_LANGS] = {
      "'#include' missing closing '%c'.", "Al '#include' le falta el '%c' de cerrar.",
      "A l'#include li falta el '%c' de tancar.", },
     {
-     "Expected '%s' here.", "Esperaba un '%s' aquí.",
+     "Expected '%s' here.", "Esperaba '%s' aquí.",
      "Esperava un '%s' aquí.", },
     {
      "Expected an identifier here.", "Esperaba un identificador aquí.",
