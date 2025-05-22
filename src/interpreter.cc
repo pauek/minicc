@@ -32,7 +32,7 @@ void Interpreter::invoke_func_prepare(FuncDecl *fn, const vector<Value>& args) {
 
 void Interpreter::program_prepare(Program *X) {
     prepare_global_environment();
-    for (AstNodeCore *n : X->nodes) {
+    for (AstNode *n : X->nodes) {
         eval(n);
     }
 }
@@ -376,7 +376,7 @@ bool Interpreter::bind_field(Value obj, string method_name) {
 }
 
 // Eval
-void Interpreter::eval(AstNodeCore *ast) {
+void Interpreter::eval(AstNode *ast) {
     assert(ast != nullptr);
     switch (ast->type()) {
         case AstNodeType::Program: {
@@ -1022,6 +1022,6 @@ void Interpreter::eval(AstNodeCore *ast) {
     }
 }
 
-void eval(AstNodeCore *ast, std::istream& in, std::ostream& out) {
+void eval(AstNode *ast, std::istream& in, std::ostream& out) {
     Interpreter(&in, &out).eval(ast);
 }

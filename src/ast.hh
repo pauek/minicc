@@ -96,10 +96,8 @@ enum class AstNodeType {
     Block,
 };
 
-struct Ast;
-
-struct AstNodeCore {
-    AstNodeCore              *parent;
+struct AstNode {
+    AstNode                  *parent;
     Span                      span;
     std::vector<Error *>      errors;
     std::vector<CommentSeq *> comments;
@@ -116,40 +114,40 @@ struct AstNodeCore {
 };
 
 template <AstNodeType T>
-struct AstNode : AstNodeCore {
-    static bool is_instance(const AstNodeCore *node) { return node->type() == T; }
+struct AstNodeSubtype : AstNode {
+    static bool is_instance(const AstNode *node) { return node->type() == T; }
 
-    AstNode() { type_ = T; }
+    AstNodeSubtype() { type_ = T; }
 };
 
 template <class T>
-concept AstNodeClass = std::is_base_of_v<AstNodeCore, T>;
+concept AstNodeClass = std::is_base_of_v<AstNode, T>;
 
-struct Program : public AstNode<AstNodeType::Program> {
-    std::vector<AstNodeCore *> nodes;
+struct Program : public AstNodeSubtype<AstNodeType::Program> {
+    std::vector<AstNode *> nodes;
 
-    void add(AstNodeCore *n) {
+    void add(AstNode *n) {
         n->parent = this;
         nodes.push_back(n);
     }
 };
 
-struct Include : public AstNode<AstNodeType::Include> {
+struct Include : public AstNodeSubtype<AstNodeType::Include> {
     std::string filename;
     bool        global;
 };
 
-struct Macro : public AstNode<AstNodeType::Macro> {
+struct Macro : public AstNodeSubtype<AstNodeType::Macro> {
     std::string macro;
 };
 
-struct Using : public AstNode<AstNodeType::Using> {
+struct Using : public AstNodeSubtype<AstNodeType::Using> {
     std::string namespc;
 };
 
 // Expressions /////////////////////////////////////////////
 
-struct Expr : public AstNodeCore {
+struct Expr : public AstNode {
     enum Kind {
         Unknown,
         // pm_expression
@@ -178,7 +176,7 @@ struct Expr : public AstNodeCore {
 
 template <AstNodeType T>
 struct ExprDerived : Expr {
-    static bool is_instance(const AstNodeCore *ast) { return ast->type() == T; }
+    static bool is_instance(const AstNode *ast) { return ast->type() == T; }
 
     ExprDerived() { type_ = T; }
 };
@@ -231,12 +229,10 @@ struct Identifier : ExprDerived<AstNodeType::Identifier> {
     Identifier               *get_potential_namespace_or_class() const;
     std::vector<Identifier *> get_non_namespaces();
 
-    static bool is_instance(const AstNodeCore *ast) {
-        return ast->type() == AstNodeType::Identifier;
-    }
+    static bool is_instance(const AstNode *ast) { return ast->type() == AstNodeType::Identifier; }
 };
 
-struct TypeSpec : public AstNode<AstNodeType::TypeSpec> {
+struct TypeSpec : public AstNodeSubtype<AstNodeType::TypeSpec> {
     enum Qualifier {
         Const = 0b000001,
         Volatile = 0b000010,
@@ -280,7 +276,7 @@ template <AstNodeType T>
 struct UnaryExprDerived : UnaryExpr {
     UnaryExprDerived() { type_ = T; }
 
-    static bool is_instance(const AstNodeCore *ast) { return ast->type() == T; }
+    static bool is_instance(const AstNode *ast) { return ast->type() == T; }
 };
 
 struct SignExpr : public UnaryExprDerived<AstNodeType::SignExpr> {
@@ -327,7 +323,7 @@ struct ExprList : public ExprDerived<AstNodeType::ExprList> {
 
 // Declarations ////////////////////////////////////////////
 
-struct Decl : public AstNodeCore {
+struct Decl : public AstNode {
     enum Kind { Normal, Pointer };
 
     TypeSpec   *typespec = 0;
@@ -336,7 +332,7 @@ struct Decl : public AstNodeCore {
 
 template <AstNodeType T>
 struct DeclDerived : Decl {
-    static bool is_instance(const AstNodeCore *ast) { return ast->type() == T; }
+    static bool is_instance(const AstNode *ast) { return ast->type() == T; }
 
     DeclDerived() { type_ = T; }
 };
@@ -357,7 +353,7 @@ struct ObjDecl : public DeclDerived<AstNodeType::ObjDecl> {
 
 struct Block;
 
-struct FuncDecl : public AstNode<AstNodeType::FuncDecl> {
+struct FuncDecl : public AstNodeSubtype<AstNodeType::FuncDecl> {
     struct Param {
         Pos         ini, fin;
         TypeSpec   *typespec = 0;
@@ -372,11 +368,11 @@ struct FuncDecl : public AstNode<AstNodeType::FuncDecl> {
     std::string func_name() const { return id->name; }
 };
 
-struct TypedefDecl : public AstNode<AstNodeType::TypedefDecl> {
+struct TypedefDecl : public AstNodeSubtype<AstNodeType::TypedefDecl> {
     Decl *decl = 0;
 };
 
-struct EnumDecl : public AstNode<AstNodeType::EnumDecl> {
+struct EnumDecl : public AstNodeSubtype<AstNodeType::EnumDecl> {
     struct Value {
         std::string id;
         bool        has_val;
@@ -391,11 +387,11 @@ struct EnumDecl : public AstNode<AstNodeType::EnumDecl> {
 
 // Statements //////////////////////////////////////////////
 
-struct Stmt : public AstNodeCore {};
+struct Stmt : public AstNode {};
 
 template <AstNodeType T>
 struct StmtDerived : Stmt {
-    static bool is_instance(const AstNodeCore *ast) { return ast->type() == T; }
+    static bool is_instance(const AstNode *ast) { return ast->type() == T; }
 
     StmtDerived() { type_ = T; }
 };
@@ -440,7 +436,7 @@ struct DeclStmt : public StmtDerived<AstNodeType::DeclStmt> {
     std::vector<Item> items;
 };
 
-struct StructDecl : public AstNode<AstNodeType::StructDecl> {
+struct StructDecl : public AstNodeSubtype<AstNodeType::StructDecl> {
     std::string             name;
     std::vector<DeclStmt *> decls;
     std::string             type_str() const;
@@ -459,11 +455,11 @@ struct JumpStmt : public StmtDerived<AstNodeType::JumpStmt> {
     static Kind keyword_to_type(std::string s);
 };
 
-std::string describe(AstNodeCore *ast);
-bool        has_errors(AstNodeCore *ast);
-bool        is_read_expr(AstNodeCore *ast);
-bool        is_write_expr(AstNodeCore *ast);
-bool        is_assignment(AstNodeCore *ast);
-void        collect_rights(AstNodeCore *ast, std::list<Expr *>& L);
+std::string describe(AstNode *ast);
+bool        has_errors(AstNode *ast);
+bool        is_read_expr(AstNode *ast);
+bool        is_write_expr(AstNode *ast);
+bool        is_assignment(AstNode *ast);
+void        collect_rights(AstNode *ast, std::list<Expr *>& L);
 
 #endif

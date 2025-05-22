@@ -115,25 +115,25 @@ void compare_result(string filename, string sout, string serr, string out, strin
     cout << res << flush;
 }
 
-void _parse(AstNodeCore *program, istream& Sin, ostream& Sout) {}
+void _parse(AstNode *program, istream& Sin, ostream& Sout) {}
 
-void _ast(AstNodeCore *program, istream& Sin, ostream& Sout) {
+void _ast(AstNode *program, istream& Sin, ostream& Sout) {
     ast_print(program, Sout);
 }
 
-void _semantic(AstNodeCore *program, istream& Sin, ostream& Sout) {
+void _semantic(AstNode *program, istream& Sin, ostream& Sout) {
     analyze_semantics(program);
 }
 
-void _print(AstNodeCore *program, istream& Sin, ostream& Sout) {
+void _print(AstNode *program, istream& Sin, ostream& Sout) {
     pretty_print(program, Sout);
 }
 
-void _eval(AstNodeCore *program, istream& Sin, ostream& Sout) {
+void _eval(AstNode *program, istream& Sin, ostream& Sout) {
     eval(program, Sin, Sout);
 }
 
-void _stepper(AstNodeCore *program, istream& Sin, ostream& Sout) {
+void _stepper(AstNode *program, istream& Sin, ostream& Sout) {
     ostringstream Saux;
     Stepper       S(&Sin, &Saux);
     S.Step(program);

@@ -22,7 +22,7 @@ struct Func {
 
     virtual Value call(Value self, const std::vector<Value>& args) = 0;
 
-    virtual bool call_abstract(AstNodeCore *x, Value self, const std::vector<Value>& args) {
+    virtual bool call_abstract(AstNode *x, Value self, const std::vector<Value>& args) {
         return false;
     }
 };
@@ -450,7 +450,7 @@ struct Binding {
 
     Value call(const std::vector<Value>& args) { return func.as<Function>().ptr->call(self, args); }
 
-    bool call_abstract(AstNodeCore *x, const std::vector<Value>& args) {
+    bool call_abstract(AstNode *x, const std::vector<Value>& args) {
         return func.as<Function>().ptr->call_abstract(x, self, args);
     }
 

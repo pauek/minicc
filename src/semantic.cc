@@ -15,7 +15,7 @@ struct UserFunc : public Func {
 
 struct SemanticAnalyzer : public WithEnvironment {
     std::string _curr_varname;
-    AstNodeCore    *_curr_node;
+    AstNode    *_curr_node;
     Value       _curr, _ret;
 
     void eval_binary_expr_assignment(BinaryExpr *x, Value left, Value right);
@@ -31,7 +31,7 @@ struct SemanticAnalyzer : public WithEnvironment {
     bool bind_field(Value obj, string method_name);
     bool call_operator(string op, const std::vector<Value>& args = std::vector<Value>());
     void CheckCondition(Expr *cond, std::string who);
-    void CheckUnknown(Value v, AstNodeCore *x, string varname);
+    void CheckUnknown(Value v, AstNode *x, string varname);
 
     void eval_arguments(const std::vector<Expr *>& args, std::vector<Value>& argvals);
 
@@ -50,7 +50,7 @@ struct SemanticAnalyzer : public WithEnvironment {
     template <class Op>
     bool eval_comparison(Value left, Value right);
 
-    void analyze(AstNodeCore *ast);
+    void analyze(AstNode *ast);
 };
 
 struct _Add {
@@ -455,7 +455,7 @@ void SemanticAnalyzer::CheckCondition(Expr *cond, string who) {
     }
 }
 
-void SemanticAnalyzer::CheckUnknown(Value v, AstNodeCore *X, string varname) {
+void SemanticAnalyzer::CheckUnknown(Value v, AstNode *X, string varname) {
     if (v.is_unknown()) {
         X->add_error(_T("Utilizas la variable '%s' sin haberla inicializado.", varname.c_str()));
     }
@@ -555,13 +555,13 @@ bool SemanticAnalyzer::eval_comparison(Value left, Value right) {
 }
 
 // Analyze
-void SemanticAnalyzer::analyze(AstNodeCore *node) {
+void SemanticAnalyzer::analyze(AstNode *node) {
     switch (node->type()) {
         case AstNodeType::Program: {
             auto *X = cast<Program>(node);
             _curr_node = X;
             prepare_global_environment();
-            for (AstNodeCore *n : X->nodes) {
+            for (AstNode *n : X->nodes) {
                 analyze(n);
             }
             break;
@@ -1434,6 +1434,6 @@ void SemanticAnalyzer::analyze(AstNodeCore *node) {
     }
 }
 
-void analyze_semantics(AstNodeCore *ast) {
+void analyze_semantics(AstNode *ast) {
     SemanticAnalyzer().analyze(ast);
 }

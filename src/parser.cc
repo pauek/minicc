@@ -36,7 +36,7 @@ StmtError *Parser::_stmt_error(string msg) {
     return s;
 }
 
-AstNodeCore *Parser::parse() {
+AstNode *Parser::parse() {
     auto *prog = new Program();
     if (!_lexer.next()) {
         _error(prog, _T("Error when reading input"));
@@ -105,7 +105,7 @@ AstNodeCore *Parser::parse() {
     return prog;
 }
 
-AstNodeCore *Parser::parse_macro(AstNodeCore *parent) {
+AstNode *Parser::parse_macro(AstNode *parent) {
     Pos ini = _lexer.pos();
 
     _lexer.consume(Token::Sharp);
@@ -174,7 +174,7 @@ AstNodeCore *Parser::parse_macro(AstNodeCore *parent) {
     return inc;
 }
 
-AstNodeCore *Parser::parse_using_declaration(AstNodeCore *parent) {
+AstNode *Parser::parse_using_declaration(AstNode *parent) {
     auto *u = new Using();
     Pos   ini = _lexer.pos();
     _lexer.consume("using");
@@ -202,7 +202,7 @@ AstNodeCore *Parser::parse_using_declaration(AstNodeCore *parent) {
     return u;
 }
 
-Identifier *Parser::parse_ident(AstNodeCore *parent, Token tok, Pos ini) {
+Identifier *Parser::parse_ident(AstNode *parent, Token tok, Pos ini) {
     auto *id = new Identifier();
     id->name = _lexer.substr(tok);
     Pos fin = _lexer.pos();
@@ -289,7 +289,7 @@ bool Parser::_parse_type_process_token(TypeSpec *type, Token tok, Pos p) {
     return false;
 }
 
-TypeSpec *Parser::parse_typespec(AstNodeCore *parent) {
+TypeSpec *Parser::parse_typespec(AstNode *parent) {
     auto *type = new TypeSpec();
     type->parent = parent;
 
@@ -310,7 +310,7 @@ TypeSpec *Parser::parse_typespec(AstNodeCore *parent) {
     return type;
 }
 
-AstNodeCore *Parser::parse_func_or_var(AstNodeCore *parent) {
+AstNode *Parser::parse_func_or_var(AstNode *parent) {
     CommentSeq *cseq[2] = {0, 0};
     Pos         ini = _lexer.pos();
 
@@ -409,7 +409,7 @@ void Parser::parse_function(FuncDecl *fn) {
     }
 }
 
-Block *Parser::parse_block(AstNodeCore *parent) {
+Block *Parser::parse_block(AstNode *parent) {
     auto *block = new Block();
     block->parent = parent;
     Pos ini = _lexer.pos();
@@ -440,7 +440,7 @@ Block *Parser::parse_block(AstNodeCore *parent) {
     return block;
 }
 
-Stmt *Parser::parse_stmt(AstNodeCore *parent) {
+Stmt *Parser::parse_stmt(AstNode *parent) {
     Token tok = _lexer.peek_token();
     switch (tok.type) {
         case Token::LParen:
@@ -476,7 +476,7 @@ Stmt *Parser::parse_stmt(AstNodeCore *parent) {
     }
 }
 
-Stmt *Parser::parse_decl_or_expr_stmt(AstNodeCore *parent) {
+Stmt *Parser::parse_decl_or_expr_stmt(AstNode *parent) {
     _lexer.save();
     auto *declstmt = parse_declstmt(parent);
     if (!has_errors(declstmt)) {
@@ -499,7 +499,7 @@ Stmt *Parser::parse_decl_or_expr_stmt(AstNodeCore *parent) {
     return 0;
 }
 
-Stmt *Parser::parse_jumpstmt(AstNodeCore *parent) {
+Stmt *Parser::parse_jumpstmt(AstNode *parent) {
     auto *stmt = new JumpStmt();
     stmt->parent = parent;
     stmt->span.begin = _lexer.pos();
@@ -538,7 +538,7 @@ Stmt *Parser::parse_jumpstmt(AstNodeCore *parent) {
     return stmt;
 }
 
-ExprStmt *Parser::parse_exprstmt(AstNodeCore *parent, bool is_return) {
+ExprStmt *Parser::parse_exprstmt(AstNode *parent, bool is_return) {
     auto *stmt = new ExprStmt();
     stmt->parent = parent;
     stmt->span.begin = _lexer.pos();
@@ -567,7 +567,7 @@ ExprStmt *Parser::parse_exprstmt(AstNodeCore *parent, bool is_return) {
     return stmt;
 }
 
-Expr *Parser::parse_primary_expr(AstNodeCore *parent) {
+Expr *Parser::parse_primary_expr(AstNode *parent) {
     Expr *e;
     Pos   ini = _lexer.pos();
     Token tok = _lexer.read_token();
@@ -711,7 +711,7 @@ string Parser::_translate_Escapes(string s) {
     return result;
 }
 
-Expr *Parser::parse_postfix_expr(AstNodeCore *parent, Expr *e = 0) {
+Expr *Parser::parse_postfix_expr(AstNode *parent, Expr *e = 0) {
     if (e == 0) {
         e = parse_primary_expr(parent);
     }
@@ -738,7 +738,7 @@ begin:
     return e;
 }
 
-Expr *Parser::parse_unary_expr(AstNodeCore *parent) {
+Expr *Parser::parse_unary_expr(AstNode *parent) {
     Expr *e;
     Pos   ini = _lexer.pos();
     Token tok = _lexer.peek_token();
@@ -810,7 +810,7 @@ Expr *Parser::parse_unary_expr(AstNodeCore *parent) {
     return e;
 }
 
-Expr *Parser::parse_expr(AstNodeCore *parent, BinaryExpr::Kind max) {
+Expr *Parser::parse_expr(AstNode *parent, BinaryExpr::Kind max) {
     Expr *left = parse_unary_expr(parent);
     while (true) {
         Token tok = _lexer.peek_token();
@@ -952,7 +952,7 @@ bool wrong_for_with_commas(string code) {
     return commas.size() == 2 and colons.size() == 0;
 }
 
-Stmt *Parser::parse_for(AstNodeCore *parent) {
+Stmt *Parser::parse_for(AstNode *parent) {
     auto *stmt = new ForStmt();
     stmt->parent = parent;
     _lexer.consume("for");
@@ -1018,7 +1018,7 @@ finish_for:
     return stmt;
 }
 
-Stmt *Parser::parse_while(AstNodeCore *parent) {
+Stmt *Parser::parse_while(AstNode *parent) {
     auto *stmt = new WhileStmt();
     stmt->parent = parent;
     _lexer.consume("while");
@@ -1045,7 +1045,7 @@ Stmt *Parser::parse_while(AstNodeCore *parent) {
     return stmt;
 }
 
-Stmt *Parser::parse_ifstmt(AstNodeCore *parent) {
+Stmt *Parser::parse_ifstmt(AstNode *parent) {
     auto *stmt = new IfStmt();
     stmt->parent = parent;
     _lexer.consume("if");
@@ -1088,11 +1088,11 @@ Stmt *Parser::parse_ifstmt(AstNodeCore *parent) {
     return stmt;
 }
 
-Stmt *Parser::parse_switch(AstNodeCore *parent) {
+Stmt *Parser::parse_switch(AstNode *parent) {
     return _stmt_error(_T("UNIMPLEMENTED"));
 }
 
-void Parser::_parse_expr_seq(AstNodeCore *parent, vector<Expr *>& exprs) {
+void Parser::_parse_expr_seq(AstNode *parent, vector<Expr *>& exprs) {
     exprs.push_back(parse_expr(parent, Expr::Eq));
     while (_lexer.curr() == ',') {
         _lexer.next();
@@ -1101,7 +1101,7 @@ void Parser::_parse_expr_seq(AstNodeCore *parent, vector<Expr *>& exprs) {
     }
 }
 
-void Parser::_parse_type_seq(AstNodeCore *parent, vector<TypeSpec *>& seq) {
+void Parser::_parse_type_seq(AstNode *parent, vector<TypeSpec *>& seq) {
     seq.push_back(parse_typespec(parent));
     _skip(parent);
     while (_lexer.curr() == ',') {
@@ -1111,7 +1111,7 @@ void Parser::_parse_type_seq(AstNodeCore *parent, vector<TypeSpec *>& seq) {
     }
 }
 
-Expr *Parser::parse_exprlist(AstNodeCore *parent) {
+Expr *Parser::parse_exprlist(AstNode *parent) {
     assert(_lexer.curr() == '{');
     auto *elist = new ExprList();
     do {
@@ -1132,7 +1132,7 @@ Expr *Parser::parse_exprlist(AstNodeCore *parent) {
     return elist;
 }
 
-Decl *Parser::_parse_vardecl(AstNodeCore *parent, string name, Decl::Kind kind, CommentSeq *comm) {
+Decl *Parser::_parse_vardecl(AstNode *parent, string name, Decl::Kind kind, CommentSeq *comm) {
     auto *decl = new VarDecl();
     decl->parent = parent;
     decl->name = name;
@@ -1141,7 +1141,7 @@ Decl *Parser::_parse_vardecl(AstNodeCore *parent, string name, Decl::Kind kind, 
     return decl;
 }
 
-Decl *Parser::_parse_arraydecl(AstNodeCore *parent, string name, Decl::Kind kind, CommentSeq *comm) {
+Decl *Parser::_parse_arraydecl(AstNode *parent, string name, Decl::Kind kind, CommentSeq *comm) {
     auto *decl = new ArrayDecl();
     decl->comments.push_back(comm);
     decl->parent = parent;
@@ -1161,7 +1161,7 @@ Decl *Parser::_parse_arraydecl(AstNodeCore *parent, string name, Decl::Kind kind
     return decl;
 }
 
-Decl *Parser::_parse_objdecl(AstNodeCore *parent, string name, CommentSeq *comm) {
+Decl *Parser::_parse_objdecl(AstNode *parent, string name, CommentSeq *comm) {
     _lexer.consume("(");
 
     auto *decl = new ObjDecl();
@@ -1180,7 +1180,7 @@ Decl *Parser::_parse_objdecl(AstNodeCore *parent, string name, CommentSeq *comm)
     return decl;
 }
 
-DeclStmt *Parser::parse_declstmt(AstNodeCore *parent, bool is_typedef) {
+DeclStmt *Parser::parse_declstmt(AstNode *parent, bool is_typedef) {
     auto *stmt = new DeclStmt();
     stmt->parent = parent;
     stmt->span.begin = _lexer.pos();
@@ -1243,7 +1243,7 @@ DeclStmt *Parser::parse_declstmt(AstNodeCore *parent, bool is_typedef) {
     return stmt;
 }
 
-EnumDecl *Parser::parse_enum(AstNodeCore *parent) {
+EnumDecl *Parser::parse_enum(AstNode *parent) {
     _lexer.consume("enum");
 
     auto *decl = new EnumDecl();
@@ -1311,7 +1311,7 @@ EnumDecl *Parser::parse_enum(AstNodeCore *parent) {
     return decl;
 }
 
-TypedefDecl *Parser::parse_typedef(AstNodeCore *parent) {
+TypedefDecl *Parser::parse_typedef(AstNode *parent) {
     _lexer.consume("typedef");
     auto *typdef = new TypedefDecl();
     typdef->parent = parent;
@@ -1327,7 +1327,7 @@ TypedefDecl *Parser::parse_typedef(AstNodeCore *parent) {
     return typdef;
 }
 
-StructDecl *Parser::parse_struct(AstNodeCore *parent) {
+StructDecl *Parser::parse_struct(AstNode *parent) {
     Token tok = _lexer.read_token();
     assert(tok.type == Token::Struct);
     auto *decl = new StructDecl();

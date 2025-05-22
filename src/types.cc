@@ -592,7 +592,7 @@ Vector::Vector(const Type *celltype) : Class("vector"), _celltype(celltype) {
             return Reference::mkref(the_vector[k]);
         }
 
-        bool call_abstract(AstNodeCore *x, Value self, const vector<Value>& args) {
+        bool call_abstract(AstNode *x, Value self, const vector<Value>& args) {
             Value the_index = Reference::deref(args[0]);
             if (!the_index.is<Int>()) {
                 x->add_error(
@@ -2012,7 +2012,7 @@ void IStream::_add_istream_methods() {
             return self;
         }
 
-        bool call_abstract(AstNodeCore *x, Value self, const vector<Value>& args) {
+        bool call_abstract(AstNode *x, Value self, const vector<Value>& args) {
             Value holder = args[0];
             if (holder.is_unknown()) {
                 holder.to_abstract();

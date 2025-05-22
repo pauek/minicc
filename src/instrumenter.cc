@@ -1,6 +1,6 @@
 #include "instrumenter.hh"
 
-void Instrumenter::instrument(AstNodeCore *node) {
+void Instrumenter::instrument(AstNode *node) {
     assert(node->type() == AstNodeType::Program);
     auto *program = cast<Program>(node);
 

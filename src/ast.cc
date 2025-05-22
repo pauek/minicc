@@ -43,11 +43,11 @@ void CommentSeq::only_one_endln_at_end() {
     comments.resize(i + 1);
 }
 
-void AstNodeCore::add_error(string msg) {
+void AstNode::add_error(string msg) {
     errors.push_back(new Error(span, msg));
 }
 
-void AstNodeCore::add_error(Pos _ini, Pos _fin, string msg) {
+void AstNode::add_error(Pos _ini, Pos _fin, string msg) {
     errors.push_back(new Error(Span(_ini, _fin), msg));
 }
 
@@ -269,7 +269,7 @@ void Identifier::shift(string new_id) {
     name = new_id;
 }
 
-void collect_rights(AstNodeCore *node, list<Expr *>& L) {
+void collect_rights(AstNode *node, list<Expr *>& L) {
     if (is_a<BinaryExpr>(node)) {
         BinaryExpr *X = cast<BinaryExpr>(node);
         L.push_front(X->right);
@@ -277,7 +277,7 @@ void collect_rights(AstNodeCore *node, list<Expr *>& L) {
     }
 }
 
-bool is_read_expr(AstNodeCore *ast) {
+bool is_read_expr(AstNode *ast) {
     switch (ast->type()) {
         case AstNodeType::BinaryExpr: {
             BinaryExpr *X = cast<BinaryExpr>(ast);
@@ -293,7 +293,7 @@ bool is_read_expr(AstNodeCore *ast) {
     }
 }
 
-bool is_write_expr(AstNodeCore *ast) {
+bool is_write_expr(AstNode *ast) {
     switch (ast->type()) {
         case AstNodeType::BinaryExpr: {
             BinaryExpr *X = cast<BinaryExpr>(ast);
@@ -309,7 +309,7 @@ bool is_write_expr(AstNodeCore *ast) {
     }
 }
 
-bool is_assignment(AstNodeCore *node) {
+bool is_assignment(AstNode *node) {
     if (is_a<BinaryExpr>(node)) {
         BinaryExpr *X = cast<BinaryExpr>(node);
         return X->kind == Expr::Eq;
@@ -317,7 +317,7 @@ bool is_assignment(AstNodeCore *node) {
     return false;
 }
 
-string describe(AstNodeCore *node) {
+string describe(AstNode *node) {
     switch (node->type()) {
         case AstNodeType::ExprStmt: {
             ExprStmt *X = cast<ExprStmt>(node);
@@ -364,7 +364,7 @@ string describe(AstNodeCore *node) {
     }
 }
 
-bool has_errors(AstNodeCore *node) {
+bool has_errors(AstNode *node) {
 #define CHECK_ERRORS(n) \
     if (has_errors(n))  \
         return true;
@@ -375,7 +375,7 @@ bool has_errors(AstNodeCore *node) {
     switch (node->type()) {
         case AstNodeType::Program: {
             Program *X = cast<Program>(node);
-            for (AstNodeCore *n : X->nodes) {
+            for (AstNode *n : X->nodes) {
                 if (has_errors(n)) {
                     return true;
                 }

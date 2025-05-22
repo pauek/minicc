@@ -11,16 +11,16 @@ struct Walker {
 
     Walker(Delegate& D_) : D(D_) {}
 
-    void walk(AstNodeCore *ast);
+    void walk(AstNode *ast);
 };
 
 template <typename Delegate>
-void Walker<Delegate>::walk(AstNodeCore *node) {
+void Walker<Delegate>::walk(AstNode *node) {
     switch (node->type()) {
         case AstNodeType::Program: {
             auto *X = cast<Program>(node);
             D.walk(X);
-            for (AstNodeCore *n : X->nodes) {
+            for (AstNode *n : X->nodes) {
                 walk(n);
             }
             break;
@@ -309,9 +309,9 @@ void Walker<Delegate>::walk(AstNodeCore *node) {
 }
 
 template <typename Delegate>
-void walk(AstNodeCore *ast, Delegate&& D) {
+void walk(AstNode *ast, Delegate&& D) {
     Walker<Delegate>(D).walk(ast);
 }
 
-std::vector<Error *> collect_errors(AstNodeCore *X);
+std::vector<Error *> collect_errors(AstNode *X);
 #endif

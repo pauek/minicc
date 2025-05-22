@@ -24,7 +24,7 @@ void compare_result(
     std::string err
 );
 
-typedef void (*TestFunc)(AstNodeCore *, std::istream&, std::ostream&);
+typedef void (*TestFunc)(AstNode *, std::istream&, std::ostream&);
 
 template <TestFunc func>
 int test(Args& args) {
@@ -35,7 +35,7 @@ int test(Args& args) {
         std::istringstream scode(code), sin(in);
         std::ostringstream sout, serr;
         try {
-            AstNodeCore *program = Parser(&scode, &serr).parse();
+            AstNode *program = Parser(&scode, &serr).parse();
             func(program, sin, sout);
             for (Error *e : collect_errors(program)) {
                 serr << filename << "[" << e->span << "]: " << e->msg << std::endl;

@@ -33,13 +33,13 @@ Todo Stepper::PopState::step(Stepper *S) {
     return Next;
 }
 
-void Stepper::generic_visit(AstNodeCore *X) {
+void Stepper::generic_visit(AstNode *X) {
     I.eval(X);
     status(describe(X));
     push(new PopState(X->span));
 }
 
-void Stepper::Step(AstNodeCore *ast) {
+void Stepper::Step(AstNode *ast) {
     switch (ast->type()) {
         case AstNodeType::Program: {
             auto *X = cast<Program>(ast);

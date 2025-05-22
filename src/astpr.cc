@@ -46,17 +46,17 @@ struct AstPrinter {
 
     AstPrinter(ostream& o) : out(o) {}
 
-    void print(AstNodeCore *ast);
+    void print(AstNode *ast);
 };
 
-void AstPrinter::print(AstNodeCore *node) {
+void AstPrinter::print(AstNode *node) {
     assert(node != nullptr);
     switch (node->type()) {
         case AstNodeType::Program: {
             auto *X = cast<Program>(node);
             out.Line("Program{");
             out.indent();
-            for (AstNodeCore *child : X->nodes) {
+            for (AstNode *child : X->nodes) {
                 out.beginln();
                 print(child);
                 out.endln();
@@ -529,6 +529,6 @@ void AstPrinter::print(AstNodeCore *node) {
     }
 }
 
-void ast_print(AstNodeCore *ast, ostream& out) {
+void ast_print(AstNode *ast, ostream& out) {
     AstPrinter(out).print(ast);
 }
