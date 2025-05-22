@@ -175,17 +175,17 @@ struct Expr : public AstNode {
 };
 
 template <AstNodeType T>
-struct ExprDerived : Expr {
+struct ExprSubtype : Expr {
     static bool is_instance(const AstNode *ast) { return ast->type() == T; }
 
-    ExprDerived() { type_ = T; }
+    ExprSubtype() { type_ = T; }
 };
 
-struct ExprError : public ExprDerived<AstNodeType::ExprError> {
+struct ExprError : public ExprSubtype<AstNodeType::ExprError> {
     std::string code;
 };
 
-struct Literal : public ExprDerived<AstNodeType::Literal> {
+struct Literal : public ExprSubtype<AstNodeType::Literal> {
     enum Kind {
         Bool,
         Int,
@@ -216,7 +216,7 @@ struct Literal : public ExprDerived<AstNodeType::Literal> {
     static std::string escape(std::string s, char delim);
 };
 
-struct Identifier : ExprDerived<AstNodeType::Identifier> {
+struct Identifier : ExprSubtype<AstNodeType::Identifier> {
     std::string               name;
     std::vector<Identifier *> prefix;
     std::vector<TypeSpec *>   subtypes;
@@ -262,7 +262,7 @@ struct TypeSpec : public AstNodeSubtype<AstNodeType::TypeSpec> {
     Identifier *get_potential_namespace_or_class() const;
 };
 
-struct BinaryExpr : public ExprDerived<AstNodeType::BinaryExpr> {
+struct BinaryExpr : public ExprSubtype<AstNodeType::BinaryExpr> {
     Kind        kind;
     std::string op, str;
     Expr       *left, *right;
@@ -273,51 +273,51 @@ struct UnaryExpr : public Expr {
 };
 
 template <AstNodeType T>
-struct UnaryExprDerived : UnaryExpr {
-    UnaryExprDerived() { type_ = T; }
+struct UnaryExprSubtype : UnaryExpr {
+    UnaryExprSubtype() { type_ = T; }
 
     static bool is_instance(const AstNode *ast) { return ast->type() == T; }
 };
 
-struct SignExpr : public UnaryExprDerived<AstNodeType::SignExpr> {
+struct SignExpr : public UnaryExprSubtype<AstNodeType::SignExpr> {
     enum Kind { Positive, Negative };
 
     Kind kind;
 };
 
-struct IncrExpr : public UnaryExprDerived<AstNodeType::IncrExpr> {
+struct IncrExpr : public UnaryExprSubtype<AstNodeType::IncrExpr> {
     enum Kind { Positive, Negative };
 
     Kind kind;
     bool preincr;
 };
 
-struct NegExpr : public UnaryExprDerived<AstNodeType::NegExpr> {};
+struct NegExpr : public UnaryExprSubtype<AstNodeType::NegExpr> {};
 
-struct AddrExpr : public UnaryExprDerived<AstNodeType::AddrExpr> {};
+struct AddrExpr : public UnaryExprSubtype<AstNodeType::AddrExpr> {};
 
-struct DerefExpr : public UnaryExprDerived<AstNodeType::DerefExpr> {};
+struct DerefExpr : public UnaryExprSubtype<AstNodeType::DerefExpr> {};
 
-struct CallExpr : public ExprDerived<AstNodeType::CallExpr> {
+struct CallExpr : public ExprSubtype<AstNodeType::CallExpr> {
     Expr               *func = 0;
     std::vector<Expr *> args;
 };
 
-struct IndexExpr : public ExprDerived<AstNodeType::IndexExpr> {
+struct IndexExpr : public ExprSubtype<AstNodeType::IndexExpr> {
     Expr *base = 0, *index = 0;
 };
 
-struct FieldExpr : public ExprDerived<AstNodeType::FieldExpr> {
+struct FieldExpr : public ExprSubtype<AstNodeType::FieldExpr> {
     Expr       *base = 0;
     std::string field;
     bool        pointer;
 };
 
-struct CondExpr : public ExprDerived<AstNodeType::CondExpr> {
+struct CondExpr : public ExprSubtype<AstNodeType::CondExpr> {
     Expr *cond = 0, *then = 0, *els = 0;
 };
 
-struct ExprList : public ExprDerived<AstNodeType::ExprList> {
+struct ExprList : public ExprSubtype<AstNodeType::ExprList> {
     std::vector<Expr *> exprs;
 };
 
@@ -331,23 +331,23 @@ struct Decl : public AstNode {
 };
 
 template <AstNodeType T>
-struct DeclDerived : Decl {
+struct DeclSubtype : Decl {
     static bool is_instance(const AstNode *ast) { return ast->type() == T; }
 
-    DeclDerived() { type_ = T; }
+    DeclSubtype() { type_ = T; }
 };
 
-struct VarDecl : public DeclDerived<AstNodeType::VarDecl> {
+struct VarDecl : public DeclSubtype<AstNodeType::VarDecl> {
     Kind kind = Normal;
 };
 
-struct ArrayDecl : public DeclDerived<AstNodeType::ArrayDecl> {
+struct ArrayDecl : public DeclSubtype<AstNodeType::ArrayDecl> {
     std::vector<Expr *> sizes;
     Kind                kind = Normal;
     std::string         type_str() const;
 };
 
-struct ObjDecl : public DeclDerived<AstNodeType::ObjDecl> {
+struct ObjDecl : public DeclSubtype<AstNodeType::ObjDecl> {
     std::vector<Expr *> args;
 };
 
@@ -390,42 +390,42 @@ struct EnumDecl : public AstNodeSubtype<AstNodeType::EnumDecl> {
 struct Stmt : public AstNode {};
 
 template <AstNodeType T>
-struct StmtDerived : Stmt {
+struct StmtSubtype : Stmt {
     static bool is_instance(const AstNode *ast) { return ast->type() == T; }
 
-    StmtDerived() { type_ = T; }
+    StmtSubtype() { type_ = T; }
 };
 
-struct Block : public StmtDerived<AstNodeType::Block> {
+struct Block : public StmtSubtype<AstNodeType::Block> {
     std::vector<Stmt *> stmts;
 };
 
-struct StmtError : public StmtDerived<AstNodeType::StmtError> {
+struct StmtError : public StmtSubtype<AstNodeType::StmtError> {
     std::string code;
 };
 
-struct ExprStmt : public StmtDerived<AstNodeType::ExprStmt> {
+struct ExprStmt : public StmtSubtype<AstNodeType::ExprStmt> {
     Expr *expr = 0;
     bool  is_return = false;
 };
 
-struct IfStmt : public StmtDerived<AstNodeType::IfStmt> {
+struct IfStmt : public StmtSubtype<AstNodeType::IfStmt> {
     Expr *cond = 0;
     Stmt *then = 0, *els = 0;
 };
 
-struct ForStmt : public StmtDerived<AstNodeType::ForStmt> {
+struct ForStmt : public StmtSubtype<AstNodeType::ForStmt> {
     Stmt *init = 0;
     Expr *cond = 0, *post = 0;
     Stmt *substmt = 0;
 };
 
-struct WhileStmt : public StmtDerived<AstNodeType::WhileStmt> {
+struct WhileStmt : public StmtSubtype<AstNodeType::WhileStmt> {
     Expr *cond = 0;
     Stmt *substmt = 0;
 };
 
-struct DeclStmt : public StmtDerived<AstNodeType::DeclStmt> {
+struct DeclStmt : public StmtSubtype<AstNodeType::DeclStmt> {
     TypeSpec *typespec;
 
     struct Item {
@@ -442,7 +442,7 @@ struct StructDecl : public AstNodeSubtype<AstNodeType::StructDecl> {
     std::string             type_str() const;
 };
 
-struct JumpStmt : public StmtDerived<AstNodeType::JumpStmt> {
+struct JumpStmt : public StmtSubtype<AstNodeType::JumpStmt> {
     enum Kind {
         Unknown = -1,
         Break = 0,
