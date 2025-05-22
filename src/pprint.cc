@@ -192,10 +192,10 @@ void PrettyPrinter::print(AstNode *ast) {
         case AstNodeType::TypeSpec: {
             auto *X = cast<TypeSpec>(ast);
             CmtPr cp(X, out);
-#define QUALIFIER(qual, str)               \
+#define QUALIFIER(qual, str)                \
     if (X->has_qualifier(TypeSpec::qual)) { \
-        out.write(str, " ");               \
-        cp.comment_space();                \
+        out.write(str, " ");                \
+        cp.comment_space();                 \
     }
             QUALIFIER(Const, "const")
             QUALIFIER(Volatile, "volatile")

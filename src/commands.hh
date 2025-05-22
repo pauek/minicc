@@ -1,6 +1,8 @@
 #ifndef COMMANDS_HH
 #define COMMANDS_HH
 
+#include "version.hh"
+
 #include <cstring>
 #include <iostream>
 #include <vector>
@@ -40,7 +42,9 @@ inline const Command *find_command(std::string name, const std::vector<Command>&
 }
 
 inline void help(const std::vector<Command>& commands) {
-    std::cout << "usage: minicc <command> [...args]" << std::endl << std::endl;
+    std::cout << "MiniCC [version " << VERSION << "], © pauek" << std::endl << std::endl;
+    std::cout << "usage: minicc <command> [...args]" << std::endl;
+    std::cout << std::endl;
     std::cout << "Commands: " << std::endl;
     std::cout << "  help" << std::endl;
     size_t max_width = 0;

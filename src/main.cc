@@ -180,7 +180,7 @@ int cmd_step(Args& args) {
 
 int cmd_instrument(Args& args) {
     while (!args.empty()) {
-        string   filename = args.shift();
+        string filename = args.shift();
         cout << filename << ":" << endl;
         ifstream codefile(filename);
         Parser   P(&codefile);

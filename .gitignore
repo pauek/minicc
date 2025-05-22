@@ -7,6 +7,7 @@ minicc.js.mem
 *.bc
 doc
 .depend
+.dependencies
 .dependweb
 build
 err

@@ -10,6 +10,7 @@
 #include <string>
 #include <vector>
 #include "error.hh"
+
 #include "lexer.hh"
 
 template <typename Derived, typename Base>
@@ -218,6 +219,7 @@ struct Literal : public ExprSubtype<AstNodeType::Literal> {
     static std::string escape(std::string s, char delim);
 
     Literal(Kind kind) : kind(kind) {}
+
     Literal(Kind kind, Data value) : kind(kind), val(value) {}
 };
 
