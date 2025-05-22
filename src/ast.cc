@@ -254,8 +254,7 @@ string StructDecl::type_str() const {
 }
 
 void Identifier::shift(string new_id) {
-    Identifier *pre = new Identifier();
-    pre->name = name;
+    Identifier *pre = new Identifier(name);
     pre->subtypes.swap(subtypes);
     pre->comments.swap(comments);
     pre->errors.swap(errors);

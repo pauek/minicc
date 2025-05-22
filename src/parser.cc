@@ -203,8 +203,7 @@ AstNode *Parser::parse_using_declaration(AstNode *parent) {
 }
 
 Identifier *Parser::parse_ident(AstNode *parent, Token tok, Pos ini) {
-    auto *id = new Identifier();
-    id->name = _lexer.substr(tok);
+    auto *id = new Identifier(_lexer.substr(tok));
     Pos fin = _lexer.pos();
     while (true) {
         tok = _lexer.peek_token();
@@ -249,8 +248,7 @@ bool Parser::_parse_type_process_token(TypeSpec *type, Token tok, Pos p) {
         if (type->id != 0) {
             _error(type, _T("Basic types are not templates"));
         }
-        type->id = new Identifier();
-        type->id->name = _lexer.substr(tok);
+        type->id = new Identifier(_lexer.substr(tok));
         return true;
     }
     if (tok.is_type_qual()) {

@@ -228,6 +228,8 @@ struct Identifier : ExprSubtype<AstNodeType::Identifier> {
     void                      shift(std::string new_id);
     Identifier               *get_potential_namespace_or_class() const;
     std::vector<Identifier *> get_non_namespaces();
+
+    Identifier(std::string _name) : name(_name) {}
 };
 
 struct TypeSpec : public AstNodeSubtype<AstNodeType::TypeSpec> {

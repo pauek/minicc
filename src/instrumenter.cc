@@ -4,8 +4,7 @@ void Instrumenter::instrument(AstNode *node) {
     assert(node->type() == AstNodeType::Program);
     auto *program = cast<Program>(node);
 
-    auto id = new Identifier();
-    id->name = "int";
+    auto id = new Identifier("int");
     auto type = new TypeSpec();
     type->id = id;
     auto vardecl = new VarDecl();
