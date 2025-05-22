@@ -99,8 +99,7 @@ enum class AstNodeType {
 struct Ast;
 
 struct AstNodeCore {
-    Ast                      *ast;
-    AstNodeCore                  *parent;
+    AstNodeCore              *parent;
     Span                      span;
     std::vector<Error *>      errors;
     std::vector<CommentSeq *> comments;
@@ -119,20 +118,12 @@ struct AstNodeCore {
 template <AstNodeType T>
 struct AstNode : AstNodeCore {
     static bool is_instance(const AstNodeCore *node) { return node->type() == T; }
+
     AstNode() { type_ = T; }
 };
 
 template <class T>
 concept AstNodeClass = std::is_base_of_v<AstNodeCore, T>;
-
-struct Ast {
-    template <AstNodeClass T>
-    T *create_node() {
-        T *n = new T();
-        n->ast = this;
-        return n;
-    }
-};
 
 struct Program : public AstNode<AstNodeType::Program> {
     std::vector<AstNodeCore *> nodes;
@@ -240,7 +231,9 @@ struct Identifier : ExprDerived<AstNodeType::Identifier> {
     Identifier               *get_potential_namespace_or_class() const;
     std::vector<Identifier *> get_non_namespaces();
 
-    static bool is_instance(const AstNodeCore *ast) { return ast->type() == AstNodeType::Identifier; }
+    static bool is_instance(const AstNodeCore *ast) {
+        return ast->type() == AstNodeType::Identifier;
+    }
 };
 
 struct TypeSpec : public AstNode<AstNodeType::TypeSpec> {
