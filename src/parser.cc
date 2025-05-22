@@ -30,8 +30,7 @@ Parser::Parser(istream *i, std::ostream *err) : _lexer(i), _err(err) {
 }
 
 StmtError *Parser::_stmt_error(string msg) {
-    auto *s = new StmtError();
-    s->code = _lexer.skip_to(";");
+    auto *s = new StmtError(_lexer.skip_to(";"));
     _error(s, msg);
     return s;
 }

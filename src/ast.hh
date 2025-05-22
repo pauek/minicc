@@ -402,6 +402,8 @@ struct Block : public StmtSubtype<AstNodeType::Block> {
 
 struct StmtError : public StmtSubtype<AstNodeType::StmtError> {
     std::string code;
+
+    StmtError(std::string code) : code(code) {}
 };
 
 struct ExprStmt : public StmtSubtype<AstNodeType::ExprStmt> {
