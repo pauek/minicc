@@ -248,7 +248,7 @@ struct TypeSpec : public AstNodeSubtype<AstNodeType::TypeSpec> {
     };
 
     bool        reference = false;
-    int8_t      bqual;
+    int8_t      bqual = 0;
     Identifier *id = 0;
     TypeSpec() = default;
 
