@@ -202,7 +202,7 @@ AstNode *Parser::parse_using_declaration(AstNode *parent) {
 
 Identifier *Parser::parse_ident(AstNode *parent, Token tok, Pos ini) {
     auto *id = new Identifier(_lexer.substr(tok));
-    Pos fin = _lexer.pos();
+    Pos   fin = _lexer.pos();
     while (true) {
         tok = _lexer.peek_token();
         if (_is_type(id->name) and tok.type == Token::LT) {  // template_id
@@ -358,8 +358,7 @@ void Parser::parse_function(FuncDecl *fn) {
         if (_lexer.curr() == ')') {
             break;
         }
-        FuncDecl::Param *p = new FuncDecl::Param();
-        p->ini = _lexer.pos();
+        FuncDecl::Param *p = new FuncDecl::Param(_lexer.pos());
         p->typespec = parse_typespec(fn);
 
         _skip(fn);
@@ -583,8 +582,7 @@ Expr *Parser::parse_primary_expr(AstNode *parent) {
         }
         case Token::True:
         case Token::False: {
-            auto *lit = new Literal();
-            lit->kind = Literal::Bool;
+            auto *lit = new Literal(Literal::Bool);
             lit->parent = parent;
             lit->val.as_bool = (tok.type == Token::True);
             lit->span = Span(ini, _lexer.pos());
@@ -595,8 +593,7 @@ Expr *Parser::parse_primary_expr(AstNode *parent) {
             break;
         }
         case Token::IntLiteral: {
-            auto *lit = new Literal();
-            lit->kind = Literal::Int;
+            auto *lit = new Literal(Literal::Int);
             lit->parent = parent;
             lit->val.as_int = atoi(_lexer.substr(tok).c_str());
             lit->span = Span(ini, _lexer.pos());
@@ -607,8 +604,7 @@ Expr *Parser::parse_primary_expr(AstNode *parent) {
             break;
         }
         case Token::CharLiteral: {
-            auto *lit = new Literal();
-            lit->kind = Literal::Char;
+            auto *lit = new Literal(Literal::Char);
             lit->parent = parent;
             lit->val.as_char = _translate_Escapes(_lexer.substr(tok))[0];
             lit->span = Span(ini, _lexer.pos());
@@ -621,8 +617,8 @@ Expr *Parser::parse_primary_expr(AstNode *parent) {
         case Token::Dot:
         case Token::FloatLiteral:
         case Token::DoubleLiteral: {
-            auto *lit = new Literal();
-            lit->kind = (tok.type == Token::FloatLiteral ? Literal::Float : Literal::Double);
+            auto *lit =
+                new Literal(tok.type == Token::FloatLiteral ? Literal::Float : Literal::Double);
 
             istringstream S(_lexer.substr(tok));
             S >> lit->val.as_double;
@@ -635,8 +631,7 @@ Expr *Parser::parse_primary_expr(AstNode *parent) {
             break;
         }
         case Token::StringLiteral: {
-            auto *lit = new Literal();
-            lit->kind = Literal::String;
+            auto *lit = new Literal(Literal::String);
             lit->parent = parent;
             lit->val.as_string.s =
                 new string(_translate_Escapes(_lexer.substr(tok)));  // FIXME: Shouldn't copy string
@@ -752,8 +747,8 @@ Expr *Parser::parse_unary_expr(AstNode *parent) {
         }
         case Token::Plus:
         case Token::Minus: {
-            auto *se = new SignExpr();
-            se->kind = (tok.type == Token::Plus ? SignExpr::Positive : SignExpr::Negative);
+            auto *se =
+                new SignExpr(tok.type == Token::Plus ? SignExpr::Positive : SignExpr::Negative);
             _lexer.next();
 
             _skip(se);

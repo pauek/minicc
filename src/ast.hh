@@ -216,6 +216,8 @@ struct Literal : public ExprSubtype<AstNodeType::Literal> {
 
     static std::string escape(char c, char delim);
     static std::string escape(std::string s, char delim);
+
+    Literal(Kind kind) : kind(kind) {}
 };
 
 struct Identifier : ExprSubtype<AstNodeType::Identifier> {
@@ -285,6 +287,8 @@ struct SignExpr : public UnaryExprSubtype<AstNodeType::SignExpr> {
     enum Kind { Positive, Negative };
 
     Kind kind;
+
+    SignExpr(Kind kind) : kind(kind) {}
 };
 
 struct IncrExpr : public UnaryExprSubtype<AstNodeType::IncrExpr> {
@@ -360,6 +364,8 @@ struct FuncDecl : public AstNodeSubtype<AstNodeType::FuncDecl> {
         Pos         ini, fin;
         TypeSpec   *typespec = 0;
         std::string name;
+
+        Param(Pos ini) : ini(ini) {}
     };
 
     TypeSpec            *return_typespec;

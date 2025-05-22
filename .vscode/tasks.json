@@ -7,7 +7,10 @@
             "label": "Makefile",
             "type": "shell",
             "command": "make",
-            "args": ["debug", "-j8"],
+            "args": [
+                "debug",
+                "-j8"
+            ],
             "problemMatcher": {
                 "base": "$gcc"
             },
@@ -20,8 +23,24 @@
             "label": "Clean",
             "type": "shell",
             "command": "make",
-            "args": ["clean"],
+            "args": [
+                "clean"
+            ],
             "problemMatcher": []
+        },
+        {
+            "label": "Test",
+            "type": "shell",
+            "command": "make",
+            "args": [
+                "test"
+            ],
+            "problemMatcher": [],
+            "dependsOn": "Makefile",
+            "group": {
+                "kind": "test",
+                "isDefault": true
+            }
         }
     ]
 }
