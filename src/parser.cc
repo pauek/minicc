@@ -118,8 +118,7 @@ AstNode *Parser::parse_macro(AstNode *parent) {
         _lexer.skip_to("\n");
         Pos macro_fin = _lexer.pos();
         _lexer.next();
-        auto *m = new Macro();
-        m->macro = _lexer.substr(macro_ini, macro_fin);
+        auto *m = new Macro(_lexer.substr(macro_ini, macro_fin));
         m->span = Span(ini, macro_fin);
         _fatal_error(macro_fin, _T("Macro '#%s' unknown.", macro_name.c_str()));
         return m;

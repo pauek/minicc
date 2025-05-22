@@ -139,6 +139,8 @@ struct Include : public AstNodeSubtype<AstNodeType::Include> {
 
 struct Macro : public AstNodeSubtype<AstNodeType::Macro> {
     std::string macro;
+
+    Macro(std::string macro) : macro(macro) {}
 };
 
 struct Using : public AstNodeSubtype<AstNodeType::Using> {
