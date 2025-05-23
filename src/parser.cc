@@ -454,8 +454,14 @@ Block *Parser::parse_block(AstNode *parent) {
 Stmt *Parser::parse_stmt(AstNode *parent) {
     Token tok = _lexer.peek_token();
     switch (tok.type) {
-        case Token::LParen:
-            return parse_exprstmt(parent);
+        case Token::LParen: {
+            auto stmt = parse_exprstmt(parent);
+            if (!_lexer.expect(Token::SemiColon)) {
+                _error(stmt, Span(_lexer.pos()), _T("Expected ';' after expression."));
+                _lexer.skip_to(";\n");  // resync...
+            }
+            return stmt;
+        }
         case Token::LBrace:
             return parse_block(parent);
         case Token::Break:
@@ -472,12 +478,21 @@ Stmt *Parser::parse_stmt(AstNode *parent) {
             return parse_switch(parent);
         case Token::Return: {
             ExprStmt *stmt = parse_exprstmt(parent, true);
+            if (!_lexer.expect(Token::SemiColon)) {
+                _error(stmt, Span(_lexer.pos()), _T("Expected ';' after expression."));
+                _lexer.skip_to(";\n");  // resync...
+            }
             stmt->is_return = true;
             return stmt;
         }
         default:
             if (tok.is_operator()) {
-                return parse_exprstmt(parent);
+                auto stmt = parse_exprstmt(parent);
+                if (!_lexer.expect(Token::SemiColon)) {
+                    _error(stmt, Span(_lexer.pos()), _T("Expected ';' after expression."));
+                    _lexer.skip_to(";\n");  // resync...
+                }
+                return stmt;
             }
             Stmt *stmt = parse_decl_or_expr_stmt(parent);
             if (stmt == nullptr) {
@@ -503,6 +518,10 @@ Stmt *Parser::parse_decl_or_expr_stmt(AstNode *parent) {
     _lexer.restore();
     _lexer.save();
     auto *exprstmt = parse_exprstmt(parent);
+    if (!_lexer.expect(Token::SemiColon)) {
+        _error(exprstmt, Span(_lexer.pos()), _T("Expected ';' after expression."));
+        _lexer.skip_to(";\n");  // resync...
+    }
     _lexer.discard();
     return exprstmt;
 }
@@ -567,10 +586,6 @@ ExprStmt *Parser::parse_exprstmt(AstNode *parent, bool is_return) {
     _skip(stmt);
 
     stmt->span.end = _lexer.pos();
-    if (!_lexer.expect(Token::SemiColon)) {
-        _error(stmt, Span(_lexer.pos()), _T("Expected ';' after expression."));
-        _lexer.skip_to(";\n");  // resync...
-    }
 
     return stmt;
 }
