@@ -493,6 +493,10 @@ Stmt *Parser::parse_stmt(AstNode *parent) {
             stmt->is_return = true;
             return stmt;
         }
+        case Token::Else: {
+            throw ParseError(_lexer.pos(), _T("Unexpected '%s' here.", "else"));
+            break;
+        }
         default:
             if (tok.is_operator()) {
                 auto stmt = parse_exprstmt(parent);
@@ -681,12 +685,12 @@ Expr *Parser::parse_primary_expr(AstNode *parent) {
                 // FIXME: Shouldn't copy string
                 content += _translate_Escapes(_lexer.substr(tok));
                 lit->span.end = _lexer.pos();
-                
+
                 _skip(lit);
-                
+
                 tok = _lexer.peek_token();
             } while (tok.type == Token::StringLiteral);
-            
+
             e = lit;
             break;
         }
@@ -1157,7 +1161,7 @@ Stmt *Parser::parse_ifstmt(AstNode *parent) {
 
     string tok;
     if (_lexer.peek_token().type == Token::Else) {
-        _lexer.consume("else");
+        _lexer.expect(Token::Else);
         _lexer.discard();
 
         _skip(stmt);
