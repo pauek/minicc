@@ -9,7 +9,7 @@
       "type": "cppdbg",
       "request": "launch",
       "program": "${workspaceFolder}/minicc",
-      "args": ["canparse", "tests/parser/vector_init_list_assign.cc"],
+      "args": ["canparse", "tests/parser/error13.cc"],
       "stopAtEntry": false,
       "cwd": "${workspaceFolder}",
       "environment": [],
