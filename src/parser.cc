@@ -365,6 +365,11 @@ void Parser::parse_function(FuncDecl *fn) {
         _skip(fn);
 
         Token tok = _lexer.read_ident();
+        if (tok.type == Token::Unknown) {
+            throw ParseError(_lexer.pos(), "Expected identifier");
+            // _error(fn, Span(_lexer.pos()), _T("Expected identifier", _lexer.curr()));
+            // return;
+        }
         p->name = _lexer.substr(tok);
 
         _skip(fn);
