@@ -87,7 +87,7 @@ int cmd_canparse(Args& args) {
                 show_errors(filename, program);
             }
         } catch (ParseError& e) {
-            cerr << "ParseError" << endl << filename << ':' << e.pos << ": " << e.msg << endl;
+            cerr << filename << ':' << e.pos << ": " << e.msg << endl;
             errors = true;
         } catch (std::out_of_range& e) {
             cerr << filename << ": Out of Range: " << e.what() << endl;
