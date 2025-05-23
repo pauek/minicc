@@ -7,16 +7,13 @@
             "label": "Makefile",
             "type": "shell",
             "command": "make",
-            "args": [
-                "debug",
-                "-j8"
-            ],
+            "args": ["debug"],
             "problemMatcher": {
                 "base": "$gcc"
             },
             "group": {
                 "kind": "build",
-                "isDefault": true,
+                "isDefault": true
             },
             "presentation": {
                 "echo": true,
@@ -25,25 +22,21 @@
                 "panel": "shared",
                 "showReuseMessage": false,
                 "clear": false,
-                "close": true,
+                "close": true
             }
         },
         {
             "label": "Clean",
             "type": "shell",
             "command": "make",
-            "args": [
-                "clean"
-            ],
+            "args": ["clean"],
             "problemMatcher": []
         },
         {
             "label": "Test",
             "type": "shell",
             "command": "make",
-            "args": [
-                "test"
-            ],
+            "args": ["test"],
             "problemMatcher": [],
             "dependsOn": "Makefile",
             "group": {

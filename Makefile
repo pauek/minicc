@@ -4,7 +4,7 @@ OTHER_TARGETS := format clean
 all: minicc
 
 $(BUILD_TARGETS):
-	@make -j8 -C src $@
+	@make -C src $@
 	@cp src/minicc .
 
 $(OTHER_TARGETS):
