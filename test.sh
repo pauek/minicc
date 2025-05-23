@@ -2,7 +2,7 @@
 ERRFILE=errors.log
 
 echo
-directories=$(find tests -mindepth 1 -maxdepth 1 -type d | sed 's|tests/||' | sort)
+directories=$(find tests -mindepth 1 -maxdepth 1 -type d | sed 's|tests/||' | grep -v ^_ | sort)
 rm -f $ERRFILE
 for dir in $directories; do
 	files=$(find tests/${dir} -name "*.cc")
