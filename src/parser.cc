@@ -450,21 +450,11 @@ Block *Parser::parse_block(AstNode *parent) {
 }
 
 Stmt *Parser::parse_stmt(AstNode *parent) {
-    Stmt* stmt;
+    Stmt *stmt;
     Token tok = _lexer.peek_token();
     switch (tok.type) {
-        case Token::LParen: {
-            stmt = parse_exprstmt(parent);
-            break;
-        }
         case Token::LBrace:
             return parse_block(parent);
-        case Token::Break:
-        case Token::Continue:
-        case Token::Goto: {
-            stmt = parse_jumpstmt(parent);
-            break;
-        }
         case Token::While:
             return parse_while(parent);
         case Token::For:
@@ -473,13 +463,23 @@ Stmt *Parser::parse_stmt(AstNode *parent) {
             return parse_ifstmt(parent);
         case Token::Switch:
             return parse_switch(parent);
+
+        case Token::LParen: {
+            stmt = parse_exprstmt(parent);
+            break;
+        }
+        case Token::Break:
+        case Token::Continue:
+        case Token::Goto: {
+            stmt = parse_jumpstmt(parent);
+            break;
+        }
         case Token::Return: {
             stmt = parse_exprstmt(parent, true);
             break;
         }
         case Token::Else: {
             throw ParseError(_lexer.pos(), _T("Unexpected '%s' here.", "else"));
-            break;
         }
         default:
             if (tok.is_operator()) {
@@ -489,10 +489,13 @@ Stmt *Parser::parse_stmt(AstNode *parent) {
             }
     }
 
+    _skip(stmt);
+
     // Expect a semicolon at the end of most statements
     if (!_lexer.expect(Token::SemiColon)) {
-        _error(stmt, Span(_lexer.pos()), _T("Expected a ';'."));
+        _error(stmt, Span(stmt->span.end), _T("Expected a ';'."));
     }
+
     return stmt;
 }
 
@@ -529,13 +532,11 @@ Stmt *Parser::parse_jumpstmt(AstNode *parent) {
             break;
     }
 
-    _skip(stmt);
-
     if (stmt->kind == JumpStmt::Goto) {
+        _skip(stmt);
+
         Token tok = _lexer.read_ident();
         stmt->label = _lexer.substr(tok);
-
-        _skip(stmt);
     }
 
     return stmt;
@@ -565,10 +566,7 @@ ExprStmt *Parser::parse_exprstmt(AstNode *parent, bool is_return) {
         stmt->expr->span = Span(eini, efin);
     }
 
-    _skip(stmt);
-
     stmt->span.end = _lexer.pos();
-
     return stmt;
 }
 
