@@ -493,7 +493,8 @@ Stmt *Parser::parse_stmt(AstNode *parent) {
 
     // Expect a semicolon at the end of most statements
     if (!_lexer.expect(Token::SemiColon)) {
-        _error(stmt, Span(stmt->span.end), _T("Expected a ';'."));
+        throw ParseError(stmt->span.end, _T("Expected a ';'."));
+        // _error(stmt, Span(stmt->span.end), _T("Expected a ';'."));
     }
 
     return stmt;
@@ -1136,8 +1137,8 @@ Stmt *Parser::parse_ifstmt(AstNode *parent) {
 
     _skip(stmt);
 
-    string tok;
-    if (_lexer.peek_token().type == Token::Else) {
+    Token tok = _lexer.peek_token();
+    if (tok.type == Token::Else) {
         _lexer.expect(Token::Else);
         _lexer.discard();
 

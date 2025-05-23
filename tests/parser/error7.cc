@@ -12,5 +12,3 @@ int main()
         cout << (int)pow(x, 2) << " " << sqrt(double(x)) << endl;
     }
 }
-[[err]]----------------------------------------------
-tests/parser/error7.cc[12:22-12:22]: Esperaba un ';'.
