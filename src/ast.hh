@@ -450,7 +450,7 @@ struct ForStmt : public StmtSubtype<AstNodeType::ForStmt> {
 
 struct ForColonStmt : public StmtSubtype<AstNodeType::ForColonStmt> {
     Stmt *decl = nullptr;
-    Stmt *container = nullptr;
+    Expr *container = nullptr;
     Stmt *substmt = nullptr;
 };
 

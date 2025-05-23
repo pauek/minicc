@@ -999,27 +999,45 @@ Stmt *Parser::parse_for(AstNode *parent) {
         stmt->parent = parent;
         stmt->comments.push_back(c0);
         stmt->comments.push_back(c1);
-        stmt->init = parse_decl_or_expr_stmt(stmt);
+
+        Stmt *decl = parse_decl_or_expr_stmt(stmt);
         Token tok = _lexer.peek_token();
         switch (tok.type) {
             case Token::SemiColon:
+                stmt->init = decl;
                 _lexer.read_token();  // consume ';'
                 break;
             case Token::Colon: {
                 _lexer.read_token();  // consume ':'
-
-                break;
+                return _parse_for_colon(decl);
             }
             default:
                 _error(stmt, Span(_lexer.pos()), _T("Expected ';' or ':' here"));
+                return _parse_for_classic(stmt);
         }
         return _parse_for_classic(stmt);
     }
-
 }
 
-ForColonStmt *Parser::_parse_for_colon(ForColonStmt *stmt) {
-    return nullptr;
+ForColonStmt *Parser::_parse_for_colon(Stmt *decl) {
+    ForColonStmt *stmt = new ForColonStmt();
+    stmt->decl = decl;
+
+    _skip(stmt);
+
+    Expr *container_expr = parse_expr(stmt);
+    stmt->container = container_expr;
+
+    _skip(stmt);
+
+    if (!_lexer.expect(Token::RParen)) {
+        _error(stmt, Span(_lexer.pos()), _T("Expected '%s' here.", ")"));
+    }
+
+    _skip(stmt);
+
+    stmt->substmt = parse_stmt(stmt);
+    return stmt;
 }
 
 ForStmt *Parser::_parse_for_classic(ForStmt *stmt) {
@@ -1048,7 +1066,6 @@ ForStmt *Parser::_parse_for_classic(ForStmt *stmt) {
 
     _skip(stmt);
 
-finish_for:
     if (!_lexer.expect(Token::RParen)) {
         _error(stmt, Span(_lexer.pos()), _T("Expected '%s' here.", ")"));
     }
