@@ -55,20 +55,29 @@ int cmd_ast(Args& args) {
         cout << "usage: minicc ast <filename>..." << endl;
         exit(1);
     }
+    bool errors = false;
     while (!args.empty()) {
         string filename = args.shift();
-        cout << filename << endl;
-        ifstream codefile(filename);
-        Parser   P(&codefile);
-        AstNode *program = P.parse();
-        if (has_errors(program)) {
-            show_errors(filename, program);
-        } else {
-            ast_print(program);
+        try {
+            cout << filename << endl;
+            ifstream codefile(filename);
+            Parser   P(&codefile);
+            AstNode *program = P.parse();
+            if (has_errors(program)) {
+                show_errors(filename, program);
+            } else {
+                ast_print(program);
+            }
+            cout << endl;
+        } catch (ParseError& e) {
+            cerr << filename << ':' << e.pos << ": " << e.msg << endl;
+            errors = true;
+        } catch (std::out_of_range& e) {
+            cerr << filename << ": Out of Range: " << e.what() << endl;
+            errors = true;
         }
-        cout << endl;
     }
-    return 0;
+    return errors ? 1 : 0;
 }
 
 int cmd_canparse(Args& args) {
