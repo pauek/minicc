@@ -324,7 +324,11 @@ AstNode *Parser::parse_func_or_var(AstNode *parent) {
     if (tok.type == Token::Unknown) {
         delete typespec;
         _lexer.restore();
-        return parse_declstmt(parent);
+        auto stmt = parse_declstmt(parent);
+        if (!_lexer.expect(Token::SemiColon)) {
+            _error(stmt, Span(_lexer.pos()), _T("Expected '%s' here.", ";"), {.stopper = true});
+        }
+        return stmt;
     }
 
     auto *id = parse_ident(0, tok, id_ini);
@@ -346,7 +350,11 @@ AstNode *Parser::parse_func_or_var(AstNode *parent) {
     } else {
         delete typespec;
         _lexer.restore();
-        return parse_declstmt(parent);
+        auto stmt = parse_declstmt(parent);
+        if (!_lexer.expect(Token::SemiColon)) {
+            _error(stmt, Span(_lexer.pos()), _T("Expected '%s' here.", ";"), {.stopper = true});
+        }
+        return stmt;
     }
 
     return nullptr;
@@ -481,7 +489,11 @@ Stmt *Parser::parse_stmt(AstNode *parent) {
 
 Stmt *Parser::parse_decl_or_expr_stmt(AstNode *parent) {
     _lexer.save();
+
     auto *declstmt = parse_declstmt(parent);
+    if (!_lexer.expect(Token::SemiColon)) {
+        _error(declstmt, Span(_lexer.pos()), _T("Expected '%s' here.", ";"), {.stopper = true});
+    }
     if (!has_errors(declstmt)) {
         _lexer.discard();
         return declstmt;
@@ -1225,9 +1237,7 @@ DeclStmt *Parser::parse_declstmt(AstNode *parent, bool is_typedef) {
         _skip(stmt);  // before identifier
     }
     stmt->span.end = _lexer.pos();
-    if (!_lexer.expect(Token::SemiColon)) {
-        _error(stmt, Span(_lexer.pos()), _T("Expected '%s' here.", ";"), {.stopper = true});
-    }
+
     return stmt;
 }
 
@@ -1307,6 +1317,10 @@ TypedefDecl *Parser::parse_typedef(AstNode *parent) {
     _skip(typdef);
 
     DeclStmt *stmt = parse_declstmt(typdef, true);  // FIXME: Y si hay varias declaraciones??
+    if (!_lexer.expect(Token::SemiColon)) {
+        _error(stmt, Span(_lexer.pos()), _T("Expected '%s' here.", ";"), {.stopper = true});
+    }
+
     typdef->decl = stmt->items[0].decl;
     for (CommentSeq *c : stmt->comments) {
         typdef->comments.push_back(c);
@@ -1340,6 +1354,9 @@ StructDecl *Parser::parse_struct(AstNode *parent) {
     tok = _lexer.peek_token();
     while (!_lexer.end() and tok.type != Token::RBrace) {
         DeclStmt *field = parse_declstmt(decl);
+        if (!_lexer.expect(Token::SemiColon)) {
+            _error(field, Span(_lexer.pos()), _T("Expected '%s' here.", ";"), {.stopper = true});
+        }
         decl->decls.push_back(field);
         field->parent = decl;
         _skip(decl);
