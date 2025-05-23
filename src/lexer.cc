@@ -406,6 +406,20 @@ bool Lexer::expect(Token::Type type) {
     return false;
 }
 
+bool Lexer::expectOneOf(const vector<Token::Type>& types) {
+    save();
+    skip();
+    Token tok = read_token();
+    auto it = find(types.begin(), types.end(), tok.type);
+    if (it != types.end()) {
+        discard();
+        return true;
+    }
+    restore();
+    return false;
+
+}
+
 // read_*
 void Lexer::read_SingleLine_comment(Comment& c) {
     consume("//");

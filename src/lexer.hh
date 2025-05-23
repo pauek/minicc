@@ -63,6 +63,7 @@ class Lexer {
 
     bool expect(Token::Type type);
     bool expect(std::string word);
+    bool expectOneOf(const std::vector<Token::Type>& types);
 
     void consume(char c) {
         assert(curr() == c);
