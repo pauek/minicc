@@ -974,25 +974,31 @@ bool wrong_for_with_commas(string code) {
 }
 
 Stmt *Parser::parse_for(AstNode *parent) {
-    auto *stmt = new ForStmt();
-    stmt->parent = parent;
     _lexer.consume("for");
 
-    _skip(stmt);
+    CommentSeq *c0 = _lexer.skip();
 
     if (!_lexer.expect(Token::LParen)) {
-        _error(stmt, Span(_lexer.pos()), _T("Expected '%s' here.", "("));
-        // FIXME: resync?
+        throw ParseError(_lexer.pos(), _T("Expected '%s' here.", "("));
     }
 
-    _skip(stmt);
+    CommentSeq *c1 = _lexer.skip();
 
     if (_lexer.curr() == ';') {
-        // First slot in the for was empty
+        // First slot in the 'for' is empty
+        auto *stmt = new ForStmt();
+        stmt->parent = parent;
+        stmt->comments.push_back(c0);
+        stmt->comments.push_back(c1);
         _lexer.next();
+
         stmt->init = nullptr;
         return _parse_for_classic(stmt);
     } else {
+        auto *stmt = new ForStmt();
+        stmt->parent = parent;
+        stmt->comments.push_back(c0);
+        stmt->comments.push_back(c1);
         stmt->init = parse_decl_or_expr_stmt(stmt);
         Token tok = _lexer.peek_token();
         switch (tok.type) {
@@ -1007,9 +1013,13 @@ Stmt *Parser::parse_for(AstNode *parent) {
             default:
                 _error(stmt, Span(_lexer.pos()), _T("Expected ';' or ':' here"));
         }
+        return _parse_for_classic(stmt);
     }
 
-    return _parse_for_classic(stmt);
+}
+
+ForColonStmt *Parser::_parse_for_colon(ForColonStmt *stmt) {
+    return nullptr;
 }
 
 ForStmt *Parser::_parse_for_classic(ForStmt *stmt) {

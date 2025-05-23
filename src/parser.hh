@@ -33,13 +33,14 @@ class Parser {
 
     StmtError *_stmt_error(std::string msg);
 
-    void  _parse_expr_seq(AstNode *n, std::vector<Expr *>& v);
-    void  _parse_type_seq(AstNode *n, std::vector<TypeSpec *>& v);
-    bool  _parse_type_process_token(TypeSpec *type, Token tok, Pos p);
-    Decl *_parse_vardecl(AstNode *parent, std::string name, Decl::Kind kind, CommentSeq *comm);
-    Decl *_parse_arraydecl(AstNode *parent, std::string name, Decl::Kind kind, CommentSeq *comm);
-    Decl *_parse_objdecl(AstNode *parent, std::string name, CommentSeq *comm);
-    ForStmt * _parse_for_classic(ForStmt *stmt);
+    void     _parse_expr_seq(AstNode *n, std::vector<Expr *>& v);
+    void     _parse_type_seq(AstNode *n, std::vector<TypeSpec *>& v);
+    bool     _parse_type_process_token(TypeSpec *type, Token tok, Pos p);
+    Decl    *_parse_vardecl(AstNode *parent, std::string name, Decl::Kind kind, CommentSeq *comm);
+    Decl    *_parse_arraydecl(AstNode *parent, std::string name, Decl::Kind kind, CommentSeq *comm);
+    Decl    *_parse_objdecl(AstNode *parent, std::string name, CommentSeq *comm);
+    ForStmt *_parse_for_classic(ForStmt *stmt);
+    ForColonStmt *_parse_for_colon(ForColonStmt *stmt);
 
     std::string _translate_Escapes(std::string s);
 
