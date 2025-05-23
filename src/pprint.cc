@@ -575,6 +575,30 @@ void PrettyPrinter::print(AstNode *ast) {
             print(X->substmt);
             break;
         }
+        case AstNodeType::ForColonStmt: {
+            auto *X = cast<ForColonStmt>(ast);
+            CmtPr cp(X, out);
+            out.write("for ");
+            cp.comment_space();
+            out.write("(");
+            if (X->decl) {
+                print(X->decl);
+            }
+            out.write(" : ");
+            if (X->container) {
+                print(X->container);
+            }
+            out.write(")");
+            cp.space_comment();
+            if (!cp.last_had_endln()) {
+                out.write(" ");
+            }
+            if (not is_a<Block>(X->substmt) and cp.last_had_endln()) {
+                out.indentation();
+            }
+            print(X->substmt);
+            break;
+        }
         case AstNodeType::WhileStmt: {
             auto *X = cast<WhileStmt>(ast);
             CmtPr cp(X, out);

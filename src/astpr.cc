@@ -401,6 +401,31 @@ void AstPrinter::print(AstNode *node) {
             out.write("})");
             break;
         }
+        case AstNodeType::ForColonStmt: {
+            auto *X = cast<ForColonStmt>(node);
+            out.write("ForColonStmt(");
+            if (X->decl) {
+                print(X->decl);
+            } else {
+                out.write("_");
+            }
+            out.write(" : ");
+            if (X->container) {
+                print(X->container);
+            } else {
+                out.write("_");
+            }
+            out.write(", {");
+            out.endln();
+            out.indent();
+            out.beginln();
+            print(X->substmt);
+            out.endln();
+            out.dedent();
+            out.beginln();
+            out.write("})");
+            break;
+        }
         case AstNodeType::WhileStmt: {
             auto *X = cast<WhileStmt>(node);
             out.write("WhileStmt(");

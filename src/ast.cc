@@ -401,6 +401,12 @@ bool has_errors(AstNode *node) {
             CHECK_ERRORS(X->substmt);
             return X->has_errors();
         }
+        case AstNodeType::ForColonStmt: {
+            ForColonStmt *X = cast<ForColonStmt>(node);
+            CHECK_ERRORS(X->decl);
+            CHECK_ERRORS(X->container);
+            return X->has_errors();
+        }
         case AstNodeType::WhileStmt: {
             WhileStmt *X = cast<WhileStmt>(node);
             CHECK_ERRORS(X->cond);

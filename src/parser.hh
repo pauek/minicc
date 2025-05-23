@@ -39,6 +39,7 @@ class Parser {
     Decl *_parse_vardecl(AstNode *parent, std::string name, Decl::Kind kind, CommentSeq *comm);
     Decl *_parse_arraydecl(AstNode *parent, std::string name, Decl::Kind kind, CommentSeq *comm);
     Decl *_parse_objdecl(AstNode *parent, std::string name, CommentSeq *comm);
+    ForStmt * _parse_for_classic(ForStmt *stmt);
 
     std::string _translate_Escapes(std::string s);
 

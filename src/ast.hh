@@ -73,6 +73,7 @@ enum class AstNodeType {
     ExprStmt,
     IfStmt,
     ForStmt,
+    ForColonStmt,
     WhileStmt,
     DeclStmt,
     JumpStmt,
@@ -444,6 +445,12 @@ struct IfStmt : public StmtSubtype<AstNodeType::IfStmt> {
 struct ForStmt : public StmtSubtype<AstNodeType::ForStmt> {
     Stmt *init = nullptr;
     Expr *cond = nullptr, *post = nullptr;
+    Stmt *substmt = nullptr;
+};
+
+struct ForColonStmt : public StmtSubtype<AstNodeType::ForColonStmt> {
+    Stmt *decl = nullptr;
+    Stmt *container = nullptr;
     Stmt *substmt = nullptr;
 };
 

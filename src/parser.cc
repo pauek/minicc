@@ -505,6 +505,10 @@ Stmt *Parser::parse_stmt(AstNode *parent) {
                 return stmt;
             }
             Stmt *stmt = parse_decl_or_expr_stmt(parent);
+            if (!_lexer.expect(Token::SemiColon)) {
+                _error(stmt, Span(_lexer.pos()), _T("Expected ';' after expression."));
+                _lexer.skip_to(";\n");  // resync...
+            }
             if (stmt == nullptr) {
                 _lexer.skip_to(";");
             }
@@ -514,24 +518,15 @@ Stmt *Parser::parse_stmt(AstNode *parent) {
 
 Stmt *Parser::parse_decl_or_expr_stmt(AstNode *parent) {
     _lexer.save();
-
     auto *declstmt = parse_declstmt(parent);
-    if (!_lexer.expect(Token::SemiColon)) {
-        _error(declstmt, Span(_lexer.pos()), _T("Expected '%s' here.", ";"), {.stopper = true});
-    }
-    if (!has_errors(declstmt)) {
+    Token tok = _lexer.peek_token();
+    if (!has_errors(declstmt) && (tok.type == Token::SemiColon || tok.type == Token::Colon)) {
         _lexer.discard();
         return declstmt;
     }
-
     delete declstmt;
     _lexer.restore();
-    auto *exprstmt = parse_exprstmt(parent);
-    if (!_lexer.expect(Token::SemiColon)) {
-        _error(exprstmt, Span(_lexer.pos()), _T("Expected ';' after expression."));
-        _lexer.skip_to(";\n");  // resync...
-    }
-    return exprstmt;
+    return parse_exprstmt(parent);
 }
 
 Stmt *Parser::parse_jumpstmt(AstNode *parent) {
@@ -993,12 +988,31 @@ Stmt *Parser::parse_for(AstNode *parent) {
     _skip(stmt);
 
     if (_lexer.curr() == ';') {
+        // First slot in the for was empty
         _lexer.next();
         stmt->init = nullptr;
+        return _parse_for_classic(stmt);
     } else {
         stmt->init = parse_decl_or_expr_stmt(stmt);
+        Token tok = _lexer.peek_token();
+        switch (tok.type) {
+            case Token::SemiColon:
+                _lexer.read_token();  // consume ';'
+                break;
+            case Token::Colon: {
+                _lexer.read_token();  // consume ':'
+
+                break;
+            }
+            default:
+                _error(stmt, Span(_lexer.pos()), _T("Expected ';' or ':' here"));
+        }
     }
 
+    return _parse_for_classic(stmt);
+}
+
+ForStmt *Parser::_parse_for_classic(ForStmt *stmt) {
     _skip(stmt);
 
     if (_lexer.curr() == ';') {

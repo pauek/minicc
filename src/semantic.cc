@@ -1138,6 +1138,10 @@ void SemanticAnalyzer::analyze(AstNode *node) {
             popenv();
             break;
         }
+        case AstNodeType::ForColonStmt: {
+            // TODO
+            break;
+        }
         case AstNodeType::WhileStmt: {
             auto *X = cast<WhileStmt>(node);
             _curr_node = X;
