@@ -4,11 +4,11 @@ OTHER_TARGETS := format clean
 all: minicc
 
 $(BUILD_TARGETS):
-	@make -C src $@
+	@$(MAKE) -C src $@
 	@cp src/minicc .
 
 $(OTHER_TARGETS):
-	@make -C src $@
+	@$(MAKE) -C src $@
 
 test: debug
 	./test.sh
