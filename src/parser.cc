@@ -670,15 +670,23 @@ Expr *Parser::parse_primary_expr(AstNode *parent) {
             break;
         }
         case Token::StringLiteral: {
-            _lexer.read_token();
+            // Two consecutive string literals are joined together
             auto *lit = new Literal(Literal::String);
             lit->parent = parent;
-            lit->val.as_string.s =
-                new string(_translate_Escapes(_lexer.substr(tok)));  // FIXME: Shouldn't copy string
-            lit->span = Span(ini, _lexer.pos());
-
-            _skip(lit);
-
+            lit->span.begin = ini;
+            lit->val.as_string.s = new string("");
+            string& content = *(lit->val.as_string.s);
+            do {
+                _lexer.read_token();
+                // FIXME: Shouldn't copy string
+                content += _translate_Escapes(_lexer.substr(tok));
+                lit->span.end = _lexer.pos();
+                
+                _skip(lit);
+                
+                tok = _lexer.peek_token();
+            } while (tok.type == Token::StringLiteral);
+            
             e = lit;
             break;
         }
