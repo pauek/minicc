@@ -1094,7 +1094,7 @@ Stmt *Parser::parse_while(AstNode *parent) {
     _skip(stmt);
 
     if (!_lexer.expect(Token::RParen)) {
-        _error(stmt, Span(_lexer.pos()), _T("Expected '%s' here.", ")"));
+        throw ParseError(_lexer.pos(), _T("Expected '%s' here.", ")"));
     }
 
     _skip(stmt);
@@ -1274,6 +1274,7 @@ DeclStmt *Parser::parse_declstmt(AstNode *parent, bool is_typedef) {
         }
         item.decl->span.begin = item_ini;
         if (_lexer.curr() == '=') {
+            // Normal assignment of initial value
             _lexer.next();
             _skip(stmt);
             if (_lexer.curr() == '{') {
@@ -1281,6 +1282,9 @@ DeclStmt *Parser::parse_declstmt(AstNode *parent, bool is_typedef) {
             } else {
                 item.init = parse_expr(item.decl, Expr::Eq);
             }
+        } else if (_lexer.curr() == '{') {
+            // Initializer list without '=', since C++11
+            item.init = parse_exprlist(item.decl);
         }
         item.decl->typespec = stmt->typespec;
         item.decl->span.end = _lexer.pos();
