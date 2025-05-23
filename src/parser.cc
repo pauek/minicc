@@ -466,8 +466,18 @@ Stmt *Parser::parse_stmt(AstNode *parent) {
             return parse_block(parent);
         case Token::Break:
         case Token::Continue:
-        case Token::Goto:
-            return parse_jumpstmt(parent);
+        case Token::Goto: {
+            auto stmt = parse_jumpstmt(parent);
+            if (!_lexer.expect(Token::SemiColon)) {
+                _error(
+                    stmt,
+                    _lexer.pos().str() + ": " +
+                        _T("Esperaba un ';' después de '%s'.", _lexer.substr(tok).c_str())
+                );
+                _lexer.skip_to(";\n");  // resync...
+            }
+            return stmt;
+        }
         case Token::While:
             return parse_while(parent);
         case Token::For:
@@ -554,14 +564,7 @@ Stmt *Parser::parse_jumpstmt(AstNode *parent) {
 
         _skip(stmt);
     }
-    if (!_lexer.expect(Token::SemiColon)) {
-        _error(
-            stmt,
-            _lexer.pos().str() + ": " +
-                _T("Esperaba un ';' después de '%s'.", _lexer.substr(tok).c_str())
-        );
-        _lexer.skip_to(";\n");  // resync...
-    }
+
     return stmt;
 }
 
