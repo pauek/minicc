@@ -222,7 +222,6 @@ string TypeSpec::type_str() const {
     QUALIFIER(Volatile, "volatile")
     QUALIFIER(Mutable, "mutable")
     QUALIFIER(Register, "register")
-    QUALIFIER(Auto, "auto")
     QUALIFIER(Extern, "extern")
 #undef QUALIFIER
     typestr += id->type_str();

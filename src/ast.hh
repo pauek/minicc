@@ -246,9 +246,8 @@ struct TypeSpec : public AstNodeSubtype<AstNodeType::TypeSpec> {
         Volatile = 0b0000010,
         Mutable = 0b0000100,
         Register = 0b0001000,
-        Auto = 0b0010000,
-        Extern = 0b0100000,
-        Unsigned = 0b1000000,
+        Extern = 0b0010000,
+        Unsigned = 0b0100000,
     };
 
     bool        reference = false;

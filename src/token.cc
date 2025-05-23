@@ -82,6 +82,7 @@ bool Token::is_operator() const {
 
 bool Token::is_basic_type() const {
     switch (type) {
+        case Token::Auto:
         case Token::Void:
         case Token::Int:
         case Token::Short:
@@ -103,7 +104,6 @@ bool Token::is_type_qual() const {
         case Token::Const:
         case Token::Long:
         case Token::Volatile:
-        case Token::Auto:
         case Token::Register:
         case Token::Static:
         case Token::Extern:

@@ -255,9 +255,6 @@ bool Parser::_parse_type_process_token(TypeSpec *type, Token tok, Pos p) {
             case Token::Const:
                 type->add_qualifier(TypeSpec::Const);
                 break;
-            case Token::Auto:
-                type->add_qualifier(TypeSpec::Auto);
-                break;
             case Token::Mutable:
                 type->add_qualifier(TypeSpec::Mutable);
                 break;

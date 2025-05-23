@@ -201,7 +201,6 @@ void PrettyPrinter::print(AstNode *ast) {
             QUALIFIER(Volatile, "volatile")
             QUALIFIER(Mutable, "mutable")
             QUALIFIER(Register, "register")
-            QUALIFIER(Auto, "auto")
             QUALIFIER(Extern, "extern")
 #undef QUALIFIER
             print(X->id);

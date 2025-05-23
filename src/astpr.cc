@@ -105,7 +105,6 @@ void AstPrinter::print(AstNode *node) {
                 QUALIFIER(Volatile, "volatile")
                 QUALIFIER(Mutable, "mutable")
                 QUALIFIER(Register, "register")
-                QUALIFIER(Auto, "auto")
                 QUALIFIER(Extern, "extern")
 #undef QUALIFIER
                 out.write("}");
