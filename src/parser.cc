@@ -573,7 +573,12 @@ ExprStmt *Parser::parse_exprstmt(AstNode *parent, bool is_return) {
     }
 
     Pos eini = _lexer.pos();
-    stmt->expr = (_lexer.curr() == ';' ? 0 : parse_expr(stmt));
+    if (_lexer.curr() == ';') {
+        stmt->expr = nullptr;
+    } else {
+        stmt->expr = parse_expr(stmt);
+    }
+
     Pos efin = _lexer.pos();
     if (stmt->expr) {
         stmt->expr->span = Span(eini, efin);
@@ -590,9 +595,10 @@ Expr *Parser::parse_primary_expr(AstNode *parent) {
     Expr *e;
 
     Pos   ini = _lexer.pos();
-    Token tok = _lexer.read_token();
+    Token tok = _lexer.peek_token();
     switch (tok.type) {
         case Token::LParen: {
+            _lexer.read_token();
             CommentSeq *cseq = _lexer.skip();
             e = parse_expr(parent);
             e->paren = true;
@@ -606,8 +612,14 @@ Expr *Parser::parse_primary_expr(AstNode *parent) {
             e->span = Span(ini, _lexer.pos());
             break;
         }
+        case Token::LBrace: {
+            // C++11 initializer list
+            e = parse_exprlist(parent);
+            break;
+        }
         case Token::True:
         case Token::False: {
+            _lexer.read_token();
             auto *lit = new Literal(Literal::Bool);
             lit->parent = parent;
             lit->val.as_bool = (tok.type == Token::True);
@@ -619,6 +631,7 @@ Expr *Parser::parse_primary_expr(AstNode *parent) {
             break;
         }
         case Token::IntLiteral: {
+            _lexer.read_token();
             auto *lit = new Literal(Literal::Int);
             lit->parent = parent;
             lit->val.as_int = atoi(_lexer.substr(tok).c_str());
@@ -630,6 +643,7 @@ Expr *Parser::parse_primary_expr(AstNode *parent) {
             break;
         }
         case Token::CharLiteral: {
+            _lexer.read_token();
             auto *lit = new Literal(Literal::Char);
             lit->parent = parent;
             lit->val.as_char = _translate_Escapes(_lexer.substr(tok))[0];
@@ -643,6 +657,7 @@ Expr *Parser::parse_primary_expr(AstNode *parent) {
         case Token::Dot:
         case Token::FloatLiteral:
         case Token::DoubleLiteral: {
+            _lexer.read_token();
             auto *lit =
                 new Literal(tok.type == Token::FloatLiteral ? Literal::Float : Literal::Double);
 
@@ -657,6 +672,7 @@ Expr *Parser::parse_primary_expr(AstNode *parent) {
             break;
         }
         case Token::StringLiteral: {
+            _lexer.read_token();
             auto *lit = new Literal(Literal::String);
             lit->parent = parent;
             lit->val.as_string.s =
@@ -668,9 +684,11 @@ Expr *Parser::parse_primary_expr(AstNode *parent) {
             e = lit;
             break;
         }
-        default:
+        default: {
+            _lexer.read_token();
             e = parse_ident(parent, tok, ini);
             break;
+        }
     }
     return e;
 }
@@ -727,8 +745,8 @@ string Parser::_translate_Escapes(string s) {
     return result;
 }
 
-Expr *Parser::parse_postfix_expr(AstNode *parent, Expr *e = 0) {
-    if (e == 0) {
+Expr *Parser::parse_postfix_expr(AstNode *parent, Expr *e = nullptr) {
+    if (e == nullptr) {
         e = parse_primary_expr(parent);
     }
 begin:
