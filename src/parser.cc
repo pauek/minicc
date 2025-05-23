@@ -526,13 +526,11 @@ Stmt *Parser::parse_decl_or_expr_stmt(AstNode *parent) {
 
     delete declstmt;
     _lexer.restore();
-    _lexer.save();
     auto *exprstmt = parse_exprstmt(parent);
     if (!_lexer.expect(Token::SemiColon)) {
         _error(exprstmt, Span(_lexer.pos()), _T("Expected ';' after expression."));
         _lexer.skip_to(";\n");  // resync...
     }
-    _lexer.discard();
     return exprstmt;
 }
 
