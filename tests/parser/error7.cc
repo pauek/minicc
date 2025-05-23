@@ -13,4 +13,4 @@ int main()
     }
 }
 [[err]]----------------------------------------------
-tests/parser/error7.cc[12:22-12:22]: Esperaba ';' después de la expresión.
+tests/parser/error7.cc[12:22-12:22]: Esperaba un ';'.

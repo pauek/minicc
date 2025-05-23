@@ -53,6 +53,7 @@ const char *Translator::_translations[1000][Translator::NUM_LANGS] = {
     {
      "Expected ';' after expression.", "Esperaba ';' después de la expresión.",
      "Esperava un ';' després de l'expressió.", },
+    {"Expected a ';'.", "Esperaba un ';'.", "Esperava un ';'."},
     {
      "You should specify a filename", "No has indicado el fichero de código",
      "No has indicat el fitxer de codi", },
