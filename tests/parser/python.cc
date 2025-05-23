@@ -6,3 +6,5 @@ def posicio_maxim(v, m):
       pos_max = pos
     pos += 1
   return(pos_max)
+[[err]]------------------------------------
+tests/parser/python.cc[1:20]: Expected identifier

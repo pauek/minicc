@@ -108,6 +108,7 @@ bool Token::is_type_qual() const {
         case Token::Static:
         case Token::Extern:
         case Token::Mutable:
+        case Token::Unsigned:
             return true;
         default:
             return false;

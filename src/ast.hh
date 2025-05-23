@@ -241,12 +241,13 @@ struct Identifier : ExprSubtype<AstNodeType::Identifier> {
 
 struct TypeSpec : public AstNodeSubtype<AstNodeType::TypeSpec> {
     enum Qualifier {
-        Const = 0b000001,
-        Volatile = 0b000010,
-        Mutable = 0b000100,
-        Register = 0b001000,
-        Auto = 0b010000,
-        Extern = 0b100000,
+        Const = 0b0000001,
+        Volatile = 0b0000010,
+        Mutable = 0b0000100,
+        Register = 0b0001000,
+        Auto = 0b0010000,
+        Extern = 0b0100000,
+        Unsigned = 0b1000000,
     };
 
     bool        reference = false;

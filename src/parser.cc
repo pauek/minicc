@@ -270,6 +270,9 @@ bool Parser::_parse_type_process_token(TypeSpec *type, Token tok, Pos p) {
             case Token::Extern:
                 type->add_qualifier(TypeSpec::Extern);
                 break;
+            case Token::Unsigned:
+                type->add_qualifier(TypeSpec::Unsigned);
+                break;
             default: /* TODO: acabar! */
                 break;
         }
@@ -483,11 +486,11 @@ Stmt *Parser::parse_decl_or_expr_stmt(AstNode *parent) {
         _lexer.discard();
         return declstmt;
     }
+
+    delete declstmt;
     _lexer.restore();
     _lexer.save();
-
     auto *exprstmt = parse_exprstmt(parent);
-    delete declstmt;
     _lexer.discard();
     return exprstmt;
 }
@@ -562,6 +565,7 @@ ExprStmt *Parser::parse_exprstmt(AstNode *parent, bool is_return) {
 
 Expr *Parser::parse_primary_expr(AstNode *parent) {
     Expr *e;
+
     Pos   ini = _lexer.pos();
     Token tok = _lexer.read_token();
     switch (tok.type) {
@@ -887,9 +891,14 @@ Expr *Parser::parse_callexpr(Expr *x) {
 Expr *Parser::parse_indexexpr(Expr *x) {
     auto *e = new IndexExpr();
     e->base = x;
+
+    _skip(e);
+
     _lexer.consume('[');
     if (_lexer.curr() != ']') {
+        _skip(e);
         e->index = parse_expr(e);
+        _skip(e);
         if (!_lexer.expect(Token::RBracket)) {
             _error(e, Span(_lexer.pos()), _T("Expected '%s' here.", "]"));
         }

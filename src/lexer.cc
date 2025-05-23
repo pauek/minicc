@@ -396,6 +396,7 @@ bool Lexer::expect(string word) {
 
 bool Lexer::expect(Token::Type type) {
     save();
+    skip();
     Token tok = read_token();
     if (tok.type == type) {
         discard();
