@@ -1,5 +1,5 @@
 // *******************************************************************************************
-// Email: alan.jordi.rocha@estudiantat.upc.edu
+// Email: ------------------------------
 // Exam: PRO1 - 2025 - Primavera C1_T1_C6S309  Start time: 2025-04-07 15:29:02.561646+02
 // Problem: X39980_ca  Submission: E004  Compiler: P1++  Time: 2025-04-07 16:50:41+02
 // Verdict: SC

@@ -980,6 +980,8 @@ Stmt *Parser::parse_for(AstNode *parent) {
         stmt->post = parse_expr(stmt);
     }
 
+    _skip(stmt);
+
 finish_for:
     if (!_lexer.expect(Token::RParen)) {
         _error(stmt, Span(_lexer.pos()), _T("Expected '%s' here.", ")"));
