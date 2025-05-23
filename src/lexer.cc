@@ -410,14 +410,13 @@ bool Lexer::expectOneOf(const vector<Token::Type>& types) {
     save();
     skip();
     Token tok = read_token();
-    auto it = find(types.begin(), types.end(), tok.type);
+    auto  it = find(types.begin(), types.end(), tok.type);
     if (it != types.end()) {
         discard();
         return true;
     }
     restore();
     return false;
-
 }
 
 // read_*
@@ -642,7 +641,7 @@ Token Lexer::read_number_literal() {
     while (isdigit(curr())) {
         next();
     }
-    if (curr() == '.') {
+    if (curr() == '.' || curr() == 'e') {
         next();
         return read_float_literal(t, ini);
     }
