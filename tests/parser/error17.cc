@@ -41,3 +41,5 @@ int main() {
         cout << is_bicolor(n) << endl;
     }
 }
+[[err]]------------------------
+tests/parser/error17.cc[27:13]: Esperaba un ';'.

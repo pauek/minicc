@@ -510,7 +510,11 @@ Stmt *Parser::parse_decl_or_expr_stmt(AstNode *parent) {
     }
     delete declstmt;
     _lexer.restore();
-    return parse_exprstmt(parent);
+    auto *exprstmt = parse_exprstmt(parent);
+    if (has_errors(exprstmt)) {
+        throw ParseError(exprstmt->span.begin, "Expected a declaration or an expression.");
+    }
+    return exprstmt;
 }
 
 Stmt *Parser::parse_jumpstmt(AstNode *parent) {
