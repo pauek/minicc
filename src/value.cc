@@ -12,20 +12,20 @@ void *Value::unknown = (void *)1;
 Value Value::null;
 
 void Value::_attach(Box *b) {
-    assert(b != 0);
+    assert(b != nullptr);
     _box = b;
     (_box->count)++;
 }
 
 void Value::_detach(Box *b) {
-    if (b and --(b->count) == 0) {
+    if (b != nullptr && --(b->count) == 0) {
         b->type->destroy(b->data);
         delete b;
     }
 }
 
 Value::Value(const Type *t, void *d, bool cnst) {
-    assert(t != 0);
+    assert(t != nullptr);
     _attach(new Box(t, d));
     _const = cnst;
 }
@@ -37,13 +37,13 @@ Value::Value(Box *box, bool cnst) {
 
 Value::~Value() {
     _detach(_box);
-    _box = 0;
+    _box = nullptr;
     _const = false;
 }
 
 Value::Value(const Value& v) {
     if (v.is_null()) {
-        _box = 0;
+        _box = nullptr;
     } else {
         _attach(v._box);
     }
@@ -53,7 +53,7 @@ Value::Value(const Value& v) {
 const Value& Value::operator=(const Value& v) {
     _detach(_box);
     if (v.is_null()) {
-        _box = 0;
+        _box = nullptr;
     } else {
         _attach(v._box);
     }
@@ -92,7 +92,7 @@ bool Value::assign(const Value& v) {
     }
     if (v.is_null()) {
         _detach(_box);
-        _box = 0;
+        _box = nullptr;
         return true;
     }
     if (!same_type_as(v)) {
@@ -114,16 +114,16 @@ bool Value::assign(const Value& v) {
 }
 
 void Value::clear_touched() {
-    if (_box != 0) {
+    if (_box != nullptr) {
         _box->touched = false;
-        if (_box->data != 0) {
+        if (_box->data != nullptr) {
             _box->type->clear_touched(_box->data);
         }
     }
 }
 
 void Value::touch() {
-    if (_box != 0) {
+    if (_box != nullptr) {
         _box->touched = true;
     }
 }
@@ -146,30 +146,30 @@ bool Value::equals(const Value& v) const {
     if (!same_type_as(v)) {
         return false;
     }
-    if (_box->data == 0) {
-        return v._box->data == 0;
+    if (_box->data == nullptr) {
+        return v._box->data == nullptr;
     }
-    if (v._box->data == 0) {
-        return _box->data == 0;
+    if (v._box->data == nullptr) {
+        return _box->data == nullptr;
     }
     return _box->type->equals(_box->data, v._box->data);
 }
 
 bool Value::less_than(const Value& v) const {
     assert(same_type_as(v));
-    if (_box->data == 0 or v._box->data == 0) {
+    if (_box->data == nullptr or v._box->data == nullptr) {
         return false;
     }
     return _box->type->less_than(_box->data, v._box->data);
 }
 
 string Value::type_name() const {
-    assert(_box != 0);
+    assert(_box != nullptr);
     return _box->type->TypeStr();
 }
 
 bool Value::contains_unknowns() const {
-    if (_box != 0 and _box->type->is(Type::Composite)) {
+    if (_box != nullptr and _box->type->is(Type::Composite)) {
         return _box->type->contains_unknowns(_box->data);
     }
     return false;
@@ -185,7 +185,7 @@ string Value::to_json() const {
             json << ",\"<touched>\":true";
         }
         json << ",\"data\":";
-        if (_box->data == 0) {
+        if (_box->data == nullptr) {
             json << "null";
         } else {
             json << _box->type->to_json(_box->data);

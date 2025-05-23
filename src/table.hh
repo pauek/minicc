@@ -40,7 +40,7 @@ struct Table {
 
     void set(std::string name, T value, int flags = 0) {
         Item *i = _get(name);
-        if (i == 0) {
+        if (i == nullptr) {
             tab.push_back(Item(name, value, flags));
         } else {
             i->_value.second = value;
@@ -50,7 +50,7 @@ struct Table {
 
     bool exists(std::string name) const {
         const Item *i = _get(name);
-        return i != 0;
+        return i != nullptr;
     }
 
     bool get(std::string name, T& res) const {
@@ -58,12 +58,12 @@ struct Table {
         if (i) {
             res = i->_value.second;
         }
-        return i != 0;
+        return i != nullptr;
     }
 
     bool has_flag(std::string name, Flag f) const {
         const Item *i = _get(name);
-        return (i != 0 and i->has_flag(f));
+        return (i != nullptr and i->has_flag(f));
     }
 
     void set_flag(std::string name, Flag f);
@@ -105,7 +105,7 @@ void Table<T>::remove_flag_all(Flag f) {
 template <typename T>
 void Table<T>::set_flag(std::string name, Flag f) {
     const Item *i = _get(name);
-    if (i != 0) {
+    if (i != nullptr) {
         i->_flags |= f;
     }
 }
@@ -113,7 +113,7 @@ void Table<T>::set_flag(std::string name, Flag f) {
 template <typename T>
 void Table<T>::remove_flag(std::string name, Flag f) {
     const Item *i = _get(name);
-    if (i != 0) {
+    if (i != nullptr) {
         i->_flags &= ~f;
     }
 }

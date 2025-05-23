@@ -10,7 +10,7 @@ void _error(std::string msg) {
 }
 
 // static + Globals
-const Type          *Void = 0;
+const Type          *Void = nullptr;
 const Type          *Any = (const Type *)1;
 const UnknownType   *UnknownType::self = new UnknownType();
 const Int           *Int::self = new Int();
@@ -83,8 +83,8 @@ const Type *TypeMap::get_type(TypeSpec *spec, Environment *topmost) {
         // traverse inner classes
         for (int i = 1; i < path.size(); i++) {
             const Type *inner = T->get_inner_class(path[i]->name);
-            if (inner == 0) {
-                return 0;
+            if (inner == nullptr) {
+                return nullptr;
             }
             T = inner;
         }
@@ -136,7 +136,7 @@ void *Reference::alloc(Value& x) const {
 }
 
 void Reference::destroy(void *data) const {
-    if (data == 0) {  // abstract Reference
+    if (data == nullptr) {  // abstract Reference
         return;
     }
     Value::Box *b = (Value::Box *)data;
@@ -179,8 +179,8 @@ Value Reference::deref(const Value& v) {
 
 void Reference::clear_touched(void *data) const {
     Value::Box *b = (Value::Box *)data;
-    assert(b != 0);
-    if (b->data != 0) {
+    assert(b != nullptr);
+    if (b->data != nullptr) {
         b->type->clear_touched(b->data);
     }
 }
@@ -611,12 +611,12 @@ Vector::Vector(const Type *celltype) : Class("vector"), _celltype(celltype) {
 
 const Type *Vector::instantiate(vector<const Type *>& subtypes) const {
     assert(subtypes.size() == 1);
-    assert(subtypes[0] != 0);
+    assert(subtypes[0] != nullptr);
     return new Vector(subtypes[0]);
 }
 
 string Vector::TypeStr() const {
-    string subtype = (_celltype != 0 ? _celltype->TypeStr() : "?");
+    string subtype = (_celltype != nullptr ? _celltype->TypeStr() : "?");
     return name() + "<" + subtype + ">";
 }
 
@@ -996,12 +996,12 @@ List::List(const Type *celltype) : Class("list"), _celltype(celltype) {
 
 const Type *List::instantiate(vector<const Type *>& subtypes) const {
     assert(subtypes.size() == 1);
-    assert(subtypes[0] != 0);
+    assert(subtypes[0] != nullptr);
     return new List(subtypes[0]);
 }
 
 string List::TypeStr() const {
-    string subtype = (_celltype != 0 ? _celltype->TypeStr() : "?");
+    string subtype = (_celltype != nullptr ? _celltype->TypeStr() : "?");
     return name() + "<" + subtype + ">";
 }
 
@@ -1066,7 +1066,7 @@ Pair::Pair(const Type *_1, const Type *_2) : Class("pair"), _first(_1), _second(
 }
 
 bool Pair::less_than(void *a, void *b) const {
-    assert(a != 0 and b != 0);
+    assert(a != nullptr and b != nullptr);
     pair<Value, Value>& A = *static_cast<pair<Value, Value> *>(a);
     pair<Value, Value>& B = *static_cast<pair<Value, Value> *>(b);
     return pair_less_than(A, B);
@@ -1104,14 +1104,14 @@ Value Pair::convert(Value x) const {
 
 const Type *Pair::instantiate(vector<const Type *>& subtypes) const {
     assert(subtypes.size() == 2);
-    assert(subtypes[0] != 0);
-    assert(subtypes[1] != 0);
+    assert(subtypes[0] != nullptr);
+    assert(subtypes[1] != nullptr);
     return new Pair(subtypes[0], subtypes[1]);
 }
 
 std::string Pair::TypeStr() const {
-    string _1 = (_first != 0 ? _first->TypeStr() : "?");
-    string _2 = (_second != 0 ? _second->TypeStr() : "?");
+    string _1 = (_first != nullptr ? _first->TypeStr() : "?");
+    string _2 = (_second != nullptr ? _second->TypeStr() : "?");
     return string("pair<") + _1 + "," + _2 + ">";
 }
 
@@ -1294,14 +1294,14 @@ Map::Map(const Type *k, const Type *v) : Class("map"), _key(k), _value(v) {
 
 const Type *Map::instantiate(vector<const Type *>& subtypes) const {
     assert(subtypes.size() == 2);
-    assert(subtypes[0] != 0);
-    assert(subtypes[1] != 0);
+    assert(subtypes[0] != nullptr);
+    assert(subtypes[1] != nullptr);
     return new Map(subtypes[0], subtypes[1]);
 }
 
 std::string Map::TypeStr() const {
-    string _1 = (_key != 0 ? _key->TypeStr() : "?");
-    string _2 = (_value != 0 ? _value->TypeStr() : "?");
+    string _1 = (_key != nullptr ? _key->TypeStr() : "?");
+    string _2 = (_value != nullptr ? _value->TypeStr() : "?");
     return string("map<") + _1 + "," + _2 + ">";
 }
 
@@ -1854,20 +1854,20 @@ void Environment::register_type(string name, const Type *type) {
 }
 
 const Type *Environment::get_type(TypeSpec *spec, Environment *topmost) {
-    if (topmost == 0) {
+    if (topmost == nullptr) {
         topmost = this;
     }
     const Type *type = _curr_namespace.get_type(spec, topmost);
-    if (type != 0) {
+    if (type != nullptr) {
         return type;
     }
     for (Environment *e : _other_namespaces) {
         type = e->get_type(spec, topmost);
-        if (type != 0) {
+        if (type != nullptr) {
             return type;
         }
     }
-    if (_parent != 0) {
+    if (_parent != nullptr) {
         return _parent->get_type(spec, topmost);
     }
     return 0;
@@ -1880,7 +1880,7 @@ void Environment::using_namespace(Environment *e) {
 void Environment::set_active(bool active) {
     if (active) {
         _active = true;
-        if (_parent != 0 and _parent->_active) {
+        if (_parent != nullptr and _parent->_active) {
             _parent->_active = false;
         }
     } else {
@@ -1897,7 +1897,7 @@ bool Environment::get(string name, Value& res) {
             return true;
         }
     }
-    if (_parent != 0) {
+    if (_parent != nullptr) {
         return _parent->get(name, res);
     }
     return false;
@@ -1914,7 +1914,7 @@ Value OverloadedValue::resolve(const vector<Value>& args) {
     list<pair<int, int>> scores;
     for (int i = 0; i < _candidates.size(); i++) {
         const Function *ftype = _candidates[i].type()->as<Function>();
-        assert(ftype != 0);
+        assert(ftype != nullptr);
         int score = ftype->check_signature(args);
         if (score != -1) {
             int curr = results.size();
@@ -2137,7 +2137,7 @@ void WithEnvironment::prepare_global_environment() {
 
 const Type *WithEnvironment::get_type(TypeSpec *spec) {
     Identifier *namespc = spec->get_potential_namespace_or_class();
-    if (namespc != 0) {
+    if (namespc != nullptr) {
         auto it = _namespaces.find(namespc->name);
         if (it != _namespaces.end()) {
             namespc->is_namespace = true;
@@ -2229,7 +2229,7 @@ string WithEnvironment::env2json() const {
     ostringstream json;
     json << "[";
     int i = 0;
-    while (e != 0) {
+    while (e != nullptr) {
         if (!e->hidden()) {
             if (i > 0) {
                 json << ",";

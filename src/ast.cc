@@ -367,7 +367,7 @@ bool has_errors(AstNode *node) {
     if (has_errors(n))  \
         return true;
 
-    if (node == 0) {
+    if (node == nullptr) {
         return false;
     }
     switch (node->type()) {

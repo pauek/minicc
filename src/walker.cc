@@ -17,7 +17,7 @@ struct ErrorCollector {
 
 std::vector<Error *> collect_errors(AstNode *ast) {
     std::vector<Error *> result;
-    if (ast == 0) {
+    if (ast == nullptr) {
         return result;
     }
     walk(ast, ErrorCollector(result));

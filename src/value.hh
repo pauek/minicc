@@ -8,9 +8,9 @@
 /*
 
 A value can be:
-1) null:      _box = 0.
-2) 'astract': _box != 0   and   _box->data == 0.
-3) normal:    _box != 0   and   (_box->type != 0 and _box->data != 0).
+1) null:      _box = nullptr.
+2) 'astract': _box != nullptr   and   _box->data == nullptr.
+3) normal:    _box != nullptr   and   (_box->type != nullptr and _box->data != nullptr).
 
 Abstract values are used to represent types (so that we can reuse
 environments for static analysis).
@@ -28,7 +28,7 @@ class Value {  // new value
 
         Box() : count(0), type(0), data(0), touched(false) {}
 
-        Box(const Type *t, void *d) : count(0), type(t), data(d), touched(d != 0) {}
+        Box(const Type *t, void *d) : count(0), type(t), data(d), touched(d != nullptr) {}
     };
 
     Box *_box;
@@ -44,9 +44,9 @@ class Value {  // new value
 
     explicit Value(
         const Type *t,
-        void       *d = 0,
+        void       *d = nullptr,
         bool        cnst = false
-    );  // with data = 0 creates an 'abstract' Value
+    );  // with data = nullptr creates an 'abstract' Value
     Value(const Value& v);
     explicit Value(int x);
     explicit Value(char x);
@@ -59,9 +59,9 @@ class Value {  // new value
     explicit Value(std::istream& i);
     ~Value();
 
-    const Type *type() const { return (_box == 0 ? 0 : _box->type); }
+    const Type *type() const { return (_box == nullptr ? nullptr : _box->type); }
 
-    void *data() const { return (_box == 0 ? 0 : _box->data); }
+    void *data() const { return (_box == nullptr ? nullptr : _box->data); }
 
     void touch();
 
@@ -81,18 +81,18 @@ class Value {  // new value
 
     static Value null;
 
-    bool is_null() const { return _box == 0; }
+    bool is_null() const { return _box == nullptr; }
 
-    bool is_abstract() const { return _box != 0 and _box->data == abstract; }
+    bool is_abstract() const { return _box != nullptr and _box->data == abstract; }
 
-    bool is_unknown() const { return _box != 0 and _box->data == unknown; }
+    bool is_unknown() const { return _box != nullptr and _box->data == unknown; }
 
     bool is_concrete() const {
-        return _box != 0 and (_box->data != unknown and _box->data != abstract);
+        return _box != nullptr and (_box->data != unknown and _box->data != abstract);
     }
 
     void to_abstract() const {
-        assert(_box != 0);
+        assert(_box != nullptr);
         _box->data = abstract;
     }
 

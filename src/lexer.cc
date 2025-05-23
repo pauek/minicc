@@ -32,12 +32,12 @@ string Lexer::substr(const Pos& ini, const Pos& fin) const {
 }
 
 CommentSeq *Lexer::skip(Skip skip) {
-    CommentSeq *cs = 0;
+    CommentSeq *cs = nullptr;
     int         endls_in_a_row = 0;
     while (!end()) {
         while (curr() == '/') {
             peek(1);
-            if (cs == 0) {
+            if (cs == nullptr) {
                 cs = new CommentSeq();
             }
             if (curr(1) == '*') {
@@ -57,7 +57,7 @@ CommentSeq *Lexer::skip(Skip skip) {
         }
         if (curr() == '\n') {
             endls_in_a_row++;
-            if (cs == 0) {
+            if (cs == nullptr) {
                 cs = new CommentSeq();
             }
             // WTF! Fix this shit...
@@ -363,7 +363,7 @@ int Lexer::_pos_to_idx(Pos p) const {
 }
 
 bool Lexer::peek(int offset) {
-    if (_in == 0 || !_in->good()) {
+    if (_in == nullptr || !_in->good()) {
         return false;
     }
     int k = _curr + offset;

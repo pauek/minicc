@@ -151,7 +151,7 @@ class Memory {
 template <typename T>
 bool Memory::read(ChunkIndex index, size_t offset, T& value) {
     const Chunk *chunk = get(index);
-    if (chunk == 0) {
+    if (chunk == nullptr) {
         return false;
     }
     /****************************************************************************

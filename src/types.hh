@@ -97,7 +97,7 @@ class Type {
 
     template <typename T>
     bool is() const {
-        return dynamic_cast<const T *>(this) != 0;
+        return dynamic_cast<const T *>(this) != nullptr;
     }
 
     template <typename T>
@@ -425,7 +425,7 @@ class Function : public BaseType<FuncPtr> {
 
     const Type *return_type() const { return _return_type; }
 
-    bool is_void() const { return _return_type == 0; }
+    bool is_void() const { return _return_type == nullptr; }
 
     int         check_signature(const std::vector<Value>& args) const;
     std::string TypeStr() const;
@@ -548,7 +548,7 @@ class Array : public BaseType<std::vector<Value>> {
 };
 
 class Vector : public Class<BaseType<std::vector<Value>>> {
-    const Type *_celltype;  // celltype == 0 means it's the template
+    const Type *_celltype;  // celltype == nullptr means it's the template
    public:
     Vector() : Class("vector"), _celltype(0) {}
 
@@ -576,7 +576,7 @@ class Vector : public Class<BaseType<std::vector<Value>>> {
 };
 
 class List : public Class<BaseType<std::list<Value>>> {
-    const Type *_celltype;  // celltype == 0 means it's the template
+    const Type *_celltype;  // celltype == nullptr means it's the template
    public:
     List() : Class("list"), _celltype(0) {}
 
@@ -605,7 +605,7 @@ class List : public Class<BaseType<std::list<Value>>> {
 };
 
 class Pair : public Class<BaseType<std::pair<Value, Value>>> {
-    const Type *_first, *_second;  // (_first == 0 && _second == 0) means it's the template
+    const Type *_first, *_second;  // (_first == nullptr && _second == nullptr) means it's the template
     typedef Class<BaseType<std::pair<Value, Value>>> Base;
 
    public:
@@ -636,7 +636,7 @@ class Pair : public Class<BaseType<std::pair<Value, Value>>> {
 
 class Map : public Class<BaseType<std::map<Value, Value>>> {
     const Type *_pair_type;
-    const Type *_key, *_value;  // (_first == 0 && _second == 0) means it's the template
+    const Type *_key, *_value;  // (_first == nullptr && _second == nullptr) means it's the template
     typedef Class<BaseType<std::map<Value, Value>>> Base;
 
    public:
@@ -784,7 +784,7 @@ class OStringStream : public OStream {
 // Value template methods (DO NOT MOVE)
 template <typename T>
 bool Value::is() const {
-    return !is_null() and dynamic_cast<const T *>(_box->type) != 0;
+    return !is_null() and dynamic_cast<const T *>(_box->type) != nullptr;
 }
 
 template <typename T>
@@ -822,7 +822,7 @@ class Environment {
     void         set_active(bool x);
     void         using_namespace(Environment *nmspc);
     void         register_type(std::string name, const Type *);
-    const Type  *get_type(TypeSpec *spec, Environment *topmost = 0);
+    const Type  *get_type(TypeSpec *spec, Environment *topmost = nullptr);
     bool         get(std::string name, Value& res);
 
     void set(std::string name, Value data, int flags = 0) { _tab.set(name, data, flags); }
@@ -856,7 +856,7 @@ class WithEnvironment {
 
     void popenv() {
         _env = _env->pop();
-        assert(_env != 0);
+        assert(_env != nullptr);
         actenv();
     }
 

@@ -271,12 +271,12 @@ bool Parser::_parse_type_process_token(TypeSpec *type, Token tok, Pos p) {
         }
         return true;
     } else if (tok.is_basic_type()) {
-        if (type->id != 0) {
+        if (type->id != nullptr) {
             _error(type, _T("Basic types are not templates"));
         }
         type->id = new Identifier(_lexer.substr(tok));
         return true;
-    } else if (type->id == 0 and tok.is_ident()) {
+    } else if (type->id == nullptr and tok.is_ident()) {
         type->id = parse_ident(type, tok, p);
         return true;
     } else if (tok.type == Token::Amp) {
@@ -309,12 +309,12 @@ TypeSpec *Parser::parse_typespec(AstNode *parent) {
 }
 
 AstNode *Parser::parse_func_or_var(AstNode *parent) {
-    CommentSeq *cseq[2] = {0, 0};
+    CommentSeq *cseq[2] = {nullptr, nullptr};
     Pos         ini = _lexer.pos();
 
     _lexer.save();
 
-    auto *typespec = parse_typespec(0);
+    auto *typespec = parse_typespec(nullptr);
     cseq[0] = _lexer.skip();
 
     Pos   id_ini = _lexer.pos();
@@ -329,7 +329,7 @@ AstNode *Parser::parse_func_or_var(AstNode *parent) {
         return stmt;
     }
 
-    auto *id = parse_ident(0, tok, id_ini);
+    auto *id = parse_ident(nullptr, tok, id_ini);
     cseq[1] = _lexer.skip();
 
     if (_lexer.curr() == '(') {
@@ -403,7 +403,7 @@ void Parser::parse_function(FuncDecl *fn) {
     _skip(fn);
 
     if (_lexer.curr() == ';') {
-        fn->block = 0;
+        fn->block = nullptr;
         _lexer.next();
     } else {
         fn->block = parse_block(fn);
@@ -1050,7 +1050,7 @@ ForStmt *Parser::_parse_for_classic(ForStmt *stmt) {
 
     if (_lexer.curr() == ';') {
         _lexer.next();
-        stmt->cond = 0;
+        stmt->cond = nullptr;
     } else {
         stmt->cond = parse_expr(stmt);
     }

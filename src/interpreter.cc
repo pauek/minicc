@@ -328,7 +328,7 @@ bool Interpreter::type_conversion(CallExpr *X, const vector<Value>& args) {
         Identifier *id = cast<Identifier>(X->func);
         TypeSpec    spec(id);
         const Type *type = get_type(&spec);
-        if (type != 0) {
+        if (type != nullptr) {
             if (args.size() != 1) {
                 _error(_T("La conversión de tipo recibe un solo argumento"));
             }
@@ -403,11 +403,11 @@ void Interpreter::eval(AstNode *ast) {
         case AstNodeType::FuncDecl: {
             FuncDecl *X = cast<FuncDecl>(ast);
             string    funcname = X->func_name();
-            auto     *return_type = get_type(X->return_typespec);  // return_type == 0 means 'void'
+            auto     *return_type = get_type(X->return_typespec);  // return_type == nullptr means 'void'
             Function *functype = new Function(return_type);
             for (auto p : X->params) {
                 const Type *param_type = get_type(p->typespec);
-                assert(param_type != 0);
+                assert(param_type != nullptr);
                 functype->add_params(param_type);
             }
             Value func = functype->mkvalue(new UserFunc(funcname, X, this));
@@ -421,12 +421,12 @@ void Interpreter::eval(AstNode *ast) {
             for (int i = 0; i < X->decls.size(); i++) {
                 DeclStmt&   decl = *X->decls[i];
                 const Type *field_type = get_type(decl.typespec);
-                assert(type != 0);
+                assert(type != nullptr);
                 for (DeclStmt::Item& item : decl.items) {
                     if (is_a<ArrayDecl>(item.decl)) {
                         Expr    *size_expr = cast<ArrayDecl>(item.decl)->sizes[0];
                         Literal *size_lit = cast<Literal>(size_expr);
-                        assert(size_lit != 0);
+                        assert(size_lit != nullptr);
                         assert(size_lit->kind == Literal::Int);
                         const int sz = size_lit->val.as_int;
                         // TODO: don't create new Array type every time?
@@ -444,9 +444,9 @@ void Interpreter::eval(AstNode *ast) {
             Value       v;
             // Try a namespace
             Identifier *namespc_or_class = X->get_potential_namespace_or_class();
-            if (namespc_or_class != 0) {
+            if (namespc_or_class != nullptr) {
                 Environment *namespc = get_namespace(namespc_or_class->name);
-                if (namespc != 0) {
+                if (namespc != nullptr) {
                     if (namespc->get(X->name, v)) {
                         goto found;
                     }
@@ -459,11 +459,11 @@ void Interpreter::eval(AstNode *ast) {
                 }
             }
             // Try a static variable in a class
-            if (namespc_or_class != 0) {
+            if (namespc_or_class != nullptr) {
                 Identifier  fid(namespc_or_class->name);
                 TypeSpec    spec(&fid);
                 const Type *type = get_type(&spec);
-                if (type != 0 and !type->get_static(X->name, v)) {
+                if (type != nullptr and !type->get_static(X->name, v)) {
                     _error(
                         _T("No se ha encontrado '%s' en la clase '%s'.",
                            X->name.c_str(),
@@ -680,7 +680,7 @@ void Interpreter::eval(AstNode *ast) {
             VarDecl    *X = cast<VarDecl>(ast);
             string      type_name = X->typespec->type_str();
             const Type *type = get_type(X->typespec);
-            if (type == 0) {
+            if (type == nullptr) {
                 _error(_T("El tipo '%s' no existe.", type_name.c_str()));
             }
             try {
@@ -711,7 +711,7 @@ void Interpreter::eval(AstNode *ast) {
                 sizes.push_back(sz);
             }
             const Type *celltype = get_type(X->typespec);
-            if (celltype == 0) {
+            if (celltype == nullptr) {
                 _error(_T("El tipo '%s' no existe", X->typespec->type_str().c_str()));
             }
             // TODO: don't create new Array type every time?
@@ -722,7 +722,7 @@ void Interpreter::eval(AstNode *ast) {
         case AstNodeType::ObjDecl: {
             ObjDecl    *X = cast<ObjDecl>(ast);
             const Type *type = get_type(X->typespec);
-            if (type != 0) {
+            if (type != nullptr) {
                 vector<Value> args;
                 eval_arguments(X->args, args);
                 string constructor_name = type->name();
@@ -779,7 +779,7 @@ void Interpreter::eval(AstNode *ast) {
             if (_curr.as<Bool>()) {
                 eval(X->then);
             } else {
-                if (X->els != 0) {
+                if (X->els != nullptr) {
                     eval(X->els);
                 }
             }
@@ -904,7 +904,7 @@ void Interpreter::eval(AstNode *ast) {
             }
             if (_curr.as<Bool>()) {
                 eval(X->then);
-            } else if (X->els != 0) {
+            } else if (X->els != nullptr) {
                 eval(X->els);
             } else {
                 assert(false);
@@ -985,7 +985,7 @@ void Interpreter::eval(AstNode *ast) {
             TypedefDecl *X = cast<TypedefDecl>(ast);
             string       name = X->decl->name;
             const Type  *type = get_type(X->decl->typespec);
-            assert(type != 0);
+            assert(type != nullptr);
             switch (X->decl->type()) {
                 case AstNodeType::VarDecl: {
                     const VarDecl *var = cast<VarDecl>(X->decl);

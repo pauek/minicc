@@ -7,7 +7,7 @@ using namespace std;
 #include "translator.hh"
 
 bool Stepper::step() {
-    _err = 0;
+    _err = nullptr;
     I.clear_touched();
     try {
         Todo t = Next;
@@ -114,12 +114,12 @@ void Stepper::Step(AstNode *ast) {
                 status(_T("The condition is 'true', we take the first branch."));
                 next = X->then;
             } else {
-                if (X->els != 0) {
+                if (X->els != nullptr) {
                     status(_T("The condition is 'false', we take the second branch."));
                     next = X->els;
                 } else {
                     status(_T("The condition is 'false', we continue."));
-                    next = 0;
+                    next = nullptr;
                 }
             }
             push(new IfVisitState(X->cond->span, next));
@@ -153,13 +153,13 @@ void Stepper::Step(AstNode *ast) {
             }
             Func           *fptr = I._curr.as<Callable>().func.as<Function>().ptr;
             const UserFunc *userfunc = dynamic_cast<const UserFunc *>(fptr);
-            if (userfunc == 0) {
+            if (userfunc == nullptr) {
                 I.call(I._curr, args);
                 push(new PopState(X->span));
                 return;
             }
             FuncDecl *fn = userfunc->decl;
-            assert(fn != 0);
+            assert(fn != nullptr);
             auto *s = new CallExprVisitState(X, fn);
             I.pushenv(fn->func_name());
             s->step(this);
@@ -245,7 +245,7 @@ Todo Stepper::BlockVisitState::step(Stepper *S) {
 Todo Stepper::IfVisitState::step(Stepper *S) {
     S->pop();
     Todo todo = Stop;
-    if (next == 0) {
+    if (next == nullptr) {
         todo = Next;
     } else {
         S->Step(next);
@@ -360,7 +360,7 @@ Todo Stepper::WriteExprVisitState::step(Stepper *S) {
 }
 
 void Stepper::visit_assignment(BinaryExpr *e) {
-    assert(e != 0);
+    assert(e != nullptr);
     I.eval(e->right);
     Value         right = Reference::deref(I._curr);
     ostringstream oss;

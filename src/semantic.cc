@@ -25,7 +25,7 @@ struct SemanticAnalyzer : public WithEnvironment {
     void check_arguments(
         const Function           *func_type,
         const std::vector<Value>& argvals,
-        std::vector<Expr *>      *args = 0
+        std::vector<Expr *>      *args = nullptr
     );
 
     bool bind_field(Value obj, string method_name);
@@ -343,7 +343,7 @@ bool SemanticAnalyzer::type_conversion(CallExpr *X, const vector<Value>& args) {
         auto    *id = cast<Identifier>(X->func);
         TypeSpec spec(id);
         auto    *type = get_type(&spec);
-        if (type != 0) {
+        if (type != nullptr) {
             if (args.size() != 1) {
                 X->add_error(_T("La conversión de tipo recibe un solo argumento."));
             }
@@ -379,7 +379,7 @@ void SemanticAnalyzer::check_arguments(
     }
     for (int i = 0; i < argvals.size(); i++) {
         auto *param_type = func_type->param(i);
-        if ((args != 0 and has_errors((*args)[i])) or param_type == Any) {
+        if ((args != nullptr and has_errors((*args)[i])) or param_type == Any) {
             continue;
         }
         string t1 = param_type->TypeStr();
@@ -388,7 +388,7 @@ void SemanticAnalyzer::check_arguments(
             arg_i = Reference::deref(arg_i);
         } else if (!arg_i.type()->is<Reference>()) {
             string cual = _T(numeral[i + 1]);
-            assert(args != 0);
+            assert(args != nullptr);
             (*args)[i]->add_error(_T("En el %s parámetro se requiere una variable.", cual.c_str()));
         }
         string t2 = arg_i.type()->TypeStr();
@@ -588,7 +588,7 @@ void SemanticAnalyzer::analyze(AstNode *node) {
             auto *X = cast<FuncDecl>(node);
             _curr_node = X;
             string    funcname = X->func_name();
-            auto     *return_type = get_type(X->return_typespec);  // return_type == 0 means 'void'
+            auto     *return_type = get_type(X->return_typespec);  // return_type == nullptr means 'void'
             Function *functype = new Function(return_type);
             // reverse use of '_ret' to check all return statements
             if (return_type) {
@@ -604,7 +604,7 @@ void SemanticAnalyzer::analyze(AstNode *node) {
                     X->add_error(p->ini, p->fin, _T("El parámetro %d está repetido.", i + 1));
                 }
                 auto *param_type = get_type(p->typespec);
-                if (param_type == 0) {
+                if (param_type == nullptr) {
                     X->add_error(
                         p->ini,
                         p->fin,
@@ -805,7 +805,7 @@ void SemanticAnalyzer::analyze(AstNode *node) {
             for (int i = 0; i < X->decls.size(); i++) {
                 DeclStmt& decl = *X->decls[i];
                 auto     *field_type = get_type(decl.typespec);
-                if (field_type == 0) {
+                if (field_type == nullptr) {
                     decl.add_error(_T("El tipo '%s' no existe.", decl.typespec->type_str().c_str()));
                     field_type = new UnknownType(decl.typespec->type_str());
                 }
@@ -848,9 +848,9 @@ void SemanticAnalyzer::analyze(AstNode *node) {
             Value v;
             // Try a namespace
             Identifier *namespc_or_class = X->get_potential_namespace_or_class();
-            if (namespc_or_class != 0) {
+            if (namespc_or_class != nullptr) {
                 Environment *namespc = get_namespace(namespc_or_class->name);
-                if (namespc != 0) {
+                if (namespc != nullptr) {
                     if (namespc->get(X->name, v)) {
                         goto found;
                     }
@@ -863,7 +863,7 @@ void SemanticAnalyzer::analyze(AstNode *node) {
                 }
             }
             // Try a static variable in a class
-            if (namespc_or_class != 0) {
+            if (namespc_or_class != nullptr) {
                 Identifier fid(namespc_or_class->name);
                 TypeSpec spec(&fid);
                 auto    *type = get_type(&spec);
@@ -939,7 +939,7 @@ void SemanticAnalyzer::analyze(AstNode *node) {
                 return;
             }
             auto *type = get_type(X->typespec);
-            if (type == 0) {
+            if (type == nullptr) {
                 string typestr = X->typespec->type_str();
                 type = new UnknownType(typestr);
             }
@@ -997,7 +997,7 @@ void SemanticAnalyzer::analyze(AstNode *node) {
                 }
             }
             auto *celltype = get_type(X->typespec);
-            if (celltype == 0) {
+            if (celltype == nullptr) {
                 X->add_error(_T("El tipo '%s' no existe", X->typespec->type_str().c_str()));
                 celltype = UnknownType::self;
             }
@@ -1030,7 +1030,7 @@ void SemanticAnalyzer::analyze(AstNode *node) {
             auto *X = cast<ObjDecl>(node);
             _curr_node = X;
             auto *type = get_type(X->typespec);
-            if (type != 0) {
+            if (type != nullptr) {
                 vector<Value>  argvals;
                 vector<Expr *> args;
                 eval_arguments(X->args, argvals);
@@ -1059,7 +1059,7 @@ void SemanticAnalyzer::analyze(AstNode *node) {
             auto *X = cast<DeclStmt>(node);
             _curr_node = X;
             auto *type = get_type(X->typespec);
-            if (type == 0) {
+            if (type == nullptr) {
                 string typestr = X->typespec->type_str();
                 X->add_error(_T("El tipo '%s' no existe.", typestr.c_str()));
             }
@@ -1080,7 +1080,7 @@ void SemanticAnalyzer::analyze(AstNode *node) {
                 analyze(X->expr);
             }
             if (X->is_return) {
-                if (X->expr == 0) {
+                if (X->expr == nullptr) {
                     if (!_ret.is_null()) {
                         X->add_error(
                             _T("La función debe devolver un '%s'.", _ret.type()->TypeStr().c_str())
@@ -1175,7 +1175,7 @@ void SemanticAnalyzer::analyze(AstNode *node) {
                 // TODO: call the function abstractly!!
                 // TODO
                 auto *return_type = func_type->return_type();
-                if (return_type != 0) {
+                if (return_type != nullptr) {
                     _curr = _ret = return_type->create_abstract();
                 } else {
                     _curr = _ret = Value::null;
@@ -1396,7 +1396,7 @@ void SemanticAnalyzer::analyze(AstNode *node) {
             _curr_node = X;
             string name = X->decl->name;
             auto  *type = get_type(X->decl->typespec);
-            assert(type != 0);
+            assert(type != nullptr);
             switch (X->decl->type()) {
                 case AstNodeType::VarDecl: {
                     auto *var = cast<VarDecl>(X->decl);
