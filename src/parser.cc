@@ -243,13 +243,6 @@ Identifier *Parser::parse_ident(AstNode *parent, Token tok, Pos ini) {
 }
 
 bool Parser::_parse_type_process_token(TypeSpec *type, Token tok, Pos p) {
-    if (tok.is_basic_type()) {
-        if (type->id != 0) {
-            _error(type, _T("Basic types are not templates"));
-        }
-        type->id = new Identifier(_lexer.substr(tok));
-        return true;
-    }
     if (tok.is_type_qual()) {
         switch (tok.type) {
             case Token::Const:
@@ -270,20 +263,28 @@ bool Parser::_parse_type_process_token(TypeSpec *type, Token tok, Pos p) {
             case Token::Unsigned:
                 type->add_qualifier(TypeSpec::Unsigned);
                 break;
+            case Token::Long:
+                type->add_qualifier(TypeSpec::Long);
+
             default: /* TODO: acabar! */
                 break;
         }
         return true;
-    }
-    if (type->id == 0 and tok.is_ident()) {
+    } else if (tok.is_basic_type()) {
+        if (type->id != 0) {
+            _error(type, _T("Basic types are not templates"));
+        }
+        type->id = new Identifier(_lexer.substr(tok));
+        return true;
+    } else if (type->id == 0 and tok.is_ident()) {
         type->id = parse_ident(type, tok, p);
         return true;
-    }
-    if (tok.type == Token::Amp) {
+    } else if (tok.type == Token::Amp) {
         type->reference = true;
         return true;
+    } else {
+        return false;
     }
-    return false;
 }
 
 TypeSpec *Parser::parse_typespec(AstNode *parent) {

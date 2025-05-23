@@ -248,6 +248,7 @@ struct TypeSpec : public AstNodeSubtype<AstNodeType::TypeSpec> {
         Register = 0b0001000,
         Extern = 0b0010000,
         Unsigned = 0b0100000,
+        Long = 0b1000000,
     };
 
     bool        reference = false;
