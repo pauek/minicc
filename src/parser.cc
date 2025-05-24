@@ -91,12 +91,7 @@ AstNode *Parser::parse() {
                     break;
                 }
                 string s = _lexer.substr(tok);
-                _error(
-                    prog,
-                    Span(_lexer.pos()),
-                    _T("Unexpected '%s' here.", s.c_str()),
-                    {.stopper = true}
-                );
+                throw ParseError(_lexer.pos(), _T("Unexpected '%s' here.", s.c_str()));
                 _lexer.read_token();
                 break;
         }
