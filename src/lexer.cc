@@ -4,11 +4,6 @@
 #include "ast.hh"
 using namespace std;
 
-void Lexer::_error(string msg) {
-    cerr << _pos << ": " << msg << endl;
-    exit(1);
-}
-
 void Lexer::consume(string word) {
     for (char c : word) {
         consume(c);
@@ -445,8 +440,7 @@ void Lexer::read_MultiLine_comment(Comment& c) {
         c.text += curr();
         next();
     }
-    _error("unfinished comment");
-    return;
+    throw ParseError(_pos, "Unfinished comment");
 }
 
 inline bool IsUpper(char c) {

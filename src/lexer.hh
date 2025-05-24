@@ -35,8 +35,6 @@ class Lexer {
 
     int _pos_to_idx(Pos p) const;
 
-    void _error(std::string msg);
-
    public:
     Lexer(std::istream *i) : _in(i), _linepos(1) { _reset(); }
 
