@@ -952,11 +952,16 @@ Expr *Parser::parse_fieldexpr(Expr *x, Token tok) {
     auto *e = new FieldExpr();
     e->base = x;
     e->pointer = (tok.type == Token::Arrow);
+
+    _skip(e);
     _lexer.consume(tok.type == Token::Arrow ? "->" : ".");
 
     _skip(e);
 
     Token id = _lexer.read_ident();
+    if (id.type == Token::Unknown) {
+        throw ParseError(id.pos, "Expected identifier.");
+    }
     e->field = _lexer.substr(id);
     e->span = Span(x->span.begin, _lexer.pos());
     return e;

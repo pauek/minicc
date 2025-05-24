@@ -438,7 +438,7 @@ Token Lexer::read_ident() {
     int  ini = _curr;
     char c = curr();
     if (!IsUpper(c) and !IsLower(c) and c != '_') {
-        return Token();
+        return tok;
     }
     next();
     c = curr();
