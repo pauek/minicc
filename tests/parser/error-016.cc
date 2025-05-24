@@ -3,4 +3,4 @@ void f() {
     else return true;
 }
 [[err]]------------------------------
-tests/parser/error16.cc[2:13]: Esperaba un ';'.
+tests/parser/error-016.cc[2:13]: Esperaba un ';'.

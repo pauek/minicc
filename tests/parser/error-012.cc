@@ -11,4 +11,4 @@ void ordena_per_insercio(vector<double>& v)
     }
 }
 [[err]]------------------------------------------------------
-tests/parser/error12.cc[6:40]: Esperaba ')' aquí.
+tests/parser/error-012.cc[6:40]: Esperaba ')' aquí.

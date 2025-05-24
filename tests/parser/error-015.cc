@@ -43,4 +43,4 @@ int main () {
     }
 }
 [[err]]---------------------------------
-tests/parser/error15.cc[29:5]: No esperaba 'else' aquí.
+tests/parser/error-015.cc[29:5]: No esperaba 'else' aquí.

@@ -42,4 +42,4 @@ int main() {
     }
 }
 [[err]]------------------------
-tests/parser/error17.cc[27:13]: Esperaba un ';'.
+tests/parser/error-017.cc[27:13]: Esperaba un ';'.

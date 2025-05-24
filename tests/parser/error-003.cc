@@ -44,4 +44,4 @@ int main(){
     cout << "SENAR: " << maxSenarCount;
 }
 [[err]]-----------------------------------------------
-tests/parser/error3.cc[14:20-14:20]: No termines los #includes con punto y coma.
+tests/parser/error-003.cc[14:20-14:20]: No termines los #includes con punto y coma.

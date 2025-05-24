@@ -27,4 +27,4 @@ void ordena_per_insercio(vector<double>& v)
     }
 }
 [[err]]--------------------------------------------
-tests/parser/error11.cc[12:35]: Expected identifier
+tests/parser/error-011.cc[12:35]: Expected identifier
