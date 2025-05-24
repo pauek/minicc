@@ -1,0 +1,6 @@
+/** TODO: Parse similarly for parameters as for DeclStmt... */
+
+int main(int argc, char *argv[]) {
+	int n;
+	cin >> n;
+}
