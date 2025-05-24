@@ -303,29 +303,6 @@ Token Lexer::read_token() {
         case '8':
         case '9':
             return read_number_literal();
-        case 'u':
-        case 'U':
-        case 'l':
-        case 'L':  // char-lit, string-lit, long
-            switch (curr(1)) {
-                case '\'':
-                    return read_string_or_char_literal('\'');
-                case '"':
-                    return read_string_or_char_literal('"');
-                case '0':
-                case '1':
-                case '2':
-                case '3':
-                case '4':
-                case '5':
-                case '6':
-                case '7':
-                case '8':
-                case '9':
-                    return read_number_literal();
-                default:
-                    return read_ident();
-            }
         case '"':
             return read_string_or_char_literal('"');
         case '\'':
