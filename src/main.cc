@@ -42,7 +42,7 @@ int cmd_tokenize(Args& args) {
     Lexer    L(&codefile);
     L.next();
     L.skip();
-    while (!L.end()) {
+    while (!L.at_end()) {
         Token tok = L.read_token();
         cout << tok.pos << ' ' << L.substr(tok) << endl;
         L.skip();

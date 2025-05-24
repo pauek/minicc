@@ -28,7 +28,7 @@ release: CXXFLAGS += -O3 -DNDEBUG
 release: minicc
 
 minicc: .dependencies $(OBJECTS)
-	$(CXX) -o minicc $(OBJECTS)
+	$(CXX) -o minicc $(CXXFLAGS) $(OBJECTS)
 
 clean:
 	@rm -f .dependencies minicc $(OBJECTS)

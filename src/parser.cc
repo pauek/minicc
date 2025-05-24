@@ -43,7 +43,7 @@ AstNode *Parser::parse() {
 
     _skip(prog);
 
-    while (!_lexer.end()) {
+    while (!_lexer.at_end()) {
         Pos   pos = _lexer.pos();
         Token tok = _lexer.peek_token();
         switch (tok.type) {
@@ -150,7 +150,7 @@ AstNode *Parser::parse_macro(AstNode *parent) {
         Pos p = _lexer.pos();
 
         _lexer.next();
-        if (_lexer.end()) {
+        if (_lexer.at_end()) {
             _error(inc, Span(p, _lexer.pos()), _T("'#include' missing closing '%c'", close));
             break;
         }
@@ -430,7 +430,7 @@ Block *Parser::parse_block(AstNode *parent) {
     _skip(block);
 
     bool closing_curly = false;
-    while (!_lexer.end()) {
+    while (!_lexer.at_end()) {
         if (_lexer.curr() == '}') {
             closing_curly = true;
             _lexer.next();
@@ -1252,6 +1252,9 @@ DeclStmt *Parser::parse_declstmt(AstNode *parent, bool is_typedef) {
     stmt->parent = parent;
     stmt->span.begin = _lexer.pos();
     TypeSpec *typespec = parse_typespec(stmt);
+    if (typespec == nullptr) {
+        throw ParseError(stmt->span.begin, "Expected a type.");
+    }
     stmt->typespec = typespec;
 
     _skip(stmt);  // before identifier
@@ -1260,6 +1263,13 @@ DeclStmt *Parser::parse_declstmt(AstNode *parent, bool is_typedef) {
     while (true) {
         Pos        item_ini = _lexer.pos();
         Token      id = _lexer.read_token();
+        if (id.type == Token::Unknown) {
+            if (_lexer.at_end()) {
+                throw ParseError(_lexer.pos(), "Reached end of file.");
+            } else {
+                throw ParseError(item_ini, "Unknown token.");
+            }
+        }
         string     name = _lexer.substr(id);
         Decl::Kind kind = Decl::Normal;
         if (id.type == Token::Star) {
@@ -1423,7 +1433,7 @@ StructDecl *Parser::parse_struct(AstNode *parent) {
     _skip(decl);
 
     tok = _lexer.peek_token();
-    while (!_lexer.end() and tok.type != Token::RBrace) {
+    while (!_lexer.at_end() and tok.type != Token::RBrace) {
         DeclStmt *field = parse_declstmt(decl);
         if (!_lexer.expect(Token::SemiColon)) {
             _error(field, Span(_lexer.pos()), _T("Expected '%s' here.", ";"), {.stopper = true});

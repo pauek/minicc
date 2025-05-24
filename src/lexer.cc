@@ -34,7 +34,7 @@ string Lexer::substr(const Pos& ini, const Pos& fin) const {
 CommentSeq *Lexer::skip(Skip skip) {
     CommentSeq *cs = nullptr;
     int         endls_in_a_row = 0;
-    while (!end()) {
+    while (!at_end()) {
         while (curr() == '/') {
             peek(1);
             if (cs == nullptr) {
@@ -87,7 +87,7 @@ finish:
 
 string Lexer::skip_to(string stop_set) {
     string s;
-    while (!end() and (stop_set.find(curr()) == string::npos)) {
+    while (!at_end() and (stop_set.find(curr()) == string::npos)) {
         s += curr();
         next();
     }
@@ -127,7 +127,10 @@ bool Lexer::next() {
         _pos.col++;
     }
     _curr++;
-    assert(_curr <= _text.size());
+    if (_curr > _text.size()) {
+        throw ParseError(_pos, "Lexer out of bounds!");
+    }
+
     if (_curr == _text.size()) {
         string line;
         if (!getline(*_in, line)) {
@@ -422,7 +425,7 @@ bool Lexer::expectOneOf(const vector<Token::Type>& types) {
 // read_*
 void Lexer::read_SingleLine_comment(Comment& c) {
     consume("//");
-    while (!end() and curr() != '\n') {
+    while (!at_end() and curr() != '\n') {
         c.text += curr();
         next();
     }
@@ -431,7 +434,7 @@ void Lexer::read_SingleLine_comment(Comment& c) {
 
 void Lexer::read_MultiLine_comment(Comment& c) {
     consume("/*");
-    while (!end()) {
+    while (!at_end()) {
         if (curr() == '*') {
             peek(1);
             if (curr(1) == '/') {
