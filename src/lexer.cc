@@ -621,7 +621,7 @@ Token Lexer::read_string_or_char_literal(char delim) {
                     cerr << "warning: unknown Escape sequence '\\" << curr() << "'" << endl;
             }
         } else if (curr() == '\n') {
-            _error("string inacabado");
+            throw ParseError(_pos, "String inacabado.");
             break;
         }
         next();
