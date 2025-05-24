@@ -1,6 +1,6 @@
-# CXX=clang++
-CXX=g++
-CXXFLAGS=-std=c++20
+CXX=clang++-19
+# CXX=g++
+CXXFLAGS=-std=c++20 -fxray-instrument
 
 SOURCES=$(wildcard *.cc)
 HEADERS=$(wildcard *.hh)
