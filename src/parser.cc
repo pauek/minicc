@@ -725,6 +725,9 @@ string Parser::_translate_Escapes(string s) {
                 case '\\':
                     result += '\\';
                     break;
+                case '0':
+                    result += '\0';
+                    break;
                 default:
                     // FIXME: Don't know where to handle this error...
                     cerr << "warning: unknown Escape sequence '\\" << s[i] << "'" << endl;

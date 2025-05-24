@@ -157,6 +157,8 @@ string Literal::escape(char c, char delim) {
             return (c == delim ? "\\\"" : "\"");
         case '\'':
             return (c == delim ? "\\\'" : "\'");
+        case '\0':
+            return "\\0";
         default:
             return string(1, c);
     }

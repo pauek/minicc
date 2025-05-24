@@ -615,6 +615,7 @@ Token Lexer::read_string_or_char_literal(char delim) {
                 case '\"':
                 case '\?':
                 case '\\':
+                case '0':
                     break;
                 default:
                     cerr << "warning: unknown Escape sequence '\\" << curr() << "'" << endl;
