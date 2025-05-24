@@ -110,6 +110,9 @@ AstNode *Parser::parse_macro(AstNode *parent) {
     Pos macro_ini = _lexer.pos();
     if (!_lexer.expect("include")) {
         Token  tok = _lexer.read_ident();
+        if (tok.type == Token::Unknown) {
+            throw ParseError(tok.pos, "Expected a macro name here.");
+        }
         string macro_name = _lexer.substr(tok);
         _lexer.skip_to("\n");
         Pos macro_fin = _lexer.pos();
