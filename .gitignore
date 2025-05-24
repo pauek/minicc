@@ -11,4 +11,5 @@ doc
 .dependweb
 build
 err
+out
 errors.log
