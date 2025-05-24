@@ -1162,6 +1162,7 @@ Stmt *Parser::parse_switch(AstNode *parent) {
 
 void Parser::_parse_expr_seq(AstNode *parent, vector<Expr *>& exprs) {
     exprs.push_back(parse_expr(parent, Expr::Eq));
+    _skip(parent);
     while (_lexer.curr() == ',') {
         _lexer.next();
         _skip(parent);
@@ -1261,8 +1262,8 @@ DeclStmt *Parser::parse_declstmt(AstNode *parent, bool is_typedef) {
 
     Pos after_comma = _lexer.pos(), after_id = _lexer.pos();
     while (true) {
-        Pos        item_ini = _lexer.pos();
-        Token      id = _lexer.read_token();
+        Pos   item_ini = _lexer.pos();
+        Token id = _lexer.read_token();
         if (id.type == Token::Unknown) {
             if (_lexer.at_end()) {
                 throw ParseError(_lexer.pos(), "Reached end of file.");

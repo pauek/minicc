@@ -478,6 +478,7 @@ void PrettyPrinter::print(AstNode *ast) {
                 out.write("(");
                 for (int i = 0; i < X->args.size(); i++) {
                     if (i > 0) {
+                        cp.comment_space();
                         out.write(", ");
                     }
                     cp.comment_space();
