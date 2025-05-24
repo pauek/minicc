@@ -211,6 +211,20 @@ void Walker<Delegate>::walk(AstNode *node) {
             }
             break;
         }
+        case AstNodeType::ForColonStmt: {
+            auto *X = cast<ForColonStmt>(node);
+            D.walk(X);
+            if (X->decl) {
+                walk(X->decl);
+            }
+            if (X->container) {
+                walk(X->container);
+            }
+            if (X->substmt) {
+                walk(X->substmt);
+            }
+            break;
+        }
         case AstNodeType::CallExpr: {
             auto *X = cast<CallExpr>(node);
             D.walk(X);
