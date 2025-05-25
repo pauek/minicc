@@ -38,6 +38,8 @@ struct Comment {
     std::string text;
 
     Comment(Kind k = None) : kind(k) {}
+
+    Comment(std::string text, Kind k = MultiLine) : text(text), kind(k) {}
 };
 
 struct CommentSeq {
@@ -55,6 +57,10 @@ struct CommentSeq {
     bool ends_with_endln() const {
         return !comments.empty() and comments.back().kind == Comment::EndLine;
     }
+
+    CommentSeq() {}
+
+    CommentSeq(std::vector<Comment>&& c) : comments(c) {}
 };
 
 class AstVisitor;
@@ -277,15 +283,19 @@ struct BinaryExpr : public ExprSubtype<AstNodeType::BinaryExpr> {
     Expr       *left, *right;
 
     BinaryExpr(Kind kind = Unknown) : kind(kind) {}
+    BinaryExpr(Kind kind, std::string op, Expr *left, Expr *right)
+        : kind(kind), op(op), left(left), right(right) {}
 };
 
 struct UnaryExpr : public Expr {
     Expr *expr = nullptr;
+
+    UnaryExpr(Expr *e) : expr(e) {}
 };
 
 template <AstNodeType T>
 struct UnaryExprSubtype : UnaryExpr {
-    UnaryExprSubtype() { type_ = T; }
+    UnaryExprSubtype(Expr *e = nullptr) : UnaryExpr(e) { type_ = T; }
 
     static bool is_instance(const AstNode *ast) { return ast->type() == T; }
 };
@@ -305,6 +315,9 @@ struct IncrExpr : public UnaryExprSubtype<AstNodeType::IncrExpr> {
     bool preincr;
 
     IncrExpr(Kind kind = Kind::Positive, bool pre = false) : kind(kind), preincr(pre) {}
+
+    IncrExpr(Expr *e, Kind kind = Kind::Positive, bool pre = false)
+        : UnaryExprSubtype<AstNodeType::IncrExpr>(e), kind(kind), preincr(pre) {}
 };
 
 struct NegExpr : public UnaryExprSubtype<AstNodeType::NegExpr> {};
@@ -469,7 +482,7 @@ struct DeclStmt : public StmtSubtype<AstNodeType::DeclStmt> {
 
     std::vector<Item> items;
 
-    DeclStmt(TypeSpec *t = nullptr) : typespec(t) {}
+    DeclStmt(TypeSpec *t = nullptr, std::vector<Item>&& items = {}) : typespec(t), items(items) {}
 
     void add(Item item) { items.push_back(item); }
 };

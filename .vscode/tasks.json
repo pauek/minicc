@@ -9,7 +9,8 @@
             "command": "make",
             "args": ["debug"],
             "problemMatcher": {
-                "base": "$gcc"
+                "base": "$gcc",
+                "fileLocation": ["search", { "include": ["src"] }]
             },
             "group": {
                 "kind": "build",

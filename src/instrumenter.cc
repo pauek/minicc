@@ -4,6 +4,7 @@ using namespace std;
 #include "ast.hh"
 #include "instrumenter.hh"
 #include "parser.hh"
+#include "walker.hh"
 
 constexpr const char *VAR_NAME = "__inst_iterations__";
 
@@ -35,7 +36,7 @@ void increment_variable_in_loops(Block *block, std::string name) {
                 add_var_incr(block, name);
             } else {
                 auto block = new Block();
-                add_var_incr(block, name);                
+                add_var_incr(block, name);
                 block->stmts.push_back(stmt->substmt);
                 stmt->substmt = block;
             }
@@ -47,20 +48,72 @@ void show_variable_at_end(Block *block, std::string name) {
     block->stmts.push_back(parse_expr_stmt("std::cerr << " + name + " << std::endl;"));
 }
 
-void Instrumenter::instrument(AstNode *node) {
-    assert(node->type() == AstNodeType::Program);
-    auto *program = cast<Program>(node);
+Stmt *incr_instrumentation_variable(string name) {
+    return new ExprStmt(new IncrExpr(new Identifier("__instr__" + name + "__")));
+}
 
-    auto t_int = new TypeSpec(new Identifier("int"));
+Stmt *decl_instrumentation_variable(string name) {
+    auto *stmt = new DeclStmt(
+        new TypeSpec(new Identifier("size_t")),
+        {
+            {new VarDecl("__instr__" + name + "__"), new Literal(Literal::Int, {.as_int = 0})}
+    }
+    );
+    return stmt;
+}
 
-    for (auto node : program->nodes) {
-        if (node->type() == AstNodeType::FuncDecl) {
-            FuncDecl *fn = cast<FuncDecl>(node);
-            if (fn->func_name() == "main") {
-                add_variable(fn->block, VAR_NAME, t_int);
-                increment_variable_in_loops(fn->block, VAR_NAME);
-                show_variable_at_end(fn->block, VAR_NAME);
+void add_instrumentation_declarations(Program *program) {
+    program->comments.insert(
+        program->comments.begin() + 1,
+        new CommentSeq({Comment(Comment::Kind::EndLine), Comment(Comment::Kind::EndLine)})
+    );
+    auto *decl = decl_instrumentation_variable("func_exec");
+    program->nodes.insert(program->nodes.begin(), decl);
+    decl->parent = program;
+}
+
+Stmt *show_instrumentation_variable(std::string name) {
+    return new ExprStmt(new BinaryExpr(
+        BinaryExpr::Kind::Shift,
+        "<<",
+        new Identifier("cerr"),
+        new BinaryExpr(
+            BinaryExpr::Kind::Shift,
+            "<<",
+            new Identifier("__instr__" + name + "__"),
+            new Identifier("endl")
+        )
+    ));
+}
+
+struct Instrumenter {
+    void walk(AstNode *node) {
+        switch (node->type()) {
+            case AstNodeType::Program: {
+                auto *program = cast<Program>(node);
+                add_instrumentation_declarations(program);
+                break;
             }
+            case AstNodeType::FuncDecl: {
+                auto *fndecl = cast<FuncDecl>(node);
+                auto& stmts = fndecl->block->stmts;
+                auto *var = incr_instrumentation_variable("func_exec");
+                stmts.insert(stmts.begin(), var);
+                var->parent = node;
+
+                if (fndecl->func_name() == "main") {
+                    auto *stmt = show_instrumentation_variable("func_exec");
+                    stmts.push_back(stmt);
+                    stmt->parent = fndecl->block;
+                }
+                break;
+            }
+            default:
+                break;
         }
     }
+};
+
+void instrument(AstNode *node) {
+    walk(node, Instrumenter());
 }

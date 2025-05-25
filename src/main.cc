@@ -195,7 +195,7 @@ int cmd_instrument(Args& args) {
         Parser   P(&codefile);
         AstNode *program = P.parse();
         if (!has_errors(program)) {
-            Instrumenter().instrument(program);
+            instrument(program);
         } else {
             show_errors(filename, program);
         }

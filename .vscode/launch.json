@@ -9,7 +9,7 @@
             "type": "cppdbg",
             "request": "launch",
             "program": "${workspaceFolder}/minicc",
-            "args": ["canparse", "tests/parser/error-024.cc"],
+            "args": ["instrument", "tests/parser/for_colon.cc"],
             "stopAtEntry": false,
             "cwd": "${workspaceFolder}",
             "environment": [],
