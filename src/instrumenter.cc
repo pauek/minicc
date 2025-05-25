@@ -1,92 +1,69 @@
 #include <iostream>
+#include <set>
 using namespace std;
 
 #include "ast.hh"
 #include "instrumenter.hh"
 #include "parser.hh"
+#include "pprint.hh"
 #include "walker.hh"
 
-constexpr const char *VAR_NAME = "__inst_iterations__";
+constexpr const char *PREFIX = "__INSTRUMENTATION__";
 
-ExprStmt *parse_expr_stmt(std::string code) {
-    istringstream iss(code);
-    Parser        parser(&iss);
-    return parser.parse_exprstmt(nullptr);
-}
+constexpr const char *FUNC_EXEC = "function_calls";
+constexpr const char *LOOP_ITER = "loop_iterations";
 
-void add_variable(Block *block, std::string name, TypeSpec *typespec) {
-    auto stmt = new DeclStmt(typespec);
-    stmt->add({new VarDecl(name), new Literal(Literal::Int, {.as_int = 0})});
-    block->stmts.insert(block->stmts.begin(), stmt);
-}
-
-void add_var_incr(Block *block, std::string name) {
-    auto incr = new IncrExpr(IncrExpr::Kind::Positive, true);
-    incr->expr = new Identifier(name);
-    auto stmt = new ExprStmt(incr);
-    block->stmts.insert(block->stmts.begin(), stmt);
-}
-
-void increment_variable_in_loops(Block *block, std::string name) {
-    for (auto node : block->stmts) {
-        if (node->type() == AstNodeType::WhileStmt) {
-            WhileStmt *stmt = cast<WhileStmt>(node);
-            if (stmt->substmt->type() == AstNodeType::Block) {
-                Block *block = cast<Block>(stmt->substmt);
-                add_var_incr(block, name);
-            } else {
-                auto block = new Block();
-                add_var_incr(block, name);
-                block->stmts.push_back(stmt->substmt);
-                stmt->substmt = block;
-            }
-        }
-    }
-}
-
-void show_variable_at_end(Block *block, std::string name) {
-    block->stmts.push_back(parse_expr_stmt("std::cerr << " + name + " << std::endl;"));
-}
-
-Stmt *incr_instrumentation_variable(string name) {
-    return new ExprStmt(new IncrExpr(new Identifier("__instr__" + name + "__")));
-}
-
-Stmt *decl_instrumentation_variable(string name) {
-    auto *stmt = new DeclStmt(
-        new TypeSpec(new Identifier("size_t")),
-        {
-            {new VarDecl("__instr__" + name + "__"), new Literal(Literal::Int, {.as_int = 0})}
-    }
-    );
-    return stmt;
-}
-
-void add_instrumentation_declarations(Program *program) {
-    program->comments.insert(
-        program->comments.begin() + 1,
-        new CommentSeq({Comment(Comment::Kind::EndLine), Comment(Comment::Kind::EndLine)})
-    );
-    auto *decl = decl_instrumentation_variable("func_exec");
-    program->nodes.insert(program->nodes.begin(), decl);
-    decl->parent = program;
-}
-
-Stmt *show_instrumentation_variable(std::string name) {
-    return new ExprStmt(new BinaryExpr(
-        BinaryExpr::Kind::Shift,
-        "<<",
-        new Identifier("cerr"),
-        new BinaryExpr(
-            BinaryExpr::Kind::Shift,
-            "<<",
-            new Identifier("__instr__" + name + "__"),
-            new Identifier("endl")
-        )
-    ));
-}
+const vector<const char *> ALL_VARS = {FUNC_EXEC, LOOP_ITER};
 
 struct Instrumenter {
+    set<AstNode *> instrumented_nodes_;
+
+    string varname(string name) { return PREFIX + name + "__"; }
+
+    Stmt *parse_stmt_(string code, AstNode *parent = nullptr) {
+        Stmt *stmt = parse_stmt(code, parent);
+        instrumented_nodes_.insert(stmt);
+        return stmt;
+    }
+
+    AstNode *parse_macro_(string code, AstNode *parent = nullptr) {
+        AstNode *node = parse_macro(code, parent);
+        instrumented_nodes_.insert(node);
+        return node;
+    }
+
+    void add_loop_iterations_incr(Block *block) {
+        auto& stmts = block->stmts;
+        stmts.insert(stmts.begin(), parse_stmt_("++" + varname(LOOP_ITER) + ";", block));
+    }
+
+    void add_instrumentation_declarations(Program *program) {
+        for (auto name : ALL_VARS) {
+            program->comments.insert(
+                program->comments.begin() + 1, new CommentSeq({Comment(Comment::Kind::EndLine)})
+            );
+            AstNode *new_node = parse_stmt_("size_t " + varname(name) + " = 0;", program);
+            program->nodes.insert(program->nodes.begin(), new_node);
+        }
+        program->comments.insert(
+            program->comments.begin() + 1, new CommentSeq({Comment(Comment::Kind::EndLine)})
+        );
+        program->nodes.insert(program->nodes.begin(), parse_macro_("#include <cstddef>", program));
+    }
+
+    void add_instrumentation_output(Block *block) {
+        auto& stmts = block->stmts;
+        for (auto name : ALL_VARS) {
+            stmts.insert(
+                stmts.end(),
+                parse_stmt_(
+                    "std::cout << \"" + string(name) + "\" << " + varname(name) + " << std::endl;",
+                    block
+                )
+            );
+        }
+    }
+
     void walk(AstNode *node) {
         switch (node->type()) {
             case AstNodeType::Program: {
@@ -97,16 +74,61 @@ struct Instrumenter {
             case AstNodeType::FuncDecl: {
                 auto *fndecl = cast<FuncDecl>(node);
                 if (fndecl->block != nullptr) {
-                    auto& stmts = fndecl->block->stmts;
-                    auto *var = incr_instrumentation_variable("func_exec");
-                    stmts.insert(stmts.begin(), var);
-                    var->parent = node;
-
                     if (fndecl->func_name() == "main") {
-                        auto *stmt = show_instrumentation_variable("func_exec");
-                        stmts.push_back(stmt);
-                        stmt->parent = fndecl->block;
+                        add_instrumentation_output(fndecl->block);
+                    } else {
+                        auto& stmts = fndecl->block->stmts;
+                        stmts.insert(
+                            stmts.begin(), parse_stmt_("++" + varname(FUNC_EXEC) + ";\n", node)
+                        );
                     }
+                }
+                break;
+            }
+            case AstNodeType::WhileStmt: {
+                auto *whileStmt = cast<WhileStmt>(node);
+                if (whileStmt->substmt->type() != AstNodeType::Block) {
+                    whileStmt->substmt = new Block({whileStmt->substmt}, whileStmt);
+                }
+                add_loop_iterations_incr(cast<Block>(whileStmt->substmt));
+                break;
+            }
+            case AstNodeType::ForStmt: {
+                auto *forStmt = cast<ForStmt>(node);
+                if (forStmt->substmt->type() != AstNodeType::Block) {
+                    forStmt->substmt = new Block({forStmt->substmt}, forStmt);
+                }
+                add_loop_iterations_incr(cast<Block>(forStmt->substmt));
+                break;
+            }
+            case AstNodeType::ForColonStmt: {
+                auto *forColonStmt = cast<ForColonStmt>(node);
+                if (forColonStmt->substmt->type() != AstNodeType::Block) {
+                    forColonStmt->substmt = new Block({forColonStmt->substmt}, forColonStmt);
+                }
+                add_loop_iterations_incr(cast<Block>(forColonStmt->substmt));
+                break;
+            }
+            case AstNodeType::BinaryExpr: {
+                auto *expr = cast<BinaryExpr>(node);
+                if (expr->parent == nullptr || expr->parent->type() != AstNodeType::ExprStmt) {
+                    break;
+                }
+                // Do not instrument already instrumented nodes ;)
+                auto it = instrumented_nodes_.find(expr->parent);
+                if (it != instrumented_nodes_.end()) {
+                    break;
+                }
+                auto left_most = expr->left;
+                while (left_most->type() == AstNodeType::BinaryExpr) {
+                    left_most = cast<BinaryExpr>(left_most)->left;
+                }
+                auto sleft = spprint(expr->left);
+                if (sleft != "cout" && sleft != "std::cout") {
+                    break;
+                }
+                if (expr->op != "<<") {
+                    break;
                 }
                 break;
             }

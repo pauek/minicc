@@ -126,7 +126,7 @@ void _semantic(AstNode *program, istream& Sin, ostream& Sout) {
 }
 
 void _print(AstNode *program, istream& Sin, ostream& Sout) {
-    pretty_print(program, Sout);
+    pprint(program, Sout);
 }
 
 void _eval(AstNode *program, istream& Sin, ostream& Sout) {

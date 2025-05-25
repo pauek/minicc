@@ -1,7 +1,10 @@
 #ifndef PARSER_H
 #define PARSER_H
+
 #include <fstream>
+#include <istream>
 #include <set>
+
 #include "ast.hh"
 #include "error.hh"
 #include "lexer.hh"
@@ -97,4 +100,15 @@ inline AstNode *parse_file(std::string filename) {
     std::ifstream codefile(filename);
     return parse(codefile);
 }
+
+inline Stmt *parse_stmt(std::string code, AstNode *parent = nullptr) {
+    std::istringstream iss(code);
+    return Parser(&iss).parse_stmt(parent);
+}
+
+inline AstNode *parse_macro(std::string code, AstNode *parent = nullptr) {
+    std::istringstream iss(code);
+    return Parser(&iss).parse_macro(parent);
+}
+
 #endif

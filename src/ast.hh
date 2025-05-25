@@ -435,6 +435,13 @@ struct StmtSubtype : Stmt {
 
 struct Block : public StmtSubtype<AstNodeType::Block> {
     std::vector<Stmt *> stmts;
+
+    Block(const std::vector<Stmt *>&& stmts = {}, AstNode *par = nullptr) : stmts(stmts) {
+        for (auto *stmt : stmts) {
+            stmt->parent = this;
+        }
+        parent = par;
+    }
 };
 
 struct StmtError : public StmtSubtype<AstNodeType::StmtError> {

@@ -796,12 +796,12 @@ void PrettyPrinter::print(AstNode *ast) {
     }
 }
 
-void pretty_print(AstNode *ast, ostream& out) {
+void pprint(AstNode *ast, ostream& out) {
     PrettyPrinter(out).print(ast);
 }
 
-string pretty_to_string(AstNode *ast) {
+string spprint(AstNode *ast) {
     stringstream ss;
-    pretty_print(ast, ss);
+    pprint(ast, ss);
     return ss.str();
 }

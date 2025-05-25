@@ -1,7 +1,7 @@
 BUILD_TARGETS := minicc release debug
 OTHER_TARGETS := format clean
 
-all: minicc
+all: debug
 
 $(BUILD_TARGETS):
 	@$(MAKE) -C src $@

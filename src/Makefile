@@ -8,18 +8,17 @@ OBJECTS=$(patsubst %.cc,%.o,$(SOURCES))
 
 all: debug
 
-
 .dependencies: $(SOURCES) $(HEADERS)
 	@echo -n "Computing dependencies... "
 	@$(CXX) $(CXXFLAGS) -MM $^ > .dependencies
 	@echo done.
 
--include .dependencies
-
-src/version.hh: Makefile
+src/version.hh: .dependencies
 	VERSION := $(shell date +%s)
 	@echo "#define VERSION $(VERSION)" > src/version.hh
 	@echo "New version ($(VERSION))"
+
+-include .dependencies
 
 debug: CXXFLAGS += -g3 -O0
 debug: minicc

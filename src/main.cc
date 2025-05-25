@@ -114,7 +114,7 @@ int cmd_prettyprint(Args& args) {
     string filename = args.shift();
     try {
         AstNode *program = parse_file(filename);
-        pretty_print(program);
+        pprint(program);
     } catch (Error *e) {
         cerr << _T("Pretty Print Error")
              << ": " << e->msg << endl;
@@ -187,24 +187,36 @@ int cmd_step(Args& args) {
     }
 }
 
+string output_file(string filename, string extra) {
+    int pos = filename.find_last_of('.');
+    if (pos == string::npos) {
+        return filename + "_" + extra;
+    } else {
+        return filename.substr(0, pos) + "_" + extra + filename.substr(pos);
+    }
+}
+
 int cmd_instrument(Args& args) {
     bool errors = false;
     while (!args.empty()) {
         string filename = args.shift();
         try {
-            cout << filename << ":" << endl;
             ifstream codefile(filename);
             Parser   P(&codefile);
             AstNode *program = P.parse();
             if (!has_errors(program)) {
                 instrument(program);
+                ofstream fout(output_file(filename, "instr"));
+                pprint(program, fout);
             } else {
                 show_errors(filename, program);
             }
-            pretty_print(program);
-            cout << endl;
+            cout << filename << endl;
         } catch (ParseError& e) {
             cerr << filename << ':' << e.pos << ": " << e.msg << endl;
+            errors = true;
+        } catch (std::out_of_range& e) {
+            cerr << filename << ": Out of Range: " << e.what() << endl;
             errors = true;
         }
     }

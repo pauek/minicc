@@ -109,7 +109,7 @@ AstNode *Parser::parse_macro(AstNode *parent) {
 
     Pos macro_ini = _lexer.pos();
     if (!_lexer.expect("include")) {
-        Token  tok = _lexer.read_ident();
+        Token tok = _lexer.read_ident();
         if (tok.type == Token::Unknown) {
             throw ParseError(tok.pos, "Expected a macro name here.");
         }
@@ -878,6 +878,7 @@ Expr *Parser::parse_expr(AstNode *parent, BinaryExpr::Kind max) {
             e->op = _lexer.substr(tok);
             e->kind = kind;
             e->comments.push_back(c0);
+            e->parent = parent;
 
             _skip(e);
 
@@ -1038,7 +1039,7 @@ Stmt *Parser::parse_for(AstNode *parent) {
 ForColonStmt *Parser::_parse_for_colon(Stmt *decl) {
     ForColonStmt *stmt = new ForColonStmt();
     stmt->decl = decl;
-    decl->parent = stmt; // FIXME: Memory leak of the ForStmt object above...
+    decl->parent = stmt;  // FIXME: Memory leak of the ForStmt object above...
 
     _skip(stmt);
 

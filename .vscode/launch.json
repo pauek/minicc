@@ -9,7 +9,10 @@
             "type": "cppdbg",
             "request": "launch",
             "program": "${workspaceFolder}/minicc",
-            "args": ["instrument", "~/Jutge/research/get-problem-submissions/P14130_ca/*.cc"],
+            "args": [
+                "instrument",
+                "~/Jutge/research/get-problem-submissions/P90620_ca/aaaa1508671740111a5d7523aa6baa629e0d9b71a75f74770ed1d93393fc7875.cc"
+            ],
             "stopAtEntry": false,
             "cwd": "${workspaceFolder}",
             "environment": [],
