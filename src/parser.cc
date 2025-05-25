@@ -1038,6 +1038,7 @@ Stmt *Parser::parse_for(AstNode *parent) {
 ForColonStmt *Parser::_parse_for_colon(Stmt *decl) {
     ForColonStmt *stmt = new ForColonStmt();
     stmt->decl = decl;
+    decl->parent = stmt; // FIXME: Memory leak of the ForStmt object above...
 
     _skip(stmt);
 

@@ -507,7 +507,10 @@ void PrettyPrinter::print(AstNode *ast) {
                     print(item.init);
                 }
             }
-            out.write(";");
+            // UGLY: we need to make an exception for ForColonStmt... :(
+            if (X->parent != nullptr && X->parent->type() != AstNodeType::ForColonStmt) {
+                out.write(";");
+            }
             break;
         }
         case AstNodeType::ExprStmt: {
