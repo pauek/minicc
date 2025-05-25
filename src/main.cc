@@ -188,21 +188,27 @@ int cmd_step(Args& args) {
 }
 
 int cmd_instrument(Args& args) {
+    bool errors = false;
     while (!args.empty()) {
         string filename = args.shift();
-        cout << filename << ":" << endl;
-        ifstream codefile(filename);
-        Parser   P(&codefile);
-        AstNode *program = P.parse();
-        if (!has_errors(program)) {
-            instrument(program);
-        } else {
-            show_errors(filename, program);
+        try {
+            cout << filename << ":" << endl;
+            ifstream codefile(filename);
+            Parser   P(&codefile);
+            AstNode *program = P.parse();
+            if (!has_errors(program)) {
+                instrument(program);
+            } else {
+                show_errors(filename, program);
+            }
+            pretty_print(program);
+            cout << endl;
+        } catch (ParseError& e) {
+            cerr << filename << ':' << e.pos << ": " << e.msg << endl;
+            errors = true;
         }
-        pretty_print(program);
-        cout << endl;
     }
-    return 0;
+    return errors;
 }
 
 vector<Command> commands = {

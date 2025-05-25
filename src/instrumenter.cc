@@ -96,15 +96,17 @@ struct Instrumenter {
             }
             case AstNodeType::FuncDecl: {
                 auto *fndecl = cast<FuncDecl>(node);
-                auto& stmts = fndecl->block->stmts;
-                auto *var = incr_instrumentation_variable("func_exec");
-                stmts.insert(stmts.begin(), var);
-                var->parent = node;
+                if (fndecl->block != nullptr) {
+                    auto& stmts = fndecl->block->stmts;
+                    auto *var = incr_instrumentation_variable("func_exec");
+                    stmts.insert(stmts.begin(), var);
+                    var->parent = node;
 
-                if (fndecl->func_name() == "main") {
-                    auto *stmt = show_instrumentation_variable("func_exec");
-                    stmts.push_back(stmt);
-                    stmt->parent = fndecl->block;
+                    if (fndecl->func_name() == "main") {
+                        auto *stmt = show_instrumentation_variable("func_exec");
+                        stmts.push_back(stmt);
+                        stmt->parent = fndecl->block;
+                    }
                 }
                 break;
             }

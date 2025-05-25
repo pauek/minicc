@@ -9,7 +9,7 @@
             "type": "cppdbg",
             "request": "launch",
             "program": "${workspaceFolder}/minicc",
-            "args": ["instrument", "tests/parser/for_colon.cc"],
+            "args": ["instrument", "~/Jutge/research/get-problem-submissions/P14130_ca/*.cc"],
             "stopAtEntry": false,
             "cwd": "${workspaceFolder}",
             "environment": [],
