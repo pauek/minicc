@@ -93,6 +93,8 @@ void parse_test_file(string filename, string& code, string& in, string& out, str
             acum = &in;
         } else if (label == "err") {
             acum = &err;
+        } else if (label == "end") {
+            // ignore
         }
     }
 }

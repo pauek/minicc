@@ -17,7 +17,7 @@ using namespace std;
 int main() {
     int a = 1;
     while (1) {
-        ++__INSTRUMENTATION__loop_iterations___;
+        ++__INSTRUMENTATION__loop_iterations__;
         a++;
     }
     std::cout << "function_calls" << __INSTRUMENTATION__function_calls__ << std::endl;
