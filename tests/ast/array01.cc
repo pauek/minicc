@@ -7,7 +7,7 @@ int main() {
     int c[2][3][4];
     int d[2][2][5][10];
 }
-[[out]]--------------------------------------------------
+// [[out]]
 Program{
     Include(<iostream>)
     Using(std)

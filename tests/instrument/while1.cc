@@ -1,25 +1,17 @@
 #include <iostream>
 using namespace std;
 
-int main() {
-    int a = 1;
-    while (1) {
-        a++;
-    }
-}
-// [[out]]-------------
-#include <cstddef>
-size_t __INSTRUMENTATION__loop_iterations__ = 0;
-size_t __INSTRUMENTATION__function_calls__ = 0;
-#include <iostream>
-using namespace std;
+void f() {}
 
 int main() {
     int a = 1;
-    while (1) {
-        ++__INSTRUMENTATION__loop_iterations__;
-        a++;
+    for (int i = 0; i < 100; i++) {
+        if (i % 2 == 0) {
+            f();
+        }
     }
-    std::cout << "function_calls" << __INSTRUMENTATION__function_calls__ << std::endl;
-    std::cout << "loop_iterations" << __INSTRUMENTATION__loop_iterations__ << std::endl;
 }
+/* [[out]]-------------
+function_calls 50
+loop_iterations 100
+[[end]] */

@@ -137,7 +137,16 @@ void _print(AstNode *program, istream& Sin, ostream& Sout) {
 
 void _instrument(AstNode *program, istream& Sin, ostream& Sout) {
     instrument(program);
-    pprint(program, Sout);
+    ofstream fout("__program__.cc");
+    pprint(program, fout);
+    system("g++ -o __exe__ __program__.cc");
+    system("./__exe__ > __output__");
+    ifstream fin("__output__");
+    string line;
+    while (getline(fin, line)) {
+        Sout << line << endl;
+    }
+    system("rm __program__.cc __output__ __exe__");
 }
 
 void _eval(AstNode *program, istream& Sin, ostream& Sout) {

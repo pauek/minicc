@@ -57,7 +57,7 @@ struct Instrumenter {
             stmts.insert(
                 stmts.end(),
                 parse_stmt_(
-                    "std::cout << \"" + string(name) + "\" << " + varname(name) + " << std::endl;",
+                    "std::cout << \"" + string(name) + " \" << " + varname(name) + " << std::endl;",
                     block
                 )
             );
