@@ -1118,8 +1118,7 @@ std::string Pair::TypeStr() const {
 std::string Pair::to_json(void *data) const {
     pair<Value, Value> *p = (pair<Value, Value> *)data;
     ostringstream       json;
-    json << "{\"<type>\":\"pair\","
-         << "\"first\":" << p->first.to_json() << ","
+    json << "{\"<type>\":\"pair\"," << "\"first\":" << p->first.to_json() << ","
          << "\"second\":" << p->second.to_json() << "}";
     return json.str();
 }
@@ -1313,8 +1312,8 @@ std::string Map::to_json(void *data) const {
         if (it != the_map.begin()) {
             json << ", ";
         }
-        json << "{\"key\":" << it->first.to_json() << "\", "
-             << "\"value\":" << it->second.to_json() << "}";
+        json << "{\"key\":" << it->first.to_json() << "\", " << "\"value\":" << it->second.to_json()
+             << "}";
     }
     json << "]}";
     return json.str();

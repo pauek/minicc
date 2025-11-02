@@ -10,7 +10,10 @@ struct UserFunc : public Func {
 
     UserFunc(std::string n, FuncDecl *d) : Func(n), decl(d) {}
 
-    Value call(Value self, const std::vector<Value>& args) { assert(false); return Value(); }
+    Value call(Value self, const std::vector<Value>& args) {
+        assert(false);
+        return Value();
+    }
 };
 
 struct SemanticAnalyzer : public WithEnvironment {
@@ -587,8 +590,9 @@ void SemanticAnalyzer::analyze(AstNode *node) {
         case AstNodeType::FuncDecl: {
             auto *X = cast<FuncDecl>(node);
             _curr_node = X;
-            string    funcname = X->func_name();
-            auto     *return_type = get_type(X->return_typespec);  // return_type == nullptr means 'void'
+            string funcname = X->func_name();
+            auto  *return_type =
+                get_type(X->return_typespec);  // return_type == nullptr means 'void'
             Function *functype = new Function(return_type);
             // reverse use of '_ret' to check all return statements
             if (return_type) {
@@ -806,7 +810,8 @@ void SemanticAnalyzer::analyze(AstNode *node) {
                 DeclStmt& decl = *X->decls[i];
                 auto     *field_type = get_type(decl.typespec);
                 if (field_type == nullptr) {
-                    decl.add_error(_T("El tipo '%s' no existe.", decl.typespec->type_str().c_str()));
+                    decl.add_error(_T("El tipo '%s' no existe.", decl.typespec->type_str().c_str())
+                    );
                     field_type = new UnknownType(decl.typespec->type_str());
                 }
                 for (DeclStmt::Item& item : decl.items) {
@@ -865,8 +870,8 @@ void SemanticAnalyzer::analyze(AstNode *node) {
             // Try a static variable in a class
             if (namespc_or_class != nullptr) {
                 Identifier fid(namespc_or_class->name);
-                TypeSpec spec(&fid);
-                auto    *type = get_type(&spec);
+                TypeSpec   spec(&fid);
+                auto      *type = get_type(&spec);
                 if (type != 0 and !type->get_static(X->name, v)) {
                     X->add_error(
                         _T("No se ha encontrado '%s' en la clase '%s'.",

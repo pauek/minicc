@@ -403,7 +403,8 @@ void Interpreter::eval(AstNode *ast) {
         case AstNodeType::FuncDecl: {
             FuncDecl *X = cast<FuncDecl>(ast);
             string    funcname = X->func_name();
-            auto     *return_type = get_type(X->return_typespec);  // return_type == nullptr means 'void'
+            auto     *return_type =
+                get_type(X->return_typespec);  // return_type == nullptr means 'void'
             Function *functype = new Function(return_type);
             for (auto p : X->params) {
                 const Type *param_type = get_type(p->typespec);

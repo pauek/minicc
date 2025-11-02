@@ -215,10 +215,10 @@ Identifier *TypeSpec::get_potential_namespace_or_class() const {
 
 string TypeSpec::type_str() const {
     string typestr;
-#define QUALIFIER(qual, str)  \
+#define QUALIFIER(qual, str)   \
     if (has_qualifier(qual)) { \
-        typestr += str;       \
-        typestr += ' ';       \
+        typestr += str;        \
+        typestr += ' ';        \
     }
     QUALIFIER(Const, "const")
     QUALIFIER(Volatile, "volatile")

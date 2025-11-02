@@ -116,8 +116,7 @@ int cmd_prettyprint(Args& args) {
         AstNode *program = parse_file(filename);
         pprint(program);
     } catch (Error *e) {
-        cerr << _T("Pretty Print Error")
-             << ": " << e->msg << endl;
+        cerr << _T("Pretty Print Error") << ": " << e->msg << endl;
         return 1;
     }
     return 0;
@@ -181,8 +180,7 @@ int cmd_step(Args& args) {
         }
         return 0;
     } catch (Error *e) {
-        cerr << _T("Execution Error")
-             << ": " << e->msg << endl;
+        cerr << _T("Execution Error") << ": " << e->msg << endl;
         return 1;
     }
 }

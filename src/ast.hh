@@ -283,6 +283,7 @@ struct BinaryExpr : public ExprSubtype<AstNodeType::BinaryExpr> {
     Expr       *left, *right;
 
     BinaryExpr(Kind kind = Unknown) : kind(kind) {}
+
     BinaryExpr(Kind kind, std::string op, Expr *left, Expr *right)
         : kind(kind), op(op), left(left), right(right) {}
 };

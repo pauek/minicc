@@ -50,21 +50,39 @@ class Type {
     };
 
     //             void *alloc(T x) = a different method for every Type
-    virtual void destroy(void *data) const  { assert(false); }
+    virtual void destroy(void *data) const { assert(false); }
 
-    virtual bool equals(void *a, void *b) const { assert(false); return false; }
+    virtual bool equals(void *a, void *b) const {
+        assert(false);
+        return false;
+    }
 
-    virtual bool less_than(void *a, void *b) const { assert(false); return false; }
+    virtual bool less_than(void *a, void *b) const {
+        assert(false);
+        return false;
+    }
 
-    virtual bool assign(void *a, void *b) const { assert(false); return false; }
+    virtual bool assign(void *a, void *b) const {
+        assert(false);
+        return false;
+    }
 
-    virtual void *clone(void *data) const { assert(false); return nullptr; }
+    virtual void *clone(void *data) const {
+        assert(false);
+        return nullptr;
+    }
 
     virtual void write(std::ostream& o, void *data) const { assert(false); }
 
-    virtual void *read(std::istream& i, void *data) const { assert(false); return nullptr; }
+    virtual void *read(std::istream& i, void *data) const {
+        assert(false);
+        return nullptr;
+    }
 
-    virtual string to_json(void *data) const { assert(false); return ""; }
+    virtual string to_json(void *data) const {
+        assert(false);
+        return "";
+    }
 
     virtual void clear_touched(void *data) const { assert(false); }
 
@@ -87,11 +105,17 @@ class Type {
     }  // for templates
 
     //     subtypes ----^
-    virtual Value create() const { assert(false); return Value(); }
+    virtual Value create() const {
+        assert(false);
+        return Value();
+    }
 
     virtual Value create_abstract() const { return Value(this, Value::abstract); }
 
-    virtual Value convert(Value init) const { assert(false); return Value(); }
+    virtual Value convert(Value init) const {
+        assert(false);
+        return Value();
+    }
 
     virtual bool accepts(const Type *t) const { return this == t; }
 
@@ -480,7 +504,10 @@ class Overloaded : public BaseType<OverloadedValue> {
    public:
     Overloaded() : BaseType<OverloadedValue>("<unresolved-function>") {}
 
-    Value convert(Value init) const { assert(false); return Value(); }
+    Value convert(Value init) const {
+        assert(false);
+        return Value();
+    }
 
     Value mkvalue(Value self, const std::vector<Value>& candidates) const;
 
@@ -605,7 +632,8 @@ class List : public Class<BaseType<std::list<Value>>> {
 };
 
 class Pair : public Class<BaseType<std::pair<Value, Value>>> {
-    const Type *_first, *_second;  // (_first == nullptr && _second == nullptr) means it's the template
+    const Type *_first,
+        *_second;  // (_first == nullptr && _second == nullptr) means it's the template
     typedef Class<BaseType<std::pair<Value, Value>>> Base;
 
    public:
