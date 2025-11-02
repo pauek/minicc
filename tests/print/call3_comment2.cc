@@ -1,7 +1,7 @@
 void f() {
-   g(a   ,b, c  )/* ho ho ho */;
+    g(a   ,b, c  )/* ho ho ho */;
 }
 [[out]]--------------------------------------------------
 void f() {
-   g(a, b, c) /* ho ho ho */;
+    g(a, b, c) /* ho ho ho */;
 }

@@ -1,9 +1,9 @@
 struct X {
-   int a, b;
+    int a, b;
 };
 [[out]]--------------------------------------------------
 Program{
-   StructDecl('X', {
-      DeclStmt(Type(id:'int'), Vars = {"a", "b"})
-   })
+    StructDecl('X', {
+        DeclStmt(Type(id:'int'), Vars = {"a", "b"})
+    })
 }

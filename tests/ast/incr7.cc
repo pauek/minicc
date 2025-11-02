@@ -1,11 +1,11 @@
 void f() {
-   --a;
+    --a;
 }
 [[out]]--------------------------------------------------
 Program{
-   FuncDecl(id:'f', Type(id:'void'), Params = {}, {
-      Block({
-         ExprStmt(IncrExpr<--, pre>(id:'a'))
-      })
-   })
+    FuncDecl(id:'f', Type(id:'void'), Params = {}, {
+        Block({
+            ExprStmt(IncrExpr<--, pre>(id:'a'))
+        })
+    })
 }

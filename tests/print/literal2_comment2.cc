@@ -1,7 +1,7 @@
 void f() {
-   "int main() {}"      /* yay */;
+    "int main() {}"      /* yay */;
 }
 [[out]]--------------------------------------------------
 void f() {
-   "int main() {}" /* yay */;
+    "int main() {}" /* yay */;
 }

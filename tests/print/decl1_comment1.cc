@@ -1,7 +1,7 @@
 void f() {
-   int     /* xxxxx */     a = 2, b;
+    int     /* xxxxx */     a = 2, b;
 }
 [[out]]--------------------------------------------------
 void f() {
-   int /* xxxxx */ a = 2, b;
+    int /* xxxxx */ a = 2, b;
 }

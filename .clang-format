@@ -4,7 +4,7 @@ UseTab: Never
 ColumnLimit: 100
 ReferenceAlignment: Left
 PointerAlignment: Right
-SeparateDefinitionBlocks: Always
+SeparateDefinitionBlocks: Leave
 ReflowComments: true
 AlignTrailingComments:
   Kind: Always

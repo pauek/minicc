@@ -1,7 +1,7 @@
 void f() {
-   int a=2,b; // * xxxxx *
+    int a=2,b; // * xxxxx *
 }
 [[out]]--------------------------------------------------
 void f() {
-   int a = 2, b; // * xxxxx *
+    int a = 2, b; // * xxxxx *
 }

@@ -1,11 +1,11 @@
 void f() {
-   g();
+    g();
 }
 [[out]]--------------------------------------------------
 Program{
-   FuncDecl(id:'f', Type(id:'void'), Params = {}, {
-      Block({
-         ExprStmt(CallExpr(id:'g', Args = {}))
-      })
-   })
+    FuncDecl(id:'f', Type(id:'void'), Params = {}, {
+        Block({
+            ExprStmt(CallExpr(id:'g', Args = {}))
+        })
+    })
 }

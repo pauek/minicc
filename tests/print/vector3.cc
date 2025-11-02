@@ -1,7 +1,7 @@
 int f ( ) {
-   vector<int> v(1, 3);
+    vector<int> v(1, 3);
 }
 [[out]]--------------------------------------------------
 int f() {
-   vector<int> v(1, 3);
+    vector<int> v(1, 3);
 }

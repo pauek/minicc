@@ -1,5 +1,5 @@
 int main() { if (a) goto blah; }
 [[out]]------------------------------------------
 int main() {
-   if (a) goto blah;
+    if (a) goto blah;
 }

@@ -7,9 +7,8 @@ using namespace std;
 struct OutputWriter {
     OutputWriter(ostream& out = std::cout) : indent_(0), out_(out) {}
 
-    void indent() { indent_ += 3; }
-
-    void dedent() { indent_ -= 3; }
+    void indent() { indent_ += 4; }
+    void dedent() { indent_ -= 4; }
 
     template <typename T>
     void write(const T& t) {

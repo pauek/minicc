@@ -1,17 +1,17 @@
 void print() {
-   for (int i = 1; i < 100; i = i + 1) {
-      cout << i << endl;
-   }
+    for (int i = 1; i < 100; i = i + 1) {
+        cout << i << endl;
+    }
 }
 [[out]]--------------------------------------------------
 Program{
-   FuncDecl(id:'print', Type(id:'void'), Params = {}, {
-      Block({
-         ForStmt(DeclStmt(Type(id:'int'), Vars = {"i" = Int<1>}), <(id:'i', Int<100>), =(id:'i', +(id:'i', Int<1>)), {
-            Block({
-               ExprStmt(<<(<<(id:'cout', id:'i'), id:'endl'))
+    FuncDecl(id:'print', Type(id:'void'), Params = {}, {
+        Block({
+            ForStmt(DeclStmt(Type(id:'int'), Vars = {"i" = Int<1>}), <(id:'i', Int<100>), =(id:'i', +(id:'i', Int<1>)), {
+                Block({
+                    ExprStmt(<<(<<(id:'cout', id:'i'), id:'endl'))
+                })
             })
-         })
-      })
-   })
+        })
+    })
 }

@@ -1,5 +1,5 @@
 typedef int Entero;
 [[out]]--------------------------------------------------
 Program{
-   TypedefDecl("Entero" = Type(id:'int'))
+    TypedefDecl("Entero" = Type(id:'int'))
 }

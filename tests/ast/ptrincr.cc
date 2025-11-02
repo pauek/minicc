@@ -1,11 +1,11 @@
 int f() {
-   *a++;
+    *a++;
 }
 [[out]]--------------------------------------------------
 Program{
-   FuncDecl(id:'f', Type(id:'int'), Params = {}, {
-      Block({
-         ExprStmt(DerefExpr(IncrExpr<++, post>(id:'a')))
-      })
-   })
+    FuncDecl(id:'f', Type(id:'int'), Params = {}, {
+        Block({
+            ExprStmt(DerefExpr(IncrExpr<++, post>(id:'a')))
+        })
+    })
 }

@@ -1,7 +1,7 @@
 double fn(char c1, char c2) {
-   &a->b;
+    &a->b;
 }
 [[out]]------------------------------------
 double fn(char c1, char c2) {
-   &a->b;
+    &a->b;
 }

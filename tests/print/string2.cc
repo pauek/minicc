@@ -1,7 +1,7 @@
 string f() {
-   "\a\b\fabc\"" + d + "\"efg" + h;
+    "\a\b\fabc\"" + d + "\"efg" + h;
 }
 [[out]]--------------------------------------------------
 string f() {
-   "\a\b\fabc\"" + d + "\"efg" + h;
+    "\a\b\fabc\"" + d + "\"efg" + h;
 }
