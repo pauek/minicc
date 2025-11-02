@@ -558,6 +558,8 @@ void PrettyPrinter::print(AstNode *ast) {
             out.write("(");
             if (X->init) {
                 print(X->init);
+            } else {
+                out.write(";");
             }
             out.write(" ");
             if (X->cond) {
