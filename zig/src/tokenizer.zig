@@ -874,10 +874,23 @@ pub const Tokenizer = struct {
                         self.index += 1;
                         continue :state .float;
                     },
+                    'e', 'E' => {
+                        result.tag = .double_literal;
+                        self.index += 1;
+                        continue :state .float_exponent;
+                    },
+                    'f', 'F' => {
+                        result.tag = .float_literal;
+                        self.index += 1;
+                    },
+                    'l', 'L' => {
+                        result.tag = .double_literal;
+                        self.index += 1;
+                    },
                     else => {
-                        // It was just a number followed by a dot
-                        self.index -= 1;
-                        result.tag = .int_literal;
+                        // It was just a number followed by a dot - this is a valid float literal (e.g., 123.)
+                        result.tag = .double_literal;
+                        // Don't backtrack - the period is part of the float literal
                     },
                 }
             },
@@ -908,13 +921,14 @@ pub const Tokenizer = struct {
             },
 
             .float_exponent => {
+                // Set tag to double_literal when we enter exponent state
+                result.tag = .double_literal;
                 switch (self.buffer[self.index]) {
                     '+', '-' => {
                         self.index += 1;
                         continue :state .float;
                     },
                     '0'...'9' => {
-                        result.tag = .double_literal;
                         continue :state .float;
                     },
                     else => {
@@ -1056,4 +1070,198 @@ test "whitespace handling" {
     try std.testing.expectEqual(Token.Tag.identifier, tokenizer.next().tag);
     try std.testing.expectEqual(Token.Tag.identifier, tokenizer.next().tag);
     try std.testing.expectEqual(Token.Tag.eof, tokenizer.next().tag);
+}
+
+test "float literal - simple period" {
+    const input = ".123";
+    var tokenizer = Tokenizer.init(input);
+    const token = tokenizer.next();
+    std.debug.print("Token tag: {s}, lexeme: {s}\n", .{ @tagName(token.tag), input[token.loc.start..token.loc.end] });
+    try std.testing.expectEqual(Token.Tag.double_literal, token.tag);
+    try std.testing.expectEqual(Token.Tag.eof, tokenizer.next().tag);
+}
+
+fn testFloatLiteral(comptime input: [:0]const u8, expected_tag: Token.Tag) !void {
+    var tokenizer = Tokenizer.init(input);
+    const token = tokenizer.next();
+    try std.testing.expectEqual(expected_tag, token.tag);
+    try std.testing.expectEqual(Token.Tag.eof, tokenizer.next().tag);
+}
+
+test "float literals - all combinations" {
+    // Test cases: (input, expected_tag)
+    const test_cases = [_]struct { input: [:0]const u8, expected_tag: Token.Tag }{
+        // Starting with period (no leading digits)
+        .{ .input = ".123", .expected_tag = .double_literal },
+        .{ .input = ".456", .expected_tag = .double_literal },
+        .{ .input = ".0", .expected_tag = .double_literal },
+        .{ .input = ".123f", .expected_tag = .float_literal },
+        .{ .input = ".456F", .expected_tag = .float_literal },
+        .{ .input = ".0f", .expected_tag = .float_literal },
+        .{ .input = ".123L", .expected_tag = .double_literal },
+        .{ .input = ".456l", .expected_tag = .double_literal },
+        .{ .input = ".0L", .expected_tag = .double_literal },
+
+        // Period with exponent
+        .{ .input = ".123e10", .expected_tag = .double_literal },
+        .{ .input = ".456E10", .expected_tag = .double_literal },
+        .{ .input = ".123e+10", .expected_tag = .double_literal },
+        .{ .input = ".456e-10", .expected_tag = .double_literal },
+        .{ .input = ".123E+10", .expected_tag = .double_literal },
+        .{ .input = ".456E-10", .expected_tag = .double_literal },
+        .{ .input = ".0e5", .expected_tag = .double_literal },
+        .{ .input = ".0E-5", .expected_tag = .double_literal },
+
+        // Period with exponent and suffix
+        .{ .input = ".123e10f", .expected_tag = .float_literal },
+        .{ .input = ".456E10F", .expected_tag = .float_literal },
+        .{ .input = ".123e+10f", .expected_tag = .float_literal },
+        .{ .input = ".456e-10F", .expected_tag = .float_literal },
+        .{ .input = ".123E+10f", .expected_tag = .float_literal },
+        .{ .input = ".456E-10F", .expected_tag = .float_literal },
+        .{ .input = ".123e10L", .expected_tag = .double_literal },
+        .{ .input = ".456E10l", .expected_tag = .double_literal },
+        .{ .input = ".123e+10L", .expected_tag = .double_literal },
+        .{ .input = ".456e-10l", .expected_tag = .double_literal },
+
+        // Integer followed by period (with fractional part)
+        .{ .input = "123.456", .expected_tag = .double_literal },
+        .{ .input = "42.0", .expected_tag = .double_literal },
+        .{ .input = "0.123", .expected_tag = .double_literal },
+        .{ .input = "999.999", .expected_tag = .double_literal },
+        .{ .input = "123.456f", .expected_tag = .float_literal },
+        .{ .input = "42.0F", .expected_tag = .float_literal },
+        .{ .input = "0.123f", .expected_tag = .float_literal },
+        .{ .input = "999.999F", .expected_tag = .float_literal },
+        .{ .input = "123.456L", .expected_tag = .double_literal },
+        .{ .input = "42.0l", .expected_tag = .double_literal },
+        .{ .input = "0.123L", .expected_tag = .double_literal },
+        .{ .input = "999.999l", .expected_tag = .double_literal },
+
+        // Integer followed by period (no fractional part)
+        .{ .input = "123.", .expected_tag = .double_literal },
+        .{ .input = "42.", .expected_tag = .double_literal },
+        .{ .input = "0.", .expected_tag = .double_literal },
+        .{ .input = "123.f", .expected_tag = .float_literal },
+        .{ .input = "42.F", .expected_tag = .float_literal },
+        .{ .input = "0.f", .expected_tag = .float_literal },
+        .{ .input = "123.L", .expected_tag = .double_literal },
+        .{ .input = "42.l", .expected_tag = .double_literal },
+        .{ .input = "0.L", .expected_tag = .double_literal },
+
+        // Integer with exponent (no period)
+        .{ .input = "123e10", .expected_tag = .double_literal },
+        .{ .input = "42E10", .expected_tag = .double_literal },
+        .{ .input = "0e5", .expected_tag = .double_literal },
+        .{ .input = "123e+10", .expected_tag = .double_literal },
+        .{ .input = "42E+10", .expected_tag = .double_literal },
+        .{ .input = "0e+5", .expected_tag = .double_literal },
+        .{ .input = "123e-10", .expected_tag = .double_literal },
+        .{ .input = "42E-10", .expected_tag = .double_literal },
+        .{ .input = "0e-5", .expected_tag = .double_literal },
+
+        // Integer with exponent and suffix (no period)
+        .{ .input = "123e10f", .expected_tag = .float_literal },
+        .{ .input = "42E10F", .expected_tag = .float_literal },
+        .{ .input = "0e5f", .expected_tag = .float_literal },
+        .{ .input = "123e+10f", .expected_tag = .float_literal },
+        .{ .input = "42E+10F", .expected_tag = .float_literal },
+        .{ .input = "0e+5f", .expected_tag = .float_literal },
+        .{ .input = "123e-10f", .expected_tag = .float_literal },
+        .{ .input = "42E-10F", .expected_tag = .float_literal },
+        .{ .input = "0e-5f", .expected_tag = .float_literal },
+        .{ .input = "123e10L", .expected_tag = .double_literal },
+        .{ .input = "42E10l", .expected_tag = .double_literal },
+        .{ .input = "0e5L", .expected_tag = .double_literal },
+        .{ .input = "123e+10L", .expected_tag = .double_literal },
+        .{ .input = "42E+10l", .expected_tag = .double_literal },
+        .{ .input = "0e+5L", .expected_tag = .double_literal },
+        .{ .input = "123e-10L", .expected_tag = .double_literal },
+        .{ .input = "42E-10l", .expected_tag = .double_literal },
+        .{ .input = "0e-5L", .expected_tag = .double_literal },
+
+        // Integer + period + exponent
+        .{ .input = "123.456e10", .expected_tag = .double_literal },
+        .{ .input = "42.0E10", .expected_tag = .double_literal },
+        .{ .input = "0.123e5", .expected_tag = .double_literal },
+        .{ .input = "123.456e+10", .expected_tag = .double_literal },
+        .{ .input = "42.0E+10", .expected_tag = .double_literal },
+        .{ .input = "0.123e+5", .expected_tag = .double_literal },
+        .{ .input = "123.456e-10", .expected_tag = .double_literal },
+        .{ .input = "42.0E-10", .expected_tag = .double_literal },
+        .{ .input = "0.123e-5", .expected_tag = .double_literal },
+
+        // Integer + period (no fractional) + exponent
+        .{ .input = "123.e10", .expected_tag = .double_literal },
+        .{ .input = "42.E10", .expected_tag = .double_literal },
+        .{ .input = "0.e5", .expected_tag = .double_literal },
+        .{ .input = "123.e+10", .expected_tag = .double_literal },
+        .{ .input = "42.E+10", .expected_tag = .double_literal },
+        .{ .input = "0.e+5", .expected_tag = .double_literal },
+        .{ .input = "123.e-10", .expected_tag = .double_literal },
+        .{ .input = "42.E-10", .expected_tag = .double_literal },
+        .{ .input = "0.e-5", .expected_tag = .double_literal },
+
+        // Integer + period + exponent + suffix
+        .{ .input = "123.456e10f", .expected_tag = .float_literal },
+        .{ .input = "42.0E10F", .expected_tag = .float_literal },
+        .{ .input = "0.123e5f", .expected_tag = .float_literal },
+        .{ .input = "123.456e+10f", .expected_tag = .float_literal },
+        .{ .input = "42.0E+10F", .expected_tag = .float_literal },
+        .{ .input = "0.123e+5f", .expected_tag = .float_literal },
+        .{ .input = "123.456e-10f", .expected_tag = .float_literal },
+        .{ .input = "42.0E-10F", .expected_tag = .float_literal },
+        .{ .input = "0.123e-5f", .expected_tag = .float_literal },
+        .{ .input = "123.456e10L", .expected_tag = .double_literal },
+        .{ .input = "42.0E10l", .expected_tag = .double_literal },
+        .{ .input = "0.123e5L", .expected_tag = .double_literal },
+        .{ .input = "123.456e+10L", .expected_tag = .double_literal },
+        .{ .input = "42.0E+10l", .expected_tag = .double_literal },
+        .{ .input = "0.123e+5L", .expected_tag = .double_literal },
+        .{ .input = "123.456e-10L", .expected_tag = .double_literal },
+        .{ .input = "42.0E-10l", .expected_tag = .double_literal },
+        .{ .input = "0.123e-5L", .expected_tag = .double_literal },
+
+        // Integer + period (no fractional) + exponent + suffix
+        .{ .input = "123.e10f", .expected_tag = .float_literal },
+        .{ .input = "42.E10F", .expected_tag = .float_literal },
+        .{ .input = "0.e5f", .expected_tag = .float_literal },
+        .{ .input = "123.e+10f", .expected_tag = .float_literal },
+        .{ .input = "42.E+10F", .expected_tag = .float_literal },
+        .{ .input = "0.e+5f", .expected_tag = .float_literal },
+        .{ .input = "123.e-10f", .expected_tag = .float_literal },
+        .{ .input = "42.E-10F", .expected_tag = .float_literal },
+        .{ .input = "0.e-5f", .expected_tag = .float_literal },
+        .{ .input = "123.e10L", .expected_tag = .double_literal },
+        .{ .input = "42.E10l", .expected_tag = .double_literal },
+        .{ .input = "0.e5L", .expected_tag = .double_literal },
+        .{ .input = "123.e+10L", .expected_tag = .double_literal },
+        .{ .input = "42.E+10l", .expected_tag = .double_literal },
+        .{ .input = "0.e+5L", .expected_tag = .double_literal },
+        .{ .input = "123.e-10L", .expected_tag = .double_literal },
+        .{ .input = "42.E-10l", .expected_tag = .double_literal },
+        .{ .input = "0.e-5L", .expected_tag = .double_literal },
+
+        // Edge cases with multiple digits in exponent
+        .{ .input = "1.23e123", .expected_tag = .double_literal },
+        .{ .input = "4.56E-456", .expected_tag = .double_literal },
+        .{ .input = "7.89e+789", .expected_tag = .double_literal },
+        .{ .input = "1.23e123f", .expected_tag = .float_literal },
+        .{ .input = "4.56E-456F", .expected_tag = .float_literal },
+        .{ .input = "7.89e+789L", .expected_tag = .double_literal },
+
+        // Very small and very large numbers
+        .{ .input = "1e-10", .expected_tag = .double_literal },
+        .{ .input = "1E+10", .expected_tag = .double_literal },
+        .{ .input = "1.5e-20", .expected_tag = .double_literal },
+        .{ .input = "1.5E+20", .expected_tag = .double_literal },
+        .{ .input = "1e-10f", .expected_tag = .float_literal },
+        .{ .input = "1E+10F", .expected_tag = .float_literal },
+        .{ .input = "1.5e-20f", .expected_tag = .float_literal },
+        .{ .input = "1.5E+20F", .expected_tag = .float_literal },
+    };
+
+    inline for (test_cases) |case| {
+        try testFloatLiteral(case.input, case.expected_tag);
+    }
 }
