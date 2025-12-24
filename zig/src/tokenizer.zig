@@ -314,9 +314,6 @@ pub const Tokenizer = struct {
         minus,
         asterisk,
         slash,
-        slash_slash,
-        slash_asterisk,
-        slash_asterisk_asterisk,
         line_comment,
         multi_line_comment,
         multi_line_comment_asterisk,
@@ -373,10 +370,6 @@ pub const Tokenizer = struct {
                     result.tag = .char_literal;
                     self.index += 1;
                     continue :state .char_literal;
-                },
-                'a'...'t', 'v'...'z', 'A'...'T', 'V'...'Z', '_' => {
-                    result.tag = .identifier;
-                    continue :state .identifier;
                 },
                 'u', 'U', 'l', 'L' => {
                     // Could be identifier or prefix for string/char literal
@@ -442,7 +435,17 @@ pub const Tokenizer = struct {
                     self.index += 1;
                     continue :state .int;
                 },
-                else => continue :state .invalid,
+                else => {
+                    // Check if it's a letter or underscore (identifier)
+                    // All other special characters have been handled above
+                    const ch = self.buffer[self.index];
+                    if ((ch >= 'a' and ch <= 'z') or (ch >= 'A' and ch <= 'Z') or ch == '_') {
+                        result.tag = .identifier;
+                        continue :state .identifier;
+                    } else {
+                        continue :state .invalid;
+                    }
+                },
             },
 
             .invalid => {
@@ -926,3 +929,131 @@ pub const Tokenizer = struct {
         return result;
     }
 };
+
+// Tests
+test "single punctuation tokens" {
+    const input = "()[]{};,";
+    var tokenizer = Tokenizer.init(input);
+
+    try std.testing.expectEqual(Token.Tag.l_paren, tokenizer.next().tag);
+    try std.testing.expectEqual(Token.Tag.r_paren, tokenizer.next().tag);
+    try std.testing.expectEqual(Token.Tag.l_bracket, tokenizer.next().tag);
+    try std.testing.expectEqual(Token.Tag.r_bracket, tokenizer.next().tag);
+    try std.testing.expectEqual(Token.Tag.l_brace, tokenizer.next().tag);
+    try std.testing.expectEqual(Token.Tag.r_brace, tokenizer.next().tag);
+    try std.testing.expectEqual(Token.Tag.semicolon, tokenizer.next().tag);
+    try std.testing.expectEqual(Token.Tag.comma, tokenizer.next().tag);
+    try std.testing.expectEqual(Token.Tag.eof, tokenizer.next().tag);
+}
+
+test "single operators" {
+    const input = "+-*/%%= =!&|^<>";
+    var tokenizer = Tokenizer.init(input);
+
+    try std.testing.expectEqual(Token.Tag.plus, tokenizer.next().tag);
+    try std.testing.expectEqual(Token.Tag.minus, tokenizer.next().tag);
+    try std.testing.expectEqual(Token.Tag.asterisk, tokenizer.next().tag);
+    try std.testing.expectEqual(Token.Tag.slash, tokenizer.next().tag);
+    try std.testing.expectEqual(Token.Tag.percent, tokenizer.next().tag);
+    try std.testing.expectEqual(Token.Tag.percent_equal, tokenizer.next().tag);
+    try std.testing.expectEqual(Token.Tag.equal, tokenizer.next().tag);
+    try std.testing.expectEqual(Token.Tag.bang, tokenizer.next().tag);
+    try std.testing.expectEqual(Token.Tag.ampersand, tokenizer.next().tag);
+    try std.testing.expectEqual(Token.Tag.pipe, tokenizer.next().tag);
+    try std.testing.expectEqual(Token.Tag.caret, tokenizer.next().tag);
+    try std.testing.expectEqual(Token.Tag.angle_bracket_left, tokenizer.next().tag);
+    try std.testing.expectEqual(Token.Tag.angle_bracket_right, tokenizer.next().tag);
+    try std.testing.expectEqual(Token.Tag.eof, tokenizer.next().tag);
+}
+
+test "two-character operators" {
+    const input = "== != ++ -- += -= *= /= %= && || << >>";
+    var tokenizer = Tokenizer.init(input);
+
+    try std.testing.expectEqual(Token.Tag.equal_equal, tokenizer.next().tag);
+    try std.testing.expectEqual(Token.Tag.bang_equal, tokenizer.next().tag);
+    try std.testing.expectEqual(Token.Tag.plus_plus, tokenizer.next().tag);
+    try std.testing.expectEqual(Token.Tag.minus_minus, tokenizer.next().tag);
+    try std.testing.expectEqual(Token.Tag.plus_equal, tokenizer.next().tag);
+    try std.testing.expectEqual(Token.Tag.minus_equal, tokenizer.next().tag);
+    try std.testing.expectEqual(Token.Tag.asterisk_equal, tokenizer.next().tag);
+    try std.testing.expectEqual(Token.Tag.slash_equal, tokenizer.next().tag);
+    try std.testing.expectEqual(Token.Tag.percent_equal, tokenizer.next().tag);
+    try std.testing.expectEqual(Token.Tag.ampersand_ampersand, tokenizer.next().tag);
+    try std.testing.expectEqual(Token.Tag.pipe_pipe, tokenizer.next().tag);
+    try std.testing.expectEqual(Token.Tag.angle_bracket_angle_bracket_left, tokenizer.next().tag);
+    try std.testing.expectEqual(Token.Tag.angle_bracket_angle_bracket_right, tokenizer.next().tag);
+    try std.testing.expectEqual(Token.Tag.eof, tokenizer.next().tag);
+}
+
+test "keywords" {
+    const input = "if else for while return int void";
+    var tokenizer = Tokenizer.init(input);
+
+    try std.testing.expectEqual(Token.Tag.keyword_if, tokenizer.next().tag);
+    try std.testing.expectEqual(Token.Tag.keyword_else, tokenizer.next().tag);
+    try std.testing.expectEqual(Token.Tag.keyword_for, tokenizer.next().tag);
+    try std.testing.expectEqual(Token.Tag.keyword_while, tokenizer.next().tag);
+    try std.testing.expectEqual(Token.Tag.keyword_return, tokenizer.next().tag);
+    try std.testing.expectEqual(Token.Tag.keyword_int, tokenizer.next().tag);
+    try std.testing.expectEqual(Token.Tag.keyword_void, tokenizer.next().tag);
+    try std.testing.expectEqual(Token.Tag.eof, tokenizer.next().tag);
+}
+
+test "identifiers" {
+    const input = "hello world _underscore var123";
+    var tokenizer = Tokenizer.init(input);
+
+    try std.testing.expectEqual(Token.Tag.identifier, tokenizer.next().tag);
+    try std.testing.expectEqual(Token.Tag.identifier, tokenizer.next().tag);
+    try std.testing.expectEqual(Token.Tag.identifier, tokenizer.next().tag);
+    try std.testing.expectEqual(Token.Tag.identifier, tokenizer.next().tag);
+    try std.testing.expectEqual(Token.Tag.eof, tokenizer.next().tag);
+}
+
+test "integer literals" {
+    const input = "0 42 123 999";
+    var tokenizer = Tokenizer.init(input);
+
+    try std.testing.expectEqual(Token.Tag.int_literal, tokenizer.next().tag);
+    try std.testing.expectEqual(Token.Tag.int_literal, tokenizer.next().tag);
+    try std.testing.expectEqual(Token.Tag.int_literal, tokenizer.next().tag);
+    try std.testing.expectEqual(Token.Tag.int_literal, tokenizer.next().tag);
+    try std.testing.expectEqual(Token.Tag.eof, tokenizer.next().tag);
+}
+
+test "simple expression" {
+    const input = "x = 42;";
+    var tokenizer = Tokenizer.init(input);
+
+    try std.testing.expectEqual(Token.Tag.identifier, tokenizer.next().tag);
+    try std.testing.expectEqual(Token.Tag.equal, tokenizer.next().tag);
+    try std.testing.expectEqual(Token.Tag.int_literal, tokenizer.next().tag);
+    try std.testing.expectEqual(Token.Tag.semicolon, tokenizer.next().tag);
+    try std.testing.expectEqual(Token.Tag.eof, tokenizer.next().tag);
+}
+
+test "if statement" {
+    const input = "if (x == 0) return;";
+    var tokenizer = Tokenizer.init(input);
+
+    try std.testing.expectEqual(Token.Tag.keyword_if, tokenizer.next().tag);
+    try std.testing.expectEqual(Token.Tag.l_paren, tokenizer.next().tag);
+    try std.testing.expectEqual(Token.Tag.identifier, tokenizer.next().tag);
+    try std.testing.expectEqual(Token.Tag.equal_equal, tokenizer.next().tag);
+    try std.testing.expectEqual(Token.Tag.int_literal, tokenizer.next().tag);
+    try std.testing.expectEqual(Token.Tag.r_paren, tokenizer.next().tag);
+    try std.testing.expectEqual(Token.Tag.keyword_return, tokenizer.next().tag);
+    try std.testing.expectEqual(Token.Tag.semicolon, tokenizer.next().tag);
+    try std.testing.expectEqual(Token.Tag.eof, tokenizer.next().tag);
+}
+
+test "whitespace handling" {
+    const input = "  x  \t  y  \n  z  ";
+    var tokenizer = Tokenizer.init(input);
+
+    try std.testing.expectEqual(Token.Tag.identifier, tokenizer.next().tag);
+    try std.testing.expectEqual(Token.Tag.identifier, tokenizer.next().tag);
+    try std.testing.expectEqual(Token.Tag.identifier, tokenizer.next().tag);
+    try std.testing.expectEqual(Token.Tag.eof, tokenizer.next().tag);
+}
