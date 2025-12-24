@@ -11,3 +11,6 @@ doc
 build
 err
 errors.log
+
+zig/zig-out/
+zig/.zig-cache/

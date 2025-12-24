@@ -1,0 +1,928 @@
+// MiniCC Tokenizer - adapted from tokenizer_example.zig for MiniCC C++ subset
+
+const std = @import("std");
+
+pub const Token = struct {
+    tag: Tag,
+    loc: Loc,
+
+    pub const Loc = struct {
+        start: usize,
+        end: usize,
+    };
+
+    pub const keywords = std.StaticStringMap(Tag).initComptime(.{
+        .{ "and", .keyword_and },
+        .{ "or", .keyword_or },
+        .{ "if", .keyword_if },
+        .{ "else", .keyword_else },
+        .{ "for", .keyword_for },
+        .{ "while", .keyword_while },
+        .{ "break", .keyword_break },
+        .{ "continue", .keyword_continue },
+        .{ "goto", .keyword_goto },
+        .{ "return", .keyword_return },
+        .{ "switch", .keyword_switch },
+        .{ "typedef", .keyword_typedef },
+        .{ "class", .keyword_class },
+        .{ "struct", .keyword_struct },
+        .{ "enum", .keyword_enum },
+        .{ "using", .keyword_using },
+        .{ "namespace", .keyword_namespace },
+        .{ "void", .keyword_void },
+        .{ "bool", .keyword_bool },
+        .{ "char", .keyword_char },
+        .{ "int", .keyword_int },
+        .{ "double", .keyword_double },
+        .{ "float", .keyword_float },
+        .{ "string", .keyword_string },
+        .{ "signed", .keyword_signed },
+        .{ "unsigned", .keyword_unsigned },
+        .{ "volatile", .keyword_volatile },
+        .{ "const", .keyword_const },
+        .{ "short", .keyword_short },
+        .{ "long", .keyword_long },
+        .{ "inline", .keyword_inline },
+        .{ "virtual", .keyword_virtual },
+        .{ "explicit", .keyword_explicit },
+        .{ "auto", .keyword_auto },
+        .{ "register", .keyword_register },
+        .{ "static", .keyword_static },
+        .{ "extern", .keyword_extern },
+        .{ "mutable", .keyword_mutable },
+        .{ "true", .keyword_true },
+        .{ "false", .keyword_false },
+    });
+
+    pub fn getKeyword(bytes: []const u8) ?Tag {
+        return keywords.get(bytes);
+    }
+
+    pub const Tag = enum {
+        invalid,
+        identifier,
+        int_literal,
+        char_literal,
+        string_literal,
+        float_literal,
+        double_literal,
+        eof,
+
+        // Punctuation
+        l_paren, // (
+        r_paren, // )
+        l_bracket, // [
+        r_bracket, // ]
+        l_brace, // {
+        r_brace, // }
+        semicolon, // ;
+        comma, // ,
+        dot, // .
+        colon, // :
+        colon_colon, // ::
+        question_mark, // ?
+        sharp, // #
+
+        // Operators
+        bang, // !
+        bang_equal, // !=
+        equal, // =
+        equal_equal, // ==
+        plus, // +
+        plus_plus, // ++
+        plus_equal, // +=
+        minus, // -
+        minus_minus, // --
+        minus_equal, // -=
+        arrow, // ->
+        asterisk, // *
+        asterisk_equal, // *=
+        slash, // /
+        slash_equal, // /=
+        percent, // %
+        percent_equal, // %=
+        ampersand, // &
+        ampersand_ampersand, // &&
+        ampersand_equal, // &=
+        pipe, // |
+        pipe_pipe, // ||
+        pipe_equal, // |=
+        caret, // ^
+        caret_equal, // ^=
+        tilde, // ~
+        angle_bracket_left, // <
+        angle_bracket_left_equal, // <=
+        angle_bracket_angle_bracket_left, // <<
+        angle_bracket_angle_bracket_left_equal, // <<=
+        angle_bracket_right, // >
+        angle_bracket_right_equal, // >=
+        angle_bracket_angle_bracket_right, // >>
+        angle_bracket_angle_bracket_right_equal, // >>=
+
+        // Keywords
+        keyword_and,
+        keyword_or,
+        keyword_if,
+        keyword_else,
+        keyword_for,
+        keyword_while,
+        keyword_break,
+        keyword_continue,
+        keyword_goto,
+        keyword_return,
+        keyword_switch,
+        keyword_typedef,
+        keyword_class,
+        keyword_struct,
+        keyword_enum,
+        keyword_using,
+        keyword_namespace,
+        keyword_void,
+        keyword_bool,
+        keyword_char,
+        keyword_int,
+        keyword_double,
+        keyword_float,
+        keyword_string,
+        keyword_signed,
+        keyword_unsigned,
+        keyword_volatile,
+        keyword_const,
+        keyword_short,
+        keyword_long,
+        keyword_inline,
+        keyword_virtual,
+        keyword_explicit,
+        keyword_auto,
+        keyword_register,
+        keyword_static,
+        keyword_extern,
+        keyword_mutable,
+        keyword_true,
+        keyword_false,
+
+        pub fn lexeme(tag: Tag) ?[]const u8 {
+            return switch (tag) {
+                .invalid,
+                .identifier,
+                .int_literal,
+                .char_literal,
+                .string_literal,
+                .float_literal,
+                .double_literal,
+                .eof,
+                => null,
+
+                .l_paren => "(",
+                .r_paren => ")",
+                .l_bracket => "[",
+                .r_bracket => "]",
+                .l_brace => "{",
+                .r_brace => "}",
+                .semicolon => ";",
+                .comma => ",",
+                .dot => ".",
+                .colon => ":",
+                .colon_colon => "::",
+                .question_mark => "?",
+                .sharp => "#",
+                .bang => "!",
+                .bang_equal => "!=",
+                .equal => "=",
+                .equal_equal => "==",
+                .plus => "+",
+                .plus_plus => "++",
+                .plus_equal => "+=",
+                .minus => "-",
+                .minus_minus => "--",
+                .minus_equal => "-=",
+                .arrow => "->",
+                .asterisk => "*",
+                .asterisk_equal => "*=",
+                .slash => "/",
+                .slash_equal => "/=",
+                .percent => "%",
+                .percent_equal => "%=",
+                .ampersand => "&",
+                .ampersand_ampersand => "&&",
+                .ampersand_equal => "&=",
+                .pipe => "|",
+                .pipe_pipe => "||",
+                .pipe_equal => "|=",
+                .caret => "^",
+                .caret_equal => "^=",
+                .tilde => "~",
+                .angle_bracket_left => "<",
+                .angle_bracket_left_equal => "<=",
+                .angle_bracket_angle_bracket_left => "<<",
+                .angle_bracket_angle_bracket_left_equal => "<<=",
+                .angle_bracket_right => ">",
+                .angle_bracket_right_equal => ">=",
+                .angle_bracket_angle_bracket_right => ">>",
+                .angle_bracket_angle_bracket_right_equal => ">>=",
+                .keyword_and => "and",
+                .keyword_or => "or",
+                .keyword_if => "if",
+                .keyword_else => "else",
+                .keyword_for => "for",
+                .keyword_while => "while",
+                .keyword_break => "break",
+                .keyword_continue => "continue",
+                .keyword_goto => "goto",
+                .keyword_return => "return",
+                .keyword_switch => "switch",
+                .keyword_typedef => "typedef",
+                .keyword_class => "class",
+                .keyword_struct => "struct",
+                .keyword_enum => "enum",
+                .keyword_using => "using",
+                .keyword_namespace => "namespace",
+                .keyword_void => "void",
+                .keyword_bool => "bool",
+                .keyword_char => "char",
+                .keyword_int => "int",
+                .keyword_double => "double",
+                .keyword_float => "float",
+                .keyword_string => "string",
+                .keyword_signed => "signed",
+                .keyword_unsigned => "unsigned",
+                .keyword_volatile => "volatile",
+                .keyword_const => "const",
+                .keyword_short => "short",
+                .keyword_long => "long",
+                .keyword_inline => "inline",
+                .keyword_virtual => "virtual",
+                .keyword_explicit => "explicit",
+                .keyword_auto => "auto",
+                .keyword_register => "register",
+                .keyword_static => "static",
+                .keyword_extern => "extern",
+                .keyword_mutable => "mutable",
+                .keyword_true => "true",
+                .keyword_false => "false",
+            };
+        }
+
+        pub fn symbol(tag: Tag) []const u8 {
+            return tag.lexeme() orelse switch (tag) {
+                .invalid => "invalid token",
+                .identifier => "an identifier",
+                .int_literal => "an integer literal",
+                .char_literal => "a character literal",
+                .string_literal => "a string literal",
+                .float_literal => "a float literal",
+                .double_literal => "a double literal",
+                .eof => "EOF",
+                else => unreachable,
+            };
+        }
+    };
+};
+
+pub const Tokenizer = struct {
+    buffer: [:0]const u8,
+    index: usize,
+
+    /// For debugging purposes.
+    pub fn dump(self: *Tokenizer, token: *const Token) void {
+        std.debug.print("{s} \"{s}\"\n", .{ @tagName(token.tag), self.buffer[token.loc.start..token.loc.end] });
+    }
+
+    pub fn init(buffer: [:0]const u8) Tokenizer {
+        // Skip the UTF-8 BOM if present.
+        return .{
+            .buffer = buffer,
+            .index = if (std.mem.startsWith(u8, buffer, "\xEF\xBB\xBF")) 3 else 0,
+        };
+    }
+
+    const State = enum {
+        start,
+        invalid,
+        identifier,
+        string_literal,
+        string_literal_backslash,
+        char_literal,
+        char_literal_backslash,
+        int,
+        int_period,
+        float,
+        float_exponent,
+        equal,
+        bang,
+        plus,
+        minus,
+        asterisk,
+        slash,
+        slash_slash,
+        slash_asterisk,
+        slash_asterisk_asterisk,
+        line_comment,
+        multi_line_comment,
+        multi_line_comment_asterisk,
+        percent,
+        ampersand,
+        pipe,
+        caret,
+        angle_bracket_left,
+        angle_bracket_angle_bracket_left,
+        angle_bracket_right,
+        angle_bracket_angle_bracket_right,
+        colon,
+        period,
+        saw_u_or_l,
+        tilde,
+    };
+
+    /// After this returns invalid, it will reset on the next newline, returning tokens starting from there.
+    /// An eof token will always be returned at the end.
+    pub fn next(self: *Tokenizer) Token {
+        var result: Token = .{
+            .tag = undefined,
+            .loc = .{
+                .start = self.index,
+                .end = undefined,
+            },
+        };
+        state: switch (State.start) {
+            .start => switch (self.buffer[self.index]) {
+                0 => {
+                    if (self.index == self.buffer.len) {
+                        return .{
+                            .tag = .eof,
+                            .loc = .{
+                                .start = self.index,
+                                .end = self.index,
+                            },
+                        };
+                    } else {
+                        continue :state .invalid;
+                    }
+                },
+                ' ', '\n', '\t', '\r' => {
+                    self.index += 1;
+                    result.loc.start = self.index;
+                    continue :state .start;
+                },
+                '"' => {
+                    result.tag = .string_literal;
+                    self.index += 1;
+                    continue :state .string_literal;
+                },
+                '\'' => {
+                    result.tag = .char_literal;
+                    self.index += 1;
+                    continue :state .char_literal;
+                },
+                'a'...'t', 'v'...'z', 'A'...'T', 'V'...'Z', '_' => {
+                    result.tag = .identifier;
+                    continue :state .identifier;
+                },
+                'u', 'U', 'l', 'L' => {
+                    // Could be identifier or prefix for string/char literal
+                    continue :state .saw_u_or_l;
+                },
+                '=' => continue :state .equal,
+                '!' => continue :state .bang,
+                '+' => continue :state .plus,
+                '-' => continue :state .minus,
+                '*' => continue :state .asterisk,
+                '/' => continue :state .slash,
+                '%' => continue :state .percent,
+                '&' => continue :state .ampersand,
+                '|' => continue :state .pipe,
+                '^' => continue :state .caret,
+                '~' => continue :state .tilde,
+                '<' => continue :state .angle_bracket_left,
+                '>' => continue :state .angle_bracket_right,
+                ':' => continue :state .colon,
+                '.' => continue :state .period,
+                '(' => {
+                    result.tag = .l_paren;
+                    self.index += 1;
+                },
+                ')' => {
+                    result.tag = .r_paren;
+                    self.index += 1;
+                },
+                '[' => {
+                    result.tag = .l_bracket;
+                    self.index += 1;
+                },
+                ']' => {
+                    result.tag = .r_bracket;
+                    self.index += 1;
+                },
+                '{' => {
+                    result.tag = .l_brace;
+                    self.index += 1;
+                },
+                '}' => {
+                    result.tag = .r_brace;
+                    self.index += 1;
+                },
+                ';' => {
+                    result.tag = .semicolon;
+                    self.index += 1;
+                },
+                ',' => {
+                    result.tag = .comma;
+                    self.index += 1;
+                },
+                '?' => {
+                    result.tag = .question_mark;
+                    self.index += 1;
+                },
+                '#' => {
+                    result.tag = .sharp;
+                    self.index += 1;
+                },
+                '0'...'9' => {
+                    result.tag = .int_literal;
+                    self.index += 1;
+                    continue :state .int;
+                },
+                else => continue :state .invalid,
+            },
+
+            .invalid => {
+                self.index += 1;
+                switch (self.buffer[self.index]) {
+                    0 => if (self.index == self.buffer.len) {
+                        result.tag = .invalid;
+                    } else {
+                        continue :state .invalid;
+                    },
+                    '\n' => result.tag = .invalid,
+                    else => continue :state .invalid,
+                }
+            },
+
+            .saw_u_or_l => {
+                self.index += 1;
+                switch (self.buffer[self.index]) {
+                    '"' => {
+                        result.tag = .string_literal;
+                        self.index += 1;
+                        continue :state .string_literal;
+                    },
+                    '\'' => {
+                        result.tag = .char_literal;
+                        self.index += 1;
+                        continue :state .char_literal;
+                    },
+                    '0'...'9' => {
+                        // It's L123 or similar - treat as identifier followed by number
+                        // Actually, we need to backtrack - but let's just treat as identifier
+                        result.tag = .identifier;
+                        continue :state .identifier;
+                    },
+                    'a'...'z', 'A'...'Z', '_' => {
+                        // It's an identifier
+                        result.tag = .identifier;
+                        continue :state .identifier;
+                    },
+                    else => {
+                        // Just the character itself (u, U, l, or L as identifier)
+                        result.tag = .identifier;
+                        const ident = self.buffer[result.loc.start..self.index];
+                        if (Token.getKeyword(ident)) |tag| {
+                            result.tag = tag;
+                        }
+                    },
+                }
+            },
+
+            .identifier => {
+                self.index += 1;
+                switch (self.buffer[self.index]) {
+                    'a'...'z', 'A'...'Z', '_', '0'...'9' => continue :state .identifier,
+                    else => {
+                        const ident = self.buffer[result.loc.start..self.index];
+                        if (Token.getKeyword(ident)) |tag| {
+                            result.tag = tag;
+                        }
+                    },
+                }
+            },
+
+            .string_literal => {
+                switch (self.buffer[self.index]) {
+                    0 => {
+                        if (self.index != self.buffer.len) {
+                            continue :state .invalid;
+                        } else {
+                            result.tag = .invalid;
+                        }
+                    },
+                    '\n' => result.tag = .invalid,
+                    '\\' => {
+                        self.index += 1;
+                        continue :state .string_literal_backslash;
+                    },
+                    '"' => self.index += 1,
+                    else => {
+                        self.index += 1;
+                        continue :state .string_literal;
+                    },
+                }
+            },
+
+            .string_literal_backslash => {
+                self.index += 1;
+                switch (self.buffer[self.index]) {
+                    0, '\n' => result.tag = .invalid,
+                    else => continue :state .string_literal,
+                }
+            },
+
+            .char_literal => {
+                switch (self.buffer[self.index]) {
+                    0 => {
+                        if (self.index != self.buffer.len) {
+                            continue :state .invalid;
+                        } else {
+                            result.tag = .invalid;
+                        }
+                    },
+                    '\n' => result.tag = .invalid,
+                    '\\' => {
+                        self.index += 1;
+                        continue :state .char_literal_backslash;
+                    },
+                    '\'' => self.index += 1,
+                    else => {
+                        self.index += 1;
+                        continue :state .char_literal;
+                    },
+                }
+            },
+
+            .char_literal_backslash => {
+                self.index += 1;
+                switch (self.buffer[self.index]) {
+                    0, '\n' => result.tag = .invalid,
+                    else => continue :state .char_literal,
+                }
+            },
+
+            .equal => {
+                self.index += 1;
+                switch (self.buffer[self.index]) {
+                    '=' => {
+                        result.tag = .equal_equal;
+                        self.index += 1;
+                    },
+                    else => result.tag = .equal,
+                }
+            },
+
+            .bang => {
+                self.index += 1;
+                switch (self.buffer[self.index]) {
+                    '=' => {
+                        result.tag = .bang_equal;
+                        self.index += 1;
+                    },
+                    else => result.tag = .bang,
+                }
+            },
+
+            .plus => {
+                self.index += 1;
+                switch (self.buffer[self.index]) {
+                    '+' => {
+                        result.tag = .plus_plus;
+                        self.index += 1;
+                    },
+                    '=' => {
+                        result.tag = .plus_equal;
+                        self.index += 1;
+                    },
+                    else => result.tag = .plus,
+                }
+            },
+
+            .minus => {
+                self.index += 1;
+                switch (self.buffer[self.index]) {
+                    '-' => {
+                        result.tag = .minus_minus;
+                        self.index += 1;
+                    },
+                    '=' => {
+                        result.tag = .minus_equal;
+                        self.index += 1;
+                    },
+                    '>' => {
+                        result.tag = .arrow;
+                        self.index += 1;
+                    },
+                    else => result.tag = .minus,
+                }
+            },
+
+            .asterisk => {
+                self.index += 1;
+                switch (self.buffer[self.index]) {
+                    '=' => {
+                        result.tag = .asterisk_equal;
+                        self.index += 1;
+                    },
+                    else => result.tag = .asterisk,
+                }
+            },
+
+            .slash => {
+                self.index += 1;
+                switch (self.buffer[self.index]) {
+                    '/' => continue :state .line_comment,
+                    '*' => {
+                        self.index += 1;
+                        continue :state .multi_line_comment;
+                    },
+                    '=' => {
+                        result.tag = .slash_equal;
+                        self.index += 1;
+                    },
+                    else => result.tag = .slash,
+                }
+            },
+
+            .line_comment => {
+                self.index += 1;
+                switch (self.buffer[self.index]) {
+                    0 => {
+                        if (self.index != self.buffer.len) {
+                            continue :state .invalid;
+                        } else return .{
+                            .tag = .eof,
+                            .loc = .{
+                                .start = self.index,
+                                .end = self.index,
+                            },
+                        };
+                    },
+                    '\n' => {
+                        self.index += 1;
+                        result.loc.start = self.index;
+                        continue :state .start;
+                    },
+                    else => continue :state .line_comment,
+                }
+            },
+
+            .multi_line_comment => {
+                switch (self.buffer[self.index]) {
+                    0 => {
+                        if (self.index != self.buffer.len) {
+                            continue :state .invalid;
+                        } else {
+                            result.tag = .invalid;
+                        }
+                    },
+                    '*' => {
+                        self.index += 1;
+                        continue :state .multi_line_comment_asterisk;
+                    },
+                    else => {
+                        self.index += 1;
+                        continue :state .multi_line_comment;
+                    },
+                }
+            },
+
+            .multi_line_comment_asterisk => {
+                switch (self.buffer[self.index]) {
+                    '/' => {
+                        self.index += 1;
+                        result.loc.start = self.index;
+                        continue :state .start;
+                    },
+                    '*' => {
+                        self.index += 1;
+                        continue :state .multi_line_comment_asterisk;
+                    },
+                    else => {
+                        self.index += 1;
+                        continue :state .multi_line_comment;
+                    },
+                }
+            },
+
+            .percent => {
+                self.index += 1;
+                switch (self.buffer[self.index]) {
+                    '=' => {
+                        result.tag = .percent_equal;
+                        self.index += 1;
+                    },
+                    else => result.tag = .percent,
+                }
+            },
+
+            .ampersand => {
+                self.index += 1;
+                switch (self.buffer[self.index]) {
+                    '&' => {
+                        result.tag = .ampersand_ampersand;
+                        self.index += 1;
+                    },
+                    '=' => {
+                        result.tag = .ampersand_equal;
+                        self.index += 1;
+                    },
+                    else => result.tag = .ampersand,
+                }
+            },
+
+            .pipe => {
+                self.index += 1;
+                switch (self.buffer[self.index]) {
+                    '|' => {
+                        result.tag = .pipe_pipe;
+                        self.index += 1;
+                    },
+                    '=' => {
+                        result.tag = .pipe_equal;
+                        self.index += 1;
+                    },
+                    else => result.tag = .pipe,
+                }
+            },
+
+            .caret => {
+                self.index += 1;
+                switch (self.buffer[self.index]) {
+                    '=' => {
+                        result.tag = .caret_equal;
+                        self.index += 1;
+                    },
+                    else => result.tag = .caret,
+                }
+            },
+
+            .tilde => {
+                self.index += 1;
+                result.tag = .tilde;
+            },
+
+            .angle_bracket_left => {
+                self.index += 1;
+                switch (self.buffer[self.index]) {
+                    '<' => continue :state .angle_bracket_angle_bracket_left,
+                    '=' => {
+                        result.tag = .angle_bracket_left_equal;
+                        self.index += 1;
+                    },
+                    else => result.tag = .angle_bracket_left,
+                }
+            },
+
+            .angle_bracket_angle_bracket_left => {
+                self.index += 1;
+                switch (self.buffer[self.index]) {
+                    '=' => {
+                        result.tag = .angle_bracket_angle_bracket_left_equal;
+                        self.index += 1;
+                    },
+                    else => result.tag = .angle_bracket_angle_bracket_left,
+                }
+            },
+
+            .angle_bracket_right => {
+                self.index += 1;
+                switch (self.buffer[self.index]) {
+                    '>' => continue :state .angle_bracket_angle_bracket_right,
+                    '=' => {
+                        result.tag = .angle_bracket_right_equal;
+                        self.index += 1;
+                    },
+                    else => result.tag = .angle_bracket_right,
+                }
+            },
+
+            .angle_bracket_angle_bracket_right => {
+                self.index += 1;
+                switch (self.buffer[self.index]) {
+                    '=' => {
+                        result.tag = .angle_bracket_angle_bracket_right_equal;
+                        self.index += 1;
+                    },
+                    else => result.tag = .angle_bracket_angle_bracket_right,
+                }
+            },
+
+            .colon => {
+                self.index += 1;
+                switch (self.buffer[self.index]) {
+                    ':' => {
+                        result.tag = .colon_colon;
+                        self.index += 1;
+                    },
+                    else => result.tag = .colon,
+                }
+            },
+
+            .period => {
+                self.index += 1;
+                switch (self.buffer[self.index]) {
+                    '0'...'9' => {
+                        result.tag = .double_literal;
+                        continue :state .float;
+                    },
+                    else => result.tag = .dot,
+                }
+            },
+
+            .int => switch (self.buffer[self.index]) {
+                '0'...'9' => {
+                    self.index += 1;
+                    continue :state .int;
+                },
+                '.' => continue :state .int_period,
+                'e', 'E' => {
+                    self.index += 1;
+                    continue :state .float_exponent;
+                },
+                'f', 'F' => {
+                    result.tag = .float_literal;
+                    self.index += 1;
+                },
+                'u', 'U', 'l', 'L' => {
+                    // Integer suffix - skip it
+                    self.index += 1;
+                    // Could have multiple suffixes like UL, ULL, etc.
+                    while (self.index < self.buffer.len) : (self.index += 1) {
+                        switch (self.buffer[self.index]) {
+                            'u', 'U', 'l', 'L' => continue,
+                            else => break,
+                        }
+                    }
+                },
+                else => {},
+            },
+
+            .int_period => {
+                self.index += 1;
+                switch (self.buffer[self.index]) {
+                    '0'...'9' => {
+                        result.tag = .double_literal;
+                        self.index += 1;
+                        continue :state .float;
+                    },
+                    else => {
+                        // It was just a number followed by a dot
+                        self.index -= 1;
+                        result.tag = .int_literal;
+                    },
+                }
+            },
+
+            .float => switch (self.buffer[self.index]) {
+                '0'...'9' => {
+                    self.index += 1;
+                    continue :state .float;
+                },
+                'e', 'E' => {
+                    self.index += 1;
+                    continue :state .float_exponent;
+                },
+                'f', 'F' => {
+                    result.tag = .float_literal;
+                    self.index += 1;
+                },
+                'l', 'L' => {
+                    // Long double suffix
+                    result.tag = .double_literal;
+                    self.index += 1;
+                },
+                else => {
+                    if (result.tag == .invalid) {
+                        result.tag = .double_literal;
+                    }
+                },
+            },
+
+            .float_exponent => {
+                switch (self.buffer[self.index]) {
+                    '+', '-' => {
+                        self.index += 1;
+                        continue :state .float;
+                    },
+                    '0'...'9' => {
+                        result.tag = .double_literal;
+                        continue :state .float;
+                    },
+                    else => {
+                        // Invalid exponent
+                        result.tag = .invalid;
+                    },
+                }
+            },
+        }
+
+        result.loc.end = self.index;
+        return result;
+    }
+};
