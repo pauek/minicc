@@ -1076,7 +1076,6 @@ test "float literal - simple period" {
     const input = ".123";
     var tokenizer = Tokenizer.init(input);
     const token = tokenizer.next();
-    std.debug.print("Token tag: {s}, lexeme: {s}\n", .{ @tagName(token.tag), input[token.loc.start..token.loc.end] });
     try std.testing.expectEqual(Token.Tag.double_literal, token.tag);
     try std.testing.expectEqual(Token.Tag.eof, tokenizer.next().tag);
 }
