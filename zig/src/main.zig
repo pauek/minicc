@@ -2,10 +2,10 @@ const std = @import("std");
 const Lexer = @import("lexer.zig").Lexer;
 const Allocator = std.mem.Allocator;
 
-const MAX_BYTES: usize = 10 * 1024 * 1024; // 10MB
+const MAX_FILE_BYTES: usize = 10 * 1024 * 1024; // 10MB
 
 pub fn read_file(allocator: Allocator, path: []const u8) ![:0]u8 {
-    const content = try std.fs.cwd().readFileAllocOptions(allocator, path, MAX_BYTES, null, .of(u8), 0);
+    const content = try std.fs.cwd().readFileAllocOptions(allocator, path, MAX_FILE_BYTES, null, .of(u8), 0);
     return content; // The caller is responsible for freeing the content.
 }
 
