@@ -1532,3 +1532,280 @@ test "all keywords - positive and negative tests" {
         try testKeyword(case.input, .identifier);
     }
 }
+
+test "token positions - comprehensive" {
+    // Create a comprehensive input string with many different token types
+    // We'll track positions manually to verify
+    const input = "if (x == 42) { return \"hello\" + 'a' - 3.14; }";
+    var tokenizer = Tokenizer.init(input);
+
+    // Track expected positions as we parse
+    var pos: usize = 0;
+
+    // Helper function to check token position
+    const checkToken = struct {
+        fn check(
+            token: Token,
+            expected_tag: Token.Tag,
+            expected_start: usize,
+            expected_end: usize,
+            expected_text: []const u8,
+        ) !void {
+            try std.testing.expectEqual(expected_tag, token.tag);
+            try std.testing.expectEqual(expected_start, token.loc.start);
+            try std.testing.expectEqual(expected_end, token.loc.end);
+            const actual_text = input[token.loc.start..token.loc.end];
+            try std.testing.expectEqualStrings(expected_text, actual_text);
+        }
+    }.check;
+
+    // Skip whitespace at start
+    pos = 0; // "if (x == 42) { return \"hello\" + 'a' - 3.14; }"
+    var token = tokenizer.next(); // "if"
+    try checkToken(token, .keyword_if, 0, 2, "if");
+    pos = 3; // skip space after "if"
+
+    token = tokenizer.next(); // "("
+    try checkToken(token, .l_paren, 3, 4, "(");
+    pos = 4;
+
+    token = tokenizer.next(); // "x"
+    try checkToken(token, .identifier, 4, 5, "x");
+    pos = 6; // skip space after "x"
+
+    token = tokenizer.next(); // "=="
+    try checkToken(token, .equal_equal, 6, 8, "==");
+    pos = 9; // skip space after "=="
+
+    token = tokenizer.next(); // "42"
+    try checkToken(token, .int_literal, 9, 11, "42");
+    pos = 11;
+
+    token = tokenizer.next(); // ")"
+    try checkToken(token, .r_paren, 11, 12, ")");
+    pos = 13; // skip space after ")"
+
+    token = tokenizer.next(); // "{"
+    try checkToken(token, .l_brace, 13, 14, "{");
+    pos = 15; // skip space after "{"
+
+    token = tokenizer.next(); // "return"
+    try checkToken(token, .keyword_return, 15, 21, "return");
+    pos = 22; // skip space after "return"
+
+    token = tokenizer.next(); // "\"hello\""
+    try checkToken(token, .string_literal, 22, 29, "\"hello\"");
+    pos = 30; // skip space after "\"hello\""
+
+    token = tokenizer.next(); // "+"
+    try checkToken(token, .plus, 30, 31, "+");
+    pos = 32; // skip space after "+"
+
+    token = tokenizer.next(); // "'a'"
+    try checkToken(token, .char_literal, 32, 35, "'a'");
+    pos = 36; // skip space after "'a'"
+
+    token = tokenizer.next(); // "-"
+    try checkToken(token, .minus, 36, 37, "-");
+    pos = 38; // skip space after "-"
+
+    token = tokenizer.next(); // "3.14"
+    try checkToken(token, .double_literal, 38, 42, "3.14");
+    pos = 42;
+
+    token = tokenizer.next(); // ";"
+    try checkToken(token, .semicolon, 42, 43, ";");
+    pos = 44; // skip space after ";"
+
+    token = tokenizer.next(); // "}"
+    try checkToken(token, .r_brace, 44, 45, "}");
+    pos = 45;
+
+    token = tokenizer.next(); // EOF
+    try std.testing.expectEqual(Token.Tag.eof, token.tag);
+    try std.testing.expectEqual(input.len, token.loc.start);
+    try std.testing.expectEqual(input.len, token.loc.end);
+}
+
+test "token positions - operators and punctuation" {
+    const input = "++ -- == != <= >= << >> <<= >>= += -= *= /= %= &= |= ^= && || -> ::";
+    var tokenizer = Tokenizer.init(input);
+
+    const TestCase = struct {
+        tag: Token.Tag,
+        expected_text: []const u8,
+    };
+
+    const test_cases = [_]TestCase{
+        .{ .tag = .plus_plus, .expected_text = "++" },
+        .{ .tag = .minus_minus, .expected_text = "--" },
+        .{ .tag = .equal_equal, .expected_text = "==" },
+        .{ .tag = .bang_equal, .expected_text = "!=" },
+        .{ .tag = .angle_bracket_left_equal, .expected_text = "<=" },
+        .{ .tag = .angle_bracket_right_equal, .expected_text = ">=" },
+        .{ .tag = .angle_bracket_angle_bracket_left, .expected_text = "<<" },
+        .{ .tag = .angle_bracket_angle_bracket_right, .expected_text = ">>" },
+        .{ .tag = .angle_bracket_angle_bracket_left_equal, .expected_text = "<<=" },
+        .{ .tag = .angle_bracket_angle_bracket_right_equal, .expected_text = ">>=" },
+        .{ .tag = .plus_equal, .expected_text = "+=" },
+        .{ .tag = .minus_equal, .expected_text = "-=" },
+        .{ .tag = .asterisk_equal, .expected_text = "*=" },
+        .{ .tag = .slash_equal, .expected_text = "/=" },
+        .{ .tag = .percent_equal, .expected_text = "%=" },
+        .{ .tag = .ampersand_equal, .expected_text = "&=" },
+        .{ .tag = .pipe_equal, .expected_text = "|=" },
+        .{ .tag = .caret_equal, .expected_text = "^=" },
+        .{ .tag = .ampersand_ampersand, .expected_text = "&&" },
+        .{ .tag = .pipe_pipe, .expected_text = "||" },
+        .{ .tag = .arrow, .expected_text = "->" },
+        .{ .tag = .colon_colon, .expected_text = "::" },
+    };
+
+    var pos: usize = 0;
+    for (test_cases) |case| {
+        const token = tokenizer.next();
+        try std.testing.expectEqual(case.tag, token.tag);
+        const actual_text = input[token.loc.start..token.loc.end];
+        try std.testing.expectEqualStrings(case.expected_text, actual_text);
+        try std.testing.expectEqual(pos, token.loc.start);
+        pos = token.loc.end;
+        // Skip whitespace
+        while (pos < input.len and input[pos] == ' ') {
+            pos += 1;
+        }
+    }
+
+    const eof_token = tokenizer.next();
+    try std.testing.expectEqual(Token.Tag.eof, eof_token.tag);
+    try std.testing.expectEqual(input.len, eof_token.loc.start);
+    try std.testing.expectEqual(input.len, eof_token.loc.end);
+}
+
+test "token positions - literals and identifiers" {
+    const input = "hello world123 _underscore 42 0 999 3.14 2.5f .123 123e10 \"string\" 'c'";
+    var tokenizer = Tokenizer.init(input);
+
+    const TestCase = struct {
+        tag: Token.Tag,
+        expected_text: []const u8,
+    };
+
+    const test_cases = [_]TestCase{
+        .{ .tag = .identifier, .expected_text = "hello" },
+        .{ .tag = .identifier, .expected_text = "world123" },
+        .{ .tag = .identifier, .expected_text = "_underscore" },
+        .{ .tag = .int_literal, .expected_text = "42" },
+        .{ .tag = .int_literal, .expected_text = "0" },
+        .{ .tag = .int_literal, .expected_text = "999" },
+        .{ .tag = .double_literal, .expected_text = "3.14" },
+        .{ .tag = .float_literal, .expected_text = "2.5f" },
+        .{ .tag = .double_literal, .expected_text = ".123" },
+        .{ .tag = .double_literal, .expected_text = "123e10" },
+        .{ .tag = .string_literal, .expected_text = "\"string\"" },
+        .{ .tag = .char_literal, .expected_text = "'c'" },
+    };
+
+    var pos: usize = 0;
+    for (test_cases) |case| {
+        const token = tokenizer.next();
+        try std.testing.expectEqual(case.tag, token.tag);
+        const actual_text = input[token.loc.start..token.loc.end];
+        try std.testing.expectEqualStrings(case.expected_text, actual_text);
+        try std.testing.expectEqual(pos, token.loc.start);
+        pos = token.loc.end;
+        // Skip whitespace
+        while (pos < input.len and input[pos] == ' ') {
+            pos += 1;
+        }
+    }
+
+    const eof_token = tokenizer.next();
+    try std.testing.expectEqual(Token.Tag.eof, eof_token.tag);
+    try std.testing.expectEqual(input.len, eof_token.loc.start);
+    try std.testing.expectEqual(input.len, eof_token.loc.end);
+}
+
+test "token positions - keywords" {
+    const input = "if else for while break continue return int void bool char double float";
+    var tokenizer = Tokenizer.init(input);
+
+    const TestCase = struct {
+        tag: Token.Tag,
+        expected_text: []const u8,
+    };
+
+    const test_cases = [_]TestCase{
+        .{ .tag = .keyword_if, .expected_text = "if" },
+        .{ .tag = .keyword_else, .expected_text = "else" },
+        .{ .tag = .keyword_for, .expected_text = "for" },
+        .{ .tag = .keyword_while, .expected_text = "while" },
+        .{ .tag = .keyword_break, .expected_text = "break" },
+        .{ .tag = .keyword_continue, .expected_text = "continue" },
+        .{ .tag = .keyword_return, .expected_text = "return" },
+        .{ .tag = .keyword_int, .expected_text = "int" },
+        .{ .tag = .keyword_void, .expected_text = "void" },
+        .{ .tag = .keyword_bool, .expected_text = "bool" },
+        .{ .tag = .keyword_char, .expected_text = "char" },
+        .{ .tag = .keyword_double, .expected_text = "double" },
+        .{ .tag = .keyword_float, .expected_text = "float" },
+    };
+
+    var pos: usize = 0;
+    for (test_cases) |case| {
+        const token = tokenizer.next();
+        try std.testing.expectEqual(case.tag, token.tag);
+        const actual_text = input[token.loc.start..token.loc.end];
+        try std.testing.expectEqualStrings(case.expected_text, actual_text);
+        try std.testing.expectEqual(pos, token.loc.start);
+        pos = token.loc.end;
+        // Skip whitespace
+        while (pos < input.len and input[pos] == ' ') {
+            pos += 1;
+        }
+    }
+
+    const eof_token = tokenizer.next();
+    try std.testing.expectEqual(Token.Tag.eof, eof_token.tag);
+    try std.testing.expectEqual(input.len, eof_token.loc.start);
+    try std.testing.expectEqual(input.len, eof_token.loc.end);
+}
+
+test "token positions - punctuation" {
+    const input = "()[]{};,.?:#";
+    var tokenizer = Tokenizer.init(input);
+
+    const TestCase = struct {
+        tag: Token.Tag,
+        expected_text: []const u8,
+    };
+
+    const test_cases = [_]TestCase{
+        .{ .tag = .l_paren, .expected_text = "(" },
+        .{ .tag = .r_paren, .expected_text = ")" },
+        .{ .tag = .l_bracket, .expected_text = "[" },
+        .{ .tag = .r_bracket, .expected_text = "]" },
+        .{ .tag = .l_brace, .expected_text = "{" },
+        .{ .tag = .r_brace, .expected_text = "}" },
+        .{ .tag = .semicolon, .expected_text = ";" },
+        .{ .tag = .comma, .expected_text = "," },
+        .{ .tag = .dot, .expected_text = "." },
+        .{ .tag = .question_mark, .expected_text = "?" },
+        .{ .tag = .colon, .expected_text = ":" },
+        .{ .tag = .sharp, .expected_text = "#" },
+    };
+
+    var pos: usize = 0;
+    for (test_cases) |case| {
+        const token = tokenizer.next();
+        try std.testing.expectEqual(case.tag, token.tag);
+        const actual_text = input[token.loc.start..token.loc.end];
+        try std.testing.expectEqualStrings(case.expected_text, actual_text);
+        try std.testing.expectEqual(pos, token.loc.start);
+        pos = token.loc.end;
+    }
+
+    const eof_token = tokenizer.next();
+    try std.testing.expectEqual(Token.Tag.eof, eof_token.tag);
+    try std.testing.expectEqual(input.len, eof_token.loc.start);
+    try std.testing.expectEqual(input.len, eof_token.loc.end);
+}
