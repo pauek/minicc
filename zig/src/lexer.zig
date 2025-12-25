@@ -277,6 +277,10 @@ pub const Token = struct {
             };
         }
     };
+
+    pub fn str(self: *const Token, input: [:0]const u8) []const u8 {
+        return input[self.loc.start..self.loc.end];
+    }
 };
 
 pub const Lexer = struct {
