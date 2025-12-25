@@ -1,4 +1,4 @@
-// MiniCC Tokenizer - adapted from tokenizer_example.zig for MiniCC C++ subset
+// MiniCC Lexer - adapted from tokenizer_example.zig for MiniCC C++ subset
 
 const std = @import("std");
 
@@ -279,16 +279,16 @@ pub const Token = struct {
     };
 };
 
-pub const Tokenizer = struct {
+pub const Lexer = struct {
     buffer: [:0]const u8,
     index: usize,
 
     /// For debugging purposes.
-    pub fn dump(self: *Tokenizer, token: *const Token) void {
+    pub fn dump(self: *Lexer, token: *const Token) void {
         std.debug.print("{s} \"{s}\"\n", .{ @tagName(token.tag), self.buffer[token.loc.start..token.loc.end] });
     }
 
-    pub fn init(buffer: [:0]const u8) Tokenizer {
+    pub fn init(buffer: [:0]const u8) Lexer {
         // Skip the UTF-8 BOM if present.
         return .{
             .buffer = buffer,
@@ -333,7 +333,7 @@ pub const Tokenizer = struct {
 
     /// After this returns invalid, it will reset on the next newline, returning tokens starting from there.
     /// An eof token will always be returned at the end.
-    pub fn next(self: *Tokenizer) Token {
+    pub fn next(self: *Lexer) Token {
         var result: Token = .{
             .tag = undefined,
             .loc = .{
@@ -945,5 +945,5 @@ pub const Tokenizer = struct {
 };
 
 test {
-    _ = @import("tokenizer_tests.zig");
+    _ = @import("lexer_tests.zig");
 }

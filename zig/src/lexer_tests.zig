@@ -1,149 +1,149 @@
 const std = @import("std");
-const tokenizer = @import("tokenizer.zig");
-const Tokenizer = tokenizer.Tokenizer;
-const Token = tokenizer.Token;
+const lexer = @import("lexer.zig");
+const Lexer = lexer.Lexer;
+const Token = lexer.Token;
 
 // Tests
 test "single punctuation tokens" {
     const input = "()[]{};,";
-    var T = Tokenizer.init(input);
+    var L = Lexer.init(input);
 
-    try std.testing.expectEqual(Token.Tag.l_paren, T.next().tag);
-    try std.testing.expectEqual(Token.Tag.r_paren, T.next().tag);
-    try std.testing.expectEqual(Token.Tag.l_bracket, T.next().tag);
-    try std.testing.expectEqual(Token.Tag.r_bracket, T.next().tag);
-    try std.testing.expectEqual(Token.Tag.l_brace, T.next().tag);
-    try std.testing.expectEqual(Token.Tag.r_brace, T.next().tag);
-    try std.testing.expectEqual(Token.Tag.semicolon, T.next().tag);
-    try std.testing.expectEqual(Token.Tag.comma, T.next().tag);
-    try std.testing.expectEqual(Token.Tag.eof, T.next().tag);
+    try std.testing.expectEqual(Token.Tag.l_paren, L.next().tag);
+    try std.testing.expectEqual(Token.Tag.r_paren, L.next().tag);
+    try std.testing.expectEqual(Token.Tag.l_bracket, L.next().tag);
+    try std.testing.expectEqual(Token.Tag.r_bracket, L.next().tag);
+    try std.testing.expectEqual(Token.Tag.l_brace, L.next().tag);
+    try std.testing.expectEqual(Token.Tag.r_brace, L.next().tag);
+    try std.testing.expectEqual(Token.Tag.semicolon, L.next().tag);
+    try std.testing.expectEqual(Token.Tag.comma, L.next().tag);
+    try std.testing.expectEqual(Token.Tag.eof, L.next().tag);
 }
 
 test "single operators" {
     const input = "+-*/%%= =!&|^<>";
-    var T = Tokenizer.init(input);
+    var L = Lexer.init(input);
 
-    try std.testing.expectEqual(Token.Tag.plus, T.next().tag);
-    try std.testing.expectEqual(Token.Tag.minus, T.next().tag);
-    try std.testing.expectEqual(Token.Tag.asterisk, T.next().tag);
-    try std.testing.expectEqual(Token.Tag.slash, T.next().tag);
-    try std.testing.expectEqual(Token.Tag.percent, T.next().tag);
-    try std.testing.expectEqual(Token.Tag.percent_equal, T.next().tag);
-    try std.testing.expectEqual(Token.Tag.equal, T.next().tag);
-    try std.testing.expectEqual(Token.Tag.bang, T.next().tag);
-    try std.testing.expectEqual(Token.Tag.ampersand, T.next().tag);
-    try std.testing.expectEqual(Token.Tag.pipe, T.next().tag);
-    try std.testing.expectEqual(Token.Tag.caret, T.next().tag);
-    try std.testing.expectEqual(Token.Tag.angle_bracket_left, T.next().tag);
-    try std.testing.expectEqual(Token.Tag.angle_bracket_right, T.next().tag);
-    try std.testing.expectEqual(Token.Tag.eof, T.next().tag);
+    try std.testing.expectEqual(Token.Tag.plus, L.next().tag);
+    try std.testing.expectEqual(Token.Tag.minus, L.next().tag);
+    try std.testing.expectEqual(Token.Tag.asterisk, L.next().tag);
+    try std.testing.expectEqual(Token.Tag.slash, L.next().tag);
+    try std.testing.expectEqual(Token.Tag.percent, L.next().tag);
+    try std.testing.expectEqual(Token.Tag.percent_equal, L.next().tag);
+    try std.testing.expectEqual(Token.Tag.equal, L.next().tag);
+    try std.testing.expectEqual(Token.Tag.bang, L.next().tag);
+    try std.testing.expectEqual(Token.Tag.ampersand, L.next().tag);
+    try std.testing.expectEqual(Token.Tag.pipe, L.next().tag);
+    try std.testing.expectEqual(Token.Tag.caret, L.next().tag);
+    try std.testing.expectEqual(Token.Tag.angle_bracket_left, L.next().tag);
+    try std.testing.expectEqual(Token.Tag.angle_bracket_right, L.next().tag);
+    try std.testing.expectEqual(Token.Tag.eof, L.next().tag);
 }
 
 test "two-character operators" {
     const input = "== != ++ -- += -= *= /= %= && || << >>";
-    var T = Tokenizer.init(input);
+    var L = Lexer.init(input);
 
-    try std.testing.expectEqual(Token.Tag.equal_equal, T.next().tag);
-    try std.testing.expectEqual(Token.Tag.bang_equal, T.next().tag);
-    try std.testing.expectEqual(Token.Tag.plus_plus, T.next().tag);
-    try std.testing.expectEqual(Token.Tag.minus_minus, T.next().tag);
-    try std.testing.expectEqual(Token.Tag.plus_equal, T.next().tag);
-    try std.testing.expectEqual(Token.Tag.minus_equal, T.next().tag);
-    try std.testing.expectEqual(Token.Tag.asterisk_equal, T.next().tag);
-    try std.testing.expectEqual(Token.Tag.slash_equal, T.next().tag);
-    try std.testing.expectEqual(Token.Tag.percent_equal, T.next().tag);
-    try std.testing.expectEqual(Token.Tag.ampersand_ampersand, T.next().tag);
-    try std.testing.expectEqual(Token.Tag.pipe_pipe, T.next().tag);
-    try std.testing.expectEqual(Token.Tag.angle_bracket_angle_bracket_left, T.next().tag);
-    try std.testing.expectEqual(Token.Tag.angle_bracket_angle_bracket_right, T.next().tag);
-    try std.testing.expectEqual(Token.Tag.eof, T.next().tag);
+    try std.testing.expectEqual(Token.Tag.equal_equal, L.next().tag);
+    try std.testing.expectEqual(Token.Tag.bang_equal, L.next().tag);
+    try std.testing.expectEqual(Token.Tag.plus_plus, L.next().tag);
+    try std.testing.expectEqual(Token.Tag.minus_minus, L.next().tag);
+    try std.testing.expectEqual(Token.Tag.plus_equal, L.next().tag);
+    try std.testing.expectEqual(Token.Tag.minus_equal, L.next().tag);
+    try std.testing.expectEqual(Token.Tag.asterisk_equal, L.next().tag);
+    try std.testing.expectEqual(Token.Tag.slash_equal, L.next().tag);
+    try std.testing.expectEqual(Token.Tag.percent_equal, L.next().tag);
+    try std.testing.expectEqual(Token.Tag.ampersand_ampersand, L.next().tag);
+    try std.testing.expectEqual(Token.Tag.pipe_pipe, L.next().tag);
+    try std.testing.expectEqual(Token.Tag.angle_bracket_angle_bracket_left, L.next().tag);
+    try std.testing.expectEqual(Token.Tag.angle_bracket_angle_bracket_right, L.next().tag);
+    try std.testing.expectEqual(Token.Tag.eof, L.next().tag);
 }
 
 test "keywords" {
     const input = "if else for while return int void";
-    var T = Tokenizer.init(input);
+    var L = Lexer.init(input);
 
-    try std.testing.expectEqual(Token.Tag.keyword_if, T.next().tag);
-    try std.testing.expectEqual(Token.Tag.keyword_else, T.next().tag);
-    try std.testing.expectEqual(Token.Tag.keyword_for, T.next().tag);
-    try std.testing.expectEqual(Token.Tag.keyword_while, T.next().tag);
-    try std.testing.expectEqual(Token.Tag.keyword_return, T.next().tag);
-    try std.testing.expectEqual(Token.Tag.keyword_int, T.next().tag);
-    try std.testing.expectEqual(Token.Tag.keyword_void, T.next().tag);
-    try std.testing.expectEqual(Token.Tag.eof, T.next().tag);
+    try std.testing.expectEqual(Token.Tag.keyword_if, L.next().tag);
+    try std.testing.expectEqual(Token.Tag.keyword_else, L.next().tag);
+    try std.testing.expectEqual(Token.Tag.keyword_for, L.next().tag);
+    try std.testing.expectEqual(Token.Tag.keyword_while, L.next().tag);
+    try std.testing.expectEqual(Token.Tag.keyword_return, L.next().tag);
+    try std.testing.expectEqual(Token.Tag.keyword_int, L.next().tag);
+    try std.testing.expectEqual(Token.Tag.keyword_void, L.next().tag);
+    try std.testing.expectEqual(Token.Tag.eof, L.next().tag);
 }
 
 test "identifiers" {
     const input = "hello world _underscore var123";
-    var T = Tokenizer.init(input);
+    var L = Lexer.init(input);
 
-    try std.testing.expectEqual(Token.Tag.identifier, T.next().tag);
-    try std.testing.expectEqual(Token.Tag.identifier, T.next().tag);
-    try std.testing.expectEqual(Token.Tag.identifier, T.next().tag);
-    try std.testing.expectEqual(Token.Tag.identifier, T.next().tag);
-    try std.testing.expectEqual(Token.Tag.eof, T.next().tag);
+    try std.testing.expectEqual(Token.Tag.identifier, L.next().tag);
+    try std.testing.expectEqual(Token.Tag.identifier, L.next().tag);
+    try std.testing.expectEqual(Token.Tag.identifier, L.next().tag);
+    try std.testing.expectEqual(Token.Tag.identifier, L.next().tag);
+    try std.testing.expectEqual(Token.Tag.eof, L.next().tag);
 }
 
 test "integer literals" {
     const input = "0 42 123 999";
-    var T = Tokenizer.init(input);
+    var L = Lexer.init(input);
 
-    try std.testing.expectEqual(Token.Tag.int_literal, T.next().tag);
-    try std.testing.expectEqual(Token.Tag.int_literal, T.next().tag);
-    try std.testing.expectEqual(Token.Tag.int_literal, T.next().tag);
-    try std.testing.expectEqual(Token.Tag.int_literal, T.next().tag);
-    try std.testing.expectEqual(Token.Tag.eof, T.next().tag);
+    try std.testing.expectEqual(Token.Tag.int_literal, L.next().tag);
+    try std.testing.expectEqual(Token.Tag.int_literal, L.next().tag);
+    try std.testing.expectEqual(Token.Tag.int_literal, L.next().tag);
+    try std.testing.expectEqual(Token.Tag.int_literal, L.next().tag);
+    try std.testing.expectEqual(Token.Tag.eof, L.next().tag);
 }
 
 test "simple expression" {
     const input = "x = 42;";
-    var T = Tokenizer.init(input);
+    var L = Lexer.init(input);
 
-    try std.testing.expectEqual(Token.Tag.identifier, T.next().tag);
-    try std.testing.expectEqual(Token.Tag.equal, T.next().tag);
-    try std.testing.expectEqual(Token.Tag.int_literal, T.next().tag);
-    try std.testing.expectEqual(Token.Tag.semicolon, T.next().tag);
-    try std.testing.expectEqual(Token.Tag.eof, T.next().tag);
+    try std.testing.expectEqual(Token.Tag.identifier, L.next().tag);
+    try std.testing.expectEqual(Token.Tag.equal, L.next().tag);
+    try std.testing.expectEqual(Token.Tag.int_literal, L.next().tag);
+    try std.testing.expectEqual(Token.Tag.semicolon, L.next().tag);
+    try std.testing.expectEqual(Token.Tag.eof, L.next().tag);
 }
 
 test "if statement" {
     const input = "if (x == 0) return;";
-    var T = Tokenizer.init(input);
+    var L = Lexer.init(input);
 
-    try std.testing.expectEqual(Token.Tag.keyword_if, T.next().tag);
-    try std.testing.expectEqual(Token.Tag.l_paren, T.next().tag);
-    try std.testing.expectEqual(Token.Tag.identifier, T.next().tag);
-    try std.testing.expectEqual(Token.Tag.equal_equal, T.next().tag);
-    try std.testing.expectEqual(Token.Tag.int_literal, T.next().tag);
-    try std.testing.expectEqual(Token.Tag.r_paren, T.next().tag);
-    try std.testing.expectEqual(Token.Tag.keyword_return, T.next().tag);
-    try std.testing.expectEqual(Token.Tag.semicolon, T.next().tag);
-    try std.testing.expectEqual(Token.Tag.eof, T.next().tag);
+    try std.testing.expectEqual(Token.Tag.keyword_if, L.next().tag);
+    try std.testing.expectEqual(Token.Tag.l_paren, L.next().tag);
+    try std.testing.expectEqual(Token.Tag.identifier, L.next().tag);
+    try std.testing.expectEqual(Token.Tag.equal_equal, L.next().tag);
+    try std.testing.expectEqual(Token.Tag.int_literal, L.next().tag);
+    try std.testing.expectEqual(Token.Tag.r_paren, L.next().tag);
+    try std.testing.expectEqual(Token.Tag.keyword_return, L.next().tag);
+    try std.testing.expectEqual(Token.Tag.semicolon, L.next().tag);
+    try std.testing.expectEqual(Token.Tag.eof, L.next().tag);
 }
 
 test "whitespace handling" {
     const input = "  x  \t  y  \n  z  ";
-    var T = Tokenizer.init(input);
+    var L = Lexer.init(input);
 
-    try std.testing.expectEqual(Token.Tag.identifier, T.next().tag);
-    try std.testing.expectEqual(Token.Tag.identifier, T.next().tag);
-    try std.testing.expectEqual(Token.Tag.identifier, T.next().tag);
-    try std.testing.expectEqual(Token.Tag.eof, T.next().tag);
+    try std.testing.expectEqual(Token.Tag.identifier, L.next().tag);
+    try std.testing.expectEqual(Token.Tag.identifier, L.next().tag);
+    try std.testing.expectEqual(Token.Tag.identifier, L.next().tag);
+    try std.testing.expectEqual(Token.Tag.eof, L.next().tag);
 }
 
 test "float literal - simple period" {
     const input = ".123";
-    var T = Tokenizer.init(input);
-    const token = T.next();
+    var L = Lexer.init(input);
+    const token = L.next();
     try std.testing.expectEqual(Token.Tag.double_literal, token.tag);
-    try std.testing.expectEqual(Token.Tag.eof, T.next().tag);
+    try std.testing.expectEqual(Token.Tag.eof, L.next().tag);
 }
 
 fn testFloatLiteral(comptime input: [:0]const u8, expected_tag: Token.Tag) !void {
-    var T = Tokenizer.init(input);
-    const token = T.next();
+    var L = Lexer.init(input);
+    const token = L.next();
     try std.testing.expectEqual(expected_tag, token.tag);
-    try std.testing.expectEqual(Token.Tag.eof, T.next().tag);
+    try std.testing.expectEqual(Token.Tag.eof, L.next().tag);
 }
 
 test "float literals - all combinations" {
@@ -325,10 +325,10 @@ test "float literals - all combinations" {
 }
 
 fn testKeyword(comptime input: [:0]const u8, expected_tag: Token.Tag) !void {
-    var T = Tokenizer.init(input);
-    const token = T.next();
+    var L = Lexer.init(input);
+    const token = L.next();
     try std.testing.expectEqual(expected_tag, token.tag);
-    try std.testing.expectEqual(Token.Tag.eof, T.next().tag);
+    try std.testing.expectEqual(Token.Tag.eof, L.next().tag);
 }
 
 test "all keywords - positive and negative tests" {
@@ -596,7 +596,7 @@ test "token positions - comprehensive" {
     // Create a comprehensive input string with many different token types
     // We'll track positions manually to verify
     const input = "if (x == 42) { return \"hello\" + 'a' - 3.14; }";
-    var T = Tokenizer.init(input);
+    var L = Lexer.init(input);
 
     // Track expected positions as we parse
     var pos: usize = 0;
@@ -620,67 +620,67 @@ test "token positions - comprehensive" {
 
     // Skip whitespace at start
     pos = 0; // "if (x == 42) { return \"hello\" + 'a' - 3.14; }"
-    var token = T.next(); // "if"
+    var token = L.next(); // "if"
     try checkToken(token, .keyword_if, 0, 2, "if");
     pos = 3; // skip space after "if"
 
-    token = T.next(); // "("
+    token = L.next(); // "("
     try checkToken(token, .l_paren, 3, 4, "(");
     pos = 4;
 
-    token = T.next(); // "x"
+    token = L.next(); // "x"
     try checkToken(token, .identifier, 4, 5, "x");
     pos = 6; // skip space after "x"
 
-    token = T.next(); // "=="
+    token = L.next(); // "=="
     try checkToken(token, .equal_equal, 6, 8, "==");
     pos = 9; // skip space after "=="
 
-    token = T.next(); // "42"
+    token = L.next(); // "42"
     try checkToken(token, .int_literal, 9, 11, "42");
     pos = 11;
 
-    token = T.next(); // ")"
+    token = L.next(); // ")"
     try checkToken(token, .r_paren, 11, 12, ")");
     pos = 13; // skip space after ")"
 
-    token = T.next(); // "{"
+    token = L.next(); // "{"
     try checkToken(token, .l_brace, 13, 14, "{");
     pos = 15; // skip space after "{"
 
-    token = T.next(); // "return"
+    token = L.next(); // "return"
     try checkToken(token, .keyword_return, 15, 21, "return");
     pos = 22; // skip space after "return"
 
-    token = T.next(); // "\"hello\""
+    token = L.next(); // "\"hello\""
     try checkToken(token, .string_literal, 22, 29, "\"hello\"");
     pos = 30; // skip space after "\"hello\""
 
-    token = T.next(); // "+"
+    token = L.next(); // "+"
     try checkToken(token, .plus, 30, 31, "+");
     pos = 32; // skip space after "+"
 
-    token = T.next(); // "'a'"
+    token = L.next(); // "'a'"
     try checkToken(token, .char_literal, 32, 35, "'a'");
     pos = 36; // skip space after "'a'"
 
-    token = T.next(); // "-"
+    token = L.next(); // "-"
     try checkToken(token, .minus, 36, 37, "-");
     pos = 38; // skip space after "-"
 
-    token = T.next(); // "3.14"
+    token = L.next(); // "3.14"
     try checkToken(token, .double_literal, 38, 42, "3.14");
     pos = 42;
 
-    token = T.next(); // ";"
+    token = L.next(); // ";"
     try checkToken(token, .semicolon, 42, 43, ";");
     pos = 44; // skip space after ";"
 
-    token = T.next(); // "}"
+    token = L.next(); // "}"
     try checkToken(token, .r_brace, 44, 45, "}");
     pos = 45;
 
-    token = T.next(); // EOF
+    token = L.next(); // EOF
     try std.testing.expectEqual(Token.Tag.eof, token.tag);
     try std.testing.expectEqual(input.len, token.loc.start);
     try std.testing.expectEqual(input.len, token.loc.end);
@@ -688,7 +688,7 @@ test "token positions - comprehensive" {
 
 test "token positions - operators and punctuation" {
     const input = "++ -- == != <= >= << >> <<= >>= += -= *= /= %= &= |= ^= && || -> ::";
-    var T = Tokenizer.init(input);
+    var L = Lexer.init(input);
 
     const TestCase = struct {
         tag: Token.Tag,
@@ -722,7 +722,7 @@ test "token positions - operators and punctuation" {
 
     var pos: usize = 0;
     for (test_cases) |case| {
-        const token = T.next();
+        const token = L.next();
         try std.testing.expectEqual(case.tag, token.tag);
         const actual_text = input[token.loc.start..token.loc.end];
         try std.testing.expectEqualStrings(case.expected_text, actual_text);
@@ -734,7 +734,7 @@ test "token positions - operators and punctuation" {
         }
     }
 
-    const eof_token = T.next();
+    const eof_token = L.next();
     try std.testing.expectEqual(Token.Tag.eof, eof_token.tag);
     try std.testing.expectEqual(input.len, eof_token.loc.start);
     try std.testing.expectEqual(input.len, eof_token.loc.end);
@@ -742,7 +742,7 @@ test "token positions - operators and punctuation" {
 
 test "token positions - literals and identifiers" {
     const input = "hello world123 _underscore 42 0 999 3.14 2.5f .123 123e10 \"string\" 'c'";
-    var T = Tokenizer.init(input);
+    var L = Lexer.init(input);
 
     const TestCase = struct {
         tag: Token.Tag,
@@ -766,7 +766,7 @@ test "token positions - literals and identifiers" {
 
     var pos: usize = 0;
     for (test_cases) |case| {
-        const token = T.next();
+        const token = L.next();
         try std.testing.expectEqual(case.tag, token.tag);
         const actual_text = input[token.loc.start..token.loc.end];
         try std.testing.expectEqualStrings(case.expected_text, actual_text);
@@ -778,7 +778,7 @@ test "token positions - literals and identifiers" {
         }
     }
 
-    const eof_token = T.next();
+    const eof_token = L.next();
     try std.testing.expectEqual(Token.Tag.eof, eof_token.tag);
     try std.testing.expectEqual(input.len, eof_token.loc.start);
     try std.testing.expectEqual(input.len, eof_token.loc.end);
@@ -786,7 +786,7 @@ test "token positions - literals and identifiers" {
 
 test "token positions - keywords" {
     const input = "if else for while break continue return int void bool char double float";
-    var T = Tokenizer.init(input);
+    var L = Lexer.init(input);
 
     const TestCase = struct {
         tag: Token.Tag,
@@ -811,7 +811,7 @@ test "token positions - keywords" {
 
     var pos: usize = 0;
     for (test_cases) |case| {
-        const token = T.next();
+        const token = L.next();
         try std.testing.expectEqual(case.tag, token.tag);
         const actual_text = input[token.loc.start..token.loc.end];
         try std.testing.expectEqualStrings(case.expected_text, actual_text);
@@ -823,7 +823,7 @@ test "token positions - keywords" {
         }
     }
 
-    const eof_token = T.next();
+    const eof_token = L.next();
     try std.testing.expectEqual(Token.Tag.eof, eof_token.tag);
     try std.testing.expectEqual(input.len, eof_token.loc.start);
     try std.testing.expectEqual(input.len, eof_token.loc.end);
@@ -831,7 +831,7 @@ test "token positions - keywords" {
 
 test "token positions - punctuation" {
     const input = "()[]{};,.?:#";
-    var T = Tokenizer.init(input);
+    var L = Lexer.init(input);
 
     const TestCase = struct {
         tag: Token.Tag,
@@ -855,7 +855,7 @@ test "token positions - punctuation" {
 
     var pos: usize = 0;
     for (test_cases) |case| {
-        const token = T.next();
+        const token = L.next();
         try std.testing.expectEqual(case.tag, token.tag);
         const actual_text = input[token.loc.start..token.loc.end];
         try std.testing.expectEqualStrings(case.expected_text, actual_text);
@@ -863,7 +863,7 @@ test "token positions - punctuation" {
         pos = token.loc.end;
     }
 
-    const eof_token = T.next();
+    const eof_token = L.next();
     try std.testing.expectEqual(Token.Tag.eof, eof_token.tag);
     try std.testing.expectEqual(input.len, eof_token.loc.start);
     try std.testing.expectEqual(input.len, eof_token.loc.end);
