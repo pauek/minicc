@@ -10,41 +10,38 @@ struct Double {
     double value;
 };
 
-class AST {
-   public:
-    template <typename T>
-    struct Ref {
-        size_t k;
+template <typename T>
+struct Ref {
+    size_t k;
+    T& get();
+};
 
-        T& get() { return Class<T>::instances_[k]; }
-    };
+template <typename T>
+struct Class {
+    static vector<T> instances_;
 
-    template <typename T>
-    struct Class {
-        static vector<T> instances_;
-
-        static Ref<T> create(const T& t) {
-            size_t k = instances_.size();
-            instances_.push_back(t);
-            return {k};
-        }
-    };
-
-    void test() {
-        auto r1 = Class<Int>::create({5});
-        auto r2 = Class<Double>::create({0.01});
-        cout << r1.get().value << endl;
-        cout << r2.get().value << endl;
+    static Ref<T> create(const T& t) {
+        size_t k = instances_.size();
+        instances_.push_back(t);
+        return {k};
     }
 };
 
-template<>
-vector<Int>    AST::Class<Int>::instances_ = {};
+template <typename T>
+T& Ref<T>::get() {
+    return Class<T>::instances_[k];
+}
 
-template<>
-vector<Double> AST::Class<Double>::instances_ = {};
+template <>
+vector<Int> Class<Int>::instances_ = {};
+
+template <>
+vector<Double> Class<Double>::instances_ = {};
 
 int main() {
-    AST ast;
-    ast.test();
+    auto r1 = Class<Int>::create({5});
+    cout << r1.get().value << endl;
+
+    auto r2 = Class<Double>::create({0.01});
+    cout << r2.get().value << endl;
 }
