@@ -1,11 +1,12 @@
-#include "interpreter.hh"
 #include <assert.h>
 #include <iostream>
+using namespace std;
+
 #include "ast.hh"
 #include "i18n.hh"
+#include "interpreter.hh"
 #include "types.hh"
 #include "value.hh"
-using namespace std;
 
 void Interpreter::invoke_func_prepare_arg(FuncDecl *fn, Value arg, int i) {
     if (arg.is<Reference>()) {
@@ -516,8 +517,8 @@ void Interpreter::eval(AstNode *node) {
             // second part
             //
             if (X->op == "&&" or X->op == "and" or X->op == "||" or X->op == "or") {
-                if (left.is<Bool>(
-                    ) /* and right.is<Bool>() // FIXME: Check in SemanticAnalyzer!! */) {
+                if (left.is<
+                        Bool>() /* and right.is<Bool>() // FIXME: Check in SemanticAnalyzer!! */) {
                     // do not evaluate right hand side if already enough with left
                     if (X->op == "&&" or X->op == "and") {
                         if (!left.as<Bool>()) {
@@ -742,7 +743,8 @@ void Interpreter::eval(AstNode *node) {
                 setenv(X->name, new_obj);
                 return;
             }
-            _error(_T("The type '%s' is not implemented in MiniCC", X->typespec->TypeStr().c_str())
+            _error(
+                _T("The type '%s' is not implemented in MiniCC", X->typespec->TypeStr().c_str())
             );
             break;
         }
@@ -872,7 +874,8 @@ void Interpreter::eval(AstNode *node) {
             _curr = Reference::deref(_curr);
             if (X->pointer) {
                 if (!call_operator("*")) {
-                    _error(_T("El tipo '%s' no tiene 'operator*'", _curr.type()->TypeStr().c_str())
+                    _error(
+                        _T("El tipo '%s' no tiene 'operator*'", _curr.type()->TypeStr().c_str())
                     );
                 }
                 _curr = Reference::deref(_curr);

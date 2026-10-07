@@ -1,0 +1,6 @@
+# Source - https://stackoverflow.com/q/76934470
+# Posted by Nullndr, modified by community. See post 'Timeline' for change history
+# Retrieved 2026-10-07, License - CC BY-SA 4.0
+CompileFlags:
+  Add: ["--std=c++23"]
+  Compiler: clang++

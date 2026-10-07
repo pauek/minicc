@@ -1,8 +1,8 @@
-#include "astpr.hh"
-#include <algorithm>
-#include <sstream>
-#include "ast.hh"
+#include <iostream>
 using namespace std;
+
+#include "ast.hh"
+#include "astpr.hh"
 
 struct OutputWriter {
     OutputWriter(ostream& out = std::cout) : indent_(0), out_(out) {}

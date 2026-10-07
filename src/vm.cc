@@ -3,6 +3,7 @@
 #include "ast.hh"
 
 namespace vm {
+
 // TypeTable ///////////////////////////////////////////////////////////////////
 size_t TypeTable::size_of(Type type) {
     size_t size = 0;
@@ -154,4 +155,5 @@ void VM::test() {
     NameIndex idx2 = _names.put("que");
     NameIndex idx3 = _names.put("tal");
 }
+
 }  // namespace vm

@@ -1,9 +1,8 @@
 #ifndef VALUE_HH
 #define VALUE_HH
 
-#include <cstring>
-#include "ast.hh"
-#include "table.hh"
+#include <iostream>
+#include <cassert>
 
 /*
 

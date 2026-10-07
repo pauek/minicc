@@ -1,14 +1,14 @@
 #include <assert.h>
-#include <iomanip>
 #include <iostream>
-#include <map>
 #include <sstream>
-#include <typeinfo>
 using namespace std;
+
 #include "types.hh"
 #include "value.hh"
+
 void *Value::abstract = (void *)0;  // DANGER: this are not 'const'...
 void *Value::unknown = (void *)1;
+
 Value Value::null;
 
 void Value::_attach(Box *b) {

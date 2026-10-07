@@ -1,10 +1,9 @@
 #ifndef STEPPER_HH
 #define STEPPER_HH
 
-#include <assert.h>
+#include <cassert>
 #include <iostream>
 #include <list>
-#include <map>
 #include <sstream>
 #include <stack>
 #include <vector>

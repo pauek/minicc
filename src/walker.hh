@@ -1,7 +1,6 @@
 #ifndef WALKER_HH
 #define WALKER_HH
 #include <assert.h>
-#include <iostream>
 #include <vector>
 #include "ast.hh"
 

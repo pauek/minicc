@@ -1,8 +1,9 @@
-#include "i18n.hh"
 #include <cassert>
 #include <cstring>
 #include <map>
 using namespace std;
+
+#include "i18n.hh"
 
 Translator Translator::translator;
 

@@ -1,6 +1,5 @@
 #include "lexer.hh"
 #include <assert.h>
-#include <sstream>
 #include "ast.hh"
 using namespace std;
 

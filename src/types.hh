@@ -1,13 +1,14 @@
 #ifndef TYPES_HH
 #define TYPES_HH
 
-#include <map>
 #include <set>
+#include <map>
 #include <sstream>
 #include <vector>
+
 #include "ast.hh"
-#include "error.hh"
 #include "value.hh"
+#include "table.hh"
 
 using std::string;
 
@@ -585,7 +586,7 @@ class List : public Class<BaseType<std::list<Value>>> {
 
     void clear_touched(void *data) const;
 
-    int properties() const { return Template | Emulated; }
+    int properties() const { return Array::Template | Array::Emulated; }
 
     Value       convert(Value init) const;
     const Type *instantiate(std::vector<const Type *>& args) const;

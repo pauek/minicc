@@ -1,6 +1,5 @@
 
 #include "pprint.hh"
-#include <algorithm>
 #include <sstream>
 #include "ast.hh"
 using namespace std;

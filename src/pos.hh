@@ -1,5 +1,6 @@
 #ifndef POS_H
 #define POS_H
+
 #include <cstdint>
 #include <sstream>
 

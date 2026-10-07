@@ -1,5 +1,4 @@
 #include "walker.hh"
-#include <sstream>
 #include "ast.hh"
 using namespace std;
 

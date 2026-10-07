@@ -1,7 +1,6 @@
 #include "parser.hh"
 #include <assert.h>
 #include <cstdlib>
-#include <fstream>
 #include <sstream>
 #include "i18n.hh"
 using namespace std;

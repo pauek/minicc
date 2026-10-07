@@ -1,8 +1,9 @@
-#include <stdint.h>
+#include <cstdint>
 #include <iomanip>
 #include <sstream>
 #include <vector>
 using namespace std;
+
 #include "i18n.hh"
 #include "stepper.hh"
 

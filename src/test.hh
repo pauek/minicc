@@ -5,7 +5,6 @@
 #include "ast.hh"
 #include "commands.hh"
 #include "parser.hh"
-#include "types.hh"
 #include "walker.hh"
 
 void parse_test_file(

@@ -2,6 +2,7 @@
 #define PRETTYPRINT_HH
 
 #include <iostream>
+
 #include "ast.hh"
 
 void        pretty_print(AstNode *node, std::ostream& out = std::cout);

@@ -1,6 +1,6 @@
-
 #ifndef VM_HH
 #define VM_HH
+
 #include <cassert>
 #include <cstdint>
 #include <map>
@@ -9,6 +9,7 @@
 #include <vector>
 
 namespace vm {
+
 typedef uint32_t Type;
 typedef uint32_t ChunkIndex;
 typedef size_t   NameIndex;
@@ -218,5 +219,7 @@ class VM {
     VM(size_t heap_size = 16 * MiB, size_t stack_size = 4 * MiB);
     void test();
 };
+
 }  // namespace vm
+
 #endif

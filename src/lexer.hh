@@ -1,8 +1,10 @@
 #ifndef INPUT_H
 #define INPUT_H
+
 #include <cassert>
 #include <iostream>
 #include <vector>
+
 #include "pos.hh"
 #include "token.hh"
 

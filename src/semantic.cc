@@ -3,18 +3,19 @@
 #include "i18n.hh"
 #include "types.hh"
 #include "value.hh"
+
 using namespace std;
 
 struct UserFunc : public Func {
     FuncDecl *decl;
 
-    UserFunc(std::string n, FuncDecl *d) : Func(n), decl(d) {}
+    UserFunc(string n, FuncDecl *d) : Func(n), decl(d) {}
 
     Value call(Value self, const std::vector<Value>& args) { assert(false); }
 };
 
 struct SemanticAnalyzer : public WithEnvironment {
-    std::string _curr_varname;
+    string _curr_varname;
     AstNode    *_curr_node;
     Value       _curr, _ret;
 
@@ -30,7 +31,7 @@ struct SemanticAnalyzer : public WithEnvironment {
 
     bool bind_field(Value obj, string method_name);
     bool call_operator(string op, const std::vector<Value>& args = std::vector<Value>());
-    void CheckCondition(Expr *cond, std::string who);
+    void CheckCondition(Expr *cond, string who);
     void CheckUnknown(Value v, AstNode *x, string varname);
 
     void eval_arguments(const std::vector<Expr *>& args, std::vector<Value>& argvals);
@@ -42,7 +43,7 @@ struct SemanticAnalyzer : public WithEnvironment {
     bool eval_bitop_assignment(Value left, Value right);
 
     template <class Op>
-    bool eval_sum_prod(Value left, Value right, std::string what);
+    bool eval_sum_prod(Value left, Value right, string what);
 
     template <class Op>
     bool eval_bitop(Value left, Value right);
