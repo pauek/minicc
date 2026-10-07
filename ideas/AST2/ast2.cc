@@ -2,50 +2,49 @@
 #include <vector>
 using namespace std;
 
-template <typename T>
-struct Ref {
-    size_t index;
-
-    Ref(size_t i) : index(i) {}
-
-    T& get() { return T::instances_[index]; }
+struct Int {
+    int value;
 };
 
-template <typename T>
-class DataDriven {
-    friend class Ref<T>;
+struct Double {
+    double value;
+};
 
-    static vector<T> instances_;
+class AST {
+   public:
+    template <typename T>
+    struct Ref {
+        size_t k;
 
-   protected:
-    static Ref<T> new_instance(const T& t) {
-        size_t id = instances_.size();
-        instances_.push_back(t);
-        return Ref<T>(id);
+        T& get() { return Class<T>::instances_[k]; }
+    };
+
+    template <typename T>
+    struct Class {
+        static vector<T> instances_;
+
+        static Ref<T> create(const T& t) {
+            size_t k = instances_.size();
+            instances_.push_back(t);
+            return {k};
+        }
+    };
+
+    void test() {
+        auto r1 = Class<Int>::create({5});
+        auto r2 = Class<Double>::create({0.01});
+        cout << r1.get().value << endl;
+        cout << r2.get().value << endl;
     }
 };
 
-template <typename T>
-vector<T> DataDriven<T>::instances_ = {};
+template<>
+vector<Int>    AST::Class<Int>::instances_ = {};
 
-struct IntLiteral : DataDriven<IntLiteral> {
-    int value;
-
-    static Ref<IntLiteral> create(int n) { return new_instance({.value = n}); }
-};
-
-struct DoubleLiteral : DataDriven<DoubleLiteral> {
-    double value;
-
-    static Ref<DoubleLiteral> create(double x) { return new_instance({.value = x}); }
-};
+template<>
+vector<Double> AST::Class<Double>::instances_ = {};
 
 int main() {
-    auto r1 = IntLiteral::create(5);
-    auto r2 = IntLiteral::create(123);
-    cout << r1.get().value << endl;
-    cout << r2.get().value << endl;
-
-    auto r3 = DoubleLiteral::create(0.001);
-    cout << r3.get().value << endl;
+    AST ast;
+    ast.test();
 }
