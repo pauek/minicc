@@ -1,4 +1,4 @@
-CXX=clang++-19
+CXX=clang++
 # CXX=g++
 CXXFLAGS=-std=c++20 # -fxray-instrument
 
