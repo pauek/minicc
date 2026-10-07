@@ -1,12 +1,8 @@
 #ifndef AST_H
 #define AST_H
 
-#include <algorithm>
 #include <cassert>
 #include <list>
-#include <map>
-#include <memory>
-#include <sstream>
 #include <string>
 #include <vector>
 #include "error.hh"

@@ -1,6 +1,6 @@
 #include "i18n.hh"
 #include <cassert>
-#include <iostream>
+#include <cstring>
 #include <map>
 using namespace std;
 

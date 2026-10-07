@@ -2,10 +2,7 @@
 #define I18N_HH
 
 #include <cassert>
-#include <cstdarg>
 #include <cstdio>
-#include <cstring>
-#include <iostream>
 #include <map>
 #include <string>
 
