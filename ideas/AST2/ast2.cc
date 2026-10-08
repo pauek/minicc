@@ -1,6 +1,7 @@
 #include <iostream>
-#include <vector>
 using namespace std;
+
+#include "ast2.hh"
 
 struct Int {
     int value;
@@ -10,38 +11,18 @@ struct Double {
     double value;
 };
 
-template <typename T>
-struct Ref {
-    size_t k;
-    T& get();
-};
+typedef Variant2<Int, Double> Number;
 
-template <typename T>
-struct Class {
-    static vector<T> instances_;
-
-    static Ref<T> create(const T& t) {
-        size_t k = instances_.size();
-        instances_.push_back(t);
-        return {k};
-    }
-};
-
-template <typename T>
-T& Ref<T>::get() {
-    return Class<T>::instances_[k];
-}
-
-template <>
-vector<Int> Class<Int>::instances_ = {};
-
-template <>
-vector<Double> Class<Double>::instances_ = {};
+///
 
 int main() {
-    auto r1 = Class<Int>::create({5});
+    auto r1 = Type<Int>::create({5});
     cout << r1.get().value << endl;
 
-    auto r2 = Class<Double>::create({0.01});
+    auto r2 = Type<Double>::create({0.01});
     cout << r2.get().value << endl;
+
+    auto r3 = Type<Number>::create({ r1 });
+    cout << r3.get().as<Int>().value << endl;
+    cout << r3.get().is<Double>() << endl;
 }

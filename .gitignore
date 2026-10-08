@@ -16,3 +16,4 @@ zig/zig-out/
 zig/.zig-cache/
 
 **/.dependencies
+**/a.out
