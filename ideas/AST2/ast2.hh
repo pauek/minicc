@@ -2,64 +2,94 @@
 #define AST2_HH
 
 #include <cassert>
-#include <variant>
+#include <cstdint>
+#include <type_traits>
 #include <vector>
 using namespace std;
 
-template <typename T>
+// A TypeID identifies each type and also particular values
+typedef uint32_t TypeID;
+
+// Constants
+constexpr TypeID None = uint32_t(-1);
+constexpr size_t NoIndex = size_t(-1);
+
+// Concept to check templates for a struct
+template <class T>
+concept IsStruct = std::is_class_v<T>;
+
+// A Ref is a "pointer" to a struct. It is the index into de Type<T>::instances_ vector.
+template <IsStruct T>
 struct Ref {
-    size_t k;
-    T&     get();
+    size_t index;  // index into Store<T>::instances
+
+    T&       get();
+    const T& get() const;
+    uint32_t type_id() const { return T::type_id; }
 };
 
-template <typename T>
+template <IsStruct T, TypeID ID>
 struct Type {
-    static vector<T> instances_;
+    static constexpr TypeID type_id = ID;
 
-    static Ref<T> create(const T& t) {
-        size_t k = instances_.size();
-        instances_.push_back(t);
-        return {k};
-    }
+    static Ref<T> make(const T& t);
 };
 
-template <typename T>
-vector<T> Type<T>::instances_ = {};
+// A Store keeps all instances of a certain type
 
-template <typename T>
+template <IsStruct T>
+struct Store {
+    static vector<T> instances;
+};
+
+template <IsStruct T>
+vector<T> Store<T>::instances = {};
+
+template <IsStruct T>
 T& Ref<T>::get() {
-    return Type<T>::instances_[k];
+    return Store<T>::instances[index];
 }
 
-template <size_t, typename... RefTypes>
-struct Variant {
-    variant<RefTypes...> value;
+template <IsStruct T, TypeID ID>
+Ref<T> Type<T, ID>::make(const T& t) {
+    Store<T>::instances.push_back(t);
+    return {Store<T>::instances.size() - 1};
+}
 
-    template <typename T>
-    bool is() {
-        return holds_alternative<Ref<T>>(value);
+template <IsStruct T>
+const T& Ref<T>::get() const {
+    return Store<T>::instances[index];
+}
+
+template <TypeID First, TypeID Last>
+struct Variant {
+    TypeID type_id = None;   // TypeID of the active type
+    size_t index = NoIndex;  // Index into the Store<Type>::instances
+
+    template <IsStruct T>
+    Variant(Ref<T>& ref) {
+        // Ensure TypeID of T is between limits
+        static_assert(T::type_id > First && T::type_id <= Last);
+        type_id = T::type_id;
+        index = ref.index;
     }
 
-    template <typename T>
+    template <IsStruct T>
     T& as() {
-        assert(holds_alternative<Ref<T>>(value));
-        return get<Ref<T>>(value).get();
+        assert(T::type_id == type_id && index != -1);
+        return Ref<T>{index}.get();
+    }
+
+    template <IsStruct T>
+    const T& as() const {
+        assert(T::type_id == type_id && index != -1);
+        return Ref<T>{index}.get();
+    }
+
+    template <IsStruct T>
+    bool is() {
+        return type_id == T::type_id;
     }
 };
-
-template <typename A, typename B>
-struct Variant2 : Variant<2, Ref<A>, Ref<B>> {};
-
-template <typename A, typename B, typename C>
-struct Variant3 : Variant<2, Ref<A>, Ref<B>, Ref<C>> {};
-
-template <typename A, typename B, typename C, typename D>
-struct Variant4 : Variant<2, Ref<A>, Ref<B>, Ref<C>, Ref<D>> {};
-
-template <typename A, typename B, typename C, typename D, typename E>
-struct Variant5 : Variant<2, Ref<A>, Ref<B>, Ref<C>, Ref<D>, Ref<E>> {};
-
-template <typename A, typename B, typename C, typename D, typename E, typename F>
-struct Variant6 : Variant<2, Ref<A>, Ref<B>, Ref<C>, Ref<D>, Ref<E>, Ref<F>> {};
 
 #endif

@@ -79,7 +79,7 @@ void Walker<Delegate>::walk(AstNode *node) {
             D.walk(X);
             break;
         }
-        case AstNodeType::Identifier: {
+        case AstNodeType::type_identifier: {
             auto *X = cast<Identifier>(node);
             D.walk(X);
             for (Identifier *pre : X->prefix) {

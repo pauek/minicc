@@ -197,7 +197,7 @@ void AstPrinter::Print(AstNode *node) {
             out.write("})");
             break;
         }
-        case AstNodeType::Identifier: {
+        case AstNodeType::type_identifier: {
             auto *X = cast<Identifier>(node);
             out.write("id:");
             if (!X->prefix.empty()) {

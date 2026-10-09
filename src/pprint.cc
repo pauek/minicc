@@ -344,7 +344,7 @@ void PrettyPrinter::Print(AstNode *node) {
             cp.space_comment();
             break;
         }
-        case AstNodeType::Identifier: {
+        case AstNodeType::type_identifier: {
             auto *X = cast<Identifier>(node);
             CmtPr cp(X, out);
             for (Identifier *pre : X->prefix) {

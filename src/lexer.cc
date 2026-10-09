@@ -456,7 +456,7 @@ Token Lexer::read_ident() {
     }
     // tok.fin = _curr;
     tok.len = _curr - ini;
-    tok.type = Token::Ident;
+    tok.type = Token::type_ident;
     string s = substr(tok);
     switch (tok.len) {
         case 2: {

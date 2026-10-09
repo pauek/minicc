@@ -177,7 +177,7 @@ void Stepper::Step(AstNode *node) {
             eval(X);
             break;
         }
-        case AstNodeType::Identifier: {
+        case AstNodeType::type_identifier: {
             auto *X = cast<Identifier>(node);
             eval(X);
             break;

@@ -425,7 +425,7 @@ bool has_errors(AstNode *node) {
             }
             return X->has_errors();
         }
-        case AstNodeType::Identifier: {
+        case AstNodeType::type_identifier: {
             Identifier *X = cast<Identifier>(node);
             for (Identifier *id : X->prefix) {
                 CHECK_ERRORS(id);

@@ -440,7 +440,7 @@ void Interpreter::eval(AstNode *node) {
             register_type(X->name, type);
             break;
         }
-        case AstNodeType::Identifier: {
+        case AstNodeType::type_identifier: {
             Identifier *X = cast<Identifier>(node);
             Value       v;
             // Try a namespace

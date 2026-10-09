@@ -225,7 +225,7 @@ struct Literal : public ExprDerived<AstNodeType::Literal> {
     static std::string Escape(std::string s, char delim);
 };
 
-struct Identifier : ExprDerived<AstNodeType::Identifier> {
+struct Identifier : ExprDerived<AstNodeType::type_identifier> {
     std::string               name;
     std::vector<Identifier *> prefix;
     std::vector<TypeSpec *>   subtypes;
@@ -238,7 +238,7 @@ struct Identifier : ExprDerived<AstNodeType::Identifier> {
     Identifier               *GetPotentialNamespaceOrClass() const;
     std::vector<Identifier *> GetNonNamespaces();
 
-    static bool is_instance(const AstNode *node) { return node->type() == AstNodeType::Identifier; }
+    static bool is_instance(const AstNode *node) { return node->type() == AstNodeType::type_identifier; }
 };
 
 struct TypeSpec : public AstDerived<AstNodeType::TypeSpec> {
@@ -277,12 +277,12 @@ struct BinaryExpr : public ExprDerived<AstNodeType::BinaryExpr> {
     Expr       *left, *right;
 };
 
-struct UnaryExpr : public Expr {
+struct UnaryExpr_ : public Expr {
     Expr *expr = 0;
 };
 
 template <AstNodeType T>
-struct UnaryExprDerived : UnaryExpr {
+struct UnaryExprDerived : UnaryExpr_ {
     UnaryExprDerived() { type_ = T; }
 
     static bool is_instance(const AstNode *node) { return node->type() == T; }

@@ -843,7 +843,7 @@ void SemanticAnalyzer::analyze(AstNode *node) {
             register_type(X->name, type);
             break;
         }
-        case AstNodeType::Identifier: {
+        case AstNodeType::type_identifier: {
             auto *X = cast<Identifier>(node);
             _curr_node = X;
             Value v;

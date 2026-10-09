@@ -4,7 +4,6 @@ UseTab: Never
 ColumnLimit: 100
 ReferenceAlignment: Left
 PointerAlignment: Right
-SeparateDefinitionBlocks: Always
 ReflowComments: true
 AlignTrailingComments:
   Kind: Always
@@ -16,7 +15,7 @@ AlignConsecutiveDeclarations:
 IndentCaseLabels: true
 AllowShortIfStatementsOnASingleLine: Never
 AllowShortLoopsOnASingleLine: false
-AlignConsecutiveShortCaseStatements: 
+AlignConsecutiveShortCaseStatements:
   Enabled: true
 AlignArrayOfStructures: Left
 BinPackArguments: false
@@ -24,3 +23,4 @@ InsertBraces: true
 BreakBeforeBraces: Attach
 MaxEmptyLinesToKeep: 1
 AlignAfterOpenBracket: BlockIndent
+IncludeBlocks: Regroup
