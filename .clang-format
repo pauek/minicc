@@ -5,6 +5,11 @@ ColumnLimit: 100
 ReferenceAlignment: Left
 PointerAlignment: Right
 ReflowComments: true
+
+AllowShortFunctionsOnASingleLine: Inline
+AllowShortIfStatementsOnASingleLine: Never
+AllowShortLoopsOnASingleLine: false
+
 AlignTrailingComments:
   Kind: Always
   OverEmptyLines: 1
@@ -12,15 +17,14 @@ AlignConsecutiveDeclarations:
   Enabled: true
   AcrossEmptyLines: false
   AcrossComments: false
-IndentCaseLabels: true
-AllowShortIfStatementsOnASingleLine: Never
-AllowShortLoopsOnASingleLine: false
 AlignConsecutiveShortCaseStatements:
   Enabled: true
 AlignArrayOfStructures: Left
+AlignAfterOpenBracket: BlockIndent
+
+IndentCaseLabels: true
 BinPackArguments: false
 InsertBraces: true
 BreakBeforeBraces: Attach
 MaxEmptyLinesToKeep: 1
-AlignAfterOpenBracket: BlockIndent
 IncludeBlocks: Regroup

@@ -18,25 +18,7 @@ constexpr size_t NoIndex = size_t(-1);
 template <class T>
 concept IsStruct = std::is_class_v<T>;
 
-// A Ref is a "pointer" to a struct. It is the index into de Type<T>::instances_ vector.
-template <IsStruct T>
-struct Ref {
-    size_t index;  // index into Store<T>::instances
-
-    T&       get();
-    const T& get() const;
-    uint32_t type_id() const { return T::type_id; }
-};
-
-template <IsStruct T, TypeID ID>
-struct Type {
-    static constexpr TypeID type_id = ID;
-
-    static Ref<T> make(const T& t);
-};
-
 // A Store keeps all instances of a certain type
-
 template <IsStruct T>
 struct Store {
     static vector<T> instances;
@@ -45,21 +27,29 @@ struct Store {
 template <IsStruct T>
 vector<T> Store<T>::instances = {};
 
+// A Ref is a "pointer" to a struct. It is the index into de Type<T>::instances_ vector.
 template <IsStruct T>
-T& Ref<T>::get() {
-    return Store<T>::instances[index];
-}
+struct Ref {
+    size_t index;  // index into Store<T>::instances
+
+    T&       get() { return Store<T>::instances[index]; }
+    const T& get() const { return Store<T>::instances[index]; }
+    uint32_t type_id() const { return T::type_id; }
+};
 
 template <IsStruct T, TypeID ID>
-Ref<T> Type<T, ID>::make(const T& t) {
-    Store<T>::instances.push_back(t);
-    return {Store<T>::instances.size() - 1};
-}
+struct Type {
+    static constexpr TypeID type_id = ID;
 
-template <IsStruct T>
-const T& Ref<T>::get() const {
-    return Store<T>::instances[index];
-}
+    static Ref<T> make(const T& t) {
+        Store<T>::instances.push_back(t);
+        return {Store<T>::instances.size() - 1};
+    }
+};
+
+// A variant is like a Ref<T> but with a type that
+// can be in the interval [First, Last], so it
+// can be one of several things
 
 template <TypeID First, TypeID Last>
 struct Variant {
