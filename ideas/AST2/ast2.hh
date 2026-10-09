@@ -57,7 +57,7 @@ struct Variant {
     size_t index = NoIndex;  // Index into the Store<Type>::instances
 
     template <IsStruct T>
-    Variant(Ref<T>& ref) {
+    explicit Variant(const Ref<T>& ref) {
         // Ensure TypeID of T is between limits
         static_assert(T::type_id > First && T::type_id <= Last);
         type_id = T::type_id;

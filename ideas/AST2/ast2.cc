@@ -107,53 +107,64 @@ struct IndexExpr : Type<IndexExpr, 15> {
 
 ///
 
-void print(const Expr& expr);
-void print(const BinaryExpr& expr);
+class Printer {
+    ostream& out_;
 
-void print(const IndexExpr& expr) {
-    print(expr.base);
-    cout << "[";
-    print(expr.index);
-    cout << "]";
-}
+   public:
+    Printer(ostream& out) : out_(out) {}
 
-void print(const BinaryExpr& expr) {
-    print(expr.left);
-    cout << ' ' << expr.op << ' ';
-    print(expr.right);
-}
-
-void print(const Expr& expr) {
-    switch (expr.type_id) {
-        case IntLiteral::type_id: {
-            cout << expr.as<IntLiteral>().value;
-            break;
-        }
-        case BoolLiteral::type_id: {
-            cout << expr.as<BoolLiteral>().value;
-            break;
-        }
-        case Identifier::type_id: {
-            cout << expr.as<Identifier>().name;
-            break;
-        }
-        case IndexExpr::type_id: {
-            print(expr.as<IndexExpr>());
-            break;
-        }
-        case BinaryExpr::type_id: {
-            print(expr.as<BinaryExpr>());
-            break;
-        }
-        default:
-            assert(false);
+    void print(const IndexExpr& expr) {
+        print(expr.base);
+        out_ << "[";
+        print(expr.index);
+        out_ << "]";
     }
-}
+
+    void print(const BinaryExpr& expr) {
+        print(expr.left);
+        out_ << ' ' << expr.op << ' ';
+        print(expr.right);
+    }
+
+    void print(const Expr& expr) {
+        switch (expr.type_id) {
+            case IntLiteral::type_id: {
+                out_ << expr.as<IntLiteral>().value;
+                break;
+            }
+            case BoolLiteral::type_id: {
+                out_ << expr.as<BoolLiteral>().value;
+                break;
+            }
+            case Identifier::type_id: {
+                out_ << expr.as<Identifier>().name;
+                break;
+            }
+            case IndexExpr::type_id: {
+                print(expr.as<IndexExpr>());
+                break;
+            }
+            case BinaryExpr::type_id: {
+                print(expr.as<BinaryExpr>());
+                break;
+            }
+            default:
+                assert(false);
+        }
+    }
+
+    void print(const Include& include) { out_ << "#include<" << include.filename << ">" << endl; }
+};
 
 int main() {
-    auto id = Identifier::make({.name = "a"});
-    auto n = IntLiteral::make({.value = 1});
-    auto ie = IndexExpr::make({.base = id, .index = n});
+    auto ie = IndexExpr::make({
+        .base = Expr(Identifier::make({.name = "a"})),
+        .index = Expr(IntLiteral::make({.value = 1})),
+    });
 
-    print(ie);
+    auto e = Include::make({.filename = "iostream"});
+
+    auto pr = Printer(cout);
+    pr.print(ie.get());
+    pr.print(e.get());
 }
