@@ -38,7 +38,7 @@ struct Ref {
 };
 
 template <IsStruct T, TypeID ID>
-struct Type {
+struct AstType {
     static constexpr TypeID type_id = ID;
 
     static Ref<T> make(const T& t) {

@@ -6,46 +6,46 @@ using namespace std;
 
 typedef Variant<3, 15> Expr;
 
-struct Include : Type<Include, 0> {
+struct Include : AstType<Include, 0> {
     string filename;
     bool   global;
 };
 
-struct Macro : Type<Macro, 1> {
+struct Macro : AstType<Macro, 1> {
     string macro;
 };
 
-struct Using : Type<Using, 2> {
+struct Using : AstType<Using, 2> {
     string namespc;
 };
 
-struct BoolLiteral : Type<BoolLiteral, 3> {
+struct BoolLiteral : AstType<BoolLiteral, 3> {
     bool value;
 };
 
-struct IntLiteral : Type<IntLiteral, 4> {
+struct IntLiteral : AstType<IntLiteral, 4> {
     int value;
 };
 
-struct DoubleLiteral : Type<DoubleLiteral, 5> {
+struct DoubleLiteral : AstType<DoubleLiteral, 5> {
     double value;
 };
 
-struct CharLiteral : Type<CharLiteral, 6> {
+struct CharLiteral : AstType<CharLiteral, 6> {
     char value;
 };
 
-struct StringLiteral : Type<StringLiteral, 6> {
+struct StringLiteral : AstType<StringLiteral, 6> {
     string value;
 };
 
 typedef Variant<3, 6> Literal;
 
-struct Identifier : Type<Identifier, 7> {
+struct Identifier : AstType<Identifier, 7> {
     string name;
 };
 
-struct TypeSpecifier : Type<TypeSpecifier, 8> {
+struct TypeSpecifier : AstType<TypeSpecifier, 8> {
     enum Qualifier {
         Const = 0b000001,
         Volatile = 0b000010,
@@ -64,20 +64,20 @@ struct UnaryExpr_ {
     Expr expr;
 };
 
-struct SignExpr : UnaryExpr_, Type<SignExpr, 11> {
+struct SignExpr : UnaryExpr_, AstType<SignExpr, 11> {
     bool negative;
 };
 
-struct IncrExpr : UnaryExpr_, Type<SignExpr, 12> {
+struct IncrExpr : UnaryExpr_, AstType<SignExpr, 12> {
     bool negative;
     bool pre;
 };
 
-struct NotExpr : UnaryExpr_, Type<NotExpr, 13> {};
+struct NotExpr : UnaryExpr_, AstType<NotExpr, 13> {};
 
 typedef Variant<11, 13> UnaryExpr;
 
-struct BinaryExpr : Type<BinaryExpr, 14> {
+struct BinaryExpr : AstType<BinaryExpr, 14> {
     enum Kind {
         Unknown,
         Multiplicative,
@@ -101,7 +101,7 @@ struct BinaryExpr : Type<BinaryExpr, 14> {
     Expr   left, right;
 };
 
-struct IndexExpr : Type<IndexExpr, 15> {
+struct IndexExpr : AstType<IndexExpr, 15> {
     Expr base, index;
 };
 
