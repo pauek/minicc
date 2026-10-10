@@ -4,7 +4,7 @@ UseTab: Never
 ColumnLimit: 100
 ReferenceAlignment: Left
 PointerAlignment: Right
-ReflowComments: true
+ReflowComments: Always
 
 AllowShortFunctionsOnASingleLine: Inline
 AllowShortIfStatementsOnASingleLine: Never
