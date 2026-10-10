@@ -313,7 +313,7 @@ bool is_write_expr(AstNode *node) {
 bool is_assignment(AstNode *node) {
     if (is_a<BinaryExpr>(node)) {
         BinaryExpr *X = cast<BinaryExpr>(node);
-        return X->kind == Expr::Eq;
+        return X->level == Expr::Eq;
     }
     return false;
 }

@@ -272,7 +272,7 @@ struct TypeSpec : public AstDerived<AstNodeType::TypeSpec> {
 };
 
 struct BinaryExpr : public ExprDerived<AstNodeType::BinaryExpr> {
-    Kind        kind;
+    Kind        level;
     std::string op, str;
     Expr       *left, *right;
 };

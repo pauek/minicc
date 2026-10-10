@@ -2,14 +2,13 @@
 
 ```
 Expr
-	AtomicExpr
-		Literal
-			BoolLiteral
-			CharLiteral
-			IntLiteral
-			DoubleLiteral
-			StringLiteral
-		Identifier
+	Literal
+		BoolLiteral
+		CharLiteral
+		IntLiteral
+		DoubleLiteral
+		StringLiteral
+	Identifier
 	UnaryExpr
 		SignExpr
 		IncrExpr
@@ -22,7 +21,6 @@ Expr
         LogicalOr
 	CallExpr
 	FieldExpr
-	CondExpr
 Stmt
 	DeclStmt
 	ExprStmt
