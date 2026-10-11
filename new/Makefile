@@ -15,6 +15,12 @@ all: debug
 
 -include .depend
 
+keywords.inc keyword_switch.inc: keywords.gen.sh
+	bash keywords.gen.sh
+
+# This dependencies are _merged_ (https://stackoverflow.com/questions/29534583/add-dependencies-to-existing-make-targets)
+lexer.cc: keywords.inc tokens.inc lexer.hh tokens.hh
+
 debug: CXXFLAGS += -g3 -O0
 debug: minicc
 
@@ -25,7 +31,7 @@ minicc: .depend $(OBJECTS)
 	$(CXX) -o minicc $(OBJECTS)
 
 clean:
-	@rm -f .depend minicc tester $(OBJECTS)
+	@rm -f .depend minicc $(OBJECTS) keywords.inc keyword_switch.inc
 
 format:
 	@clang-format -i $(SOURCES) $(HEADERS)

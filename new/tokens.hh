@@ -18,7 +18,6 @@ inline std::ostream& operator<<(std::ostream& out, LinCol& lincol) {
 // TokenID
 
 enum TokenID {
-
 #define TOKEN(id, name) id,
 #include "tokens.inc"
 #undef TOKEN

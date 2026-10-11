@@ -1,0 +1,276 @@
+case 'a': {
+    if (ident == "alignas") {
+        push(ALIGNAS, start, end);
+    } else if (ident == "alignof") {
+        push(ALIGNOF, start, end);
+    } else if (ident == "and") {
+        push(AND, start, end);
+    } else if (ident == "and_eq") {
+        push(AND_EQ, start, end);
+    } else if (ident == "asm") {
+        push(ASM, start, end);
+    } else if (ident == "atomic_cancel") {
+        push(ATOMIC_CANCEL, start, end);
+    } else if (ident == "atomic_commit") {
+        push(ATOMIC_COMMIT, start, end);
+    } else if (ident == "atomic_noexcept") {
+        push(ATOMIC_NOEXCEPT, start, end);
+    } else if (ident == "auto") {
+        push(AUTO, start, end);
+    }
+    break;
+}
+case 'b': {
+    if (ident == "bitand") {
+        push(BITAND, start, end);
+    } else if (ident == "bitor") {
+        push(BITOR, start, end);
+    } else if (ident == "bool") {
+        push(BOOL, start, end);
+    } else if (ident == "break") {
+        push(BREAK, start, end);
+    }
+    break;
+}
+case 'c': {
+    if (ident == "case") {
+        push(CASE, start, end);
+    } else if (ident == "catch") {
+        push(CATCH, start, end);
+    } else if (ident == "char") {
+        push(CHAR, start, end);
+    } else if (ident == "char16_t") {
+        push(CHAR16_T, start, end);
+    } else if (ident == "char32_t") {
+        push(CHAR32_T, start, end);
+    } else if (ident == "char8_t") {
+        push(CHAR8_T, start, end);
+    } else if (ident == "class") {
+        push(CLASS, start, end);
+    } else if (ident == "co_await") {
+        push(CO_AWAIT, start, end);
+    } else if (ident == "co_return") {
+        push(CO_RETURN, start, end);
+    } else if (ident == "co_yield") {
+        push(CO_YIELD, start, end);
+    } else if (ident == "compl") {
+        push(COMPL, start, end);
+    } else if (ident == "concept") {
+        push(CONCEPT, start, end);
+    } else if (ident == "const") {
+        push(CONST, start, end);
+    } else if (ident == "const_cast") {
+        push(CONST_CAST, start, end);
+    } else if (ident == "consteval") {
+        push(CONSTEVAL, start, end);
+    } else if (ident == "constexpr") {
+        push(CONSTEXPR, start, end);
+    } else if (ident == "constinit") {
+        push(CONSTINIT, start, end);
+    } else if (ident == "continue") {
+        push(CONTINUE, start, end);
+    } else if (ident == "contract_assert") {
+        push(CONTRACT_ASSERT, start, end);
+    }
+    break;
+}
+case 'd': {
+    if (ident == "decltype") {
+        push(DECLTYPE, start, end);
+    } else if (ident == "default") {
+        push(DEFAULT, start, end);
+    } else if (ident == "delete") {
+        push(DELETE, start, end);
+    } else if (ident == "do") {
+        push(DO, start, end);
+    } else if (ident == "double") {
+        push(DOUBLE, start, end);
+    } else if (ident == "dynamic_cast") {
+        push(DYNAMIC_CAST, start, end);
+    }
+    break;
+}
+case 'e': {
+    if (ident == "else") {
+        push(ELSE, start, end);
+    } else if (ident == "enum") {
+        push(ENUM, start, end);
+    } else if (ident == "explicit") {
+        push(EXPLICIT, start, end);
+    } else if (ident == "export") {
+        push(EXPORT, start, end);
+    } else if (ident == "extern") {
+        push(EXTERN, start, end);
+    }
+    break;
+}
+case 'f': {
+    if (ident == "false") {
+        push(FALSE, start, end);
+    } else if (ident == "float") {
+        push(FLOAT, start, end);
+    } else if (ident == "for") {
+        push(FOR, start, end);
+    } else if (ident == "friend") {
+        push(FRIEND, start, end);
+    }
+    break;
+}
+case 'g': {
+    if (ident == "goto") {
+        push(GOTO, start, end);
+    }
+    break;
+}
+case 'i': {
+    if (ident == "if") {
+        push(IF, start, end);
+    } else if (ident == "inline") {
+        push(INLINE, start, end);
+    } else if (ident == "int") {
+        push(INT, start, end);
+    }
+    break;
+}
+case 'l': {
+    if (ident == "long") {
+        push(LONG, start, end);
+    }
+    break;
+}
+case 'm': {
+    if (ident == "mutable") {
+        push(MUTABLE, start, end);
+    }
+    break;
+}
+case 'n': {
+    if (ident == "namespace") {
+        push(NAMESPACE, start, end);
+    } else if (ident == "new") {
+        push(NEW, start, end);
+    } else if (ident == "noexcept") {
+        push(NOEXCEPT, start, end);
+    } else if (ident == "not") {
+        push(NOT, start, end);
+    } else if (ident == "not_eq") {
+        push(NOT_EQ, start, end);
+    } else if (ident == "nullptr") {
+        push(NULLPTR, start, end);
+    }
+    break;
+}
+case 'o': {
+    if (ident == "operator") {
+        push(OPERATOR, start, end);
+    } else if (ident == "or") {
+        push(OR, start, end);
+    } else if (ident == "or_eq") {
+        push(OR_EQ, start, end);
+    }
+    break;
+}
+case 'p': {
+    if (ident == "private") {
+        push(PRIVATE, start, end);
+    } else if (ident == "protected") {
+        push(PROTECTED, start, end);
+    } else if (ident == "public") {
+        push(PUBLIC, start, end);
+    }
+    break;
+}
+case 'r': {
+    if (ident == "reflexpr") {
+        push(REFLEXPR, start, end);
+    } else if (ident == "register") {
+        push(REGISTER, start, end);
+    } else if (ident == "reinterpret_cast") {
+        push(REINTERPRET_CAST, start, end);
+    } else if (ident == "requires") {
+        push(REQUIRES, start, end);
+    } else if (ident == "return") {
+        push(RETURN, start, end);
+    }
+    break;
+}
+case 's': {
+    if (ident == "short") {
+        push(SHORT, start, end);
+    } else if (ident == "signed") {
+        push(SIGNED, start, end);
+    } else if (ident == "sizeof") {
+        push(SIZEOF, start, end);
+    } else if (ident == "static") {
+        push(STATIC, start, end);
+    } else if (ident == "static_assert") {
+        push(STATIC_ASSERT, start, end);
+    } else if (ident == "static_cast") {
+        push(STATIC_CAST, start, end);
+    } else if (ident == "struct") {
+        push(STRUCT, start, end);
+    } else if (ident == "switch") {
+        push(SWITCH, start, end);
+    } else if (ident == "synchronized") {
+        push(SYNCHRONIZED, start, end);
+    }
+    break;
+}
+case 't': {
+    if (ident == "template") {
+        push(TEMPLATE, start, end);
+    } else if (ident == "this") {
+        push(THIS, start, end);
+    } else if (ident == "thread_local") {
+        push(THREAD_LOCAL, start, end);
+    } else if (ident == "throw") {
+        push(THROW, start, end);
+    } else if (ident == "true") {
+        push(TRUE, start, end);
+    } else if (ident == "try") {
+        push(TRY, start, end);
+    } else if (ident == "typedef") {
+        push(TYPEDEF, start, end);
+    } else if (ident == "typeid") {
+        push(TYPEID, start, end);
+    } else if (ident == "typename") {
+        push(TYPENAME, start, end);
+    }
+    break;
+}
+case 'u': {
+    if (ident == "union") {
+        push(UNION, start, end);
+    } else if (ident == "unsigned") {
+        push(UNSIGNED, start, end);
+    } else if (ident == "using") {
+        push(USING, start, end);
+    }
+    break;
+}
+case 'v': {
+    if (ident == "virtual") {
+        push(VIRTUAL, start, end);
+    } else if (ident == "void") {
+        push(VOID, start, end);
+    } else if (ident == "volatile") {
+        push(VOLATILE, start, end);
+    }
+    break;
+}
+case 'w': {
+    if (ident == "wchar_t") {
+        push(WCHAR_T, start, end);
+    } else if (ident == "while") {
+        push(WHILE, start, end);
+    }
+    break;
+}
+case 'x': {
+    if (ident == "xor") {
+        push(XOR, start, end);
+    } else if (ident == "xor_eq") {
+        push(XOR_EQ, start, end);
+    }
+    break;
+}

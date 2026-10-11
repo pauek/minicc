@@ -62,7 +62,7 @@ void Lexer::lex_endl() {
     new_line();
 }
 
-void Lexer::lex_identifier() {
+void Lexer::lex_identifier_or_keyword() {
     assert(is_identifier_start());
     size_t start = pos_;
     advance(1);
@@ -70,7 +70,17 @@ void Lexer::lex_identifier() {
         advance(1);
     }
     size_t end = pos_;
-    push(IDENT, start, end);
+
+    // Assume it is an identifier
+    TokenID tok = IDENT;
+    string ident = input_.substr(start, end - start);
+
+    // Look for a keyword, 1-level switch using starting letter
+    switch (ident[0]) {
+#include "keyword_switch.inc"
+    }
+
+    push(tok, start, end);
 }
 
 void Lexer::lex_int_literal() {
@@ -140,7 +150,7 @@ void Lexer::next() {
             continue;
         }
         if (is_identifier_start()) {
-            lex_identifier();
+            lex_identifier_or_keyword();
             continue;
         }
         if (isdigit(curr())) {

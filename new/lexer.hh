@@ -62,7 +62,7 @@ class Lexer {
     void lex_macro();
 
     void lex_int_literal();
-    void lex_identifier();
+    void lex_identifier_or_keyword();
     void lex_char_literal();
     void lex_string_literal();
 
