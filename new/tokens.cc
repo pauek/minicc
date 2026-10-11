@@ -27,11 +27,14 @@ void Tokens::dump(ostream& out) const {
         const auto code = ids[i];
         switch (code) {
             case IDENT:
+            case KEYWORD:
             case STR_LITERAL:
             case CHAR_LITERAL:
             case INT_LITERAL:
             case MACRO:
             case LINE_COMMENT:
+            case GLOBAL_FILENAME:
+            case LOCAL_FILENAME:
             case MULTILINE_COMMENT: {
                 out << name(i) << " \'" << str(i) << '\'';
                 break;

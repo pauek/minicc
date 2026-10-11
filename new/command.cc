@@ -7,7 +7,7 @@ using namespace std;
 #include "utils.hh"
 #include "printer.hh"
 
-int Help(const vector<string>& _) {
+int Help(Args _) {
     constexpr const char *usage =
         "Usage: minicc [options...] [command]\n"
         "\n"
@@ -36,7 +36,7 @@ int HelpLex() {
     return 1;
 }
 
-int Lex(const vector<string>& args) {
+int Lex(Args args) {
     if (args.empty()) {
         return HelpLex();
     }
@@ -70,7 +70,7 @@ int HelpParse() {
     return 1;
 }
 
-int Parse(const vector<string>& args) {
+int Parse(Args args) {
 	if (args.empty()) {
 		return HelpParse();
 	}

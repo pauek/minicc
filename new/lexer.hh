@@ -60,6 +60,7 @@ class Lexer {
     void lex_multiline_comment();
 
     void lex_macro();
+    void lex_include_filename();
 
     void lex_int_literal();
     void lex_identifier_or_keyword();

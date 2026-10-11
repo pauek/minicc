@@ -1,7 +1,5 @@
 hello.cc:1:1: MACRO '#include'
-hello.cc:1:10: '<'
-hello.cc:1:11: IDENT 'iostream'
-hello.cc:1:19: '>'
+hello.cc:1:10: GLOBAL_FILENAME '<iostream>'
 hello.cc:1:20: ENDL
 hello.cc:2:1: KEYWORD 'using'
 hello.cc:2:7: KEYWORD 'namespace'

@@ -15,33 +15,25 @@ Ref<Include> Parser::parse_include() {
     string filename;
     bool   global = false;
 
-    if (at(IDENT)) {
+    if (at(GLOBAL_FILENAME)) {
         filename = curr_str();
-        advance(1);
-    } else {
         global = true;
-        if (not at(LT)) {
-            error("Expected '<' or '\"' after '#include'.");
-        }
-        advance(1);  // Consume '<'
-        if (not at(IDENT)) {
-            error("Expected identifier after '<'");
-        }
-        filename = curr_str();
         advance(1);
-        if (not at(GT)) {
-            error("Expected '>' at end of '#include'");
-        }
-        advance(1);
+    } else if (at(LOCAL_FILENAME)) {
+    	filename = curr_str();
+     	global = false;
+      advance(1);
+    } else {
+        error("Expected '<' or '\"' after '#include'.");
     }
     return Include::make({.filename = filename, .global = global});
 }
 
 Ref<Using> Parser::parse_using() {
-    assert(at(IDENT) && curr_str() == "using");
+    assert(at(KEYWORD) && curr_str() == "using");
     advance(1);
 
-    if (not at(IDENT) || curr_str() != "namespace") {
+    if (not at(KEYWORD) || curr_str() != "namespace") {
         error("Expected 'namespace'.");
     }
     advance(1);
@@ -61,7 +53,7 @@ Ref<Using> Parser::parse_using() {
 }
 
 Ref<TypeSpec> Parser::parse_typespec() {
-    assert(at(IDENT));
+    assert(at(KEYWORD));
     if (curr_str() == "int") {
         advance(1);
         auto id = Identifier::make({.name = "int"});
@@ -92,7 +84,7 @@ void Parser::next() {
                 }
                 break;
             }
-            case IDENT: {
+            case KEYWORD: {
                 string id = curr_str();
 
                 // Using declaration
