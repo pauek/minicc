@@ -36,29 +36,39 @@ class Lexer {
     char peek(size_t i) const { return input_[pos_ + i]; }
     char curr() const { return input_[pos_]; }
 
+    bool at(char c) const { return curr() == c; }
+    bool at(char c1, char c2) const { return curr() == c1 && peek(1) == c2; }
+
     bool finished() const { return pos_ >= input_.size(); }
-    bool is_line_comment() const { return curr() == '/' && peek(1) == '/'; }
-    bool is_multiline_comment() const { return curr() == '/' && peek(1) == '*'; }
+    bool is_line_comment() const { return at('/', '/'); }
+    bool is_multiline_comment() const { return at('/', '*'); }
     bool is_macro() const { return curr() == '#'; }
     bool is_space() const { return curr() == ' ' || curr() == '\t'; }
 
-    bool is_identifier_start() const {
-        return isupper(curr()) || islower(curr()) || curr() == '_';
-    }
+    bool is_identifier_start() const { return isupper(curr()) || islower(curr()) || curr() == '_'; }
 
     bool is_identifier() const {
         return isupper(curr()) || islower(curr()) || isdigit(curr()) || curr() == '_';
     }
 
+    /**
+     * Advance the position of the lexer by `n`
+     */
     void advance(size_t n) {
         pos_ += n;
         line_size_ += n;
     }
 
+    void new_line() {
+        tokens_.line_size.push_back(line_size_);
+        line_size_ = 0;
+    }
+
     void push(TokenID tokid, size_t start, size_t end);
 
-    void lex_line_comment();
     void lex_endl();
+    void lex_line_comment();
+    void lex_multiline_comment();
 
     void lex_macro();
 

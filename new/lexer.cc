@@ -1,6 +1,10 @@
 #include "lexer.hh"
 
+#include <algorithm>
+#include <cassert>
+
 #include "tokens.hh"
+using namespace std;
 
 void Lexer::push(TokenID tokid, size_t start, size_t end) {
     tokens_.ids.push_back(tokid);
@@ -14,28 +18,52 @@ void Lexer::push(TokenID tokid, size_t start, size_t end) {
 void Lexer::lex_line_comment() {
     size_t start = pos_;
     advance(2);  // Skip "//"
-    while (curr() != '\n') {
+    while (not at('\n')) {
         advance(1);
     }
     size_t end = pos_;
     push(LINE_COMMENT, start, end);
     push(ENDL, pos_, pos_ + 1);
-    tokens_.line_size.push_back(line_size_);
-    line_size_ = 0;
+    new_line();
+}
+
+void Lexer::lex_multiline_comment() {
+    assert(at('/', '*'));
+    size_t start = pos_;
+    advance(2);
+    while (not at('*', '/')) {
+        // NOTE(pauek): Take into account that ENDL in Windows is \r\n,
+        // and in Unix is \n, and old Mac was \r.
+        if (at('\r', '\n')) {
+            advance(2);
+            new_line();
+        } else if (at('\r') || at('\n')) {
+            advance(1);
+            new_line();
+        } else {
+            advance(1);
+        }
+    }
+    advance(2);
+    size_t end = pos_;
+    push(MULTILINE_COMMENT, start, end);
 }
 
 void Lexer::lex_endl() {
+    // NOTE(pauek): Take into account that ENDL in Windows is "\r\n",
+    // in Unix is '\n', and in old Mac was '\r'.
+    assert(at('\n') || at('\r'));
     size_t start = pos_;
     size_t end = pos_ + 1;
-    if (curr() == '\r' && curr() == '\n') {
+    if (at('\r', '\n')) {
         end = pos_ + 2;
     }
     push(ENDL, start, end);
-    tokens_.line_size.push_back(line_size_);
-    line_size_ = 0;
+    new_line();
 }
 
 void Lexer::lex_identifier() {
+    assert(is_identifier_start());
     size_t start = pos_;
     advance(1);
     while (is_identifier()) {
@@ -69,7 +97,7 @@ void Lexer::lex_macro() {
 void Lexer::lex_string_literal() {
     size_t start = pos_;
     advance(1);
-    while (curr() != '"') {
+    while (not at('"')) {
         advance(1);
     }
     advance(1);  // consume '"'
@@ -80,7 +108,7 @@ void Lexer::lex_string_literal() {
 void Lexer::lex_char_literal() {
     size_t start = pos_;
     advance(1);
-    if (curr() == '\\') {
+    if (at('\\')) {
         advance(1);  // An escape slash
     }
     advance(1);      // The character
@@ -99,6 +127,10 @@ void Lexer::next() {
             advance(1);
             continue;
         }
+        if (is_multiline_comment()) {
+            lex_multiline_comment();
+            continue;
+        }
         if (is_line_comment()) {
             lex_line_comment();
             continue;
@@ -106,9 +138,6 @@ void Lexer::next() {
         if (is_macro()) {  /// FIXME(pauek): Only at the start of a line!!
             lex_macro();
             continue;
-        }
-        if (is_multiline_comment()) {
-            error("Multi-line comments are not implemented yet!");
         }
         if (is_identifier_start()) {
             lex_identifier();
@@ -119,8 +148,6 @@ void Lexer::next() {
             continue;
         }
         switch (curr()) {
-            // NOTE(pauek): Take into account that ENDL in Windows is \r\n, and in Unix is \n, and
-            // old Mac was \r.
             case '\r':
             case '\n': {
                 lex_endl();
@@ -240,8 +267,9 @@ void Lexer::next() {
                 TOKEN_A_AB_AA_AAB('<', '=', LT, LEQ, LTLT, LTLTEQ)
 
             default: {
-                char c = curr();
-                error("Unexpected character '{}'", c);
+                char   c = curr();
+                string context = input_.substr(max(pos_ - 10, 0U), 20);
+                error("Unexpected character '{}' at: \"{}\"", c, context);
             }
         }
     }
