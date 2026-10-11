@@ -32,3 +32,8 @@ format:
 
 test: minicc
 	@./test.sh
+
+install: minicc
+	@cp minicc $(HOME)/.local/bin
+
+.PHONY: install format clean
