@@ -70,6 +70,12 @@ int HelpParse() {
     return 1;
 }
 
+template <>
+ICommand *parse_args<Parse>(Args args) {
+	// We still don't have subcommands, just the same base implementation.
+	return new Command<Parse>(args);
+}
+
 int Parse(Args args) {
 	if (args.empty()) {
 		return HelpParse();

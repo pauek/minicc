@@ -13,9 +13,9 @@ ICommand *parse_args(Args args) {
     // Dispatch on command
     const string command_name = args[0];
     if (command_name == "lex") {
-        return new Command<Lex>(args.from(1));
+        return parse_args<Lex>(args.from(1));
     } else if (command_name == "parse") {
-        return new Command<Parse>(args.from(1));
+        return parse_args<Parse>(args.from(1));
     }
 
     cerr << "Unknown command '" << command_name << "'." << endl;

@@ -2,6 +2,7 @@
 #define COMMAND_HH
 
 #include <cassert>
+#include <iostream>
 #include <string>
 #include <vector>
 
@@ -16,7 +17,7 @@ class Args {
     size_t    from_;
 
    public:
-   	Args(int argc, char *argv[]) : args_(argv, argv + argc), from_(0) {}
+    Args(int argc, char *argv[]) : args_(argv, argv + argc), from_(0) {}
     Args(const Args& other) : args_(other.args_), from_(other.from_) {}
 
     Args(const Args& other, size_t from) : args_(other.args_), from_(other.from_ + from) {}
@@ -24,8 +25,9 @@ class Args {
     bool   empty() const { return from_ >= args_.size(); }
     size_t size() const { return empty() ? 0 : args_.size() - from_; }
 
-    Container::const_iterator begin() const { return (empty() ? args_.end() : args_.begin() + from_); }
-
+    Container::const_iterator begin() const {
+        return (empty() ? args_.end() : args_.begin() + from_);
+    }
     Container::const_iterator end() const { return args_.end(); }
 
     Args from(size_t from) { return Args(*this, from); }
@@ -43,15 +45,13 @@ class Command : public ICommand {
    public:
     Command(Args args) : args_(args) {}
 
-    static ICommand *parse_args(Args args);
-
     int run() override { return CmdFn(args_); }
 };
 
 template <auto CmdFn>
-ICommand *Command<CmdFn>::parse_args(Args args) {
+ICommand *parse_args(Args args) {
     // Handle subcommands if necessary...
-    return Command<CmdFn>(args);
+    return new Command<CmdFn>(args);
 }
 
 #define COMMAND(cmd_name) int cmd_name(Args args);
@@ -59,5 +59,9 @@ ICommand *Command<CmdFn>::parse_args(Args args) {
 COMMAND(Help)
 COMMAND(Lex)
 COMMAND(Parse)
+
+// If we want to make subcommands in Parse, we can implement parse_args<Parse>...
+template <>
+ICommand *parse_args<Parse>(Args args);
 
 #endif
