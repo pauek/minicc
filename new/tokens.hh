@@ -52,44 +52,7 @@ struct Tokens {
 
     std::string name(size_t i) const { return token_name(ids[i]); }
 
-    void dump(std::ostream& out) const {
-        for (size_t i = 0; i < ids.size(); i++) {
-            auto pos = token_line_col(i);
-            out << filename_ << ':' << pos.lin << ':' << pos.col << ": ";
-
-            const auto code = ids[i];
-            switch (code) {
-                case IDENT: {
-                    out << "identifier \"" << str(i) << '"';
-                    break;
-                }
-                case STR_LITERAL: {
-                    out << "str-literal " << str(i);
-                    break;
-                }
-                case CHAR_LITERAL: {
-                    out << "char-literal " << str(i);
-                    break;
-                }
-                case INT_LITERAL: {
-                    out << "int-literal " << str(i);
-                    break;
-                }
-                case MACRO: {
-                    out << "macro " << str(i);
-                    break;
-                }
-                case LINE_COMMENT: {
-                    out << "line-comment " << str(i);
-                    break;
-                }
-                default: {
-                    out << name(i);
-                }
-            }
-            out << std::endl;
-        }
-    }
+    void dump(std::ostream& out) const;
 };
 
 #endif

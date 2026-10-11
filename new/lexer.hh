@@ -14,15 +14,22 @@ inline std::ostream& operator<<(std::ostream& out, LinCol& lincol) {
 }
 
 struct LexerError {
+    std::string filename;
     LinCol      pos;
     std::string msg;
 
    public:
-    LexerError(LinCol pos_, std::string msg_) : pos(pos_), msg(msg_) {}
+    LexerError(std::string filename_, LinCol pos_, std::string msg_)
+        : filename(filename_), pos(pos_), msg(msg_) {}
+
+    void print(std::ostream& out) {
+    	out << filename << ":" << pos << ": Lexer error: " << msg << std::endl;
+    }
 };
 
 class Lexer {
     const std::string& input_;
+    std::string        filename_;
     Tokens             tokens_;
 
     uint32_t pos_, line_size_;
@@ -30,7 +37,7 @@ class Lexer {
 
     template <class... Args>
     void error(std::format_string<Args...> fmt, Args&&...args) {
-        throw new LexerError(tokens_.line_col(pos_), std::format(fmt, args...));
+        throw new LexerError(filename_, tokens_.line_col(pos_), std::format(fmt, args...));
     }
 
     char peek(size_t i) const { return input_[pos_ + i]; }
@@ -81,7 +88,7 @@ class Lexer {
 
    public:
     Lexer(const std::string& input, std::string filename)
-        : input_(input), tokens_(input, filename) {
+        : input_(input), filename_(filename), tokens_(input, filename) {
         pos_ = 0;
         curr_token_ = 0;
         line_size_ = 0;

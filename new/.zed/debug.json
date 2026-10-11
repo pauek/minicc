@@ -1,0 +1,18 @@
+// Project-local debug tasks
+//
+// For more documentation on how to configure debug tasks,
+// see: https://zed.dev/docs/debugger
+[
+	{
+		"label": "Debug MiniCC",
+		"build": {
+			"command": "make",
+			"args": ["debug"],
+			"cwd": "$ZED_WORKTREE_ROOT",
+		},
+		"program": "$ZED_WORKTREE_ROOT/minicc",
+		"args": ["lex", "lexer.hh"],
+		"request": "launch",
+		"adapter": "CodeLLDB",
+	},
+]

@@ -180,6 +180,7 @@ void Lexer::next() {
                         push(MINUS, pos_, pos_ + 1);
                     }
                 }
+                break;
             }
 
             // One character tokens
@@ -203,7 +204,7 @@ void Lexer::next() {
                 TOKEN_A(',', COMMA)
                 TOKEN_A('.', DOT)
 
-                TOKEN_A('!', NOT)
+                TOKEN_A('!', ADM)
                 TOKEN_A('\\', ESC)
 
 #define TOKEN_A_AB(A, B, ID_A, ID_AB)    \
@@ -219,7 +220,8 @@ void Lexer::next() {
                 TOKEN_A_AB('*', '=', STAR, STAREQ)
                 TOKEN_A_AB('/', '=', DIV, DIVEQ)
                 TOKEN_A_AB('%', '=', MOD, MODEQ)
-                TOKEN_A_AB('^', '=', XOR, XOREQ)
+                TOKEN_A_AB('^', '=', CARET, CARETEQ)
+                TOKEN_A_AB('~', '=', TILDE, TILDEEQ)
 
 #define TOKEN_A_AA_AB(A, B, ID_A, ID_AA, ID_AB) \
     case A: {                                   \
