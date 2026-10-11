@@ -3,7 +3,9 @@ using namespace std;
 
 #include "command.hh"
 #include "lexer.hh"
+#include "parser.hh"
 #include "utils.hh"
+#include "printer.hh"
 
 int Help(const vector<string>& _) {
     constexpr const char *usage =
@@ -13,6 +15,7 @@ int Help(const vector<string>& _) {
         "\n"
         "Commands:\n"
         "   lex          Lex a file\n"
+        "   parse        Parse a file\n"
         "\n";
 
     cout << usage;
@@ -45,10 +48,48 @@ int Lex(const vector<string>& args) {
         try {
             Lexer lexer(text, filename);
             lexer.run().dump(cout);
-        } catch (LexerError *e) {
+        } catch (LexError *e) {
             e->print(cerr);
             return 1;
         }
     }
     return 0;
+}
+
+int HelpParse() {
+    constexpr const char *parse_usage =
+        "Usage: minicc parse [options...] [file]...\n"
+        "\n"
+        "Shows the AST from file(s).\n"
+        "\n"
+        "Options:\n"
+        "    none for now... ;)\n"
+        "\n";
+
+    cout << parse_usage;
+    return 1;
+}
+
+int Parse(const vector<string>& args) {
+	if (args.empty()) {
+		return HelpParse();
+	}
+	for (auto filename : args) {
+		string text = read_file(filename);
+		if (args.size() > 1) {
+			cout << filename << ":" << endl;
+		}
+		try {
+			Lexer lexer(text, filename);
+			auto tokens = lexer.run();
+			Parser parser(tokens, filename);
+			auto program = parser.run();
+			Printer P(cout);
+			P.print(program.get());
+		} catch (Error *e) {
+			e->print(cerr);
+			return 1;
+		}
+	}
+	return 0;
 }

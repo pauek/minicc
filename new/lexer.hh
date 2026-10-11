@@ -4,28 +4,10 @@
 #include <cctype>
 #include <cstdint>
 #include <format>
-#include <iostream>
 #include <string>
 
+#include "error.hh"
 #include "tokens.hh"
-
-inline std::ostream& operator<<(std::ostream& out, LinCol& lincol) {
-    return out << lincol.lin << ':' << lincol.col;
-}
-
-struct LexerError {
-    std::string filename;
-    LinCol      pos;
-    std::string msg;
-
-   public:
-    LexerError(std::string filename_, LinCol pos_, std::string msg_)
-        : filename(filename_), pos(pos_), msg(msg_) {}
-
-    void print(std::ostream& out) {
-    	out << filename << ":" << pos << ": Lexer error: " << msg << std::endl;
-    }
-};
 
 class Lexer {
     const std::string& input_;
@@ -37,7 +19,7 @@ class Lexer {
 
     template <class... Args>
     void error(std::format_string<Args...> fmt, Args&&...args) {
-        throw new LexerError(filename_, tokens_.line_col(pos_), std::format(fmt, args...));
+        throw new LexError(filename_, tokens_.line_col(pos_), std::format(fmt, args...));
     }
 
     char peek(size_t i) const { return input_[pos_ + i]; }

@@ -59,7 +59,7 @@ struct Variant {
     template <IsStruct T>
     explicit Variant(const Ref<T>& ref) {
         // Ensure TypeID of T is between limits
-        static_assert(T::type_id > First && T::type_id <= Last);
+        static_assert(T::type_id >= First && T::type_id <= Last);
         type_id = T::type_id;
         index = ref.index;
     }

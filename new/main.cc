@@ -17,6 +17,8 @@ ICommand *parse_args(int argc, char *argv[]) {
     // Dispatch
     if (cmd_name == "lex") {
         return new Command<Lex>(args);
+    } else if (cmd_name == "parse") {
+    	return new Command<Parse>(args);
     }
 
     cerr << "Unknown command '" << cmd_name << "'." << endl;
@@ -27,7 +29,7 @@ int main(int argc, char *argv[]) {
     try {
         auto *command = parse_args(argc, argv);
         return command->run();
-    } catch (LexerError *e) {
+    } catch (LexError *e) {
         e->print(cerr);
     }
 }

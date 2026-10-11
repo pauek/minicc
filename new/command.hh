@@ -18,7 +18,11 @@ class Command : public ICommand {
     int run() override { return CmdFn(args_); }
 };
 
-int Help(const std::vector<std::string>& args);
-int Lex(const std::vector<std::string>& args);
+#define COMMAND(cmd_name) \
+	int cmd_name(const std::vector<std::string>& args);
+
+COMMAND(Help)
+COMMAND(Lex)
+COMMAND(Parse)
 
 #endif

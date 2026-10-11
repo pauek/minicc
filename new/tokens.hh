@@ -5,15 +5,23 @@
 #include <iostream>
 #include <vector>
 
+// Line and Column
+
+struct LinCol {
+    uint32_t lin, col;
+};
+
+inline std::ostream& operator<<(std::ostream& out, LinCol& lincol) {
+    return out << lincol.lin << ':' << lincol.col;
+}
+
+// TokenID
+
 enum TokenID {
 
 #define TOKEN(id, name) id,
 #include "tokens.inc"
 #undef TOKEN
-};
-
-struct LinCol {
-    uint32_t lin, col;
 };
 
 std::string token_name(TokenID id);

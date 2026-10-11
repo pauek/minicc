@@ -2,6 +2,7 @@
 #define ASTCPP_H
 
 #include <string>
+#include <vector>
 
 #include "ast.hh"
 
@@ -103,25 +104,28 @@ struct IndexExpr : AstType<IndexExpr, 21> {
     Expr base, index;
 };
 
+typedef Variant<1000, 1100> TopDecl;
+
 // Include
-struct Include : AstType<Include, 100> {
+struct Include : AstType<Include, 1000> {
     string filename;
     bool   global;
 };
 
 // PreprocessorMacro
-struct Macro : AstType<Macro, 101> {
+struct Macro : AstType<Macro, 1001> {
     string macro;
 };
 
 // Using declaration
-struct Using : AstType<Using, 102> {
+struct Using : AstType<Using, 1002> {
     string namespc;
 };
 
 // Type Specifier
-struct TypeSpecifier : AstType<TypeSpecifier, 103> {
+struct TypeSpec : AstType<TypeSpec, 1003> {
     enum Qualifier {
+    	None = 0b000000,
         Const = 0b000001,
         Volatile = 0b000010,
         Mutable = 0b000100,
@@ -130,9 +134,14 @@ struct TypeSpecifier : AstType<TypeSpecifier, 103> {
         Extern = 0b100000,
     };
 
-    bool            reference = false;
-    int8_t          bqual;
     Ref<Identifier> ident;
+
+    bool   reference = false;
+    int8_t bqual = None;
+};
+
+struct Program : AstType<Program, 2000> {
+    std::vector<TopDecl> declarations;
 };
 
 //
