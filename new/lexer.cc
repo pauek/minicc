@@ -1,4 +1,5 @@
 #include "lexer.hh"
+
 #include "tokens.hh"
 
 void Lexer::push(TokenID tokid, size_t start, size_t end) {
@@ -23,6 +24,17 @@ void Lexer::lex_line_comment() {
     line_size_ = 0;
 }
 
+void Lexer::lex_endl() {
+    size_t start = pos_;
+    size_t end = pos_ + 1;
+    if (curr() == '\r' && curr() == '\n') {
+        end = pos_ + 2;
+    }
+    push(ENDL, start, end);
+    tokens_.line_size.push_back(line_size_);
+    line_size_ = 0;
+}
+
 void Lexer::lex_identifier() {
     size_t start = pos_;
     advance(1);
@@ -35,7 +47,7 @@ void Lexer::lex_identifier() {
 
 void Lexer::lex_int_literal() {
     size_t start = pos_;
-    advance(1); // We already know this is a digit
+    advance(1);  // We already know this is a digit
     while (isdigit(curr())) {
         /// FIXME(pauek): Limit the size of this!
         advance(1);
@@ -69,10 +81,10 @@ void Lexer::lex_char_literal() {
     size_t start = pos_;
     advance(1);
     if (curr() == '\\') {
-        advance(1); // An escape slash
+        advance(1);  // An escape slash
     }
-    advance(1); // The character
-    advance(1); // The closing `'`
+    advance(1);      // The character
+    advance(1);      // The closing `'`
     size_t end = pos_;
     push(CHAR_LITERAL, start, end);
 }
@@ -91,7 +103,7 @@ void Lexer::next() {
             lex_line_comment();
             continue;
         }
-        if (is_macro()) { /// FIXME(pauek): Only at the start of a line!!
+        if (is_macro()) {  /// FIXME(pauek): Only at the start of a line!!
             lex_macro();
             continue;
         }
@@ -107,10 +119,11 @@ void Lexer::next() {
             continue;
         }
         switch (curr()) {
+            // NOTE(pauek): Take into account that ENDL in Windows is \r\n, and in Unix is \n, and
+            // old Mac was \r.
+            case '\r':
             case '\n': {
-                push(ENDL, pos_, pos_ + 1);
-                tokens_.line_size.push_back(line_size_);
-                line_size_ = 0;
+                lex_endl();
                 break;
             }
             case '\'': {
@@ -198,10 +211,9 @@ void Lexer::next() {
         }                                       \
         break;                                  \
     }
-    TOKEN_A_AA_AB('+', '=', PLUS, PLUSPLUS, PLUSEQ)
-    TOKEN_A_AA_AB('&', '=', AMP, AMPAMP, AMPEQ)
-    TOKEN_A_AA_AB('|', '=', BAR, BARBAR, BAREQ)
-
+                TOKEN_A_AA_AB('+', '=', PLUS, PLUSPLUS, PLUSEQ)
+                TOKEN_A_AA_AB('&', '=', AMP, AMPAMP, AMPEQ)
+                TOKEN_A_AA_AB('|', '=', BAR, BARBAR, BAREQ)
 
 #define TOKEN_A_AB_AA_AAB(A, B, ID_A, ID_AB, ID_AA, ID_AAB) \
     case A: {                                               \
