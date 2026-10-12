@@ -6,6 +6,7 @@
 #include "tokens.hh"
 
 class Error {
+   protected:
     std::string filename;
     LinCol      pos;
     std::string msg;
@@ -14,8 +15,9 @@ class Error {
     Error(std::string filename_, LinCol pos_, std::string msg_)
         : filename(filename_), pos(pos_), msg(msg_) {}
 
-    void print(std::ostream& out) {
-        out << filename << ":" << pos << ": " << error_type() << " error: " << msg << std::endl;
+    virtual void print(std::ostream& out) {
+        out << filename << ":" << pos << ": " << error_type() << " error: ";
+        out << msg << std::endl;
     }
 
     virtual const char *error_type() = 0;
@@ -23,17 +25,27 @@ class Error {
 
 class LexError : public Error {
    public:
-    LexError(std::string filename_, LinCol pos_, std::string msg_) : Error(filename_, pos_, msg_) {}
+    LexError(std::string filename, LinCol pos_, std::string msg_) : Error(filename, pos_, msg_) {}
 
-    const char* error_type() override { return "lex"; }
+    const char *error_type() override { return "lex"; }
 };
 
 class ParseError : public Error {
-   public:
-    ParseError(std::string filename_, LinCol pos_, std::string msg_)
-        : Error(filename_, pos_, msg_) {}
+    std::string codeline;
 
-    const char* error_type() override { return "parse"; }
+   public:
+    ParseError(const Tokens& tokens, LinCol pos_, std::string msg_)
+        : Error(tokens.filename_, pos_, msg_) {
+        codeline = tokens.get_line(pos.lin);
+    }
+
+    const char *error_type() override { return "parse"; }
+
+    void print(std::ostream& out) override {
+        out << filename << ":" << pos << ": " << "parse error: " << msg << std::endl;
+        out << "    | " << codeline;
+        out << "    | " << std::string(pos.col - 1, ' ') << '^' << std::endl;
+    }
 };
 
 #endif

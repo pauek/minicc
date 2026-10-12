@@ -7,12 +7,12 @@
 using namespace std;
 
 void Lexer::push(TokenID tokid, size_t start, size_t end) {
-	//
-	// FIXME(pauek): This is not good... we should decouple the advance(n)
-	// from push(...), otherwise you cannot make tokens that span less than the
-	// positions you have walked on. For string/char literals, filenames, etc.
-	// that is not convenient.
-	//
+    //
+    // FIXME(pauek): This is not good... we should decouple the advance(n)
+    // from push(...), otherwise you cannot make tokens that span less than the
+    // positions you have walked on. For string/char literals, filenames, etc.
+    // that is not convenient.
+    //
     tokens_.ids.push_back(tokid);
     tokens_.start_pos.push_back(start);
     tokens_.end_pos.push_back(end);
@@ -79,7 +79,7 @@ void Lexer::lex_identifier_or_keyword() {
 
     // Assume it is an identifier
     TokenID tok = IDENT;
-    string ident = input_.substr(start, end - start);
+    string  ident = input_.substr(start, end - start);
 
     // Look for a keyword, 1-level switch using starting letter
     switch (ident[0]) {
@@ -90,10 +90,10 @@ void Lexer::lex_identifier_or_keyword() {
 }
 
 void Lexer::lex_include_filename() {
-	assert(at('"') || at('<'));
-	size_t start = pos_;
-	bool global = at('<');
-	advance(1);
+    assert(at('"') || at('<'));
+    size_t start = pos_;
+    bool   global = at('<');
+    advance(1);
 
     advance(1);
     while (not at('"') and not at('>') and not at('\n')) {
@@ -138,15 +138,17 @@ void Lexer::lex_macro() {
 
     // skip spaces
     while (not finished() && (at(' ') || at('\t'))) {
-    	advance(1);
+        advance(1);
     }
     if (finished()) {
-    	return;
+        return;
     }
-    if (at('"') || at('<')) {
-    	lex_include_filename();
-    } else {
-    	error("#include must be followed by '\"' or '<'");
+    if (ident == "#include") {
+        if (at('"') || at('<')) {
+            lex_include_filename();
+        } else {
+            error("#include must be followed by '\"' or '<'");
+        }
     }
 }
 
@@ -330,10 +332,14 @@ void Lexer::next() {
     }
 }
 
-Tokens Lexer::run() {
+const Tokens& Lexer::run() {
     next();
     while (not finished()) {
         next();
+    }
+    // The size of the last line might not be filled in yet
+    if (line_size_ > 0) {
+        tokens_.line_size.push_back(line_size_);
     }
     return tokens_;
 }

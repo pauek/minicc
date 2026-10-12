@@ -1,6 +1,7 @@
 #ifndef TOKENS_HH
 #define TOKENS_HH
 
+#include <cassert>
 #include <cstdint>
 #include <iostream>
 #include <vector>
@@ -36,7 +37,7 @@ struct Tokens {
     std::vector<uint32_t> start_pos, end_pos;
     std::vector<uint32_t> line_size;
 
-    Tokens(const std::string& input, std::string filename = "<unknown>")
+    explicit Tokens(const std::string& input, std::string filename = "<unknown>")
         : input_(input), filename_(filename) {}
 
     // Determine the line and column of a certain target position in the buffer
@@ -55,6 +56,16 @@ struct Tokens {
         const auto start = start_pos[i];
         const auto end = end_pos[i];
         return input_.substr(start, end - start);
+    }
+
+    std::string get_line(size_t k) const {
+        // Add line lengths before line k
+        size_t begin = 0;
+        for (size_t i = 0; i < k - 1; i++) {
+            assert(i < line_size.size());
+            begin += line_size[i];
+        }
+        return input_.substr(begin, line_size[k-1]);
     }
 
     std::string name(size_t i) const { return token_name(ids[i]); }

@@ -7,33 +7,6 @@ void Printer::print(const IndexExpr& e) {
     out_ << "]";
 }
 
-void Printer::print(const Program& P) {
-    for (auto decl : P.declarations) {
-        switch (decl.type_id) {
-            case Include::type_id: {
-            	print(decl.as<Include>());
-                break;
-            }
-            case Macro::type_id: {
-           		print(decl.as<Macro>());
-            	break;
-            }
-            case Using::type_id: {
-          		print(decl.as<Using>());
-            	break;
-            }
-        }
-    }
-}
-
-void Printer::print(const Macro& macro) {
-	out_ << '#' << macro.macro << endl;
-}
-
-void Printer::print(const Using& usin) {
-	out_ << "using namespace " << usin.namespc << ";" << endl;
-}
-
 void Printer::print(const BinaryExpr& e) {
     print(e.left);
     out_ << ' ';
@@ -130,4 +103,31 @@ void Printer::print(const Expr& e) {
 void Printer::print(const Include& include) {
     out_ << "#include ";
     out_ << "<" << include.filename << ">" << endl;
+}
+
+void Printer::print(const Macro& macro) {
+    out_ << '#' << macro.name << endl;
+}
+
+void Printer::print(const Using& usin) {
+    out_ << "using namespace " << usin.namespc << ";" << endl;
+}
+
+void Printer::print(const Program& P) {
+    for (auto decl : P.declarations) {
+        switch (decl.type_id) {
+            case Include::type_id: {
+                print(decl.as<Include>());
+                break;
+            }
+            case Macro::type_id: {
+                print(decl.as<Macro>());
+                break;
+            }
+            case Using::type_id: {
+                print(decl.as<Using>());
+                break;
+            }
+        }
+    }
 }

@@ -19,7 +19,7 @@ class Parser {
 
     template <class... Args>
     void error(std::format_string<Args...> fmt, Args&&...args) {
-        throw new ParseError(filename_, tokens_.token_line_col(pos_), std::format(fmt, args...));
+        throw new ParseError(tokens_, tokens_.token_line_col(pos_), std::format(fmt, args...));
     }
 
     void save() { stack_.push(pos_); }
@@ -35,6 +35,10 @@ class Parser {
     std::string curr_str() const { return tokens_.str(pos_); }
     bool        at(TokenID tok_id) const { return tokens_.ids[pos_] == tok_id; }
 
+    bool at(TokenID tok_id1, TokenID tok_id2) const {
+    	return pos_ + 1 < tokens_.ids.size() && tokens_.ids[pos_] == tok_id1 && tokens_.ids[pos_ + 1] == tok_id2;
+    }
+
     void advance(size_t n) { pos_ += n; }
 
     template <typename T>
@@ -42,15 +46,17 @@ class Parser {
         top_decls_.push_back(TopDecl(decl));
     }
 
-    Ref<Macro>    parse_macro();
-    Ref<Include>  parse_include();
+    void push(TopDecl top_decl) { top_decls_.push_back(top_decl); }
+
+    TopDecl       parse_macro();
     Ref<Using>    parse_using();
     Ref<TypeSpec> parse_typespec();
 
     void next();
 
    public:
-    Parser(Tokens& tokens, std::string filename) : filename_(filename), tokens_(tokens), pos_(0) {}
+    Parser(const Tokens& tokens, std::string filename)
+        : tokens_(tokens), filename_(filename), pos_(0) {}
 
     Ref<Program> run();
 };

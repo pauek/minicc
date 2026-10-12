@@ -114,7 +114,8 @@ struct Include : AstType<Include, 1000> {
 
 // PreprocessorMacro
 struct Macro : AstType<Macro, 1001> {
-    string macro;
+    string name;
+    size_t start, end; // starting and ending tokens
 };
 
 // Using declaration

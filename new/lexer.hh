@@ -22,6 +22,8 @@ class Lexer {
         throw new LexError(filename_, tokens_.line_col(pos_), std::format(fmt, args...));
     }
 
+    const std::string& input() const { return input_; }
+
     char peek(size_t i) const { return input_[pos_ + i]; }
     char curr() const { return input_[pos_]; }
 
@@ -77,7 +79,7 @@ class Lexer {
         line_size_ = 0;
     }
 
-    Tokens run();
+    const Tokens& run();
 };
 
 #endif

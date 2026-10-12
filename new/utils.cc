@@ -23,3 +23,11 @@ string read_stdin() {
 	}
 	return input;
 }
+
+string trim(string s, size_t n) {
+	size_t size = s.size();
+	if (2*n >= size) {
+		return "";
+	}
+	return s.substr(n, size - 2*n);
+}
