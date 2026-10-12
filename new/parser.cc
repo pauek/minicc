@@ -104,6 +104,7 @@ Ref<Identifier> Parser::parse_type_keyword() {
 		}
 	}
 	error("Keyword is not a type!");
+	return Identifier::make({}); // NOTE(pauek): Avoid compiler warning
 }
 
 Ref<TypeSpec> Parser::parse_typespec() {

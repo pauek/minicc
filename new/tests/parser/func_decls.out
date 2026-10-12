@@ -1,3 +1,4 @@
 function "f"(a: int, b: int): int
 function "super_long_func_name"(a: int, b: int, c: double): double
 function "upper"(_char: char): char
+function "get_total"(x: const double &): const int &
