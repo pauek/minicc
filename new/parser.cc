@@ -1,6 +1,4 @@
 #include "parser.hh"
-#include <functional>
-
 #include "astcpp.hh"
 #include "tokens.hh"
 #include "utils.hh"
