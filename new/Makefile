@@ -21,7 +21,7 @@ keywords.inc keyword_switch.inc: keywords.gen.sh
 # This dependencies are _merged_ (https://stackoverflow.com/questions/29534583/add-dependencies-to-existing-make-targets)
 lexer.cc: keywords.inc tokens.inc lexer.hh tokens.hh
 
-debug: CXXFLAGS += -g3 -O0
+debug: CXXFLAGS += -g3 -O0 -Wall -Wpedantic
 debug: minicc
 
 release: CXXFLAGS += -O3
