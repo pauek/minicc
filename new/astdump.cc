@@ -1,5 +1,4 @@
 #include "astdump.hh"
-#include <any>
 
 void AstDumper::dump(const Include& include) {
     char open = include.global ? '<' : '"';
@@ -23,14 +22,15 @@ void AstDumper::dump(const Using& usin) {
     out_ << "using namespace " << usin.namespc << endl;
 }
 
+
+constexpr TypeSpec::Qualifier searched_qualifiers[] = {TypeSpec::Auto, TypeSpec::Const};
+
 void AstDumper::dump(const TypeSpec& typespec) {
     // Qualifiers
-    constexpr TypeSpec::Qualifier qualifiers[] = { TypeSpec::Auto, TypeSpec::Const };
-    bool any_qualifiers = false;
-    for (auto qual : qualifiers) {
-    	if (typespec.bqual & qual) {
-       		out_ << TypeSpec::qualifier_to_str(qual) << " ";
-     	}
+    for (auto qual : searched_qualifiers) {
+        if (typespec.bqual & qual) {
+            out_ << TypeSpec::qualifier_to_str(qual) << " ";
+        }
     }
 
     // Main symbol
@@ -38,7 +38,7 @@ void AstDumper::dump(const TypeSpec& typespec) {
 
     // Is it a reference?
     if (typespec.reference) {
-    	out_ << " &";
+        out_ << " &";
     }
 }
 
