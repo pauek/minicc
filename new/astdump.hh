@@ -17,9 +17,16 @@ class AstDumper {
 
     void dump(const Program& P);
 
+
     void dump(const Macro& macro);
     void dump(const Using& usin);
     void dump(const Include& include);
+    void dump(const FuncDecl& funcdecl);
+
+    void dump(const TypeSpec& typespec);
+    void dump(const Identifier& ident);
+    void dump(const FuncParam& funcparam);
+
 };
 
 #endif

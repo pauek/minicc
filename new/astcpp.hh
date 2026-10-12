@@ -115,7 +115,7 @@ struct Include : AstType<Include, 1000> {
 // PreprocessorMacro
 struct Macro : AstType<Macro, 1001> {
     string name;
-    size_t start, end; // starting and ending tokens
+    size_t start, end;  // starting and ending tokens
 };
 
 // Using declaration
@@ -126,7 +126,7 @@ struct Using : AstType<Using, 1002> {
 // Type Specifier
 struct TypeSpec : AstType<TypeSpec, 1003> {
     enum Qualifier {
-    	None = 0b000000,
+        None = 0b000000,
         Const = 0b000001,
         Volatile = 0b000010,
         Mutable = 0b000100,
@@ -139,6 +139,38 @@ struct TypeSpec : AstType<TypeSpec, 1003> {
 
     bool   reference = false;
     int8_t bqual = None;
+
+    static Qualifier qualifier_from_str(std::string name) {
+        if (name == "auto") {
+            return Auto;
+        } else if (name == "const") {
+            return Const;
+        } else {
+            assert(false);
+        }
+    }
+
+    static std::string qualifier_to_str(Qualifier qual) {
+        switch (qual) {
+            case Auto:
+                return "auto";
+            case Const:
+                return "const";
+            default:
+                assert(false);
+        }
+    }
+};
+
+struct FuncParam : AstType<FuncParam, 1004> {
+    Ref<TypeSpec>   type;
+    Ref<Identifier> ident;
+};
+
+struct FuncDecl : AstType<FuncDecl, 1005> {
+    Ref<TypeSpec>          return_type;
+    Ref<Identifier>        ident;
+    vector<Ref<FuncParam>> params;
 };
 
 struct Program : AstType<Program, 2000> {

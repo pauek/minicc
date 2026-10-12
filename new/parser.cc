@@ -1,4 +1,5 @@
 #include "parser.hh"
+#include <functional>
 
 #include "astcpp.hh"
 #include "tokens.hh"
@@ -64,7 +65,7 @@ TopDecl Parser::parse_macro() {
 }
 
 Ref<Using> Parser::parse_using() {
-    assert(at(KEYWORD) && curr_str() == "using");
+    assert(at(KEYWORD) && at_str("using"));
     advance(1);
 
     if (not at(KEYWORD) || curr_str() != "namespace") {
@@ -86,17 +87,93 @@ Ref<Using> Parser::parse_using() {
     return Using::make({.namespc = namespc});
 }
 
+bool Parser::at_typespec_qualifier() const {
+    if (!at(KEYWORD)) {
+        return false;
+    }
+    return at_str("auto") || at_str("const");
+}
+
+Ref<Identifier> Parser::parse_type_keyword() {
+	assert(at(KEYWORD));
+	constexpr const char *basic_types[] = { "bool", "char", "int", "float", "double" };
+	for (auto name : basic_types) {
+		if (at_str(name)) {
+			advance(1);
+			return Identifier::make({ .name = name });
+		}
+	}
+	error("Keyword is not a type!");
+}
+
 Ref<TypeSpec> Parser::parse_typespec() {
     assert(at(KEYWORD));
-    if (curr_str() == "int") {
+
+    // Check all possible modifiers
+    int8_t bqual = TypeSpec::None;
+    while (at_typespec_qualifier()) {
+        bqual |= TypeSpec::qualifier_from_str(curr_str());
         advance(1);
-        auto id = Identifier::make({.name = "int"});
-        return TypeSpec::make({.ident = id});
     }
-    string id = curr_str();
-    error("Unexpected token '{}'.", id);
+
+    // Now the main type (for now basic types only)
+    Ref<Identifier> ident;
+    if (at(KEYWORD)) {
+    	ident = parse_type_keyword();
+    } else {
+    	ident = parse_identifier();
+    }
+
+    // Now possibly a & reference (pointers not yet)
+    bool reference = at(AMP);
+    if (reference) {
+    	advance(1);
+    }
+
     return TypeSpec::make({
-        .ident = Identifier::make({.name = "ERROR"}),
+        .ident = ident,
+        .reference = reference,
+        .bqual = bqual,
+    });
+}
+
+Ref<Identifier> Parser::parse_identifier() {
+    assert(at(IDENT));
+    string name = curr_str();
+    advance(1);
+    return Identifier::make({.name = name});
+}
+
+vector<Ref<FuncParam>> Parser::parse_function_parameters() {
+    assert(at(OPEN_PAREN));
+    advance(1);
+
+    vector<Ref<FuncParam>> params;
+    while (not at(CLOSE_PAREN)) {
+        auto type = parse_typespec();
+        auto ident = parse_identifier();
+        params.push_back(FuncParam::make({.type = type, .ident = ident}));
+        if (at(COMMA)) {
+            advance(1);
+        }
+    }
+
+    advance(1);
+    return params;
+}
+
+Ref<FuncDecl> Parser::parse_funcdecl() {
+    auto return_type = parse_typespec();
+    auto ident = parse_identifier();
+    auto params = parse_function_parameters();
+    if (not at(SEMICOLON)) {
+        error("Expected semicolon here.");
+    }
+    advance(1);
+    return FuncDecl::make({
+        .return_type = return_type,
+        .ident = ident,
+        .params = params,
     });
 }
 
@@ -123,10 +200,8 @@ void Parser::next() {
                     break;
                 }
 
-                // Try typespec
-                save();
-                auto typespec = parse_typespec();
-
+                // Function Declaration (for now)
+                push(parse_funcdecl());
                 break;
             }
             default: {

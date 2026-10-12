@@ -33,10 +33,15 @@ class Parser {
 
     TokenID     curr() const { return tokens_.ids[pos_]; }
     std::string curr_str() const { return tokens_.str(pos_); }
-    bool        at(TokenID tok_id) const { return tokens_.ids[pos_] == tok_id; }
+
+    bool at(TokenID tok_id) const { return tokens_.ids[pos_] == tok_id; }
+    bool at_str(const char *expected) const { return curr_str() == expected; }
+
+    bool at_typespec_qualifier() const;
 
     bool at(TokenID tok_id1, TokenID tok_id2) const {
-    	return pos_ + 1 < tokens_.ids.size() && tokens_.ids[pos_] == tok_id1 && tokens_.ids[pos_ + 1] == tok_id2;
+        return pos_ + 1 < tokens_.ids.size() && tokens_.ids[pos_] == tok_id1 &&
+               tokens_.ids[pos_ + 1] == tok_id2;
     }
 
     void advance(size_t n) { pos_ += n; }
@@ -48,9 +53,13 @@ class Parser {
 
     void push(TopDecl top_decl) { top_decls_.push_back(top_decl); }
 
-    TopDecl       parse_macro();
-    Ref<Using>    parse_using();
-    Ref<TypeSpec> parse_typespec();
+    TopDecl                parse_macro();
+    Ref<Using>             parse_using();
+    Ref<TypeSpec>          parse_typespec();
+    Ref<Identifier>        parse_type_keyword();
+    Ref<Identifier>        parse_identifier();
+    Ref<FuncDecl>          parse_funcdecl();
+    vector<Ref<FuncParam>> parse_function_parameters();
 
     void next();
 
