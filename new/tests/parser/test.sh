@@ -16,9 +16,6 @@ function run_test() {
 	../../minicc parse $clean_filename_cc > $output 2> $errors
 	RETURN_CODE=$?
 
-	# Remove the .diff files
-	rm -f *.diff
-
 	RESULT="."
 
 	# Execution error: we expect the error output to be non-empty.
@@ -38,7 +35,7 @@ function run_test() {
 				RESULT="e"
 				cp $errors $filename.err
 			else
-				RESULT="X"
+				RESULT="Y"
 				cp $errors $filename.err.diff
 			fi
 		else

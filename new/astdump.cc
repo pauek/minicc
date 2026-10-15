@@ -1,4 +1,5 @@
 #include "astdump.hh"
+#include "astcpp.hh"
 
 void AstDumper::dump(const Include& I) {
     char open = I.global ? '<' : '"';
@@ -65,6 +66,58 @@ void AstDumper::dump(const FuncDecl& FD) {
     out_ << "): ";
     dump(FD.return_type.get());
     out_ << endl;
+
+    // Dump the body, if it exists
+    if (not FD.body.empty()) {
+    	const vector<Stmt>& stmts = FD.body.get().stmts;
+     	for (auto stmt : stmts) {
+      		out_ << "    ";
+      		dump(stmt);
+      	}
+       	out_ << endl;
+    }
+}
+
+void AstDumper::dump(const BinaryExpr& binexpr) {
+	dump(binexpr.left);
+	out_ << ' ' << BinaryExpr::operator_to_str(binexpr.op) << ' ';
+	dump(binexpr.right);
+}
+
+void AstDumper::dump(Expr expr) {
+	switch (expr.type_id) {
+		case Identifier::type_id: {
+			dump(expr.as<Identifier>());
+			break;
+		}
+		case BinaryExpr::type_id: {
+			dump(expr.as<BinaryExpr>());
+			break;
+		}
+		default: {
+			assert(false);
+		}
+	}
+}
+
+void AstDumper::dump(const ReturnStmt& retstmt) {
+	out_ << "return ";
+	dump(retstmt.expr);
+	out_ << endl;
+}
+
+void AstDumper::dump(Stmt stmt) {
+	switch (stmt.type_id) {
+		case ReturnStmt::type_id: {
+			dump(stmt.as<ReturnStmt>());
+			break;
+		}
+		case StmtBlock::type_id: {
+			break;
+		}
+		default:
+			assert(false);
+	}
 }
 
 void AstDumper::dump(const Program& P) {

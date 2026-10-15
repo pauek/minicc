@@ -1,0 +1,3 @@
+binexpr_wrong_tabs.cc:2:11: parse error: Expected operator here.
+    | 	return a b;
+    | 	         ^

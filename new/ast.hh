@@ -30,11 +30,28 @@ vector<T> Store<T>::instances = {};
 // A Ref is a "pointer" to a struct. It is the index into de Type<T>::instances_ vector.
 template <IsStruct T>
 struct Ref {
-    size_t index;  // index into Store<T>::instances
+    // index into Store<T>::instances
+    size_t index = NoIndex;  // initialize to NoIndex
 
-    T&       get() { return Store<T>::instances[index]; }
-    const T& get() const { return Store<T>::instances[index]; }
+    // Allow a reference to be empty
+    Ref() : index(NoIndex) {}
+    bool empty() const { return index == NoIndex; }
+
+    // Normal constructor for more idiomatic initialization
+    Ref(size_t index_) : index(index_) {}
+
+    T& get() {
+        assert(index != NoIndex);
+        return Store<T>::instances[index];
+    }
+
+    const T& get() const {
+        assert(index != NoIndex);
+        return Store<T>::instances[index];
+    }
+
     uint32_t type_id() const { return T::type_id; }
+
 };
 
 template <IsStruct T, TypeID ID>
@@ -43,7 +60,7 @@ struct AstType {
 
     static Ref<T> make(const T& t) {
         Store<T>::instances.push_back(t);
-        return {Store<T>::instances.size() - 1};
+        return Ref<T>(Store<T>::instances.size() - 1);
     }
 };
 
@@ -56,6 +73,8 @@ struct Variant {
     TypeID type_id = None;   // TypeID of the active type
     size_t index = NoIndex;  // Index into the Store<Type>::instances
 
+    explicit Variant() : type_id(None), index(NoIndex) {}
+
     template <IsStruct T>
     explicit Variant(const Ref<T>& ref) {
         // Ensure TypeID of T is between limits
@@ -66,14 +85,14 @@ struct Variant {
 
     template <IsStruct T>
     T& as() {
-        assert(T::type_id == type_id && index != -1);
+        assert(T::type_id == type_id && index != NoIndex);
         return Ref<T>{index}.get();
     }
 
     template <IsStruct T>
     const T& as() const {
-        assert(T::type_id == type_id && index != -1);
-        return Ref<T>{index}.get();
+        assert(T::type_id == type_id && index != NoIndex);
+        return Ref<T>(index).get();
     }
 
     template <IsStruct T>

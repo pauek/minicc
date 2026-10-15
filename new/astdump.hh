@@ -17,6 +17,11 @@ class AstDumper {
 
     void dump(const Program& P);
 
+    void dump(Expr expr);
+    void dump(const BinaryExpr& binexpr);
+
+    void dump(Stmt S);
+    void dump(const ReturnStmt& retstmt);
 
     void dump(const Macro& macro);
     void dump(const Using& usin);

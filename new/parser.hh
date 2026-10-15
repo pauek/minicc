@@ -46,6 +46,8 @@ class Parser {
 
     void advance(size_t n) { pos_ += n; }
 
+    void skip_space();
+
     template <typename T>
     void push(Ref<T> decl) {
         top_decls_.push_back(TopDecl(decl));
@@ -53,13 +55,23 @@ class Parser {
 
     void push(TopDecl top_decl) { top_decls_.push_back(top_decl); }
 
-    TopDecl                parse_macro();
-    Ref<Using>             parse_using();
-    Ref<TypeSpec>          parse_typespec();
-    Ref<Identifier>        parse_type_keyword();
-    Ref<Identifier>        parse_identifier();
+    BinaryExpr::Operator token_to_binary_operator();
+
+    TopDecl         parse_macro();
+    Ref<Using>      parse_using();
+    Ref<TypeSpec>   parse_typespec();
+    Ref<Identifier> parse_type_keyword();
+    Ref<Identifier> parse_identifier();
+
+    Expr            parse_expr();
+    Ref<BinaryExpr> parse_binary_expr();
+
+    Stmt            parse_stmt();
+    Ref<ReturnStmt> parse_return_stmt();
+
     Ref<FuncDecl>          parse_funcdecl();
     vector<Ref<FuncParam>> parse_function_parameters();
+    Ref<StmtBlock>         parse_function_body();
 
     void next();
 
