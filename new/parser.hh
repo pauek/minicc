@@ -58,7 +58,7 @@ class Parser {
 
     void push(TopDecl top_decl) { top_decls_.push_back(top_decl); }
 
-    BinaryExpr::Operator token_to_binary_operator();
+    BinaryExpr::Operator token_to_operator_type();
 
     TopDecl         parse_macro();
     Ref<Using>      parse_using();
@@ -66,7 +66,8 @@ class Parser {
     Ref<Identifier> parse_type_keyword();
     Ref<Identifier> parse_identifier();
 
-    Expr            parse_expr(BinaryExpr::Level level = BinaryExpr::Level::Relational);
+    Expr            parse_expr(BinaryExpr::Level level = BinaryExpr::Zero);
+    Expr            parse_unary_expr();
     Expr            parse_literal();
     Ref<BinaryExpr> parse_binary_expr();
 

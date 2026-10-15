@@ -50,10 +50,9 @@ struct Identifier : AstType<Identifier, 15> {
     string name;
 };
 struct BinaryExpr : AstType<BinaryExpr, 20> {
-    enum Level { LogicalOr, LogicalAnd, Equality, Relational, Additive, Multiplicative };
+    enum Level { Zero = 0, LogicalOr, LogicalAnd, Equality, Relational, Additive, Multiplicative, Infinite };
     enum Operator { None = 0, Add, Sub, Mul, Div, Mod, And, Eq, NotEq, GT, LT, GE, LE, Or };
 
-    Level    level;
     Operator op;
     Expr     left, right;
 
@@ -80,7 +79,7 @@ struct BinaryExpr : AstType<BinaryExpr, 20> {
                 return LogicalAnd;
             case None:
                 assert(false);
-                return Multiplicative;
+                return Zero;
         }
     }
 

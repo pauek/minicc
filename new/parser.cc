@@ -189,7 +189,7 @@ Expr Parser::parse_literal() {
             return Expr(IntLiteral::make({.value = value}));
         }
         case CHAR_LITERAL: {
-            char value = curr_str()[0];
+            char value = curr_str()[1];
             advance(1);
             return Expr(CharLiteral::make({.value = value}));
         }
@@ -204,7 +204,7 @@ Expr Parser::parse_literal() {
     }
 }
 
-BinaryExpr::Operator Parser::token_to_binary_operator() {
+BinaryExpr::Operator Parser::token_to_operator_type() {
     switch (curr()) {
         case PLUS: {
             return BinaryExpr::Add;
@@ -245,6 +245,9 @@ BinaryExpr::Operator Parser::token_to_binary_operator() {
         case NEQ: {
             return BinaryExpr::NotEq;
         }
+        case EQEQ: {
+            return BinaryExpr::Eq;
+        }
         default: {
             return BinaryExpr::None;
         }
@@ -264,7 +267,7 @@ Ref<BinaryExpr> Parser::parse_binary_expr() {
     }
 
     // Operator
-    binexp.op = token_to_binary_operator();
+    binexp.op = token_to_operator_type();
     advance(1);
 
     // Right Hand Side
@@ -277,43 +280,47 @@ Ref<BinaryExpr> Parser::parse_binary_expr() {
     return BinaryExpr::make(binexp);
 }
 
-Expr Parser::parse_expr(BinaryExpr::Level level) {
-    Expr left;
-
-    // Parse the left hand side
+Expr Parser::parse_unary_expr() {
     if (at_literal()) {
-        left = parse_literal();
+        return parse_literal();
     } else if (at(IDENT)) {
-        left = Expr(parse_identifier());
+        return Expr(parse_identifier());
     } else {
         // FIXME(pauek): Add parenthesis here, which reset the level
         error("Unimplemented!");
+        return Expr();
+    }
+}
+
+Expr Parser::parse_expr(BinaryExpr::Level break_level) {
+    Expr left = parse_unary_expr();
+    BinaryExpr::Level curr_level = BinaryExpr::Infinite;
+    while (true) {
+        // See the operator, break if not an operator
+        BinaryExpr::Operator op = token_to_operator_type();
+        if (op == BinaryExpr::None) {
+            break;
+        }
+
+        Expr right;
+        auto op_level = BinaryExpr::op_level(op);
+        // Break if level is lower
+        if (op_level <= break_level) {
+            break;
+        } else if (op_level > curr_level || curr_level == BinaryExpr::Infinite) {
+            advance(1);
+           	right = parse_expr(op_level);
+        } else {
+        	advance(1);
+        	curr_level = min(curr_level, op_level);
+           	right = parse_unary_expr();
+        }
+
+        Ref<BinaryExpr> binexpr = BinaryExpr::make({.op = op, .left = left, .right = right});
+        left = Expr(binexpr);
     }
 
-    // See the operator
-    BinaryExpr::Operator op = token_to_binary_operator();
-
-    // The expression ends here if the token is not an operator...
-    if (op == BinaryExpr::None) {
-        return left;
-    }
-    // ... or the level of the operator is less than the level of the expression
-    if (BinaryExpr::op_level(op) < level) {
-        return left;
-    }
-    advance(1);
-
-    // We have a binary expression, only the right hand side is missing
-    Expr right = parse_expr(level);
-
-    Ref<BinaryExpr> ref = BinaryExpr::make({
-        .level = level,
-        .op = op,
-        .left = left,
-        .right = right,
-    });
-
-    return Expr(ref);
+    return left;
 }
 
 Ref<ReturnStmt> Parser::parse_return_stmt() {

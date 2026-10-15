@@ -95,7 +95,7 @@ void AstDumper::dump(Expr expr) {
 			break;
 		}
 		case CharLiteral::type_id: {
-			out_ << expr.as<CharLiteral>().value;
+			out_ << '\'' << expr.as<CharLiteral>().value << '\'';
 			break;
 		}
 		case StringLiteral::type_id: {
