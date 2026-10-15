@@ -22,9 +22,18 @@ enum TokenID {
 #define TOKEN(id, name) id,
 #include "tokens.inc"
 #undef TOKEN
+	BEFORE_KEYWORDS,
+#define KEYWORD(id, name) id,
+#include "keywords.inc"
+#undef KEYWORD
+	AFTER_KEYWORDS,
 };
 
 std::string token_name(TokenID id);
+
+inline bool is_keyword(TokenID id) {
+	return id > BEFORE_KEYWORDS && id < AFTER_KEYWORDS;
+}
 
 //
 // Token sequence

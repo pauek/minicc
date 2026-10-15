@@ -72,10 +72,10 @@ TopDecl Parser::parse_macro() {
 }
 
 Ref<Using> Parser::parse_using() {
-    assert(at(KEYWORD) && at_str("using"));
+    assert(at(USING));
     advance(1);
 
-    if (not at(KEYWORD) || curr_str() != "namespace") {
+    if (not at(NAMESPACE)) {
         error("Expected 'namespace'.");
     }
     advance(1);
@@ -95,14 +95,14 @@ Ref<Using> Parser::parse_using() {
 }
 
 bool Parser::at_typespec_qualifier() const {
-    if (!at(KEYWORD)) {
-        return false;
+    if (at(AUTO) || at(CONST)) {
+        return true;
     }
-    return at_str("auto") || at_str("const");
+    return false;
 }
 
 Ref<Identifier> Parser::parse_type_keyword() {
-    assert(at(KEYWORD));
+    assert(at(BOOL) || at(CHAR) || at(INT) || at(FLOAT) || at(DOUBLE));
     constexpr const char *basic_types[] = {"bool", "char", "int", "float", "double"};
     for (auto name : basic_types) {
         if (at_str(name)) {
@@ -115,7 +115,7 @@ Ref<Identifier> Parser::parse_type_keyword() {
 }
 
 Ref<TypeSpec> Parser::parse_typespec() {
-    assert(at(KEYWORD));
+    assert(at_keyword());
 
     // Check all possible modifiers
     int8_t bqual = TypeSpec::None;
@@ -126,7 +126,7 @@ Ref<TypeSpec> Parser::parse_typespec() {
 
     // Now the main type (for now basic types only)
     Ref<Identifier> ident;
-    if (at(KEYWORD)) {
+    if (at_keyword()) {
         ident = parse_type_keyword();
     } else {
         ident = parse_identifier();
@@ -332,7 +332,7 @@ Expr Parser::parse_expr(BinaryExpr::Level break_level) {
 }
 
 Ref<ReturnStmt> Parser::parse_return_stmt() {
-    assert(at(KEYWORD) && at_str("return"));
+    assert(at(RETURN));
     advance(1);
 
     Expr expr = parse_expr();
@@ -370,13 +370,8 @@ Ref<AssignStmt> Parser::parse_assign_stmt() {
 Stmt Parser::parse_stmt() {
     Stmt empty;
     switch (curr()) {
-        case KEYWORD: {
-            if (curr_str() == "return") {
-                return Stmt(parse_return_stmt());
-            } else {
-                return empty;
-            }
-            break;
+        case RETURN: {
+            return Stmt(parse_return_stmt());
         }
         case IDENT: {
             // If we find an identifier, we have to look further
@@ -445,22 +440,19 @@ void Parser::next() {
                 push(parse_macro());
                 break;
             }
-            case KEYWORD: {
-                string id = curr_str();
-
-                // Using declaration
-                if (id == "using") {
-                    push(parse_using());
-                    break;
-                }
-
-                // Function Declaration (for now)
-                push(parse_funcdecl());
+            case USING: {
+                push(parse_using());
                 break;
             }
+            case TYPEDEF: {
+            	error("Unimplemented!");
+            }
+            case STRUCT: {
+            	error("Unimplemented!");
+            }
             default: {
-                string tok = curr_str();
-                error("Unexpected token '{}'.", tok);
+                push(parse_funcdecl());
+                break;
             }
         }
     }

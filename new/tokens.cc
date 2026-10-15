@@ -5,14 +5,21 @@ using namespace std;
 
 std::string token_name(TokenID id) {
     switch (id) {
-// Include the token file and expand it into many cases
+        //
 #define TOKEN(id, name) \
     case id: {          \
         return name;    \
     }
 #include "tokens.inc"
 #undef TOKEN
-            //
+        //
+#define KEYWORD(id, name) \
+    case id: {            \
+        return #id;     \
+    }
+#include "keywords.inc"
+#undef KEYWORD
+        //
         default: {
             return "<unknown>";
         }
@@ -27,7 +34,6 @@ void Tokens::dump(ostream& out) const {
         const auto code = ids[i];
         switch (code) {
             case IDENT:
-            case KEYWORD:
             case STR_LITERAL:
             case CHAR_LITERAL:
             case INT_LITERAL:
@@ -45,7 +51,11 @@ void Tokens::dump(ostream& out) const {
                 break;
             }
             default: {
-                out << '\'' << name(i) << '\'';
+                if (is_keyword(code)) {
+                    out << name(i);
+                } else {
+                    out << '\'' << name(i) << '\'';
+                }
             }
         }
         out << std::endl;

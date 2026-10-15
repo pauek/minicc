@@ -1,196 +1,196 @@
-all_keywords.cc:1:1: KEYWORD 'alignas'
+all_keywords.cc:1:1: ALIGNAS
 all_keywords.cc:1:8: ENDL
-all_keywords.cc:2:1: KEYWORD 'alignof'
+all_keywords.cc:2:1: ALIGNOF
 all_keywords.cc:2:8: ENDL
-all_keywords.cc:3:1: KEYWORD 'and'
+all_keywords.cc:3:1: AND
 all_keywords.cc:3:4: ENDL
-all_keywords.cc:4:1: KEYWORD 'and_eq'
+all_keywords.cc:4:1: AND_EQ
 all_keywords.cc:4:7: ENDL
-all_keywords.cc:5:1: KEYWORD 'asm'
+all_keywords.cc:5:1: ASM
 all_keywords.cc:5:4: ENDL
-all_keywords.cc:6:1: KEYWORD 'atomic_cancel'
+all_keywords.cc:6:1: ATOMIC_CANCEL
 all_keywords.cc:6:14: ENDL
-all_keywords.cc:7:1: KEYWORD 'atomic_commit'
+all_keywords.cc:7:1: ATOMIC_COMMIT
 all_keywords.cc:7:14: ENDL
-all_keywords.cc:8:1: KEYWORD 'atomic_noexcept'
+all_keywords.cc:8:1: ATOMIC_NOEXCEPT
 all_keywords.cc:8:16: ENDL
-all_keywords.cc:9:1: KEYWORD 'auto'
+all_keywords.cc:9:1: AUTO
 all_keywords.cc:9:5: ENDL
-all_keywords.cc:10:1: KEYWORD 'bitand'
+all_keywords.cc:10:1: BITAND
 all_keywords.cc:10:7: ENDL
-all_keywords.cc:11:1: KEYWORD 'bitor'
+all_keywords.cc:11:1: BITOR
 all_keywords.cc:11:6: ENDL
-all_keywords.cc:12:1: KEYWORD 'bool'
+all_keywords.cc:12:1: BOOL
 all_keywords.cc:12:5: ENDL
-all_keywords.cc:13:1: KEYWORD 'break'
+all_keywords.cc:13:1: BREAK
 all_keywords.cc:13:6: ENDL
-all_keywords.cc:14:1: KEYWORD 'case'
+all_keywords.cc:14:1: CASE
 all_keywords.cc:14:5: ENDL
-all_keywords.cc:15:1: KEYWORD 'catch'
+all_keywords.cc:15:1: CATCH
 all_keywords.cc:15:6: ENDL
-all_keywords.cc:16:1: KEYWORD 'char'
+all_keywords.cc:16:1: CHAR
 all_keywords.cc:16:5: ENDL
-all_keywords.cc:17:1: KEYWORD 'char16_t'
+all_keywords.cc:17:1: CHAR16_T
 all_keywords.cc:17:9: ENDL
-all_keywords.cc:18:1: KEYWORD 'char32_t'
+all_keywords.cc:18:1: CHAR32_T
 all_keywords.cc:18:9: ENDL
-all_keywords.cc:19:1: KEYWORD 'char8_t'
+all_keywords.cc:19:1: CHAR8_T
 all_keywords.cc:19:8: ENDL
-all_keywords.cc:20:1: KEYWORD 'class'
+all_keywords.cc:20:1: CLASS
 all_keywords.cc:20:6: ENDL
-all_keywords.cc:21:1: KEYWORD 'co_await'
+all_keywords.cc:21:1: CO_AWAIT
 all_keywords.cc:21:9: ENDL
-all_keywords.cc:22:1: KEYWORD 'co_return'
+all_keywords.cc:22:1: CO_RETURN
 all_keywords.cc:22:10: ENDL
-all_keywords.cc:23:1: KEYWORD 'co_yield'
+all_keywords.cc:23:1: CO_YIELD
 all_keywords.cc:23:9: ENDL
-all_keywords.cc:24:1: KEYWORD 'compl'
+all_keywords.cc:24:1: COMPL
 all_keywords.cc:24:6: ENDL
-all_keywords.cc:25:1: KEYWORD 'concept'
+all_keywords.cc:25:1: CONCEPT
 all_keywords.cc:25:8: ENDL
-all_keywords.cc:26:1: KEYWORD 'const'
+all_keywords.cc:26:1: CONST
 all_keywords.cc:26:6: ENDL
-all_keywords.cc:27:1: KEYWORD 'const_cast'
+all_keywords.cc:27:1: CONST_CAST
 all_keywords.cc:27:11: ENDL
-all_keywords.cc:28:1: KEYWORD 'consteval'
+all_keywords.cc:28:1: CONSTEVAL
 all_keywords.cc:28:10: ENDL
-all_keywords.cc:29:1: KEYWORD 'constexpr'
+all_keywords.cc:29:1: CONSTEXPR
 all_keywords.cc:29:10: ENDL
-all_keywords.cc:30:1: KEYWORD 'constinit'
+all_keywords.cc:30:1: CONSTINIT
 all_keywords.cc:30:10: ENDL
-all_keywords.cc:31:1: KEYWORD 'continue'
+all_keywords.cc:31:1: CONTINUE
 all_keywords.cc:31:9: ENDL
-all_keywords.cc:32:1: KEYWORD 'contract_assert'
+all_keywords.cc:32:1: CONTRACT_ASSERT
 all_keywords.cc:32:16: ENDL
-all_keywords.cc:33:1: KEYWORD 'decltype'
+all_keywords.cc:33:1: DECLTYPE
 all_keywords.cc:33:9: ENDL
-all_keywords.cc:34:1: KEYWORD 'default'
+all_keywords.cc:34:1: DEFAULT
 all_keywords.cc:34:8: ENDL
-all_keywords.cc:35:1: KEYWORD 'delete'
+all_keywords.cc:35:1: DELETE
 all_keywords.cc:35:7: ENDL
-all_keywords.cc:36:1: KEYWORD 'do'
+all_keywords.cc:36:1: DO
 all_keywords.cc:36:3: ENDL
-all_keywords.cc:37:1: KEYWORD 'double'
+all_keywords.cc:37:1: DOUBLE
 all_keywords.cc:37:7: ENDL
-all_keywords.cc:38:1: KEYWORD 'dynamic_cast'
+all_keywords.cc:38:1: DYNAMIC_CAST
 all_keywords.cc:38:13: ENDL
-all_keywords.cc:39:1: KEYWORD 'else'
+all_keywords.cc:39:1: ELSE
 all_keywords.cc:39:5: ENDL
-all_keywords.cc:40:1: KEYWORD 'enum'
+all_keywords.cc:40:1: ENUM
 all_keywords.cc:40:5: ENDL
-all_keywords.cc:41:1: KEYWORD 'explicit'
+all_keywords.cc:41:1: EXPLICIT
 all_keywords.cc:41:9: ENDL
-all_keywords.cc:42:1: KEYWORD 'export'
+all_keywords.cc:42:1: EXPORT
 all_keywords.cc:42:7: ENDL
-all_keywords.cc:43:1: KEYWORD 'extern'
+all_keywords.cc:43:1: EXTERN
 all_keywords.cc:43:7: ENDL
-all_keywords.cc:44:1: KEYWORD 'false'
+all_keywords.cc:44:1: FALSE
 all_keywords.cc:44:6: ENDL
-all_keywords.cc:45:1: KEYWORD 'float'
+all_keywords.cc:45:1: FLOAT
 all_keywords.cc:45:6: ENDL
-all_keywords.cc:46:1: KEYWORD 'for'
+all_keywords.cc:46:1: FOR
 all_keywords.cc:46:4: ENDL
-all_keywords.cc:47:1: KEYWORD 'friend'
+all_keywords.cc:47:1: FRIEND
 all_keywords.cc:47:7: ENDL
-all_keywords.cc:48:1: KEYWORD 'goto'
+all_keywords.cc:48:1: GOTO
 all_keywords.cc:48:5: ENDL
-all_keywords.cc:49:1: KEYWORD 'if'
+all_keywords.cc:49:1: IF
 all_keywords.cc:49:3: ENDL
-all_keywords.cc:50:1: KEYWORD 'inline'
+all_keywords.cc:50:1: INLINE
 all_keywords.cc:50:7: ENDL
-all_keywords.cc:51:1: KEYWORD 'int'
+all_keywords.cc:51:1: INT
 all_keywords.cc:51:4: ENDL
-all_keywords.cc:52:1: KEYWORD 'long'
+all_keywords.cc:52:1: LONG
 all_keywords.cc:52:5: ENDL
-all_keywords.cc:53:1: KEYWORD 'mutable'
+all_keywords.cc:53:1: MUTABLE
 all_keywords.cc:53:8: ENDL
-all_keywords.cc:54:1: KEYWORD 'namespace'
+all_keywords.cc:54:1: NAMESPACE
 all_keywords.cc:54:10: ENDL
-all_keywords.cc:55:1: KEYWORD 'new'
+all_keywords.cc:55:1: NEW
 all_keywords.cc:55:4: ENDL
-all_keywords.cc:56:1: KEYWORD 'noexcept'
+all_keywords.cc:56:1: NOEXCEPT
 all_keywords.cc:56:9: ENDL
-all_keywords.cc:57:1: KEYWORD 'not'
+all_keywords.cc:57:1: NOT
 all_keywords.cc:57:4: ENDL
-all_keywords.cc:58:1: KEYWORD 'not_eq'
+all_keywords.cc:58:1: NOT_EQ
 all_keywords.cc:58:7: ENDL
-all_keywords.cc:59:1: KEYWORD 'nullptr'
+all_keywords.cc:59:1: NULLPTR
 all_keywords.cc:59:8: ENDL
-all_keywords.cc:60:1: KEYWORD 'operator'
+all_keywords.cc:60:1: OPERATOR
 all_keywords.cc:60:9: ENDL
-all_keywords.cc:61:1: KEYWORD 'or'
+all_keywords.cc:61:1: OR
 all_keywords.cc:61:3: ENDL
-all_keywords.cc:62:1: KEYWORD 'or_eq'
+all_keywords.cc:62:1: OR_EQ
 all_keywords.cc:62:6: ENDL
-all_keywords.cc:63:1: KEYWORD 'private'
+all_keywords.cc:63:1: PRIVATE
 all_keywords.cc:63:8: ENDL
-all_keywords.cc:64:1: KEYWORD 'protected'
+all_keywords.cc:64:1: PROTECTED
 all_keywords.cc:64:10: ENDL
-all_keywords.cc:65:1: KEYWORD 'public'
+all_keywords.cc:65:1: PUBLIC
 all_keywords.cc:65:7: ENDL
-all_keywords.cc:66:1: KEYWORD 'reflexpr'
+all_keywords.cc:66:1: REFLEXPR
 all_keywords.cc:66:9: ENDL
-all_keywords.cc:67:1: KEYWORD 'register'
+all_keywords.cc:67:1: REGISTER
 all_keywords.cc:67:9: ENDL
-all_keywords.cc:68:1: KEYWORD 'reinterpret_cast'
+all_keywords.cc:68:1: REINTERPRET_CAST
 all_keywords.cc:68:17: ENDL
-all_keywords.cc:69:1: KEYWORD 'requires'
+all_keywords.cc:69:1: REQUIRES
 all_keywords.cc:69:9: ENDL
-all_keywords.cc:70:1: KEYWORD 'return'
+all_keywords.cc:70:1: RETURN
 all_keywords.cc:70:7: ENDL
-all_keywords.cc:71:1: KEYWORD 'short'
+all_keywords.cc:71:1: SHORT
 all_keywords.cc:71:6: ENDL
-all_keywords.cc:72:1: KEYWORD 'signed'
+all_keywords.cc:72:1: SIGNED
 all_keywords.cc:72:7: ENDL
-all_keywords.cc:73:1: KEYWORD 'sizeof'
+all_keywords.cc:73:1: SIZEOF
 all_keywords.cc:73:7: ENDL
-all_keywords.cc:74:1: KEYWORD 'static'
+all_keywords.cc:74:1: STATIC
 all_keywords.cc:74:7: ENDL
-all_keywords.cc:75:1: KEYWORD 'static_assert'
+all_keywords.cc:75:1: STATIC_ASSERT
 all_keywords.cc:75:14: ENDL
-all_keywords.cc:76:1: KEYWORD 'static_cast'
+all_keywords.cc:76:1: STATIC_CAST
 all_keywords.cc:76:12: ENDL
-all_keywords.cc:77:1: KEYWORD 'struct'
+all_keywords.cc:77:1: STRUCT
 all_keywords.cc:77:7: ENDL
-all_keywords.cc:78:1: KEYWORD 'switch'
+all_keywords.cc:78:1: SWITCH
 all_keywords.cc:78:7: ENDL
-all_keywords.cc:79:1: KEYWORD 'synchronized'
+all_keywords.cc:79:1: SYNCHRONIZED
 all_keywords.cc:79:13: ENDL
-all_keywords.cc:80:1: KEYWORD 'template'
+all_keywords.cc:80:1: TEMPLATE
 all_keywords.cc:80:9: ENDL
-all_keywords.cc:81:1: KEYWORD 'this'
+all_keywords.cc:81:1: THIS
 all_keywords.cc:81:5: ENDL
-all_keywords.cc:82:1: KEYWORD 'thread_local'
+all_keywords.cc:82:1: THREAD_LOCAL
 all_keywords.cc:82:13: ENDL
-all_keywords.cc:83:1: KEYWORD 'throw'
+all_keywords.cc:83:1: THROW
 all_keywords.cc:83:6: ENDL
-all_keywords.cc:84:1: KEYWORD 'true'
+all_keywords.cc:84:1: TRUE
 all_keywords.cc:84:5: ENDL
-all_keywords.cc:85:1: KEYWORD 'try'
+all_keywords.cc:85:1: TRY
 all_keywords.cc:85:4: ENDL
-all_keywords.cc:86:1: KEYWORD 'typedef'
+all_keywords.cc:86:1: TYPEDEF
 all_keywords.cc:86:8: ENDL
-all_keywords.cc:87:1: KEYWORD 'typeid'
+all_keywords.cc:87:1: TYPEID
 all_keywords.cc:87:7: ENDL
-all_keywords.cc:88:1: KEYWORD 'typename'
+all_keywords.cc:88:1: TYPENAME
 all_keywords.cc:88:9: ENDL
-all_keywords.cc:89:1: KEYWORD 'union'
+all_keywords.cc:89:1: UNION
 all_keywords.cc:89:6: ENDL
-all_keywords.cc:90:1: KEYWORD 'unsigned'
+all_keywords.cc:90:1: UNSIGNED
 all_keywords.cc:90:9: ENDL
-all_keywords.cc:91:1: KEYWORD 'using'
+all_keywords.cc:91:1: USING
 all_keywords.cc:91:6: ENDL
-all_keywords.cc:92:1: KEYWORD 'virtual'
+all_keywords.cc:92:1: VIRTUAL
 all_keywords.cc:92:8: ENDL
-all_keywords.cc:93:1: KEYWORD 'void'
+all_keywords.cc:93:1: VOID
 all_keywords.cc:93:5: ENDL
-all_keywords.cc:94:1: KEYWORD 'volatile'
+all_keywords.cc:94:1: VOLATILE
 all_keywords.cc:94:9: ENDL
-all_keywords.cc:95:1: KEYWORD 'wchar_t'
+all_keywords.cc:95:1: WCHAR_T
 all_keywords.cc:95:8: ENDL
-all_keywords.cc:96:1: KEYWORD 'while'
+all_keywords.cc:96:1: WHILE
 all_keywords.cc:96:6: ENDL
-all_keywords.cc:97:1: KEYWORD 'xor'
+all_keywords.cc:97:1: XOR
 all_keywords.cc:97:4: ENDL
-all_keywords.cc:98:1: KEYWORD 'xor_eq'
+all_keywords.cc:98:1: XOR_EQ
 all_keywords.cc:98:7: ENDL

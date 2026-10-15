@@ -41,6 +41,7 @@ class Parser {
 
     bool at_typespec_qualifier() const;
     bool at_literal() const;
+    bool at_keyword() const { return curr() > BEFORE_KEYWORDS && curr() < AFTER_KEYWORDS; }
 
     bool at(TokenID tok_id1, TokenID tok_id2) const {
         return pos_ + 1 < tokens_.ids.size() && tokens_.ids[pos_] == tok_id1 &&

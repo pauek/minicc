@@ -10,9 +10,11 @@ done > keywords.inc
 	CURR=''
 	for keyword in $KEYWORDS; do
 		first=$(echo $keyword | cut -c1-1)
+		KEYWORD=$(echo $keyword | tr a-z A-Z)
+
 		if [ "$first" = "$CURR" ]; then
 			echo "    } else if (ident == \"$keyword\") {"
-			echo "        tok = KEYWORD;"
+			echo "        tok = $KEYWORD;"
 		else
 			if ! [ -z "$CURR" ]; then
 				echo "    }"
@@ -21,7 +23,7 @@ done > keywords.inc
 			fi
 			echo "case '$first': {"
 			echo "    if (ident == \"$keyword\") {"
-			echo "        tok = KEYWORD;"
+			echo "        tok = $KEYWORD;"
 			CURR="$first"
 		fi
 	done

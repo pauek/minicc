@@ -1,13 +1,13 @@
 hello.cc:1:1: MACRO '#include'
 hello.cc:1:10: GLOBAL_FILENAME '<iostream>'
 hello.cc:1:20: ENDL
-hello.cc:2:1: KEYWORD 'using'
-hello.cc:2:7: KEYWORD 'namespace'
+hello.cc:2:1: USING
+hello.cc:2:7: NAMESPACE
 hello.cc:2:17: IDENT 'std'
 hello.cc:2:20: ';'
 hello.cc:2:21: ENDL
 hello.cc:3:1: ENDL
-hello.cc:4:1: KEYWORD 'int'
+hello.cc:4:1: INT
 hello.cc:4:5: IDENT 'main'
 hello.cc:4:9: '('
 hello.cc:4:10: ')'

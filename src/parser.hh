@@ -57,7 +57,6 @@ class Parser {
     void         parse_function(FuncDecl *fn);
     Block       *parse_block(AstNode *parent);
     Stmt        *parse_stmt(AstNode *parent);
-    Stmt        *parse_iterstmt(AstNode *parent, std::string which);
     Stmt        *parse_while(AstNode *parent);
     Stmt        *parse_for(AstNode *parent);
     Stmt        *parse_ifstmt(AstNode *parent);

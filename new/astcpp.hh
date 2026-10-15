@@ -136,12 +136,24 @@ typedef Variant<100, 200> Stmt;
 struct StmtBlock : AstType<StmtBlock, 100> {
     std::vector<Stmt> stmts = {};
 };
-struct ReturnStmt : AstType<ReturnStmt, 101> {
-    Expr expr;
-};
 struct AssignStmt : AstType<AssignStmt, 102> {
     Ref<Identifier> target;
     Expr            expr;
+};
+struct ReturnStmt : AstType<ReturnStmt, 101> {
+    Expr expr;
+};
+struct IfStmt : AstType<IfStmt, 103> {
+	Expr cond;
+	Ref<StmtBlock> if_true, if_false;
+};
+struct WhileStmt : AstType<WhileStmt, 104> {
+	Expr cond;
+	Ref<StmtBlock> body;
+};
+struct ForStmt : AstType<ForStmt, 105> {
+	Expr init, cond, incr;
+	Ref<StmtBlock> body;
 };
 
 // </Statements>
