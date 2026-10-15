@@ -1,0 +1,11 @@
+int main() {
+	if (a) {
+		a = 1;
+		b = true || false && false;
+	}
+	if (b || d) {
+		a = 2;
+	} else {
+		a = 3;
+	}
+}

@@ -175,6 +175,8 @@ bool Parser::at_literal() const {
         case INT_LITERAL:
         case STR_LITERAL:
         case CHAR_LITERAL:
+        case TRUE:
+        case FALSE:
             return true;
         default:
             return false;
@@ -197,6 +199,12 @@ Expr Parser::parse_literal() {
             string value = curr_str();
             advance(1);
             return Expr(StringLiteral::make({.value = value}));
+        }
+        case TRUE:
+       	case FALSE: {
+        	bool value = curr() == TRUE;
+         	advance(1);
+          	return Expr(BoolLiteral::make({.value = value}));
         }
         default:
             assert(false);
@@ -367,6 +375,29 @@ Ref<AssignStmt> Parser::parse_assign_stmt() {
     return AssignStmt::make({.target = target, .expr = expr});
 }
 
+Ref<IfStmt> Parser::parse_if_stmt() {
+    assert(at(IF));
+    advance(1);
+
+    IfStmt if_stmt;
+
+    // Condition
+    expect(OPEN_PAREN, "Expected '('.");
+    if_stmt.cond = parse_expr();
+    expect(CLOSE_PAREN, "Expected ')'.");
+
+    // "then"
+    if_stmt.if_true = parse_stmt_block();
+
+    // Optional `else`
+    if (at(ELSE)) {
+        advance(1);
+        if_stmt.if_false = parse_stmt_block();
+    }
+
+    return IfStmt::make(if_stmt);
+}
+
 Stmt Parser::parse_stmt() {
     Stmt empty;
     switch (curr()) {
@@ -379,6 +410,9 @@ Stmt Parser::parse_stmt() {
                 return Stmt(parse_assign_stmt());
             }
         }
+        case IF: {
+            return Stmt(parse_if_stmt());
+        }
         default: {
             string tok = curr_str();
             error("Unexpected token '{}'", tok);
@@ -387,7 +421,7 @@ Stmt Parser::parse_stmt() {
     }
 }
 
-Ref<StmtBlock> Parser::parse_function_body() {
+Ref<StmtBlock> Parser::parse_stmt_block() {
     assert(at(OPEN_BRACE));
     advance(1);  // Consume '{'
 
@@ -412,7 +446,7 @@ Ref<FuncDecl> Parser::parse_funcdecl() {
 
     // Now if we find a '{', the function is defined here
     if (at(OPEN_BRACE)) {
-        body = parse_function_body();
+        body = parse_stmt_block();
     } else if (at(SEMICOLON)) {
         advance(1);
     } else {
@@ -445,10 +479,10 @@ void Parser::next() {
                 break;
             }
             case TYPEDEF: {
-            	error("Unimplemented!");
+                error("Unimplemented!");
             }
             case STRUCT: {
-            	error("Unimplemented!");
+                error("Unimplemented!");
             }
             default: {
                 push(parse_funcdecl());

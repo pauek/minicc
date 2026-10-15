@@ -9,6 +9,10 @@
 class AstDumper {
     std::ostream& out_;
     const Tokens& tokens_;
+    int           indent_ = 0;
+
+    string indent() const { return string(4 * indent_, ' '); }
+    void   indent(int di) { indent_ += di; }
 
    public:
     AstDumper(std::ostream& out, const Tokens& tokens) : out_(out), tokens_(tokens) {}
@@ -18,11 +22,13 @@ class AstDumper {
     void dump(const Program& P);
 
     void dump(Expr expr);
-    void dump(const BinaryExpr& binexpr);
+    void dump(const BinaryExpr& expr);
 
     void dump(Stmt S);
-    void dump(const ReturnStmt& retstmt);
-    void dump(const AssignStmt& astmt);
+    void dump(const StmtBlock& block);
+    void dump(const ReturnStmt& stmt);
+    void dump(const AssignStmt& stmt);
+    void dump(const IfStmt& stmt);
 
     void dump(const Macro& macro);
     void dump(const Using& usin);
@@ -32,7 +38,6 @@ class AstDumper {
     void dump(const TypeSpec& typespec);
     void dump(const Identifier& ident);
     void dump(const FuncParam& funcparam);
-
 };
 
 #endif

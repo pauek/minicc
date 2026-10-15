@@ -48,6 +48,14 @@ class Parser {
                tokens_.ids[pos_ + 1] == tok_id2;
     }
 
+    template <class... Args>
+    void expect(TokenID id, std::format_string<Args...> fmt, Args&&...args) {
+        if (not at(id)) {
+            error(fmt, args...);
+        }
+        advance(1);
+    }
+
     void advance(size_t n) { pos_ += n; }
 
     void skip_space();
@@ -75,10 +83,11 @@ class Parser {
     Stmt            parse_stmt();
     Ref<ReturnStmt> parse_return_stmt();
     Ref<AssignStmt> parse_assign_stmt();
+    Ref<IfStmt>     parse_if_stmt();
 
     Ref<FuncDecl>          parse_funcdecl();
     vector<Ref<FuncParam>> parse_function_parameters();
-    Ref<StmtBlock>         parse_function_body();
+    Ref<StmtBlock>         parse_stmt_block();
 
     void next();
 

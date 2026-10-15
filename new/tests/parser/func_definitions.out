@@ -12,4 +12,3 @@ function "div2"(aa: int, bb: int): int
 
 function "mod2"(aa: int, bb: int): int
     return (aa % bb)
-
