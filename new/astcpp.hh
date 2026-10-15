@@ -152,7 +152,8 @@ struct WhileStmt : AstType<WhileStmt, 104> {
 	Ref<StmtBlock> body;
 };
 struct ForStmt : AstType<ForStmt, 105> {
-	Expr init, cond, incr;
+	Stmt init, incr;
+	Expr cond;
 	Ref<StmtBlock> body;
 };
 

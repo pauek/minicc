@@ -201,10 +201,10 @@ Expr Parser::parse_literal() {
             return Expr(StringLiteral::make({.value = value}));
         }
         case TRUE:
-       	case FALSE: {
-        	bool value = curr() == TRUE;
-         	advance(1);
-          	return Expr(BoolLiteral::make({.value = value}));
+        case FALSE: {
+            bool value = curr() == TRUE;
+            advance(1);
+            return Expr(BoolLiteral::make({.value = value}));
         }
         default:
             assert(false);
@@ -309,8 +309,8 @@ Expr Parser::parse_unary_expr() {
 }
 
 Expr Parser::parse_expr(BinaryExpr::Level break_level) {
-    Expr              left = parse_unary_expr();
-    BinaryExpr::Level curr_level = BinaryExpr::Infinite;
+    Expr left = parse_unary_expr();
+    auto curr_level = BinaryExpr::Infinite;
     while (true) {
         // See the operator, break if not an operator
         BinaryExpr::Operator op = token_to_operator_type();
@@ -339,81 +339,111 @@ Expr Parser::parse_expr(BinaryExpr::Level break_level) {
     return left;
 }
 
-Ref<ReturnStmt> Parser::parse_return_stmt() {
+ReturnStmt Parser::parse_return_stmt() {
     assert(at(RETURN));
     advance(1);
-
-    Expr expr = parse_expr();
-
-    // Expect semicolon
-    if (not at(SEMICOLON)) {
-        error("Expected semicolon.");
-    }
-    advance(1);
-
-    // Consume ENDL if present
-    if (at(ENDL)) {
-        advance(1);
-    }
-
-    return ReturnStmt::make({.expr = expr});
+    ReturnStmt stmt;
+    stmt.expr = parse_expr();
+    return stmt;
 }
 
-Ref<AssignStmt> Parser::parse_assign_stmt() {
+AssignStmt Parser::parse_assign_stmt() {
     assert(at(IDENT));
-    auto target = parse_identifier();
+
+    AssignStmt stmt;
+    stmt.target = parse_identifier();
 
     assert(at(EQ));
     advance(1);
 
-    Expr expr = parse_expr();
-    if (not at(SEMICOLON)) {
-        error("Expected semicolon");
-    }
-    advance(1);
+    stmt.expr = parse_expr();
 
-    return AssignStmt::make({.target = target, .expr = expr});
+    return stmt;
 }
 
-Ref<IfStmt> Parser::parse_if_stmt() {
+IfStmt Parser::parse_if_stmt() {
     assert(at(IF));
     advance(1);
 
-    IfStmt if_stmt;
+    IfStmt stmt;
 
     // Condition
     expect(OPEN_PAREN, "Expected '('.");
-    if_stmt.cond = parse_expr();
+    stmt.cond = parse_expr();
     expect(CLOSE_PAREN, "Expected ')'.");
 
     // "then"
-    if_stmt.if_true = parse_stmt_block();
+    stmt.if_true = parse_stmt_block();
 
     // Optional `else`
     if (at(ELSE)) {
         advance(1);
-        if_stmt.if_false = parse_stmt_block();
+        stmt.if_false = parse_stmt_block();
     }
 
-    return IfStmt::make(if_stmt);
+    return stmt;
+}
+
+WhileStmt Parser::parse_while_stmt() {
+    assert(at(WHILE));
+    advance(1);
+
+    WhileStmt stmt;
+
+    // Condition
+    expect(OPEN_PAREN, "Expected '('.");
+    stmt.cond = parse_expr();
+    expect(CLOSE_PAREN, "Expected ')'.");
+
+    // Body
+    stmt.body = parse_stmt_block();
+
+    return stmt;
+}
+
+ForStmt Parser::parse_for_stmt() {
+    assert(at(FOR));
+    advance(1);
+
+    ForStmt stmt;
+
+    // Triple expression
+    expect(OPEN_PAREN, "Expected '('.");
+    stmt.init = parse_stmt();
+    expect(SEMICOLON, "Expected ';'.");
+    stmt.cond = parse_expr();
+    expect(SEMICOLON, "Expected ';'.");
+    stmt.incr = parse_stmt();
+    expect(CLOSE_PAREN, "Expected ')'.");
+
+    // Body
+    stmt.body = parse_stmt_block();
+
+    return stmt;
 }
 
 Stmt Parser::parse_stmt() {
     Stmt empty;
     switch (curr()) {
         case RETURN: {
-            return Stmt(parse_return_stmt());
-        }
-        case IDENT: {
-            // If we find an identifier, we have to look further
-            if (peek(1) == EQ) {
-                return Stmt(parse_assign_stmt());
-            }
+            auto stmt = parse_return_stmt();
+            return Stmt(ReturnStmt::make(stmt));
         }
         case IF: {
-            return Stmt(parse_if_stmt());
+        	auto stmt = parse_if_stmt();
+            return Stmt(IfStmt::make(stmt));
+        }
+        case WHILE: {
+        	auto stmt = parse_while_stmt();
+            return Stmt(WhileStmt::make(stmt));
         }
         default: {
+            // If we find an identifier, we have to look further
+            if (at(IDENT) && peek(1) == EQ) {
+                auto stmt = parse_assign_stmt();
+                return Stmt(AssignStmt::make(stmt));
+            }
+
             string tok = curr_str();
             error("Unexpected token '{}'", tok);
             return empty;
@@ -430,6 +460,9 @@ Ref<StmtBlock> Parser::parse_stmt_block() {
     StmtBlock block;
     while (not at(CLOSE_BRACE)) {
         auto stmt = parse_stmt();
+        if (peek(-1) != CLOSE_BRACE) { // NOTE(pauek): Inelegant??? Probably...
+            expect(SEMICOLON, "Expected ';'.");
+        }
         block.stmts.push_back(stmt);
         skip_space();
     }

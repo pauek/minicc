@@ -29,6 +29,7 @@ class AstDumper {
     void dump(const ReturnStmt& stmt);
     void dump(const AssignStmt& stmt);
     void dump(const IfStmt& stmt);
+    void dump(const WhileStmt& stmt);
 
     void dump(const Macro& macro);
     void dump(const Using& usin);

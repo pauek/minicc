@@ -80,10 +80,13 @@ class Parser {
     Expr            parse_literal();
     Ref<BinaryExpr> parse_binary_expr();
 
-    Stmt            parse_stmt();
-    Ref<ReturnStmt> parse_return_stmt();
-    Ref<AssignStmt> parse_assign_stmt();
-    Ref<IfStmt>     parse_if_stmt();
+    Stmt       parse_stmt();
+    Stmt       parse_for_init();
+    ReturnStmt parse_return_stmt();
+    AssignStmt parse_assign_stmt();
+    IfStmt     parse_if_stmt();
+    WhileStmt  parse_while_stmt();
+    ForStmt    parse_for_stmt();
 
     Ref<FuncDecl>          parse_funcdecl();
     vector<Ref<FuncParam>> parse_function_parameters();

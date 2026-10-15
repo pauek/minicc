@@ -151,6 +151,12 @@ void AstDumper::dump(const IfStmt& if_stmt) {
     }
 }
 
+void AstDumper::dump(const WhileStmt& while_stmt) {
+    out_ << indent() << "while ";
+    dump(while_stmt.cond);
+    out_ << ":" << endl;
+    dump(while_stmt.body.get());
+}
 void AstDumper::dump(Stmt stmt) {
     switch (stmt.type_id) {
         case ReturnStmt::type_id: {
@@ -163,6 +169,10 @@ void AstDumper::dump(Stmt stmt) {
         }
         case IfStmt::type_id: {
             dump(stmt.as<IfStmt>());
+            break;
+        }
+        case WhileStmt::type_id: {
+            dump(stmt.as<WhileStmt>());
             break;
         }
         default:
