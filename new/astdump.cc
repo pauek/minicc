@@ -90,8 +90,22 @@ void AstDumper::dump(Expr expr) {
 			dump(expr.as<Identifier>());
 			break;
 		}
+		case IntLiteral::type_id: {
+			out_ << expr.as<IntLiteral>().value;
+			break;
+		}
+		case CharLiteral::type_id: {
+			out_ << expr.as<CharLiteral>().value;
+			break;
+		}
+		case StringLiteral::type_id: {
+			out_ << expr.as<StringLiteral>().value;
+			break;
+		}
 		case BinaryExpr::type_id: {
+			out_ << '(';
 			dump(expr.as<BinaryExpr>());
+			out_ << ')';
 			break;
 		}
 		default: {
@@ -106,10 +120,21 @@ void AstDumper::dump(const ReturnStmt& retstmt) {
 	out_ << endl;
 }
 
+void AstDumper::dump(const AssignStmt& astmt) {
+	dump(astmt.target.get());
+	out_ << " = ";
+	dump(astmt.expr);
+	out_ << endl;
+}
+
 void AstDumper::dump(Stmt stmt) {
 	switch (stmt.type_id) {
 		case ReturnStmt::type_id: {
 			dump(stmt.as<ReturnStmt>());
+			break;
+		}
+		case AssignStmt::type_id: {
+			dump(stmt.as<AssignStmt>());
 			break;
 		}
 		case StmtBlock::type_id: {

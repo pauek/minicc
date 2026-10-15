@@ -1,5 +1,7 @@
 #include "parser.hh"
 
+#include <string>
+
 #include "astcpp.hh"
 #include "tokens.hh"
 #include "utils.hh"
@@ -168,6 +170,40 @@ vector<Ref<FuncParam>> Parser::parse_function_parameters() {
     return params;
 }
 
+bool Parser::at_literal() const {
+    switch (curr()) {
+        case INT_LITERAL:
+        case STR_LITERAL:
+        case CHAR_LITERAL:
+            return true;
+        default:
+            return false;
+    }
+}
+
+Expr Parser::parse_literal() {
+    switch (curr()) {
+        case INT_LITERAL: {
+            int value = stoi(curr_str());
+            advance(1);
+            return Expr(IntLiteral::make({.value = value}));
+        }
+        case CHAR_LITERAL: {
+            char value = curr_str()[0];
+            advance(1);
+            return Expr(CharLiteral::make({.value = value}));
+        }
+        case STR_LITERAL: {
+            string value = curr_str();
+            advance(1);
+            return Expr(StringLiteral::make({.value = value}));
+        }
+        default:
+            assert(false);
+            return Expr(StringLiteral::make({.value = "ERROR!"}));
+    }
+}
+
 BinaryExpr::Operator Parser::token_to_binary_operator() {
     switch (curr()) {
         case PLUS: {
@@ -204,14 +240,13 @@ BinaryExpr::Operator Parser::token_to_binary_operator() {
             return BinaryExpr::LE;
         }
         case EQ: {
-        	return BinaryExpr::Eq;
+            return BinaryExpr::Eq;
         }
         case NEQ: {
-        	return BinaryExpr::NotEq;
+            return BinaryExpr::NotEq;
         }
         default: {
-            error("Expected operator here.");
-            return BinaryExpr::Operator(-1);
+            return BinaryExpr::None;
         }
     }
 }
@@ -222,6 +257,8 @@ Ref<BinaryExpr> Parser::parse_binary_expr() {
     // Left Hand Side
     if (at(IDENT)) {
         binexp.left = Expr(parse_identifier());
+    } else if (at_literal()) {
+        binexp.left = parse_literal();
     } else {
         error("Unimplemented!");
     }
@@ -240,9 +277,43 @@ Ref<BinaryExpr> Parser::parse_binary_expr() {
     return BinaryExpr::make(binexp);
 }
 
-Expr Parser::parse_expr() {
-    // Assume BinaryExpr for now...
-    return Expr(parse_binary_expr());
+Expr Parser::parse_expr(BinaryExpr::Level level) {
+    Expr left;
+
+    // Parse the left hand side
+    if (at_literal()) {
+        left = parse_literal();
+    } else if (at(IDENT)) {
+        left = Expr(parse_identifier());
+    } else {
+        // FIXME(pauek): Add parenthesis here, which reset the level
+        error("Unimplemented!");
+    }
+
+    // See the operator
+    BinaryExpr::Operator op = token_to_binary_operator();
+
+    // The expression ends here if the token is not an operator...
+    if (op == BinaryExpr::None) {
+        return left;
+    }
+    // ... or the level of the operator is less than the level of the expression
+    if (BinaryExpr::op_level(op) < level) {
+        return left;
+    }
+    advance(1);
+
+    // We have a binary expression, only the right hand side is missing
+    Expr right = parse_expr(level);
+
+    Ref<BinaryExpr> ref = BinaryExpr::make({
+        .level = level,
+        .op = op,
+        .left = left,
+        .right = right,
+    });
+
+    return Expr(ref);
 }
 
 Ref<ReturnStmt> Parser::parse_return_stmt() {
@@ -265,6 +336,22 @@ Ref<ReturnStmt> Parser::parse_return_stmt() {
     return ReturnStmt::make({.expr = expr});
 }
 
+Ref<AssignStmt> Parser::parse_assign_stmt() {
+    assert(at(IDENT));
+    auto target = parse_identifier();
+
+    assert(at(EQ));
+    advance(1);
+
+    Expr expr = parse_expr();
+    if (not at(SEMICOLON)) {
+        error("Expected semicolon");
+    }
+    advance(1);
+
+    return AssignStmt::make({.target = target, .expr = expr});
+}
+
 Stmt Parser::parse_stmt() {
     Stmt empty;
     switch (curr()) {
@@ -275,6 +362,12 @@ Stmt Parser::parse_stmt() {
                 return empty;
             }
             break;
+        }
+        case IDENT: {
+            // If we find an identifier, we have to look further
+            if (peek(1) == EQ) {
+                return Stmt(parse_assign_stmt());
+            }
         }
         default: {
             string tok = curr_str();
@@ -294,6 +387,7 @@ Ref<StmtBlock> Parser::parse_function_body() {
     while (not at(CLOSE_BRACE)) {
         auto stmt = parse_stmt();
         block.stmts.push_back(stmt);
+        skip_space();
     }
     advance(1);  // Consume '}'
 

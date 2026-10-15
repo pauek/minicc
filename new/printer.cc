@@ -50,6 +50,8 @@ void Printer::print(const BinaryExpr& e) {
         case BinaryExpr::Or:
             out_ << "||";
             break;
+        case BinaryExpr::None:
+        	out_ << "<none>";
     }
     out_ << ' ';
     print(e.right);

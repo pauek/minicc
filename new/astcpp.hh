@@ -50,12 +50,39 @@ struct Identifier : AstType<Identifier, 15> {
     string name;
 };
 struct BinaryExpr : AstType<BinaryExpr, 20> {
-    enum Level { Multiplicative, Additive, Relational, Equality, LogicalAnd, LogicalOr };
-    enum Operator { Add, Sub, Mul, Div, Mod, And, Eq, NotEq, GT, LT, GE, LE, Or };
+    enum Level { LogicalOr, LogicalAnd, Equality, Relational, Additive, Multiplicative };
+    enum Operator { None = 0, Add, Sub, Mul, Div, Mod, And, Eq, NotEq, GT, LT, GE, LE, Or };
 
     Level    level;
     Operator op;
     Expr     left, right;
+
+    static Level op_level(Operator op) {
+        switch (op) {
+            case Mul:
+            case Div:
+            case Mod:
+                return Multiplicative;
+            case Add:
+            case Sub:
+                return Additive;
+            case GT:
+            case LT:
+            case GE:
+            case LE:
+                return Relational;
+            case Eq:
+            case NotEq:
+                return Equality;
+            case Or:
+                return LogicalOr;
+            case And:
+                return LogicalAnd;
+            case None:
+                assert(false);
+                return Multiplicative;
+        }
+    }
 
     static std::string operator_to_str(Operator op) {
         switch (op) {
@@ -112,6 +139,10 @@ struct StmtBlock : AstType<StmtBlock, 100> {
 };
 struct ReturnStmt : AstType<ReturnStmt, 101> {
     Expr expr;
+};
+struct AssignStmt : AstType<AssignStmt, 102> {
+    Ref<Identifier> target;
+    Expr            expr;
 };
 
 // </Statements>

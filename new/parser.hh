@@ -34,10 +34,13 @@ class Parser {
     TokenID     curr() const { return tokens_.ids[pos_]; }
     std::string curr_str() const { return tokens_.str(pos_); }
 
+    char peek(size_t i) const { return tokens_.ids[pos_ + i]; }
+
     bool at(TokenID tok_id) const { return tokens_.ids[pos_] == tok_id; }
     bool at_str(const char *expected) const { return curr_str() == expected; }
 
     bool at_typespec_qualifier() const;
+    bool at_literal() const;
 
     bool at(TokenID tok_id1, TokenID tok_id2) const {
         return pos_ + 1 < tokens_.ids.size() && tokens_.ids[pos_] == tok_id1 &&
@@ -63,11 +66,13 @@ class Parser {
     Ref<Identifier> parse_type_keyword();
     Ref<Identifier> parse_identifier();
 
-    Expr            parse_expr();
+    Expr            parse_expr(BinaryExpr::Level level = BinaryExpr::Level::Relational);
+    Expr            parse_literal();
     Ref<BinaryExpr> parse_binary_expr();
 
     Stmt            parse_stmt();
     Ref<ReturnStmt> parse_return_stmt();
+    Ref<AssignStmt> parse_assign_stmt();
 
     Ref<FuncDecl>          parse_funcdecl();
     vector<Ref<FuncParam>> parse_function_parameters();
