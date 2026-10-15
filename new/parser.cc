@@ -285,6 +285,14 @@ Expr Parser::parse_unary_expr() {
         return parse_literal();
     } else if (at(IDENT)) {
         return Expr(parse_identifier());
+    } else if (at(OPEN_PAREN)) {
+        advance(1);
+        auto expr = parse_expr(BinaryExpr::Zero);
+        if (not at(CLOSE_PAREN)) {
+            error("Expected ')' here.");
+        }
+        advance(1);
+        return expr;
     } else {
         // FIXME(pauek): Add parenthesis here, which reset the level
         error("Unimplemented!");
@@ -293,7 +301,7 @@ Expr Parser::parse_unary_expr() {
 }
 
 Expr Parser::parse_expr(BinaryExpr::Level break_level) {
-    Expr left = parse_unary_expr();
+    Expr              left = parse_unary_expr();
     BinaryExpr::Level curr_level = BinaryExpr::Infinite;
     while (true) {
         // See the operator, break if not an operator
@@ -309,11 +317,11 @@ Expr Parser::parse_expr(BinaryExpr::Level break_level) {
             break;
         } else if (op_level > curr_level || curr_level == BinaryExpr::Infinite) {
             advance(1);
-           	right = parse_expr(op_level);
+            right = parse_expr(op_level);
         } else {
-        	advance(1);
-        	curr_level = min(curr_level, op_level);
-           	right = parse_unary_expr();
+            advance(1);
+            curr_level = min(curr_level, op_level);
+            right = parse_unary_expr();
         }
 
         Ref<BinaryExpr> binexpr = BinaryExpr::make({.op = op, .left = left, .right = right});
