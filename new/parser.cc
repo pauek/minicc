@@ -353,28 +353,33 @@ Ref<ReturnStmt> Parser::parse_return_stmt() {
     return ReturnStmt::make(stmt);
 }
 
-Ref<IncrStmt> Parser::parse_incr_stmt() {
-    IncrStmt incr;
-    if (IncrStmt::is_incr_op(curr())) {
-        // pre
-        incr.op = IncrStmt::token_to_op(curr());
+Ref<IncrExpr> Parser::parse_incr_expr() {
+    IncrExpr incr;
+    if (IncrExpr::is_incr_op(curr())) {
+        incr.order = IncrExpr::Pre;
+        incr.op = IncrExpr::token_to_op(curr());
         advance(1);
         if (not at(IDENT)) {
             error("Expected identifier.");
         }
         incr.target = parse_identifier();
     } else if (at(IDENT)) {
-        // post
+        incr.order = IncrExpr::Post;
         incr.target = parse_identifier();
         // If we did call parse_incr_stmt we should have known that
         // there was an incr operator after the identifier...
-        assert(IncrStmt::is_incr_op(curr()));
-        incr.op = IncrStmt::token_to_op(curr());
+        assert(IncrExpr::is_incr_op(curr()));
+        incr.op = IncrExpr::token_to_op(curr());
         advance(1);
     } else {
         assert(false);
     }
-    return IncrStmt::make(incr);
+    return IncrExpr::make(incr);
+}
+
+Ref<IncrStmt> Parser::parse_incr_stmt() {
+    auto expr = parse_incr_expr();
+    return IncrStmt::make({.incr = expr});
 }
 
 Ref<AssignStmt> Parser::parse_assign_stmt() {
@@ -462,19 +467,15 @@ Ref<ForInitAssign> Parser::parse_for_init_assignment() {
     return ForInitAssign::make({.assign = ref});
 }
 
-Ref<AssignExpr> Parser::parse_for_incr_assignment() {
-    assert(at(IDENT));
-
-    AssignExpr assign;
-    assign.target = parse_identifier();
-    if (not at_assign_token()) {
-        error("Expected assignment.");
+ForIncrExpr Parser::parse_for_incr_expr() {
+    if (IncrExpr::is_incr_op(curr()) || (at(IDENT) && IncrExpr::is_incr_op(peek(1)))) {
+        return ForIncrExpr(parse_incr_expr());
+    } else if (at(IDENT) && AssignExpr::is_assign_op(peek(1))) {
+        return ForIncrExpr(parse_assign_expr());
+    } else {
+        error("Expected assignment or increment.");
+        return ForIncrExpr();
     }
-    assign.op = AssignExpr::token_to_op(curr());
-    advance(1);
-    assign.expr = parse_expr();
-
-    return AssignExpr::make(assign);
 }
 
 ForInitStmt Parser::parse_for_init() {
@@ -500,7 +501,7 @@ Ref<ForStmt> Parser::parse_for_stmt() {
     expect(SEMICOLON, "Expected ';'.");
     stmt.cond = parse_expr();
     expect(SEMICOLON, "Expected ';'.");
-    stmt.incr = parse_for_incr_assignment();
+    stmt.incr = parse_for_incr_expr();
     expect(CLOSE_PAREN, "Expected ')'.");
 
     // Body
@@ -529,10 +530,10 @@ Stmt Parser::parse_stmt() {
             return Stmt(parse_incr_stmt());
         }
         case IDENT: {
-        	TokenID next = peek(1);
-            if (AssignExpr::is_assign_token(next)) {
+            TokenID next = peek(1);
+            if (AssignExpr::is_assign_op(next)) {
                 return Stmt(parse_assign_stmt());
-            } else if (IncrStmt::is_incr_op(next)) {
+            } else if (IncrExpr::is_incr_op(next)) {
                 return Stmt(parse_incr_stmt());
             }
             error("Unexpected token.");

@@ -24,6 +24,7 @@ class AstDumper {
     void dump(Expr expr);
     void dump(const BinaryExpr& expr);
     void dump(const AssignExpr& expr);
+    void dump(const IncrExpr& stmt);
 
     void dump(Stmt S);
     void dump(const StmtBlock& block);
@@ -37,6 +38,7 @@ class AstDumper {
     void dump(const ForInitAssign& assing);
     void dump(const ForInitDecl& decl);
     void dump(const ForStmt& stmt);
+    void dump(const ForIncrExpr& expr);
 
     void dump(const Macro& macro);
     void dump(const Using& usin);

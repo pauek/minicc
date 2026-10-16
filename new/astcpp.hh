@@ -172,6 +172,9 @@ struct FieldExpr : AstType<FieldExpr, 22> {
 struct IndexExpr : AstType<IndexExpr, 23> {
     Expr base, index;
 };
+
+typedef Variant<24, 25> ForIncrExpr;
+
 struct AssignExpr : AstType<AssignExpr, 24> {
     enum Operator { Normal, Add, Sub, Mul, Div, Mod, Error };
 
@@ -179,7 +182,7 @@ struct AssignExpr : AstType<AssignExpr, 24> {
     Expr            expr;
     Operator        op;
 
-    static bool is_assign_token(TypeID id) {
+    static bool is_assign_op(TypeID id) {
         switch (id) {
             case EQ:
             case PLUSEQ:
@@ -218,7 +221,7 @@ struct AssignExpr : AstType<AssignExpr, 24> {
         }
     }
 
-    static std::string operator_to_str(Operator op) {
+    static std::string op_to_str(Operator op) {
         switch (op) {
             case Normal:
                 return "=";
@@ -238,19 +241,9 @@ struct AssignExpr : AstType<AssignExpr, 24> {
     }
 };
 
-// </Expressions>
-
-// <Statements>
-
-typedef Variant<100, 200> Stmt;
-struct StmtBlock : AstType<StmtBlock, 100> {
-    std::vector<Stmt> stmts = {};
-};
-struct AssignStmt : AstType<AssignStmt, 102> {
-    Ref<AssignExpr> assign;
-};
-struct IncrStmt : AstType<IncrStmt, 103> {
+struct IncrExpr : AstType<IncrExpr, 25> {
     enum Operator { Add, Sub, Error };
+    enum Order { Pre, Post };
 
     static bool is_incr_op(TypeID id) {
         switch (id) {
@@ -274,8 +267,35 @@ struct IncrStmt : AstType<IncrStmt, 103> {
         }
     }
 
+    static string op_to_str(Operator op) {
+        switch (op) {
+            case Add:
+                return "++";
+            case Sub:
+                return "--";
+            default:
+                assert(false);
+                return "";
+        }
+    }
+
     Ref<Identifier> target;
     Operator        op;
+    Order           order;
+};
+// </Expressions>
+
+// <Statements>
+
+typedef Variant<100, 200> Stmt;
+struct StmtBlock : AstType<StmtBlock, 100> {
+    std::vector<Stmt> stmts = {};
+};
+struct AssignStmt : AstType<AssignStmt, 102> {
+    Ref<AssignExpr> assign;
+};
+struct IncrStmt : AstType<IncrStmt, 103> {
+    Ref<IncrExpr> incr;
 };
 struct ReturnStmt : AstType<ReturnStmt, 104> {
     Expr expr;
@@ -298,10 +318,10 @@ struct ForInitDecl : AstType<ForInitDecl, 121> {
     vector<Ref<ForInitAssign>> variables;
 };
 struct ForStmt : AstType<ForStmt, 122> {
-    ForInitStmt     init;
-    Expr            cond;
-    Ref<AssignExpr> incr;
-    Ref<StmtBlock>  body;
+    ForInitStmt    init;
+    Expr           cond;
+    ForIncrExpr    incr;
+    Ref<StmtBlock> body;
 };
 
 // </Statements>

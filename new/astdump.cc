@@ -137,21 +137,22 @@ void AstDumper::dump(const AssignStmt& stmt) {
 }
 
 void AstDumper::dump(const IncrStmt& stmt) {
-	out_ << indent();
-	dump(stmt.target.get());
-	switch (stmt.op) {
-		case IncrStmt::Add: {
-			out_ << "++";
-			break;
-		}
-		case IncrStmt::Sub: {
-			out_ << "--";
-			break;
-		}
-		default:
-			assert(false);
-	}
-	out_ << endl;
+    out_ << indent();
+    auto expr = stmt.incr.get();
+    dump(expr.target.get());
+    switch (expr.op) {
+        case IncrExpr::Add: {
+            out_ << "++";
+            break;
+        }
+        case IncrExpr::Sub: {
+            out_ << "--";
+            break;
+        }
+        default:
+            assert(false);
+    }
+    out_ << endl;
 }
 
 void AstDumper::dump(const IfStmt& stmt) {
@@ -182,7 +183,7 @@ void AstDumper::dump(const ForInitStmt& stmt) {
 
 void AstDumper::dump(const AssignExpr& assign) {
     dump(assign.target.get());
-    out_ << ' ' << AssignExpr::operator_to_str(assign.op) << ' ';
+    out_ << ' ' << AssignExpr::op_to_str(assign.op) << ' ';
     dump(assign.expr);
 }
 
@@ -201,13 +202,37 @@ void AstDumper::dump(const ForInitAssign& init) {
     dump(init.assign.get());
 }
 
+void AstDumper::dump(const IncrExpr& expr) {
+    const string op = IncrExpr::op_to_str(expr.op);
+    if (expr.order == IncrExpr::Pre) {
+        out_ << op;
+    }
+    dump(expr.target.get());
+    if (expr.order == IncrExpr::Post) {
+        out_ << op;
+    }
+}
+
+void AstDumper::dump(const ForIncrExpr& for_incr) {
+    switch (for_incr.type_id) {
+        case AssignExpr::type_id: {
+            dump(for_incr.as<AssignExpr>());
+            break;
+        }
+        case IncrExpr::type_id: {
+            dump(for_incr.as<IncrExpr>());
+            break;
+        }
+    }
+}
+
 void AstDumper::dump(const ForStmt& stmt) {
     out_ << indent() << "for (";
     dump(stmt.init);
     out_ << "; ";
     dump(stmt.cond);
     out_ << "; ";
-    dump(stmt.incr.get());
+    dump(stmt.incr);
     out_ << "):" << endl;
     dump(stmt.body.get());
 }

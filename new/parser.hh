@@ -43,7 +43,7 @@ class Parser {
     bool at_typespec_qualifier() const;
     bool at_literal() const;
     bool at_keyword() const { return curr() > BEFORE_KEYWORDS && curr() < AFTER_KEYWORDS; }
-    bool at_assign_token() const { return AssignExpr::is_assign_token(curr()); }
+    bool at_assign_token() const { return AssignExpr::is_assign_op(curr()); }
 
     bool at(TokenID tok_id1, TokenID tok_id2) const {
         return pos_ + 1 < tokens_.ids.size() && tokens_.ids[pos_] == tok_id1 &&
@@ -82,6 +82,7 @@ class Parser {
     Expr            parse_literal();
     Ref<BinaryExpr> parse_binary_expr();
     Ref<AssignExpr> parse_assign_expr();
+    Ref<IncrExpr>   parse_incr_expr();
 
     Stmt            parse_stmt();
     Ref<IncrStmt>   parse_incr_stmt();
@@ -93,7 +94,7 @@ class Parser {
     Ref<ForInitDecl>   parse_for_init_decl();
     Ref<ForInitAssign> parse_for_init_assignment();
     ForInitStmt        parse_for_init();
-    Ref<AssignExpr>    parse_for_incr_assignment();
+    ForIncrExpr        parse_for_incr_expr();
     Ref<ForStmt>       parse_for_stmt();
 
     Ref<FuncDecl>          parse_funcdecl();

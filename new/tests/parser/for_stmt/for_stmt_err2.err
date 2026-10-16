@@ -1,3 +1,3 @@
-for_stmt/for_stmt_err2.cc:2:24: parse error: Expected assignment.
+for_stmt/for_stmt_err2.cc:2:22: parse error: Expected assignment or increment.
     | 	for (i = 0; i < 10; i + 1) {
-    | 	                      ^
+    | 	                    ^
