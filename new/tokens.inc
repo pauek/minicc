@@ -43,6 +43,7 @@ TOKEN(MINUSEQ, "-=")
 TOKEN(STAREQ, "*=")
 TOKEN(DIVEQ, "/=")
 TOKEN(MODEQ, "%=")
+
 TOKEN(AMPEQ, "&=")
 TOKEN(BAREQ, "|=")
 TOKEN(CARETEQ, "^=")

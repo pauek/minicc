@@ -94,6 +94,10 @@ Ref<Using> Parser::parse_using() {
     return Using::make({.namespc = namespc});
 }
 
+bool Parser::at_type_keyword() const {
+    return at(BOOL) || at(CHAR) || at(INT) || at(FLOAT) || at(DOUBLE);
+}
+
 bool Parser::at_typespec_qualifier() const {
     if (at(AUTO) || at(CONST)) {
         return true;
@@ -102,7 +106,7 @@ bool Parser::at_typespec_qualifier() const {
 }
 
 Ref<Identifier> Parser::parse_type_keyword() {
-    assert(at(BOOL) || at(CHAR) || at(INT) || at(FLOAT) || at(DOUBLE));
+    assert(at_type_keyword());
     constexpr const char *basic_types[] = {"bool", "char", "int", "float", "double"};
     for (auto name : basic_types) {
         if (at_str(name)) {
@@ -146,7 +150,9 @@ Ref<TypeSpec> Parser::parse_typespec() {
 }
 
 Ref<Identifier> Parser::parse_identifier() {
-    assert(at(IDENT));
+    if (not at(IDENT)) {
+        error("Expected identifier.");
+    }
     string name = curr_str();
     advance(1);
     return Identifier::make({.name = name});
@@ -349,15 +355,8 @@ ReturnStmt Parser::parse_return_stmt() {
 
 AssignStmt Parser::parse_assign_stmt() {
     assert(at(IDENT));
-
     AssignStmt stmt;
-    stmt.target = parse_identifier();
-
-    assert(at(EQ));
-    advance(1);
-
-    stmt.expr = parse_expr();
-
+    stmt.assign = parse_assign_expr();
     return stmt;
 }
 
@@ -401,6 +400,70 @@ WhileStmt Parser::parse_while_stmt() {
     return stmt;
 }
 
+Ref<AssignExpr> Parser::parse_assign_expr() {
+    AssignExpr assign;
+    assign.target = parse_identifier();
+    // Initialization is optional
+    if (at_assign_token()) {
+        assign.op = AssignExpr::token_to_op(curr());
+        advance(1);
+        assign.expr = parse_expr();
+    }
+    return AssignExpr::make(assign);
+}
+
+Ref<ForInitDecl> Parser::parse_for_init_decl() {
+    auto                    type = parse_typespec();
+    vector<Ref<ForInitAssign>> variables;
+    while (not at(SEMICOLON)) {
+        auto var = parse_for_init_assignment();
+        variables.push_back(var);
+        if (at(COMMA)) {
+            advance(1);
+        }
+    }
+    return ForInitDecl::make({.type = type, .variables = variables});
+}
+
+Ref<ForInitAssign> Parser::parse_for_init_assignment() {
+    assert(at(IDENT));
+
+    AssignExpr assign;
+    assign.target = parse_identifier();
+    expect(EQ, "Expected '='.");
+    assign.op = AssignExpr::Normal;
+    assign.expr = parse_expr();
+
+    auto ref = AssignExpr::make(assign);
+    return ForInitAssign::make({.assign = ref});
+}
+
+Ref<AssignExpr> Parser::parse_for_incr_assignment() {
+    assert(at(IDENT));
+
+    AssignExpr assign;
+    assign.target = parse_identifier();
+    if (not at_assign_token()) {
+    	error("Expected assignment.");
+    }
+    assign.op = AssignExpr::token_to_op(curr());
+    advance(1);
+    assign.expr = parse_expr();
+
+    return AssignExpr::make(assign);
+}
+
+ForInitStmt Parser::parse_for_init() {
+    if (at_typespec_qualifier() || at_type_keyword()) {
+        return ForInitStmt(parse_for_init_decl());
+    } else if (at(IDENT)) {
+        return ForInitStmt(parse_for_init_assignment());
+    } else {
+        error("Expected declaration or assignment.");
+        return ForInitStmt(); // Muffle compiler
+    }
+}
+
 ForStmt Parser::parse_for_stmt() {
     assert(at(FOR));
     advance(1);
@@ -409,11 +472,11 @@ ForStmt Parser::parse_for_stmt() {
 
     // Triple expression
     expect(OPEN_PAREN, "Expected '('.");
-    stmt.init = parse_stmt();
+    stmt.init = parse_for_init();
     expect(SEMICOLON, "Expected ';'.");
     stmt.cond = parse_expr();
     expect(SEMICOLON, "Expected ';'.");
-    stmt.incr = parse_stmt();
+    stmt.incr = parse_for_incr_assignment();
     expect(CLOSE_PAREN, "Expected ')'.");
 
     // Body
@@ -430,16 +493,20 @@ Stmt Parser::parse_stmt() {
             return Stmt(ReturnStmt::make(stmt));
         }
         case IF: {
-        	auto stmt = parse_if_stmt();
+            auto stmt = parse_if_stmt();
             return Stmt(IfStmt::make(stmt));
         }
         case WHILE: {
-        	auto stmt = parse_while_stmt();
+            auto stmt = parse_while_stmt();
             return Stmt(WhileStmt::make(stmt));
+        }
+        case FOR: {
+            auto stmt = parse_for_stmt();
+            return Stmt(ForStmt::make(stmt));
         }
         default: {
             // If we find an identifier, we have to look further
-            if (at(IDENT) && peek(1) == EQ) {
+            if (at(IDENT) && AssignExpr::is_assign_token(peek(1))) {
                 auto stmt = parse_assign_stmt();
                 return Stmt(AssignStmt::make(stmt));
             }
@@ -460,7 +527,7 @@ Ref<StmtBlock> Parser::parse_stmt_block() {
     StmtBlock block;
     while (not at(CLOSE_BRACE)) {
         auto stmt = parse_stmt();
-        if (peek(-1) != CLOSE_BRACE) { // NOTE(pauek): Inelegant??? Probably...
+        if (peek(-1) != CLOSE_BRACE) {  // NOTE(pauek): Inelegant??? Probably...
             expect(SEMICOLON, "Expected ';'.");
         }
         block.stmts.push_back(stmt);

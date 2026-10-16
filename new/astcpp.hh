@@ -5,6 +5,47 @@
 #include <vector>
 
 #include "ast.hh"
+#include "tokens.hh"
+
+// Type Specifier
+struct Identifier;
+struct TypeSpec : AstType<TypeSpec, 1003> {
+    enum Qualifier {
+        None = 0b000000,
+        Const = 0b000001,
+        Volatile = 0b000010,
+        Mutable = 0b000100,
+        Register = 0b001000,
+        Auto = 0b010000,
+        Extern = 0b100000,
+    };
+
+    Ref<Identifier> ident;
+
+    bool   reference = false;
+    int8_t bqual = None;
+
+    static Qualifier qualifier_from_str(std::string name) {
+        if (name == "auto") {
+            return Auto;
+        } else if (name == "const") {
+            return Const;
+        } else {
+            assert(false);
+        }
+    }
+
+    static std::string qualifier_to_str(Qualifier qual) {
+        switch (qual) {
+            case Auto:
+                return "auto";
+            case Const:
+                return "const";
+            default:
+                assert(false);
+        }
+    }
+};
 
 // <Expressions>
 typedef Variant<10, 30> Expr;
@@ -50,7 +91,16 @@ struct Identifier : AstType<Identifier, 15> {
     string name;
 };
 struct BinaryExpr : AstType<BinaryExpr, 20> {
-    enum Level { Zero = 0, LogicalOr, LogicalAnd, Equality, Relational, Additive, Multiplicative, Infinite };
+    enum Level {
+        Zero = 0,
+        LogicalOr,
+        LogicalAnd,
+        Equality,
+        Relational,
+        Additive,
+        Multiplicative,
+        Infinite
+    };
     enum Operator { None = 0, Add, Sub, Mul, Div, Mod, And, Eq, NotEq, GT, LT, GE, LE, Or };
 
     Operator op;
@@ -127,6 +177,71 @@ struct FieldExpr : AstType<FieldExpr, 22> {
 struct IndexExpr : AstType<IndexExpr, 23> {
     Expr base, index;
 };
+struct AssignExpr : AstType<AssignExpr, 24> {
+    enum Operator { Normal, Add, Sub, Mul, Div, Mod, Error };
+
+    Ref<Identifier> target;
+    Expr            expr;
+    Operator        op;
+
+    static bool is_assign_token(TypeID id) {
+        switch (id) {
+            case EQ:
+            case PLUSEQ:
+            case MINUSEQ:
+            case STAREQ:
+            case DIVEQ:
+            case MODEQ:
+                return true;
+            default:
+                return false;
+        }
+    }
+
+    static Operator token_to_op(TypeID id) {
+        switch (id) {
+            case EQ: {
+                return Normal;
+            }
+            case PLUSEQ: {
+                return Add;
+            }
+            case MINUSEQ: {
+                return Sub;
+            }
+            case STAREQ: {
+                return Mul;
+            }
+            case DIVEQ: {
+                return Div;
+            }
+            case MODEQ: {
+                return Mod;
+            }
+            default:
+                return Error;
+        }
+    }
+
+    static std::string operator_to_str(Operator op) {
+        switch (op) {
+            case Normal:
+                return "=";
+            case Add:
+                return "+=";
+            case Sub:
+                return "-=";
+            case Mul:
+                return "*=";
+            case Div:
+                return "/=";
+            case Mod:
+                return "%=";
+            default:
+                assert(false);
+        }
+    }
+};
 
 // </Expressions>
 
@@ -137,24 +252,33 @@ struct StmtBlock : AstType<StmtBlock, 100> {
     std::vector<Stmt> stmts = {};
 };
 struct AssignStmt : AstType<AssignStmt, 102> {
-    Ref<Identifier> target;
-    Expr            expr;
+    Ref<AssignExpr> assign;
 };
 struct ReturnStmt : AstType<ReturnStmt, 101> {
     Expr expr;
 };
 struct IfStmt : AstType<IfStmt, 103> {
-	Expr cond;
-	Ref<StmtBlock> if_true, if_false;
+    Expr           cond;
+    Ref<StmtBlock> if_true, if_false;
 };
 struct WhileStmt : AstType<WhileStmt, 104> {
-	Expr cond;
-	Ref<StmtBlock> body;
+    Expr           cond;
+    Ref<StmtBlock> body;
 };
-struct ForStmt : AstType<ForStmt, 105> {
-	Stmt init, incr;
-	Expr cond;
-	Ref<StmtBlock> body;
+
+typedef Variant<105, 106> ForInitStmt;
+struct ForInitAssign : AstType<ForInitAssign, 105> {
+    Ref<AssignExpr> assign;
+};
+struct ForInitDecl : AstType<ForInitDecl, 106> {
+    Ref<TypeSpec>           type;
+    vector<Ref<ForInitAssign>> variables;
+};
+struct ForStmt : AstType<ForStmt, 107> {
+    ForInitStmt     init;
+    Expr            cond;
+    Ref<AssignExpr> incr;
+    Ref<StmtBlock>  body;
 };
 
 // </Statements>
@@ -178,45 +302,6 @@ struct Macro : AstType<Macro, 1001> {
 // Using declaration
 struct Using : AstType<Using, 1002> {
     string namespc;
-};
-
-// Type Specifier
-struct TypeSpec : AstType<TypeSpec, 1003> {
-    enum Qualifier {
-        None = 0b000000,
-        Const = 0b000001,
-        Volatile = 0b000010,
-        Mutable = 0b000100,
-        Register = 0b001000,
-        Auto = 0b010000,
-        Extern = 0b100000,
-    };
-
-    Ref<Identifier> ident;
-
-    bool   reference = false;
-    int8_t bqual = None;
-
-    static Qualifier qualifier_from_str(std::string name) {
-        if (name == "auto") {
-            return Auto;
-        } else if (name == "const") {
-            return Const;
-        } else {
-            assert(false);
-        }
-    }
-
-    static std::string qualifier_to_str(Qualifier qual) {
-        switch (qual) {
-            case Auto:
-                return "auto";
-            case Const:
-                return "const";
-            default:
-                assert(false);
-        }
-    }
 };
 
 struct FuncParam : AstType<FuncParam, 1004> {

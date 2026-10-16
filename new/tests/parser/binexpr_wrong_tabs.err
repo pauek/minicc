@@ -1,3 +1,0 @@
-binexpr_wrong_tabs.cc:2:11: parse error: Expected ';'.
-    | 	return a b;
-    | 	         ^

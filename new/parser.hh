@@ -39,9 +39,11 @@ class Parser {
     bool at(TokenID tok_id) const { return tokens_.ids[pos_] == tok_id; }
     bool at_str(const char *expected) const { return curr_str() == expected; }
 
+    bool at_type_keyword() const;
     bool at_typespec_qualifier() const;
     bool at_literal() const;
     bool at_keyword() const { return curr() > BEFORE_KEYWORDS && curr() < AFTER_KEYWORDS; }
+    bool at_assign_token() const { return AssignExpr::is_assign_token(curr()); }
 
     bool at(TokenID tok_id1, TokenID tok_id2) const {
         return pos_ + 1 < tokens_.ids.size() && tokens_.ids[pos_] == tok_id1 &&
@@ -79,14 +81,19 @@ class Parser {
     Expr            parse_unary_expr();
     Expr            parse_literal();
     Ref<BinaryExpr> parse_binary_expr();
+    Ref<AssignExpr> parse_assign_expr();
 
     Stmt       parse_stmt();
-    Stmt       parse_for_init();
     ReturnStmt parse_return_stmt();
     AssignStmt parse_assign_stmt();
     IfStmt     parse_if_stmt();
     WhileStmt  parse_while_stmt();
-    ForStmt    parse_for_stmt();
+
+    Ref<ForInitDecl>   parse_for_init_decl();
+    Ref<ForInitAssign> parse_for_init_assignment();
+    ForInitStmt        parse_for_init();
+    Ref<AssignExpr>    parse_for_incr_assignment();
+    ForStmt            parse_for_stmt();
 
     Ref<FuncDecl>          parse_funcdecl();
     vector<Ref<FuncParam>> parse_function_parameters();

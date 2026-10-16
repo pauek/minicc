@@ -27,8 +27,6 @@ void AstDumper::dump(const Using& U) {
 constexpr TypeSpec::Qualifier searched_qualifiers[] = {TypeSpec::Auto, TypeSpec::Const};
 
 void AstDumper::dump(const TypeSpec& T) {
-    out_ << indent();
-
     // Qualifiers
     for (auto qual : searched_qualifiers) {
         if (T.bqual & qual) {
@@ -126,36 +124,81 @@ void AstDumper::dump(Expr expr) {
     }
 }
 
-void AstDumper::dump(const ReturnStmt& retstmt) {
+void AstDumper::dump(const ReturnStmt& stmt) {
     out_ << indent() << "return ";
-    dump(retstmt.expr);
+    dump(stmt.expr);
     out_ << endl;
 }
 
-void AstDumper::dump(const AssignStmt& astmt) {
-    out_ << indent();
-    dump(astmt.target.get());
-    out_ << " = ";
-    dump(astmt.expr);
+void AstDumper::dump(const AssignStmt& stmt) {
+	out_ << indent();
+    dump(stmt.assign.get());
     out_ << endl;
 }
 
-void AstDumper::dump(const IfStmt& if_stmt) {
+void AstDumper::dump(const IfStmt& stmt) {
     out_ << indent() << "if ";
-    dump(if_stmt.cond);
+    dump(stmt.cond);
     out_ << ":" << endl;
-    dump(if_stmt.if_true.get());
-    if (not if_stmt.if_false.empty()) {
+    dump(stmt.if_true.get());
+    if (not stmt.if_false.empty()) {
         out_ << indent() << "else:" << endl;
-        dump(if_stmt.if_false.get());
+        dump(stmt.if_false.get());
     }
 }
 
-void AstDumper::dump(const WhileStmt& while_stmt) {
+void AstDumper::dump(const ForInitStmt& stmt) {
+	switch (stmt.type_id) {
+		case ForInitDecl::type_id: {
+			dump(stmt.as<ForInitDecl>());
+			break;
+		}
+		case ForInitAssign::type_id: {
+			dump(stmt.as<ForInitAssign>());
+			break;
+		}
+		default:
+			assert(false);
+	}
+}
+
+void AstDumper::dump(const AssignExpr& assign) {
+	dump(assign.target.get());
+	out_ << ' ' << AssignExpr::operator_to_str(assign.op) << ' ';
+	dump(assign.expr);
+}
+
+void AstDumper::dump(const ForInitDecl& decl) {
+	dump(decl.type.get());
+	out_ << ' ';
+	for (size_t i = 0; i < decl.variables.size(); i++) {
+		if (i > 0) {
+			out_ << ',';
+		}
+		dump(decl.variables[i].get());
+	}
+}
+
+void AstDumper::dump(const ForInitAssign& init) {
+	dump(init.assign.get());
+}
+
+void AstDumper::dump(const ForStmt& stmt) {
+    out_ << indent() << "for (";
+    dump(stmt.init);
+    out_ << "; ";
+    dump(stmt.cond);
+    out_ << "; ";
+    dump(stmt.incr.get());
+    out_ << "):" << endl;
+    dump(stmt.body.get());
+}
+
+void AstDumper::dump(const WhileStmt& stmt) {
     out_ << indent() << "while ";
-    dump(while_stmt.cond);
+    dump(stmt.cond);
     out_ << ":" << endl;
-    dump(while_stmt.body.get());
+    dump(stmt.body.get());
 }
 void AstDumper::dump(Stmt stmt) {
     switch (stmt.type_id) {
@@ -173,6 +216,10 @@ void AstDumper::dump(Stmt stmt) {
         }
         case WhileStmt::type_id: {
             dump(stmt.as<WhileStmt>());
+            break;
+        }
+        case ForStmt::type_id: {
+            dump(stmt.as<ForStmt>());
             break;
         }
         default:

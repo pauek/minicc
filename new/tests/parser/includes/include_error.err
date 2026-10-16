@@ -1,0 +1,3 @@
+includes/include_error.cc:1:21: parse error: Expected the end of the line here.
+    | #include "local.hh" with error text!
+    |                     ^
