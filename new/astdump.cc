@@ -155,14 +155,23 @@ void AstDumper::dump(const IncrStmt& stmt) {
     out_ << endl;
 }
 
+void AstDumper::dump(const CondExpr& expr) {
+	dump(expr.cond);
+	out_ << ":" << endl;
+	dump(expr.then.get());
+}
+
 void AstDumper::dump(const IfStmt& stmt) {
     out_ << indent() << "if ";
-    dump(stmt.cond);
-    out_ << ":" << endl;
-    dump(stmt.if_true.get());
-    if (not stmt.if_false.empty()) {
-        out_ << indent() << "else:" << endl;
-        dump(stmt.if_false.get());
+    assert(not stmt.cond_exprs.empty());
+    dump(stmt.cond_exprs[0].get());
+    for (size_t i = 1; i < stmt.cond_exprs.size(); i++) {
+     	out_ << indent() << "elif ";
+    	dump(stmt.cond_exprs[i].get());
+    }
+    if (not stmt.els.empty()) {
+    	out_ << indent() << "else:" << endl;
+     	dump(stmt.els.get());
     }
 }
 

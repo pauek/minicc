@@ -283,6 +283,13 @@ struct IncrExpr : AstType<IncrExpr, 25> {
     Operator        op;
     Order           order;
 };
+
+// This is a piece of an if statement
+struct StmtBlock;
+struct CondExpr : AstType<CondExpr, 26> {
+    Expr           cond;
+    Ref<StmtBlock> then;
+};
 // </Expressions>
 
 // <Statements>
@@ -301,8 +308,8 @@ struct ReturnStmt : AstType<ReturnStmt, 104> {
     Expr expr;
 };
 struct IfStmt : AstType<IfStmt, 105> {
-    Expr           cond;
-    Ref<StmtBlock> if_true, if_false;
+    vector<Ref<CondExpr>> cond_exprs;
+    Ref<StmtBlock>        els;
 };
 struct WhileStmt : AstType<WhileStmt, 106> {
     Expr           cond;

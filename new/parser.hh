@@ -83,6 +83,7 @@ class Parser {
     Ref<BinaryExpr> parse_binary_expr();
     Ref<AssignExpr> parse_assign_expr();
     Ref<IncrExpr>   parse_incr_expr();
+    Ref<CondExpr>   parse_cond_expr();
 
     Stmt            parse_stmt();
     Ref<IncrStmt>   parse_incr_stmt();

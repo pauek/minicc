@@ -39,6 +39,7 @@ class AstDumper {
     void dump(const ForInitDecl& decl);
     void dump(const ForStmt& stmt);
     void dump(const ForIncrExpr& expr);
+    void dump(const CondExpr& expr);
 
     void dump(const Macro& macro);
     void dump(const Using& usin);

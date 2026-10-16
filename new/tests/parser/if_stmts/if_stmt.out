@@ -6,3 +6,11 @@ function "main"(): int
         a = 2
     else:
         a = 3
+    if a:
+        a = 1
+    elif b:
+        b = 1
+    elif c:
+        c = 1
+    else:
+        d = 1

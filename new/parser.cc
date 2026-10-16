@@ -389,24 +389,30 @@ Ref<AssignStmt> Parser::parse_assign_stmt() {
     return AssignStmt::make(stmt);
 }
 
+Ref<CondExpr> Parser::parse_cond_expr() {
+    CondExpr expr;
+
+    expect(OPEN_PAREN, "Expected '('.");
+    expr.cond = parse_expr();
+    expect(CLOSE_PAREN, "Expected ')'.");
+    expr.then = parse_stmt_block();
+
+    return CondExpr::make(expr);
+}
+
 Ref<IfStmt> Parser::parse_if_stmt() {
     assert(at(IF));
     advance(1);
 
     IfStmt stmt;
-
-    // Condition
-    expect(OPEN_PAREN, "Expected '('.");
-    stmt.cond = parse_expr();
-    expect(CLOSE_PAREN, "Expected ')'.");
-
-    // "then"
-    stmt.if_true = parse_stmt_block();
-
-    // Optional `else`
+    stmt.cond_exprs.push_back(parse_cond_expr());
+    while (at(ELSE, IF)) {
+        advance(2);
+        stmt.cond_exprs.push_back(parse_cond_expr());
+    }
     if (at(ELSE)) {
         advance(1);
-        stmt.if_false = parse_stmt_block();
+        stmt.els = parse_stmt_block();
     }
 
     return IfStmt::make(stmt);
