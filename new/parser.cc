@@ -345,22 +345,46 @@ Expr Parser::parse_expr(BinaryExpr::Level break_level) {
     return left;
 }
 
-ReturnStmt Parser::parse_return_stmt() {
+Ref<ReturnStmt> Parser::parse_return_stmt() {
     assert(at(RETURN));
     advance(1);
     ReturnStmt stmt;
     stmt.expr = parse_expr();
-    return stmt;
+    return ReturnStmt::make(stmt);
 }
 
-AssignStmt Parser::parse_assign_stmt() {
+Ref<IncrStmt> Parser::parse_incr_stmt() {
+    IncrStmt incr;
+    if (IncrStmt::is_incr_op(curr())) {
+        // pre
+        incr.op = IncrStmt::token_to_op(curr());
+        advance(1);
+        if (not at(IDENT)) {
+            error("Expected identifier.");
+        }
+        incr.target = parse_identifier();
+    } else if (at(IDENT)) {
+        // post
+        incr.target = parse_identifier();
+        // If we did call parse_incr_stmt we should have known that
+        // there was an incr operator after the identifier...
+        assert(IncrStmt::is_incr_op(curr()));
+        incr.op = IncrStmt::token_to_op(curr());
+        advance(1);
+    } else {
+        assert(false);
+    }
+    return IncrStmt::make(incr);
+}
+
+Ref<AssignStmt> Parser::parse_assign_stmt() {
     assert(at(IDENT));
     AssignStmt stmt;
     stmt.assign = parse_assign_expr();
-    return stmt;
+    return AssignStmt::make(stmt);
 }
 
-IfStmt Parser::parse_if_stmt() {
+Ref<IfStmt> Parser::parse_if_stmt() {
     assert(at(IF));
     advance(1);
 
@@ -380,10 +404,10 @@ IfStmt Parser::parse_if_stmt() {
         stmt.if_false = parse_stmt_block();
     }
 
-    return stmt;
+    return IfStmt::make(stmt);
 }
 
-WhileStmt Parser::parse_while_stmt() {
+Ref<WhileStmt> Parser::parse_while_stmt() {
     assert(at(WHILE));
     advance(1);
 
@@ -397,7 +421,7 @@ WhileStmt Parser::parse_while_stmt() {
     // Body
     stmt.body = parse_stmt_block();
 
-    return stmt;
+    return WhileStmt::make(stmt);
 }
 
 Ref<AssignExpr> Parser::parse_assign_expr() {
@@ -413,7 +437,7 @@ Ref<AssignExpr> Parser::parse_assign_expr() {
 }
 
 Ref<ForInitDecl> Parser::parse_for_init_decl() {
-    auto                    type = parse_typespec();
+    auto                       type = parse_typespec();
     vector<Ref<ForInitAssign>> variables;
     while (not at(SEMICOLON)) {
         auto var = parse_for_init_assignment();
@@ -444,7 +468,7 @@ Ref<AssignExpr> Parser::parse_for_incr_assignment() {
     AssignExpr assign;
     assign.target = parse_identifier();
     if (not at_assign_token()) {
-    	error("Expected assignment.");
+        error("Expected assignment.");
     }
     assign.op = AssignExpr::token_to_op(curr());
     advance(1);
@@ -460,11 +484,11 @@ ForInitStmt Parser::parse_for_init() {
         return ForInitStmt(parse_for_init_assignment());
     } else {
         error("Expected declaration or assignment.");
-        return ForInitStmt(); // Muffle compiler
+        return ForInitStmt();  // Muffle compiler
     }
 }
 
-ForStmt Parser::parse_for_stmt() {
+Ref<ForStmt> Parser::parse_for_stmt() {
     assert(at(FOR));
     advance(1);
 
@@ -482,37 +506,40 @@ ForStmt Parser::parse_for_stmt() {
     // Body
     stmt.body = parse_stmt_block();
 
-    return stmt;
+    return ForStmt::make(stmt);
 }
 
 Stmt Parser::parse_stmt() {
     Stmt empty;
     switch (curr()) {
         case RETURN: {
-            auto stmt = parse_return_stmt();
-            return Stmt(ReturnStmt::make(stmt));
+            return Stmt(parse_return_stmt());
         }
         case IF: {
-            auto stmt = parse_if_stmt();
-            return Stmt(IfStmt::make(stmt));
+            return Stmt(parse_if_stmt());
         }
         case WHILE: {
-            auto stmt = parse_while_stmt();
-            return Stmt(WhileStmt::make(stmt));
+            return Stmt(parse_while_stmt());
         }
         case FOR: {
-            auto stmt = parse_for_stmt();
-            return Stmt(ForStmt::make(stmt));
+            return Stmt(parse_for_stmt());
+        }
+        case PLUSPLUS:
+        case MINUSMINUS: {
+            return Stmt(parse_incr_stmt());
+        }
+        case IDENT: {
+        	TokenID next = peek(1);
+            if (AssignExpr::is_assign_token(next)) {
+                return Stmt(parse_assign_stmt());
+            } else if (IncrStmt::is_incr_op(next)) {
+                return Stmt(parse_incr_stmt());
+            }
+            error("Unexpected token.");
+            return empty;
         }
         default: {
-            // If we find an identifier, we have to look further
-            if (at(IDENT) && AssignExpr::is_assign_token(peek(1))) {
-                auto stmt = parse_assign_stmt();
-                return Stmt(AssignStmt::make(stmt));
-            }
-
-            string tok = curr_str();
-            error("Unexpected token '{}'", tok);
+            error("Unexpected token.");
             return empty;
         }
     }

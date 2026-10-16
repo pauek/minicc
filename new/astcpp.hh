@@ -77,11 +77,6 @@ struct SignExpr : AstType<SignExpr, 16> {
     Expr expr;
     bool negative;
 };
-struct IncrExpr : AstType<IncrExpr, 17> {
-    Expr expr;
-    bool negative;
-    bool pre;
-};
 struct NotExpr : AstType<NotExpr, 18> {
     Expr expr;
 };
@@ -254,27 +249,55 @@ struct StmtBlock : AstType<StmtBlock, 100> {
 struct AssignStmt : AstType<AssignStmt, 102> {
     Ref<AssignExpr> assign;
 };
-struct ReturnStmt : AstType<ReturnStmt, 101> {
+struct IncrStmt : AstType<IncrStmt, 103> {
+    enum Operator { Add, Sub, Error };
+
+    static bool is_incr_op(TypeID id) {
+        switch (id) {
+            case PLUSPLUS:
+            case MINUSMINUS:
+                return true;
+            default:
+                return false;
+        }
+    }
+
+    static Operator token_to_op(TypeID id) {
+        switch (id) {
+            case PLUSPLUS:
+                return Add;
+            case MINUSMINUS:
+                return Sub;
+            default:
+                assert(false);
+                return Error;
+        }
+    }
+
+    Ref<Identifier> target;
+    Operator        op;
+};
+struct ReturnStmt : AstType<ReturnStmt, 104> {
     Expr expr;
 };
-struct IfStmt : AstType<IfStmt, 103> {
+struct IfStmt : AstType<IfStmt, 105> {
     Expr           cond;
     Ref<StmtBlock> if_true, if_false;
 };
-struct WhileStmt : AstType<WhileStmt, 104> {
+struct WhileStmt : AstType<WhileStmt, 106> {
     Expr           cond;
     Ref<StmtBlock> body;
 };
 
-typedef Variant<105, 106> ForInitStmt;
-struct ForInitAssign : AstType<ForInitAssign, 105> {
+typedef Variant<120, 121> ForInitStmt;
+struct ForInitAssign : AstType<ForInitAssign, 120> {
     Ref<AssignExpr> assign;
 };
-struct ForInitDecl : AstType<ForInitDecl, 106> {
-    Ref<TypeSpec>           type;
+struct ForInitDecl : AstType<ForInitDecl, 121> {
+    Ref<TypeSpec>              type;
     vector<Ref<ForInitAssign>> variables;
 };
-struct ForStmt : AstType<ForStmt, 107> {
+struct ForStmt : AstType<ForStmt, 122> {
     ForInitStmt     init;
     Expr            cond;
     Ref<AssignExpr> incr;

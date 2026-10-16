@@ -28,6 +28,7 @@ class AstDumper {
     void dump(Stmt S);
     void dump(const StmtBlock& block);
     void dump(const ReturnStmt& stmt);
+    void dump(const IncrStmt& stmt);
     void dump(const AssignStmt& stmt);
     void dump(const IfStmt& stmt);
     void dump(const WhileStmt& stmt);

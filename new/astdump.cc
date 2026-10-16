@@ -131,9 +131,27 @@ void AstDumper::dump(const ReturnStmt& stmt) {
 }
 
 void AstDumper::dump(const AssignStmt& stmt) {
-	out_ << indent();
+    out_ << indent();
     dump(stmt.assign.get());
     out_ << endl;
+}
+
+void AstDumper::dump(const IncrStmt& stmt) {
+	out_ << indent();
+	dump(stmt.target.get());
+	switch (stmt.op) {
+		case IncrStmt::Add: {
+			out_ << "++";
+			break;
+		}
+		case IncrStmt::Sub: {
+			out_ << "--";
+			break;
+		}
+		default:
+			assert(false);
+	}
+	out_ << endl;
 }
 
 void AstDumper::dump(const IfStmt& stmt) {
@@ -148,39 +166,39 @@ void AstDumper::dump(const IfStmt& stmt) {
 }
 
 void AstDumper::dump(const ForInitStmt& stmt) {
-	switch (stmt.type_id) {
-		case ForInitDecl::type_id: {
-			dump(stmt.as<ForInitDecl>());
-			break;
-		}
-		case ForInitAssign::type_id: {
-			dump(stmt.as<ForInitAssign>());
-			break;
-		}
-		default:
-			assert(false);
-	}
+    switch (stmt.type_id) {
+        case ForInitDecl::type_id: {
+            dump(stmt.as<ForInitDecl>());
+            break;
+        }
+        case ForInitAssign::type_id: {
+            dump(stmt.as<ForInitAssign>());
+            break;
+        }
+        default:
+            assert(false);
+    }
 }
 
 void AstDumper::dump(const AssignExpr& assign) {
-	dump(assign.target.get());
-	out_ << ' ' << AssignExpr::operator_to_str(assign.op) << ' ';
-	dump(assign.expr);
+    dump(assign.target.get());
+    out_ << ' ' << AssignExpr::operator_to_str(assign.op) << ' ';
+    dump(assign.expr);
 }
 
 void AstDumper::dump(const ForInitDecl& decl) {
-	dump(decl.type.get());
-	out_ << ' ';
-	for (size_t i = 0; i < decl.variables.size(); i++) {
-		if (i > 0) {
-			out_ << ',';
-		}
-		dump(decl.variables[i].get());
-	}
+    dump(decl.type.get());
+    out_ << ' ';
+    for (size_t i = 0; i < decl.variables.size(); i++) {
+        if (i > 0) {
+            out_ << ',';
+        }
+        dump(decl.variables[i].get());
+    }
 }
 
 void AstDumper::dump(const ForInitAssign& init) {
-	dump(init.assign.get());
+    dump(init.assign.get());
 }
 
 void AstDumper::dump(const ForStmt& stmt) {
@@ -200,10 +218,15 @@ void AstDumper::dump(const WhileStmt& stmt) {
     out_ << ":" << endl;
     dump(stmt.body.get());
 }
+
 void AstDumper::dump(Stmt stmt) {
     switch (stmt.type_id) {
         case ReturnStmt::type_id: {
             dump(stmt.as<ReturnStmt>());
+            break;
+        }
+        case IncrStmt::type_id: {
+            dump(stmt.as<IncrStmt>());
             break;
         }
         case AssignStmt::type_id: {

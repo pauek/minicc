@@ -34,7 +34,7 @@ class Parser {
     TokenID     curr() const { return tokens_.ids[pos_]; }
     std::string curr_str() const { return tokens_.str(pos_); }
 
-    char peek(size_t i) const { return tokens_.ids[pos_ + i]; }
+    TokenID peek(size_t i) const { return tokens_.ids[pos_ + i]; }
 
     bool at(TokenID tok_id) const { return tokens_.ids[pos_] == tok_id; }
     bool at_str(const char *expected) const { return curr_str() == expected; }
@@ -83,17 +83,18 @@ class Parser {
     Ref<BinaryExpr> parse_binary_expr();
     Ref<AssignExpr> parse_assign_expr();
 
-    Stmt       parse_stmt();
-    ReturnStmt parse_return_stmt();
-    AssignStmt parse_assign_stmt();
-    IfStmt     parse_if_stmt();
-    WhileStmt  parse_while_stmt();
+    Stmt            parse_stmt();
+    Ref<IncrStmt>   parse_incr_stmt();
+    Ref<ReturnStmt> parse_return_stmt();
+    Ref<AssignStmt> parse_assign_stmt();
+    Ref<IfStmt>     parse_if_stmt();
+    Ref<WhileStmt>  parse_while_stmt();
 
     Ref<ForInitDecl>   parse_for_init_decl();
     Ref<ForInitAssign> parse_for_init_assignment();
     ForInitStmt        parse_for_init();
     Ref<AssignExpr>    parse_for_incr_assignment();
-    ForStmt            parse_for_stmt();
+    Ref<ForStmt>       parse_for_stmt();
 
     Ref<FuncDecl>          parse_funcdecl();
     vector<Ref<FuncParam>> parse_function_parameters();
