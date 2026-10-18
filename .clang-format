@@ -28,3 +28,4 @@ InsertBraces: true
 BreakBeforeBraces: Attach
 MaxEmptyLinesToKeep: 1
 IncludeBlocks: Regroup
+

@@ -1,0 +1,16 @@
+strings
+	size
+	char_access
+	substr
+		two_params
+bit_ops
+	and
+	or
+	xor
+	not
+functions
+	pass_by_value
+	pass_by_reference
+loops
+	for
+	while
