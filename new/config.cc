@@ -1,17 +1,9 @@
-#include <format>
 #include <fstream>
-#include <iostream>
 using namespace std;
 
 #include "config.hh"
 
-Config Config::global_config_;
-
-template <class... Args>
-void error(std::format_string<Args...> fmt, Args&&...args) {
-    cerr << std::format(fmt, args...) << endl;
-    exit(1);
-}
+// utils //
 
 bool is_config_name(char c) {
     return isalpha(c) || isdigit(c) || c == '_';
@@ -30,81 +22,75 @@ bool all_spaces(std::string line) {
     return true;
 }
 
-class ConfigLine {
-    const string& line_;
-    size_t        lin_, col_;
-    int           indent_;
+// ConfigLines //
 
-    bool finished() const { return col_ - 1 >= line_.size(); }
-    char curr() const { return line_[col_ - 1]; }
-    bool at(char c) const { return curr() == c; }
+ConfigLines::Line ConfigLines::parse_line(string line) {
+    col_ = 0;
 
-    void check_word() {
-        while (finished() && not at('.')) {
-            if (not is_config_name(curr())) {
-                error(".minicc:{}:{}: Unexpected char '{}'.", lin_, col_, line_[col_ - 1]);
-            }
-            col_++;
-        }
+    // indentation
+    while (isspace(line[col_])) {
+        col_++;
+    }
+    if (col_ % 4 != 0) {
+        error(".minicc:{}:{}: Indentation is 4 spaces exactly.", lin_, col_);
+    }
+    size_t indent = col_;
+    size_t level = indent / 4;
+
+    // Name
+    while (col_ < line.size() && is_config_name(line[col_])) {
+        col_++;
+    }
+    if (col_ >= line.size() || line[col_] != ':') {
+        error(".minicc:{}:{}: Expected ':'.", lin_, col_);
+    }
+    string name = line.substr(indent, col_ - indent);
+
+    // Value
+    col_++;
+    while (col_ < line.size() && isspace(line[col_])) {
+        col_++;
+    }
+    State state = No;
+    if (line.substr(col_, 3) == "yes") {
+        state = Yes;
+        col_ += 3;
+    } else if (line.substr(col_, 2) == "no") {
+        state = No;
+        col_ += 2;
+    } else {
+        error(".minicc:{}:{}: Expected 'yes' or 'no'.", lin_, col_);
     }
 
-    void check_indent() {
-        while (isspace(curr())) {
-            col_++;
-        }
-        indent_ = col_ - 1;
+    return Line{.level = level, .name = name, .state = state};
+}
+
+void ConfigLines::next() {
+    lin_++;
+    string line;
+    getline(file_, line);
+    while (all_spaces(line)) {
+        getline(file_, line);
     }
 
-   public:
-    ConfigLine(const string& line, size_t lin) : line_(line), lin_(lin), col_(1) {}
+    auto config_line = parse_line(line);
+    int  indent = config_line.level * 4;
 
-    const int& indent() const { return indent_; }
-    string     name() const { return line_.substr(indent_); }
-
-    void check() {
-        check_indent();
-        while (true) {
-            check_word();
-            if (finished()) {
-                return;
-            }
-            if (not at('.')) {
-                error(".minicc:{}:{}: Expected '.'.", lin_, col_);
-            }
-            col_++;
+    // Update current indent and prefix
+    if (config_line.level == size_t(-1)) {
+        // The first, time just set the indent
+        if (config_line.level != 0) {
+            error(".minicc:{}:{}: config: wrong first indentation!", lin_, indent);
+        }
+    } else if (indent > config_line.level) {
+        if (indent != config_line.level + 1) {
+            error(".minicc:{}:{}: Indent difference > 1!", line, indent);
         }
     }
-};
+    config_line_ = config_line;
+}
 
-void Config::read_from_file_(std::string filename) {
-    ifstream       fin(filename);
-    string         line;
-    int            current_indent = -1, lin = 1;
-    vector<string> path = {};
-    while (getline(fin, line)) {
-        if (all_spaces(line)) {
-            continue;
-        }
-        ConfigLine config_line(line, lin);
-        config_line.check();
-
-        // Update current indent and prefix
-        if (current_indent == -1) {
-            // The first, time just set the indent
-            if (config_line.indent() != 0) {
-                error(".minicc:{}:{}: config: wrong first indentation!", lin, config_line.indent());
-            }
-            current_indent = config_line.indent();
-            path = {config_line.name()};
-        } else if (config_line.indent() > current_indent) {
-            if (config_line.indent() != current_indent + 1) {
-                error(".minicc:{}:{}: Indent difference > 1!", line, config_line.indent());
-            }
-            path.push_back(config_line.name());
-        } else if (config_line.indent() < current_indent) {
-            path.pop_back();
-        }
-
-        // Process the thing...
-    }
+ConfigLines::ConfigLines(std::string filename) : file_(filename) {
+    config_line_ = {size_t(-1), "", No};
+    next();
 }

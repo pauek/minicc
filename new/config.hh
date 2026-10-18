@@ -1,23 +1,121 @@
 #ifndef CONFIG_HH
 #define CONFIG_HH
 
+#include <cassert>
 #include <cstddef>
+#include <format>
+#include <fstream>
+#include <iostream>
 #include <string>
 #include <vector>
 
-//
-// - Config::get should be O(1), therefore:
-// 	 1. We must read the config and store it in a vector<State> (State = { No, Some, Yes }),
-//      already precomputed.
-//   2. The call to Config::get needs compile-time translation from type to ID.
-//
+/*
 
-// Interface:
-// - Get config: `Config::get<Config::strings::substr>() -> State`
-// - Change config at runtime: `Config::set<Config::strings::substr>(true)` (+ recomputes State).
-// - Read config: `Config::read()`. Reads from file.
+Configuration
+-------------
+
+Config::get should be O(1), therefore:
+1. We must read the config and store it in a vector<State>, precomputed.
+2. The call to Config::get needs compile-time translation from type to ID.
+
+Also:
+- We need to be able to: a) show the config, b) show all the options.
+- Therefore, walk the tree of options.
+
+Interface:
+
+`GET<a.b.c> () --> State`
+    Get config.
+
+`SET <a.b.c> (<Yes | No>)`
+    Change config at runtime, and recompute State for parents = walk tree upwards.
+
+`READ_CONFIG()`
+    Read config from file. Needs to search by name, hierarchically.
+
+`SHOW_OPTION_LIST()`
+    Show all options.
+
+`SHOW_CONFIG()`
+    Show the current config.
+
+*/
 
 enum State { No = 0, Some = 1, Yes = 2 };
+class Config;
+
+// error //
+
+template <class... Args>
+void error(std::format_string<Args...> fmt, Args&&...args) {
+    std::cerr << std::format(fmt, args...) << std::endl;
+    exit(1);
+}
+
+// Base functions, which will be specialized for each type
+
+class ConfigLines;
+struct OptionInfo {
+    size_t      id;
+    const char *name;
+    void (*read)(ConfigLines& lines);
+};
+
+template <typename T>
+std::vector<OptionInfo> children() {
+    return {};
+}
+
+template <typename T>
+size_t level() {
+    return size_t(-1);
+}
+
+template <typename T>
+const char *name() {
+    return "ERROR";
+}
+
+// ConfigLines //
+
+// Object that reads the configuration and stores individual lines
+// ```
+// strings: yes           -> Line(0, "strings", Yes)
+//     access_chars: no   -> Line(1, "access_chars", No)
+//     substr: no         -> Line(2, "substr", No)
+// ```
+
+class ConfigLines {
+   public:
+    struct Line {
+        size_t      level;
+        std::string name;
+        State       state;
+    };
+
+   private:
+    std::ifstream file_;
+
+    Line config_line_;
+    int  lin_ = 0, col_;
+
+    const Line& curr() const { return config_line_; }
+
+    Line parse_line(std::string line);
+
+   public:
+    ConfigLines(std::string filename);
+
+    int lin() const { return lin_; }
+
+    size_t             level() const { return curr().level; }
+    const std::string& name() const { return curr().name; }
+    State              state() const { return curr().state; }
+
+    bool finished() const { return not bool(file_); }
+
+    void next();
+};
 
 class Config;
 
@@ -34,55 +132,67 @@ struct OptionSet {
     static constexpr size_t max_child_id = MaxChildId;
 };
 
-#define NAME(__name__) static constexpr const char *name = #__name__
-#define OPTION(__id__, __name__)       \
-    struct __name__ : Option<__id__> { \
-        NAME(__name__);                \
+#define NAME(option) static constexpr const char *name = #option
+#define OPTION(id, option)                                                 \
+    struct option : Option<id> {                                           \
+        NAME(option);                                                      \
+        static void show_all(int level) {                                  \
+            std::cout << std::string(level4, ' ') << #option << std::endl; \
+        }                                                                  \
     }
 
 class Config {
-   public:
-    struct strings : OptionSet<1, 2, 4> {
-        NAME("strings");
-        OPTION(2, size);
-        OPTION(3, char_access);
-        OPTION(4, substr);
-    };
-    struct bit_ops : OptionSet<5, 6, 9> {
-        NAME("bit_ops");
-        OPTION(6, bit_and);
-        OPTION(7, bit_or);
-        OPTION(8, bit_xor);
-        OPTION(9, bit_not);
-    };
-
-   private:
-    static constexpr size_t max_id_ = 9;
-
     std::vector<State> states_;
 
-    static Config global_config_;
+    static constexpr size_t max_id_ = 9;
 
-    void read_from_file_(std::string filename);
-
-   public:
-    Config() : states_(max_id_, No) {
-    	read_from_file_(".minicc");
+    template <typename T>
+    void read(ConfigLines& lines) {
+        assert(lines.name() == name<T>());
+        lines.next();
+        set(T::id, lines.state());
+        while (lines.level() > level<T>()) {
+            if (lines.level() != level<T>() + 1) {
+                error(".minicc:{}:0: Wrong indentation level.", lines.lin());
+            }
+            bool processed = false;
+            for (OptionInfo info : children<T>()) {
+                if (lines.name() == info.name) {
+                    processed = true;
+                    (*info.read)(lines);
+                }
+            }
+            if (not processed) {
+                error(".minicc:{}:0: Unexpected option '{}'.", lines.lin(), lines.name());
+            }
+        }
     }
 
-    void set(size_t id, bool value) { states_[id] = value ? Yes : No; }
-
+   public:
     State get(size_t id) { return states_[id]; }
+
+    void set(size_t id, State value) {
+        if (id >= states_.size()) {
+            states_.resize(id + 1, No);
+        }
+        assert(value == Yes || value == No);
+        states_[id] = value;
+    }
 
     template <typename T>
     State get() {
         return get(T::id);
     }
-};
 
-template <size_t ID>
-void Option<ID>::set(Config& config, bool value) {
-    config.set(ID, value);
-}
+    template <typename T>
+    void set(State value) {
+        set(T::id, value);
+    }
+
+    void read() {
+    	ConfigLines config_lines(".minicc");
+
+    }
+};
 
 #endif
