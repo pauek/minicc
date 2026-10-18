@@ -61,20 +61,44 @@ struct OptionInfo {
     void (*read)(ConfigLines& lines);
 };
 
-template <typename T>
+template <size_t ID>
 std::vector<OptionInfo> children() {
     return {};
 }
 
-template <typename T>
+template <size_t ID>
 size_t level() {
     return size_t(-1);
 }
 
-template <typename T>
+template <size_t ID>
 const char *name() {
     return "ERROR";
 }
+
+#define OPTION(option, level, id) \
+    template <>                   \
+    size_t level<id>() {          \
+        return size_t(level);     \
+    }                             \
+    template <>                   \
+    const char *name<id>() {      \
+        return #option;           \
+    }
+
+#define OPTION_SET(option, level, id) \
+    template <>                                    \
+    size_t level<id>() {                           \
+        return size_t(level);                      \
+    }                                              \
+    template <>                                    \
+    const char *name<id>() {                       \
+        return #option;                            \
+    }                                              \
+    template <>                                    \
+    std::vector<OptionInfo> children() {           \
+        return {};                                 \
+    }
 
 // ConfigLines //
 
@@ -117,31 +141,8 @@ class ConfigLines {
     void next();
 };
 
-class Config;
-
-template <size_t ID>
-struct Option {
-    static constexpr size_t id = ID;
-
-    void set(Config& config, bool value);
-};
-
-template <size_t ID, size_t MinChildId, size_t MaxChildId>
-struct OptionSet {
-    static constexpr size_t min_child_id = MinChildId;
-    static constexpr size_t max_child_id = MaxChildId;
-};
-
-#define NAME(option) static constexpr const char *name = #option
-#define OPTION(id, option)                                                 \
-    struct option : Option<id> {                                           \
-        NAME(option);                                                      \
-        static void show_all(int level) {                                  \
-            std::cout << std::string(level4, ' ') << #option << std::endl; \
-        }                                                                  \
-    }
-
 class Config {
+   private:
     std::vector<State> states_;
 
     static constexpr size_t max_id_ = 9;
@@ -189,10 +190,7 @@ class Config {
         set(T::id, value);
     }
 
-    void read() {
-    	ConfigLines config_lines(".minicc");
-
-    }
+    void read() { ConfigLines config_lines(".minicc"); }
 };
 
 #endif
