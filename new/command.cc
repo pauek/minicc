@@ -118,14 +118,12 @@ int Parse(Args args) {
 }
 
 int ShowConfig(Args args) {
+	Config::set(Config::ID(0, 0), Config::No);
+	Config::set<Config::functions::pass_by_reference>(Config::Yes);
+
 	Config::recompute_all();
 
-	auto s1 = Config::get<Config::strings::substr>();
-	auto s2 = Config::get<Config::strings>();
-	cout << "-> " << Config::state_to_str(s1) << endl;
-	cout << "-> " << Config::state_to_str(s2) << endl;
-
-    Config::show();
+	Config::show();
     cout << endl;
 
     Config::show_all_options();

@@ -144,6 +144,11 @@ inline State get(ID id) {
 
 void set(ID id, State new_state);
 
+template <typename Opt>
+inline void set(State new_state) {
+    return set(Opt::id(), new_state);
+}
+
 void show();
 void show_all_options();
 

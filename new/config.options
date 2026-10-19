@@ -5,13 +5,13 @@ all
         substr
             two_params
     bit_ops
-        and
-        or
-        xor
-        not
+        bit_and
+        bit_or
+        bit_xor
+        bit_not
     functions
         pass_by_value
         pass_by_reference
     loops
-        for
-        while
+        for_loop
+        while_loop

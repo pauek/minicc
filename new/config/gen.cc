@@ -7,9 +7,9 @@ using namespace std;
 
 struct Node {
     Config::ID  id;
-    int         parent;
+    int         parent = -1;
     string      name;
-    vector<int> children;
+    pair<int, int> children = {-1, -1};
 };
 
 void update_children_and_parent(vector<vector<Node>>& levels, int curr) {
@@ -17,11 +17,18 @@ void update_children_and_parent(vector<vector<Node>>& levels, int curr) {
     auto& upper_level = levels[curr - 1];
     auto& level = levels[curr];
     int   i = level.size() - 1;
+    auto& parent = upper_level.back();
     while (i >= 0 && level[i].parent == -1) {
-        auto& parent = upper_level.back();
         assert(parent.id.index == upper_level.size() - 1);
         level[i].parent = parent.id.index;
-        parent.children.push_back(level[i].id.index);
+        int child = level[i].id.index;
+        // begin, end
+        if (parent.children.first == -1) {
+        	parent.children.first = child;
+        } else {
+        	parent.children.first = min(parent.children.first, child);
+        }
+        parent.children.second = max(parent.children.second, child + 1);
         i--;
     }
 }
@@ -62,7 +69,7 @@ void read_levels(string filename, vector<vector<Node>>& levels) {
         }
         auto index = levels[level].size();
         auto id = Config::ID(level, index);
-        levels[level].push_back({id, -1, name, {}});
+        levels[level].push_back({id, -1, name, {-1, -1}});
 
         lin++;
         last_level = level;
@@ -74,9 +81,86 @@ void read_levels(string filename, vector<vector<Node>>& levels) {
     }
 }
 
+void generate_level_vector(string filename, const vector<vector<Node>>& levels) {
+    ofstream fout(filename);
+
+    fout << "std::vector<Level> levels = {" << endl;
+    for (const auto& level : levels) {
+        fout << "    {";
+
+        // Names
+        fout << "{";
+        for (const auto& node : level) {
+            fout << '"' << node.name << '"' << ',';
+        }
+        fout << "},";
+
+        // Children
+        fout << "{";
+        for (const auto& node : level) {
+        	auto [begin, end] = node.children;
+         	begin = max(begin, 0);
+          	end = max(end, 0);
+            fout << "{" << begin << ", " << end << "},";
+        }
+        fout << "},";
+
+        // Parent
+        fout << "{";
+        for (const auto& node : level) {
+            fout << node.parent << ",";
+        }
+        fout << "},";
+
+        // State
+        fout << "{";
+        for (const auto& node : level) {
+            fout << "No,";
+        }
+        fout << "},";
+
+        fout << "}, " << endl;
+    }
+    fout << "};" << endl;
+}
+
+struct StructGen {
+    ostream&                    out;
+    const vector<vector<Node>>& levels;
+
+    StructGen(ostream& out_, const vector<vector<Node>>& levels_) : out(out_), levels(levels_) {}
+
+    const Node& node(Config::ID id) { return levels[id.level][id.index]; }
+
+    void generate(Config::ID id) {
+        const auto& n = node(id);
+        if (id.level > 0) {
+            out << string((id.level - 1) * 4, ' ') << "struct " << n.name << " : Option<"
+                << id.level << ", " << id.index << "> {";
+        }
+        if (n.children.first == n.children.second) {
+            out << "};" << endl;
+        } else {
+            out << endl;
+            auto [begin, end] = n.children;
+            for (auto i = begin; i < end; i++) {
+                generate(Config::ID(id.level + 1, i));
+            }
+            if (id.level > 0) {
+                out << string((id.level - 1) * 4, ' ') << "};" << endl;
+            }
+        }
+    }
+};
+
+void generate_structs(string filename, const vector<vector<Node>>& levels) {
+    ofstream fout(filename);
+    StructGen(fout, levels).generate(Config::ID(0, 0));
+}
+
 int main() {
     vector<vector<Node>> levels;
     read_levels("../config.options", levels);
-
-    
+    generate_level_vector("../config.levels.cc.inc", levels);
+    generate_structs("../config.types.cc.inc", levels);
 }
