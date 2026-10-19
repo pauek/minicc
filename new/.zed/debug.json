@@ -15,4 +15,16 @@
 		"request": "launch",
 		"adapter": "CodeLLDB",
 	},
-]
+	{
+		"label": "Debug Config Generator",
+		"build": {
+			"command": "make",
+			"args": [""],
+			"cwd": "$ZED_WORKTREE_ROOT/config",
+		},
+		"program": "$ZED_WORKTREE_ROOT/config/gen",
+		"cwd": "$ZED_WORKTREE_ROOT/config",
+		"args": [""],
+		"request": "launch",
+		"adapter": "CodeLLDB",
+	},]
