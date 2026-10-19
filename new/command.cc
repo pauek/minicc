@@ -1,10 +1,10 @@
 #include <filesystem>
 #include <iostream>
-
-#include "astdump.hh"
 using namespace std;
 
+#include "astdump.hh"
 #include "command.hh"
+#include "config.hh"
 #include "lexer.hh"
 #include "parser.hh"
 #include "printer.hh"
@@ -17,6 +17,7 @@ int Help(Args _) {
         "Simplified C++ compiler and interpreter for educational purposes.\n"
         "\n"
         "Commands:\n"
+        "   config       Show config\n"
         "   lex          Lex a file\n"
         "   parse        Parse a file\n"
         "\n";
@@ -113,5 +114,17 @@ int Parse(Args args) {
             return 1;
         }
     }
+    return 0;
+}
+
+int ShowConfig(Args args) {
+	Config::recompute_all();
+
+    Config::show();
+    cout << endl;
+
+    Config::show_all_options();
+    cout << endl;
+
     return 0;
 }

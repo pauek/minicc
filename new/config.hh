@@ -2,11 +2,8 @@
 #define CONFIG_HH
 
 #include <cassert>
-#include <cstddef>
-#include <format>
-#include <fstream>
+#include <cstdint>
 #include <iostream>
-#include <string>
 #include <vector>
 
 /*
@@ -39,158 +36,99 @@ Interface:
 `SHOW_CONFIG()`
     Show the current config.
 
+ConfigTree
+----------
+
+A tree stored in levels. Each node has its children consecutive in the next level.
+
+Fields for each level:
+- `vector<const char *> names`.
+- `vector<range> children` (in the next level).
+- `vector<uint16_t> parents` (in the previous level).
+
 */
 
+namespace Config {
+
 enum State { No = 0, Some = 1, Yes = 2 };
-class Config;
 
-// error //
-
-template <class... Args>
-void error(std::format_string<Args...> fmt, Args&&...args) {
-    std::cerr << std::format(fmt, args...) << std::endl;
-    exit(1);
+inline const char *state_to_str(State state) {
+    switch (state) {
+        case No:
+            return "no";
+        case Some:
+            return "some";
+        case Yes:
+            return "yes";
+    }
 }
 
-// Base functions, which will be specialized for each type
+struct ID {                  // 32 bit
+    unsigned int level : 4;  // 16 levels maximum (more than enough!)
+    unsigned int index : 28;
 
-class ConfigLines;
-struct OptionInfo {
-    size_t      id;
-    const char *name;
-    void (*read)(ConfigLines& lines);
+    ID(uint8_t level_, uint32_t index_) {
+        assert(level_ < 16);
+        assert(index_ < 0x1000000);
+        level = level_;
+        index = index_;
+    }
+
+    bool is_all() { return level == 0 && index == 0; }
 };
 
-template <size_t ID>
-std::vector<OptionInfo> children() {
-    return {};
-}
-
-template <size_t ID>
-size_t level() {
-    return size_t(-1);
-}
-
-template <size_t ID>
-const char *name() {
-    return "ERROR";
-}
-
-#define OPTION(option, level, id) \
-    template <>                   \
-    size_t level<id>() {          \
-        return size_t(level);     \
-    }                             \
-    template <>                   \
-    const char *name<id>() {      \
-        return #option;           \
-    }
-
-#define OPTION_SET(option, level, id) \
-    template <>                                    \
-    size_t level<id>() {                           \
-        return size_t(level);                      \
-    }                                              \
-    template <>                                    \
-    const char *name<id>() {                       \
-        return #option;                            \
-    }                                              \
-    template <>                                    \
-    std::vector<OptionInfo> children() {           \
-        return {};                                 \
-    }
-
-// ConfigLines //
-
-// Object that reads the configuration and stores individual lines
-// ```
-// strings: yes           -> Line(0, "strings", Yes)
-//     access_chars: no   -> Line(1, "access_chars", No)
-//     substr: no         -> Line(2, "substr", No)
-// ```
-
-class ConfigLines {
-   public:
-    struct Line {
-        size_t      level;
-        std::string name;
-        State       state;
-    };
-
-   private:
-    std::ifstream file_;
-
-    Line config_line_;
-    int  lin_ = 0, col_;
-
-    const Line& curr() const { return config_line_; }
-
-    Line parse_line(std::string line);
-
-   public:
-    ConfigLines(std::string filename);
-
-    int lin() const { return lin_; }
-
-    size_t             level() const { return curr().level; }
-    const std::string& name() const { return curr().name; }
-    State              state() const { return curr().state; }
-
-    bool finished() const { return not bool(file_); }
-
-    void next();
+struct Range {
+    int  begin = 0, end = 0;
+    bool empty() const { return begin >= end; }
 };
 
-class Config {
-   private:
-    std::vector<State> states_;
+struct Level {
+    std::vector<const char *> names;
+    std::vector<Range>        children;  // in the upper level
+    std::vector<int>          parent;    // in the lower level
+    std::vector<State>        state;     // State of each option
 
-    static constexpr size_t max_id_ = 9;
-
-    template <typename T>
-    void read(ConfigLines& lines) {
-        assert(lines.name() == name<T>());
-        lines.next();
-        set(T::id, lines.state());
-        while (lines.level() > level<T>()) {
-            if (lines.level() != level<T>() + 1) {
-                error(".minicc:{}:0: Wrong indentation level.", lines.lin());
-            }
-            bool processed = false;
-            for (OptionInfo info : children<T>()) {
-                if (lines.name() == info.name) {
-                    processed = true;
-                    (*info.read)(lines);
-                }
-            }
-            if (not processed) {
-                error(".minicc:{}:0: Unexpected option '{}'.", lines.lin(), lines.name());
-            }
-        }
-    }
-
-   public:
-    State get(size_t id) { return states_[id]; }
-
-    void set(size_t id, State value) {
-        if (id >= states_.size()) {
-            states_.resize(id + 1, No);
-        }
-        assert(value == Yes || value == No);
-        states_[id] = value;
-    }
-
-    template <typename T>
-    State get() {
-        return get(T::id);
-    }
-
-    template <typename T>
-    void set(State value) {
-        set(T::id, value);
-    }
-
-    void read() { ConfigLines config_lines(".minicc"); }
+    size_t size() const { return names.size(); }
 };
+
+void read_config(std::istream& in, ID id);
+
+extern std::vector<Level> levels;
+
+void read_from_file();
+
+inline std::string get_name(ID id) {
+    return levels[id.level].names[id.index];
+}
+
+inline ID parent(ID id) {
+    assert(id.level < levels.size());
+    assert(id.index < levels[id.level].state.size());
+    int i = levels[id.level].parent[id.index];
+    return ID(id.level - 1, i);
+}
+
+inline Range children(ID id) {
+    assert(id.level < levels.size());
+    if (id.index >= levels[id.level].children.size()) {
+        return {0, 0};
+    }
+    return levels[id.level].children[id.index];
+}
+
+inline State get(ID id) {
+    assert(id.level < levels.size());
+    assert(id.index < levels[id.level].state.size());
+    return levels[id.level].state[id.index];
+}
+
+void set(ID id, State new_state);
+
+void show();
+void show_all_options();
+
+void recompute_all();
+
+}  // namespace Config
 
 #endif

@@ -16,6 +16,8 @@ ICommand *parse_args(Args args) {
         return parse_args<Lex>(args.from(1));
     } else if (command_name == "parse") {
         return parse_args<Parse>(args.from(1));
+    } else if (command_name == "config") {
+        return parse_args<ShowConfig>(args.from(1));
     }
 
     cerr << "Unknown command '" << command_name << "'." << endl;

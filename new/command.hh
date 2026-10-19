@@ -2,7 +2,6 @@
 #define COMMAND_HH
 
 #include <cassert>
-#include <iostream>
 #include <string>
 #include <vector>
 
@@ -54,11 +53,14 @@ ICommand *parse_args(Args args) {
     return new Command<CmdFn>(args);
 }
 
+//
+// Add commands here:
 #define COMMAND(cmd_name) int cmd_name(Args args);
-
 COMMAND(Help)
 COMMAND(Lex)
 COMMAND(Parse)
+COMMAND(ShowConfig)
+//
 
 // If we want to make subcommands in Parse, we can implement parse_args<Parse>...
 template <>
