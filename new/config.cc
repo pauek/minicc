@@ -70,6 +70,7 @@ strings
 bit_ops
         bit_and
         bit_or
+        bit_xor
 */
 
 std::vector<Level> levels = {
@@ -78,7 +79,7 @@ std::vector<Level> levels = {
     {{"substr", "char_access", "bit_and", "bit_or", "bit_xor"},
      {},
      {0, 0, 1, 1},
-     {Yes, No, Yes, No, Yes}                                                                           }
+     {Yes, No, Yes, No, Yes}                                                                      }
 };
 
 //

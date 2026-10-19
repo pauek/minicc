@@ -120,6 +120,11 @@ int Parse(Args args) {
 int ShowConfig(Args args) {
 	Config::recompute_all();
 
+	auto state1 = Config::get<Config::strings::substr>();
+	auto state2 = Config::get<Config::strings>();
+	cout << "-> " << Config::state_to_str(state1) << endl;
+	cout << "-> " << Config::state_to_str(state2) << endl;
+
     Config::show();
     cout << endl;
 

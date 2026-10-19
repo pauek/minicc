@@ -82,6 +82,29 @@ struct Range {
     bool empty() const { return begin >= end; }
 };
 
+
+// Access to configuration by name a.b.c (typed)
+
+template <uint8_t level, uint32_t index>
+struct Option {
+	static ID id() { return ID(level, index); }
+};
+
+template <uint8_t level, uint32_t index>
+const Option<level, index>::ID id(level, index);
+
+struct strings : Option<1, 0> {
+	struct substr : Option<2, 0> {};
+	struct char_access : Option<2, 1> {};
+};
+struct bit_ops : Option<1, 1> {
+	struct bit_and : Option<2, 2> {};
+	struct bit_or : Option<2, 3> {};
+	struct bit_xor : Option<2, 4> {};
+};
+
+// Config levels
+
 struct Level {
     std::vector<const char *> names;
     std::vector<Range>        children;  // in the upper level
@@ -114,6 +137,11 @@ inline Range children(ID id) {
         return {0, 0};
     }
     return levels[id.level].children[id.index];
+}
+
+template <typename Opt>
+inline State get() {
+    return get(Opt::id());
 }
 
 inline State get(ID id) {
