@@ -149,7 +149,7 @@ inline void set(State new_state) {
     return set(Opt::id(), new_state);
 }
 
-void show();
+void show(bool all = false);
 void show_all_options();
 
 void recompute_all();

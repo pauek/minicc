@@ -65,15 +65,23 @@ void show_all_options() {
 
 struct ConfigDumper {
     ostream& out;
-    ConfigDumper(ostream& out_) : out(out_) {}
+    bool     show_all;
+
+    ConfigDumper(ostream& out_, bool show_all_ = false) : out(out_), show_all(show_all_) {}
 
     void show_config(ID id) {
         string indent(id.level * 4, ' ');
         auto   state = get(id);
-        if (state != No) {
-            out << indent << get_name(id) << ": " << (state == Yes ? "yes" : "") << endl;
+        if (show_all || state != No) {
+            out << indent << get_name(id) << ": ";
+            if (show_all) {
+                out << state_to_str(state);
+            } else {
+                out << (state == Yes ? "yes" : "");
+            }
+            out << endl;
             auto ch = children(id);
-            if (not ch.empty() && get(id) == Some) {
+            if (show_all || (not ch.empty() && get(id) == Some)) {
                 for (auto i = ch.begin; i < ch.end; i++) {
                     show_config(ID(id.level + 1, i));
                 }
@@ -82,14 +90,24 @@ struct ConfigDumper {
     }
 };
 
-void show() {
-    ConfigDumper(cout).show_config(ID(0, 0));
+void show(bool all) {
+    ConfigDumper(cout, all).show_config(ID(0, 0));
 }
 
 // Set an option
 
+void set__(ID id, State new_state) {
+    assert(id.level < levels.size());
+    assert(id.index < levels[id.level].state.size());
+
+    levels[id.level].state[id.index] = new_state;
+}
+
 void recompute_state(ID id) {
     auto ch = children(id);
+    if (ch.empty()) {
+    	return;
+    }
     bool all = true, none = true;
     for (auto i = ch.begin; i < ch.end; i++) {
         auto child_id = ID(id.level + 1, i);
@@ -109,16 +127,17 @@ void recompute_state(ID id) {
     } else if (none) {
         new_state = No;
     }
-    levels[id.level].state[id.index] = new_state;
+    set__(id, new_state);
 }
 
 void recompute_all() {
-    for (int i = levels.size() - 2; i >= 0; i--) {
+    for (int i = levels.size() - 1; i >= 0; i--) {
         for (int j = 0; j < levels[i].size(); j++) {
             recompute_state(ID(i, j));
         }
     }
 }
+
 
 // Propagate to parents (recursively), to recompute affected options
 void propagate_up(ID id) {
@@ -136,21 +155,16 @@ void propagate_down(ID id, State new_state) {
     if (not ch.empty()) {
         for (auto i = ch.begin; i < ch.end; i++) {
             auto child_id = ID(id.level + 1, i);
-            set(child_id, new_state);
+            set__(child_id, new_state);
             propagate_down(child_id, new_state);
         }
     }
 }
 
+// Set and propagate
 void set(ID id, State new_state) {
-    assert(new_state != Some);  // It does not make sense to set a state such as "Some"
-    assert(id.level < levels.size());
-    assert(id.index < levels[id.level].state.size());
-
-    // Set state for this id
-    levels[id.level].state[id.index] = new_state;
-
-    // Propagate up & down
+	assert(new_state != Some);  // It does not make sense to set a state such as "Some"
+	set__(id, new_state);
     propagate_down(id, new_state);
     propagate_up(id);
 }
