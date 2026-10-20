@@ -161,6 +161,10 @@ void generate_structs(string filename, const vector<vector<Node>>& levels) {
 int main() {
     vector<vector<Node>> levels;
     read_levels("../config.options", levels);
+
     generate_level_vector("../config.levels.cc.inc", levels);
+    cout << "Generated \"../config.levels.cc.inc\"" << endl;
+
     generate_structs("../config.types.cc.inc", levels);
+    cout << "Generate \"../config.types.cc.inc\"" << endl;
 }

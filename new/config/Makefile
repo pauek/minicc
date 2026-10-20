@@ -1,26 +1,21 @@
 CXX=clang++
 
-SOURCES=$(wildcard *.cc)
-HEADERS=$(wildcard *.hh)
+SOURCES=gen.cc ../utils.cc
+HEADERS=utils.hh
+
 OBJECTS=$(patsubst %.cc,%.o,$(SOURCES))
 
 CXXFLAGS=-std=c++20 -g3
 
 all: gen
 
-.depend: $(SOURCES) $(HEADERS)
-	@rm -f .depend
-	@$(CC) $(CXXFLAGS) -MM $^ >> .depend;
-
--include .depend
-
-gen: .depend $(OBJECTS)
+gen: $(OBJECTS)
 	$(CXX) $(CXXFLAGS) -o gen $(OBJECTS)
 
+generate:
+	@./gen
+
 clean:
-	@rm -f .depend gen $(OBJECTS)
+	rm -f .depend gen $(OBJECTS)
 
-format:
-	@clang-format -i $(SOURCES) $(HEADERS)
-
-.PHONY: format
+.PHONY: clean generate
