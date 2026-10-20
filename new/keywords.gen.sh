@@ -4,6 +4,8 @@ for keyword in $(cat keywords); do
 	echo "KEYWORD($KEYWORD, $keyword)"
 done > keywords.inc
 
+echo "Generated \"keywords.inc\""
+
 # `keywords` is (supposed to be) **in lexicographical order**
 (
 	KEYWORDS=$(cat keywords)
@@ -31,3 +33,5 @@ done > keywords.inc
 	echo "    break;"
 	echo "}"
 ) > keyword_switch.inc
+
+echo "Generated \"keywords_switch.inc\""
