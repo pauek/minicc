@@ -12,10 +12,10 @@ all: gen
 gen: $(OBJECTS)
 	$(CXX) $(CXXFLAGS) -o gen $(OBJECTS)
 
-generate:
+.PHONY: clean run
+
+run:
 	@./gen
 
 clean:
-	rm -f .depend gen $(OBJECTS)
-
-.PHONY: clean generate
+	@rm -f gen $(OBJECTS)
