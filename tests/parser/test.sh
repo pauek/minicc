@@ -12,6 +12,11 @@ function run_test() {
 	# Remove the prefix `./` from `find`
 	clean_filename_cc=${filename_cc#./}
 
+    # This tests might have a special configuration file .minicc, link to it
+	if [ -s "$filename.minicc" ]; then
+	    ln -s "$filename.minicc" .minicc
+	fi
+
 	# Run `minicc` with the test
 	../../minicc parse $clean_filename_cc > $output 2> $errors
 	RETURN_CODE=$?
@@ -61,6 +66,9 @@ function run_test() {
 			cp $output $filename.out
 		fi
 	fi
+
+    # Remove config file (if it was created)
+    rm -f .minicc
 
 	# Show result
 	echo -n $RESULT

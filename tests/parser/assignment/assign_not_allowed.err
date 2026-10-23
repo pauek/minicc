@@ -1,0 +1,3 @@
+assignment/assign_not_allowed.cc:2:5: parse error: Assignment is not allowed with current config.
+    |     a = 1;
+    |     ^

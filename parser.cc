@@ -2,6 +2,7 @@
 
 #include <string>
 
+#include "config.hh"
 #include "astcpp.hh"
 #include "tokens.hh"
 #include "utils.hh"
@@ -383,6 +384,9 @@ Ref<IncrStmt> Parser::parse_incr_stmt() {
 }
 
 Ref<AssignStmt> Parser::parse_assign_stmt() {
+    if (Config::get<Config::instructions::assignment>() == Config::No) {
+        error("Assignment is not allowed with current config.");
+    }
     assert(at(IDENT));
     AssignStmt stmt;
     stmt.assign = parse_assign_expr();

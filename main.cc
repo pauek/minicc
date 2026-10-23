@@ -4,6 +4,7 @@ using namespace std;
 
 #include "command.hh"
 #include "error.hh"
+#include "config.hh"
 
 ICommand *parse_args(Args args) {
     if (args.empty()) {
@@ -25,6 +26,8 @@ ICommand *parse_args(Args args) {
 }
 
 int main(int argc, char *argv[]) {
+    Config::read_from_file();
+
     Args args(argc, argv);
     try {
         auto *command = parse_args(args.from(1));

@@ -171,7 +171,7 @@ struct ConfigReader {
 void read_from_file() {
     ID all(0, 0);
 
-    // Reset everything to 'No'
+    // By default, all configuration options are true (max. features)
     set(all, Yes);
 
     // Read the configuration at the current directory

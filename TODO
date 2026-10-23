@@ -1,1 +1,2 @@
-- Sacar errores del AST.
+- Acumular errores al hacer parsing (High-Level Lexer?).
+- Permitir tabuladores en la configuración.
