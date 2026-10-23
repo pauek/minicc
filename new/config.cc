@@ -134,15 +134,15 @@ struct ConfigReader {
             }
 
             // If the level is lower, unwind the stack
-            if (config_line.level < id.level) {
-                while (stack.top().level >= config_line.level) {
-                    stack.pop();
-                }
-                // Replace the current id
-                id = stack.top();
-            } else if ((id == ID::none && config_line.level != 0) || (config_line.level != id.level + 1)) {
-                // If the level higher but too deep, show an error
-                int indent = config_line.level * 4;
+            while (stack.top().level >= config_line.level) {
+                stack.pop();
+            }
+            // Replace the current id
+            id = stack.top();
+
+            // Check that the level is not too deep
+            if ((id == ID::none && config_line.level != 0) || (config_line.level != id.level + 1)) {
+                int indent = config_line.level * 4 + 1;
                 error("{}:{}:{}: Unexpected indentation level", CONFIG_FILE, lin, indent);
                 break;
             }
@@ -161,7 +161,6 @@ struct ConfigReader {
             // If there is a value, set it
             if (config_line.value != State::None) {
                 set(child_id, config_line.value);
-                cout << "set " << config_line.name << " " << state_to_str(config_line.value) << endl;
             }
 
             stack.push(child_id);
@@ -217,9 +216,9 @@ struct ConfigDumper {
     void show_config(ID id) {
         string indent(id.level * 4, ' ');
         auto   state = get(id);
-        if (show_all || state != No) {
+        if (show_all || id.level == 0 || state != No) {
             out << indent << get_name(id) << ": ";
-            if (show_all) {
+            if (show_all || (id.level == 0 && state == No)) {
                 out << state_to_str(state);
             } else {
                 out << (state == Yes ? "yes" : "");

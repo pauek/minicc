@@ -1,6 +1,5 @@
 all:
-    instructions:
-        assignment: no
-    library:
-        cctype:
-            islower: no
+    functions:
+        pass_by_reference: no
+    loops:
+        for_loop: no
