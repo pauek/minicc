@@ -1,0 +1,3 @@
+for_stmt/for_stmt_not_allowed.cc:2:5: parse error: `for` is not allowed with current config.
+    |     for (int a = 1; a < 10; a++) {
+    |     ^

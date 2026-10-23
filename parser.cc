@@ -423,6 +423,10 @@ Ref<IfStmt> Parser::parse_if_stmt() {
 }
 
 Ref<WhileStmt> Parser::parse_while_stmt() {
+    if (Config::get<Config::loops::while_loop>() == Config::No) {
+        error("`while` is not allowed with current config.");
+    }
+
     assert(at(WHILE));
     advance(1);
 
@@ -500,6 +504,10 @@ ForInitStmt Parser::parse_for_init() {
 }
 
 Ref<ForStmt> Parser::parse_for_stmt() {
+    if (Config::get<Config::loops::for_loop>() == Config::No) {
+        error("`for` is not allowed with current config.");
+    }
+
     assert(at(FOR));
     advance(1);
 

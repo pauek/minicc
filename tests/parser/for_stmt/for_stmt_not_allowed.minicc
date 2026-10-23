@@ -1,0 +1,3 @@
+all:
+    loops:
+        for_loop: no

@@ -1,0 +1,3 @@
+while_stmts/while_stmt_not_allowed.cc:2:5: parse error: `while` is not allowed with current config.
+    |     while (a == 3) {
+    |     ^
