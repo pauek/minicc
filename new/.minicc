@@ -1,0 +1,6 @@
+all:
+    instructions:
+        assignment: no
+    library:
+        cctype:
+            islower: no

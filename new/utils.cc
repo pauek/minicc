@@ -46,32 +46,3 @@ bool all_spaces(std::string line) {
     }
     return true;
 }
-
-NameLevel split_config_line(string filename, string line, int lin) {
-    size_t col = 1;
-    while (col <= line.size() && isspace(line[col - 1])) {
-        col++;
-    }
-    int indent = col - 1;
-    if (indent % 4 != 0) {
-        error("{}:{}:{}: Indentation levels have to be multiples of 4 spaces!", filename, lin, col);
-    }
-
-    NameLevel result = {
-        .name = "",
-        .level = uint8_t(indent / 4),
-    };
-    while (col <= line.size()) {
-        char ch = line[col - 1];
-        if (isspace(ch)) {
-            error("{}:{}:{}: Spaces are not allowed config names.", filename, lin, col);
-        }
-        if (not allowed_char(ch)) {
-            error("{}:{}:{}: Character '{}' not allowed in config names.", filename, lin, col, ch);
-        }
-        result.name += ch;
-        col++;
-    }
-
-    return result;
-}

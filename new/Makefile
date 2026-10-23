@@ -44,7 +44,7 @@ install: minicc
 
 # Generators
 # '&:' means that only one invocation is necessary to produce both files!
-keywords.inc keyword_switch.inc &: keywords.gen.sh
+keywords.inc keyword_switch.inc &: keywords.gen.sh keywords
 	@bash keywords.gen.sh
-config.levels.cc.inc config.types.cc.inc &: config/gen.cc
+config.levels.cc.inc config.types.cc.inc &: config/gen.cc config.options
 	@make -C ./config run

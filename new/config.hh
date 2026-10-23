@@ -3,7 +3,7 @@
 
 #include <cassert>
 #include <cstdint>
-#include <iostream>
+#include <string>
 #include <vector>
 
 /*
@@ -50,7 +50,7 @@ Fields for each level:
 
 namespace Config {
 
-enum State { No = 0, Some = 1, Yes = 2 };
+enum State { None = -1, No = 0, Some = 1, Yes = 2 };
 
 inline const char *state_to_str(State state) {
     switch (state) {
@@ -60,12 +60,16 @@ inline const char *state_to_str(State state) {
             return "some";
         case Yes:
             return "yes";
+        case None:
+            return "";
     }
 }
 
-struct ID {                  // 32 bit
-    unsigned int level : 4;  // 16 levels maximum (more than enough!)
-    unsigned int index : 28;
+struct ID {         // 32 bit
+    int level : 4;  // 16 levels maximum (more than enough!)
+    int index : 28;
+
+    ID() : level(-1), index(-1) {}
 
     ID(uint8_t level_, uint32_t index_) {
         assert(level_ < 16);
@@ -73,6 +77,11 @@ struct ID {                  // 32 bit
         level = level_;
         index = index_;
     }
+
+    static ID none;
+
+    bool operator==(const ID& other) const { return level == other.level && index == other.index; }
+    bool operator==(ID& other) { return level == other.level && index == other.index; }
 
     bool is_all() { return level == 0 && index == 0; }
 };
@@ -82,12 +91,11 @@ struct Range {
     bool empty() const { return begin >= end; }
 };
 
-
 // Access to configuration by name a.b.c (typed)
 
 template <uint8_t level, uint32_t index>
 struct Option {
-	static ID id() { return ID(level, index); }
+    static ID id() { return ID(level, index); }
 };
 
 template <uint8_t level, uint32_t index>
@@ -106,13 +114,38 @@ struct Level {
     size_t size() const { return names.size(); }
 };
 
-void read_config(std::istream& in, ID id);
-
 extern std::vector<Level> levels;
+
+// Split Config Line
+
+struct Error {
+    bool        present;
+    std::string message;
+    int         lin, col;
+
+    Error() : present(false) {}
+    Error(std::string msg, int lin_, int col_)
+        : present(true), message(msg), lin(lin_), col(col_) {}
+};
+
+struct ConfigLine {
+    Error error;
+
+    std::string   name;
+    int           level;
+    Config::State value;
+};
+
+ConfigLine split_config_line(std::string line, int lin);
+
+//
 
 void read_from_file();
 
 inline std::string get_name(ID id) {
+    if (id == ID::none) {
+        return "<none>";
+    }
     return levels[id.level].names[id.index];
 }
 
@@ -129,6 +162,21 @@ inline Range children(ID id) {
         return {0, 0};
     }
     return levels[id.level].children[id.index];
+}
+
+inline ID find_child(ID id, std::string name) {
+    if (id == ID::none) {
+        return name == "all" ? ID(0, 0) : ID();
+        return ID(0, 0);
+    }
+    Range child_idxs = children(id);
+    for (int i = child_idxs.begin; i < child_idxs.end; i++) {
+        ID child(id.level + 1, i);
+        if (get_name(child) == name) {
+            return child;
+        }
+    }
+    return ID();
 }
 
 template <typename Opt>

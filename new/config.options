@@ -1,9 +1,26 @@
 all
+    instructions
+        assignment
+        cout
+        cin
     strings
         size
         char_access
         substr
-            two_params
+    library
+        algorithm
+            swap
+            min
+            max
+        cctype
+            islower
+            isupper
+            isdigit
+            isalpha
+            isspace
+            isalnum
+            toupper
+            tolower
     bit_ops
         bit_and
         bit_or

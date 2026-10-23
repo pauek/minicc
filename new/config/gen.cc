@@ -4,6 +4,7 @@
 using namespace std;
 
 #include "../utils.hh"
+#include "../config.hh"
 
 struct ID {                  // 32 bit
     unsigned int level : 4;  // 16 levels maximum (more than enough!)
@@ -55,7 +56,15 @@ void read_levels(string filename, vector<vector<Node>>& levels) {
         if (all_spaces(line)) {
             error("../config.options:{}:1: Empty lines are not allowed", lin);
         }
-        auto [name, level] = split_config_line(filename, line, lin);
+        auto config_line = Config::split_config_line(line, lin);
+        if (config_line.error.present) {
+        	const auto& err = config_line.error;
+        	error("{}:{}:{}:{}", filename, err.lin, err.col, err.message);
+        }
+
+        // Extract info from the config line
+        auto level = config_line.level;
+        auto name = config_line.name;
 
         // Manage changes in level
         auto level_change = level - last_level;

@@ -18,10 +18,4 @@ void error(std::format_string<Args...> fmt, Args&&...args) {
 bool all_spaces(std::string line);
 bool allowed_char(char c);
 
-struct NameLevel {
-    std::string name;
-    uint8_t     level;
-};
-NameLevel split_config_line(std::string filename, std::string line, int lin);
-
 #endif

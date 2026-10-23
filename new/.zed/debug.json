@@ -11,7 +11,7 @@
 			"cwd": "$ZED_WORKTREE_ROOT",
 		},
 		"program": "$ZED_WORKTREE_ROOT/minicc",
-		"args": ["config", "tests/parser/incr_stmt/incr_stmt.cc"],
+		"args": ["config"],
 		"request": "launch",
 		"adapter": "CodeLLDB",
 	},

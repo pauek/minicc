@@ -23,9 +23,16 @@ class Error {
     virtual const char *error_type() = 0;
 };
 
+class ConfigError : public Error {
+   public:
+    ConfigError(std::string filename, LinCol pos, std::string msg) : Error(filename, pos, msg) {}
+
+    const char *error_type() override { return "config"; }
+};
+
 class LexError : public Error {
    public:
-    LexError(std::string filename, LinCol pos_, std::string msg_) : Error(filename, pos_, msg_) {}
+    LexError(std::string filename, LinCol pos, std::string msg) : Error(filename, pos, msg) {}
 
     const char *error_type() override { return "lex"; }
 };
@@ -56,8 +63,8 @@ class ParseError : public Error {
         // regard to tabs, and will position the arrow correctly.
         //
         for (size_t i = 0; i < pos.col - 1; i++) {
-        	char c = codeline[i];
-         	out << (isspace(c) ? c : ' ');
+            char c = codeline[i];
+            out << (isspace(c) ? c : ' ');
         }
         out << '^' << std::endl;
     }
