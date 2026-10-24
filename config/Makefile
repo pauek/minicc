@@ -1,6 +1,6 @@
 CXX=clang++
 
-SOURCES=gen.cc ../utils.cc
+SOURCES=gen.cc config-line.cc ../utils.cc
 HEADERS=utils.hh
 
 OBJECTS=$(patsubst %.cc,%.o,$(SOURCES))

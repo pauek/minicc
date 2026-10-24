@@ -83,7 +83,7 @@ void Lexer::lex_identifier_or_keyword() {
 
     // Look for a keyword, 1-level switch using starting letter
     switch (ident[0]) {
-#include "keyword_switch.inc"
+#include "generated/keyword_switch.inc"
     }
 
     push(tok, start, end);

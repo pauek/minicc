@@ -2,7 +2,7 @@
 for keyword in $(cat keywords); do
 	KEYWORD=$(echo $keyword | tr a-z A-Z)
 	echo "KEYWORD($KEYWORD, $keyword)"
-done > keywords.inc
+done > ./generated/keywords.inc
 
 echo "Generated \"keywords.inc\""
 
@@ -32,6 +32,6 @@ echo "Generated \"keywords.inc\""
 	echo "    }"
 	echo "    break;"
 	echo "}"
-) > keyword_switch.inc
+) > ./generated/keyword_switch.inc
 
 echo "Generated \"keywords_switch.inc\""

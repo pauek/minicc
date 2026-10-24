@@ -24,7 +24,7 @@ enum TokenID {
 #undef TOKEN
 	BEFORE_KEYWORDS,
 #define KEYWORD(id, name) id,
-#include "keywords.inc"
+#include "generated/keywords.inc"
 #undef KEYWORD
 	AFTER_KEYWORDS,
 };

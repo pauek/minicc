@@ -6,6 +6,9 @@
 #include <string>
 #include <vector>
 
+#include "config/config.hh"
+#include "config/config-line.hh"
+
 /*
 
 Configuration
@@ -50,42 +53,6 @@ Fields for each level:
 
 namespace Config {
 
-enum State { None = -1, No = 0, Some = 1, Yes = 2 };
-
-inline const char *state_to_str(State state) {
-    switch (state) {
-        case No:
-            return "no";
-        case Some:
-            return "some";
-        case Yes:
-            return "yes";
-        case None:
-            return "";
-    }
-}
-
-struct ID {         // 32 bit
-    int level : 4;  // 16 levels maximum (more than enough!)
-    int index : 28;
-
-    ID() : level(-1), index(-1) {}
-
-    ID(uint8_t level_, uint32_t index_) {
-        assert(level_ < 16);
-        assert(index_ < 0x1000000);
-        level = level_;
-        index = index_;
-    }
-
-    static ID none;
-
-    bool operator==(const ID& other) const { return level == other.level && index == other.index; }
-    bool operator==(ID& other) { return level == other.level && index == other.index; }
-
-    bool is_all() { return level == 0 && index == 0; }
-};
-
 struct Range {
     int  begin = 0, end = 0;
     bool empty() const { return begin >= end; }
@@ -101,7 +68,7 @@ struct Option {
 template <uint8_t level, uint32_t index>
 const Option<level, index>::ID id(level, index);
 
-#include "config.types.cc.inc"
+#include "generated/config-types.hh"
 
 // Config levels
 
@@ -116,29 +83,6 @@ struct Level {
 
 extern std::vector<Level> levels;
 
-// Split Config Line
-
-struct Error {
-    bool        present;
-    std::string message;
-    int         lin, col;
-
-    Error() : present(false) {}
-    Error(std::string msg, int lin_, int col_)
-        : present(true), message(msg), lin(lin_), col(col_) {}
-};
-
-struct ConfigLine {
-    Error error;
-
-    std::string   name;
-    int           level;
-    Config::State value;
-};
-
-ConfigLine split_config_line(std::string line, int lin);
-
-//
 
 void read_from_file();
 

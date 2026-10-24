@@ -1,25 +1,16 @@
 #include <fstream>
-#include <vector>
 #include <cassert>
+#include <vector>
 using namespace std;
 
+#include "./config.hh"
+#include "./config-line.hh"
 #include "../utils.hh"
-#include "../config.hh"
 
-struct ID {                  // 32 bit
-    unsigned int level : 4;  // 16 levels maximum (more than enough!)
-    unsigned int index : 28;
 
-    ID(uint8_t level_, uint32_t index_) {
-        level = level_;
-        index = index_;
-    }
-
-    bool is_all() { return level == 0 && index == 0; }
-};
 
 struct Node {
-    ID  id;
+    Config::ID  id;
     int         parent = -1;
     string      name;
     pair<int, int> children = {-1, -1};
@@ -89,7 +80,7 @@ void read_levels(string filename, vector<vector<Node>>& levels) {
             levels.resize(level + 1, {});
         }
         auto index = levels[level].size();
-        auto id = ID(level, index);
+        auto id = Config::ID(level, index);
         levels[level].push_back({id, -1, name, {-1, -1}});
 
         lin++;
@@ -151,9 +142,9 @@ struct StructGen {
 
     StructGen(ostream& out_, const vector<vector<Node>>& levels_) : out(out_), levels(levels_) {}
 
-    const Node& node(ID id) { return levels[id.level][id.index]; }
+    const Node& node(Config::ID id) { return levels[id.level][id.index]; }
 
-    void generate(ID id) {
+    void generate(Config::ID id) {
         const auto& n = node(id);
         if (id.level > 0) {
             out << string((id.level - 1) * 4, ' ') << "struct " << n.name << " : Option<"
@@ -165,7 +156,7 @@ struct StructGen {
             out << endl;
             auto [begin, end] = n.children;
             for (auto i = begin; i < end; i++) {
-                generate(ID(id.level + 1, i));
+                generate(Config::ID(id.level + 1, i));
             }
             if (id.level > 0) {
                 out << string((id.level - 1) * 4, ' ') << "};" << endl;
@@ -176,16 +167,16 @@ struct StructGen {
 
 void generate_structs(string filename, const vector<vector<Node>>& levels) {
     ofstream fout(filename);
-    StructGen(fout, levels).generate(ID(0, 0));
+    StructGen(fout, levels).generate(Config::ID(0, 0));
 }
 
 int main() {
     vector<vector<Node>> levels;
     read_levels("../config.options", levels);
 
-    generate_level_vector("../config.levels.cc.inc", levels);
-    cout << "Generated \"../config.levels.cc.inc\"" << endl;
+    generate_level_vector("../generated/config-levels.cc", levels);
+    cout << "Generated \"../generated/config-levels.cc\"" << endl;
 
-    generate_structs("../config.types.cc.inc", levels);
-    cout << "Generated \"../config.types.cc.inc\"" << endl;
+    generate_structs("../generated/config-types.hh", levels);
+    cout << "Generated \"../generated/config-types.hh\"" << endl;
 }
