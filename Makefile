@@ -33,7 +33,7 @@ generated/config-levels.cc generated/config-types.hh &: config/gen.cc config.opt
 
 .depend: $(SOURCES) $(HEADERS)
 	@rm -f .depend
-	$(CC) $(CXXFLAGS) -MM $^ >> .depend;
+	@$(CC) $(CXXFLAGS) -MM $^ >> .depend;
 
 -include .depend
 config.cc: config/config-line.cc
