@@ -82,4 +82,25 @@ struct Tokens {
     void dump(std::ostream& out) const;
 };
 
+// High-Level Tokens
+
+enum HLTokenID {
+#define HLTOKEN(id) id,
+#include "hl-tokens.inc"
+#undef HLTOKEN
+};
+
+struct HLTokens {
+    const Tokens& tokens_;
+
+    std::vector<HLTokenID> ids;
+    std::vector<uint32_t>  start_pos, end_pos;
+
+    HLTokens(const Tokens& tokens) : tokens_(tokens) {}
+
+    size_t size() const { return tokens_.ids.size(); }
+
+    // void dump(std::ostream& out) const;
+};
+
 #endif
