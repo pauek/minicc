@@ -4,18 +4,18 @@
 #include <iostream>
 
 #include "astcpp.hh"
-#include "tokens.hh"
+#include "parser.hh"
 
 class AstDumper {
     std::ostream& out_;
-    const Tokens& tokens_;
+    const Parser& parser_;
     int           indent_ = 0;
 
     string indent() const { return string(4 * indent_, ' '); }
     void   indent(int di) { indent_ += di; }
 
    public:
-    AstDumper(std::ostream& out, const Tokens& tokens) : out_(out), tokens_(tokens) {}
+    AstDumper(std::ostream& out, const Parser& parser) : out_(out), parser_(parser) {}
 
     void new_line() { out_ << endl; }
 

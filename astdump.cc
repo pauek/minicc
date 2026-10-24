@@ -12,9 +12,9 @@ void AstDumper::dump(const Macro& M) {
     out_ << indent() << '#' << M.name;
     for (size_t i = M.start; i < M.end; i++) {
         // Just skip ESC and ENDL since they were parsed already
-        TokenID tok_id = tokens_.ids[i];
+        TokenID tok_id = parser_.tokens().ids[i];
         if (tok_id != ESC && tok_id != ENDL) {
-            out_ << ' ' << tokens_.str(i);
+            out_ << ' ' << parser_.tokens().str(i);
         }
     }
     out_ << endl;

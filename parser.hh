@@ -18,7 +18,9 @@ class Parser {
 
     template <class... Args>
     void error(std::format_string<Args...> fmt, Args&&...args) {
-        throw new ParseError(lexer_.tokens(), lexer_.tokens().token_line_col(pos_), std::format(fmt, args...));
+        throw new ParseError(
+            lexer_.tokens(), lexer_.tokens().token_line_col(pos_), std::format(fmt, args...)
+        );
     }
 
     void save() { stack_.push(pos_); }
@@ -29,8 +31,6 @@ class Parser {
         pos_ = stack_.top();
         stack_.pop();
     }
-
-    const Tokens& tokens() const { return lexer_.tokens(); }
 
     TokenID     curr() const { return tokens().ids[pos_]; }
     std::string curr_str() const { return tokens().str(pos_); }
@@ -106,10 +106,11 @@ class Parser {
     void next();
 
    public:
-    Parser(const Lexer& lexer)
-        : lexer_(lexer), pos_(0) {}
+    Parser(const Lexer& lexer) : lexer_(lexer), pos_(0) {}
 
     Ref<Program> run();
+
+    const Tokens& tokens() const { return lexer_.tokens(); }
 };
 
 #endif

@@ -108,7 +108,7 @@ int Parse(Args args) {
             auto   program = parser.run();
 
             // Show result
-            AstDumper ast_dumper(cout, lexer.tokens());
+            AstDumper ast_dumper(cout, parser);
             ast_dumper.dump(program.get());
 
         } catch (Error *e) {
