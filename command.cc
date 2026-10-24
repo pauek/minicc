@@ -52,7 +52,8 @@ int Lex(Args args) {
         }
         try {
             Lexer lexer(text, filename);
-            lexer.run().dump(cout);
+            lexer.run();
+            lexer.tokens().dump(cout);
         } catch (LexError *e) {
             e->print(cerr);
             return 1;
@@ -100,14 +101,14 @@ int Parse(Args args) {
         try {
             // Lexer pass
             Lexer lexer(text, filename);
-            auto  tokens = lexer.run();
+            lexer.run();
 
             // Parser pass
-            Parser parser(tokens, filename);
+            Parser parser(lexer);
             auto   program = parser.run();
 
             // Show result
-            AstDumper ast_dumper(cout, tokens);
+            AstDumper ast_dumper(cout, lexer.tokens());
             ast_dumper.dump(program.get());
 
         } catch (Error *e) {

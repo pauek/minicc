@@ -79,7 +79,10 @@ class Lexer {
         line_size_ = 0;
     }
 
-    const Tokens& run();
+    void run();
+
+    Tokens& tokens() { return tokens_; }
+    const Tokens& tokens() const { return tokens_; }
 };
 
 #endif

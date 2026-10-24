@@ -332,7 +332,7 @@ void Lexer::next() {
     }
 }
 
-const Tokens& Lexer::run() {
+void Lexer::run() {
     next();
     while (not finished()) {
         next();
@@ -341,5 +341,4 @@ const Tokens& Lexer::run() {
     if (line_size_ > 0) {
         tokens_.line_size.push_back(line_size_);
     }
-    return tokens_;
 }

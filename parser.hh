@@ -6,20 +6,19 @@
 
 #include "astcpp.hh"
 #include "error.hh"
-#include "tokens.hh"
+#include "lexer.hh"
 
 class Parser {
-    const Tokens&        tokens_;
+    const Lexer&         lexer_;
     std::vector<TopDecl> top_decls_;
-    std::string          filename_;
     size_t               pos_;
     std::stack<size_t>   stack_;
 
-    bool finished() const { return pos_ >= tokens_.ids.size(); }
+    bool finished() const { return pos_ >= lexer_.tokens().ids.size(); }
 
     template <class... Args>
     void error(std::format_string<Args...> fmt, Args&&...args) {
-        throw new ParseError(tokens_, tokens_.token_line_col(pos_), std::format(fmt, args...));
+        throw new ParseError(lexer_.tokens(), lexer_.tokens().token_line_col(pos_), std::format(fmt, args...));
     }
 
     void save() { stack_.push(pos_); }
@@ -31,12 +30,14 @@ class Parser {
         stack_.pop();
     }
 
-    TokenID     curr() const { return tokens_.ids[pos_]; }
-    std::string curr_str() const { return tokens_.str(pos_); }
+    const Tokens& tokens() const { return lexer_.tokens(); }
 
-    TokenID peek(size_t i) const { return tokens_.ids[pos_ + i]; }
+    TokenID     curr() const { return tokens().ids[pos_]; }
+    std::string curr_str() const { return tokens().str(pos_); }
 
-    bool at(TokenID tok_id) const { return tokens_.ids[pos_] == tok_id; }
+    TokenID peek(size_t i) const { return tokens().ids[pos_ + i]; }
+
+    bool at(TokenID tok_id) const { return tokens().ids[pos_] == tok_id; }
     bool at_str(const char *expected) const { return curr_str() == expected; }
 
     bool at_type_keyword() const;
@@ -46,8 +47,8 @@ class Parser {
     bool at_assign_token() const { return AssignExpr::is_assign_op(curr()); }
 
     bool at(TokenID tok_id1, TokenID tok_id2) const {
-        return pos_ + 1 < tokens_.ids.size() && tokens_.ids[pos_] == tok_id1 &&
-               tokens_.ids[pos_ + 1] == tok_id2;
+        return pos_ + 1 < tokens().ids.size() && tokens().ids[pos_] == tok_id1 &&
+               tokens().ids[pos_ + 1] == tok_id2;
     }
 
     template <class... Args>
@@ -105,8 +106,8 @@ class Parser {
     void next();
 
    public:
-    Parser(const Tokens& tokens, std::string filename)
-        : tokens_(tokens), filename_(filename), pos_(0) {}
+    Parser(const Lexer& lexer)
+        : lexer_(lexer), pos_(0) {}
 
     Ref<Program> run();
 };

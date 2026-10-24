@@ -18,7 +18,7 @@ TopDecl Parser::parse_macro() {
     // which disable the ENDL after them.
 
     // Get the macro name first, and consume it
-    string macro_name = tokens_.str(pos_).substr(1);
+    string macro_name = tokens().str(pos_).substr(1);
     advance(1);
 
     if (macro_name == "include") {
