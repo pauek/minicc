@@ -1,2 +1,3 @@
+- High-Level lexer.
 - Acumular errores al hacer parsing (High-Level Lexer?).
 - Permitir tabuladores en la configuración.

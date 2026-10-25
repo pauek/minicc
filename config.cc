@@ -5,7 +5,7 @@
 using namespace std;
 
 #include "config.hh"
-#include "utils.hh"
+#include "error.hh"
 #include "config/config-line.hh"
 
 namespace Config {

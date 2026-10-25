@@ -252,7 +252,6 @@ void Lexer::run() {
                 TOKEN_A('}', CLOSE_BRACE)
 
                 TOKEN_A('?', QUESTION)
-                TOKEN_A(':', COLON)
                 TOKEN_A(';', SEMICOLON)
                 TOKEN_A(',', COMMA)
                 TOKEN_A('.', DOT)
@@ -275,6 +274,7 @@ void Lexer::run() {
                 TOKEN_A_AB('%', '=', MOD, MODEQ)
                 TOKEN_A_AB('^', '=', CARET, CARETEQ)
                 TOKEN_A_AB('~', '=', TILDE, TILDEEQ)
+                TOKEN_A_AB(':', ':', COLON, COLONCOLON)
 
 #define TOKEN_A_AA_AB(A, B, ID_A, ID_AA, ID_AB) \
     case A: {                                   \

@@ -3,8 +3,8 @@
 using namespace std;
 
 #include "command.hh"
-#include "error.hh"
 #include "config.hh"
+#include "error.hh"
 
 ICommand *parse_args(Args args) {
     if (args.empty()) {
@@ -15,6 +15,8 @@ ICommand *parse_args(Args args) {
     const string command_name = args[0];
     if (command_name == "lex") {
         return parse_args<Lex>(args.from(1));
+    } else if (command_name == "hlex") {
+        return parse_args<HLex>(args.from(1));
     } else if (command_name == "parse") {
         return parse_args<Parse>(args.from(1));
     } else if (command_name == "config") {

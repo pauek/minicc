@@ -1,9 +1,16 @@
 #ifndef ERROR_HH
 #define ERROR_HH
 
+#include <format>
 #include <iostream>
 
 #include "tokens.hh"
+
+template <class... Args>
+void error(std::format_string<Args...> fmt, Args&&...args) {
+    std::cerr << format(fmt, args...) << std::endl;
+    exit(1);
+}
 
 class Error {
    protected:

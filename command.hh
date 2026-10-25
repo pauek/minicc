@@ -58,6 +58,7 @@ ICommand *parse_args(Args args) {
 #define COMMAND(cmd_name) int cmd_name(Args args);
 COMMAND(Help)
 COMMAND(Lex)
+COMMAND(HLex)
 COMMAND(Parse)
 COMMAND(ShowConfig)
 //

@@ -12,21 +12,52 @@ struct LinCol {
     uint32_t lin, col;
 };
 
-inline std::ostream& operator<<(std::ostream& out, LinCol& lincol) {
+inline std::ostream& operator<<(std::ostream& out, const LinCol& lincol) {
     return out << lincol.lin << ':' << lincol.col;
 }
 
 // Low-Level TokenID
 enum TokenID {
+    NONE = 0,
+
 #define TOKEN(id, name) id,
 #include "tokens.inc"
 #undef TOKEN
+
     BEFORE_KEYWORDS,
 #define KEYWORD(id, name) id,
 #include "generated/keywords.inc"
 #undef KEYWORD
     AFTER_KEYWORDS,
+
 };
+
+inline bool is_separator(TokenID id) {
+    return id == SEMICOLON || id == COMMA;
+}
+
+inline bool is_open_delimiter(TokenID id) {
+    return id == OPEN_BRACE || id == OPEN_PAREN || id == OPEN_BRACKET;
+}
+inline bool is_close_delimiter(TokenID id) {
+    return id == CLOSE_BRACE || id == CLOSE_PAREN || id == CLOSE_BRACKET;
+}
+inline bool is_delimiter(TokenID id) {
+    return is_open_delimiter(id) || is_close_delimiter(id);
+}
+
+inline TokenID closing(TokenID open) {
+    switch (open) {
+        case OPEN_PAREN:
+            return CLOSE_PAREN;
+        case OPEN_BRACE:
+            return CLOSE_BRACE;
+        case OPEN_BRACKET:
+            return CLOSE_BRACKET;
+        default:
+            assert(false);
+    }
+}
 
 // High-Level TokenID
 enum HLTokenID {
@@ -51,13 +82,6 @@ struct Tokens {
     std::vector<TokenID>  ids;
     std::vector<uint32_t> start_pos, end_pos;
     std::vector<uint32_t> line_size;
-
-    struct HighLevel {
-        std::vector<HLTokenID> ids;
-        std::vector<uint32_t>  start_pos, end_pos;
-    };
-
-    HighLevel high;
 
     explicit Tokens(const std::string& input, std::string filename = "<unknown>")
         : input_(input), filename_(filename) {}
@@ -96,12 +120,6 @@ struct Tokens {
         ids.push_back(id);
         start_pos.push_back(start);
         end_pos.push_back(end);
-    }
-
-    void hl_push(HLTokenID id, size_t start, size_t end) {
-        high.ids.push_back(id);
-        high.start_pos.push_back(start);
-        high.end_pos.push_back(end);
     }
 
     void dump(std::ostream& out) const;

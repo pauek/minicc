@@ -1,5 +1,4 @@
 #include <filesystem>
-#include <fstream>
 #include <iostream>
 using namespace std;
 
@@ -7,6 +6,7 @@ using namespace std;
 #include "command.hh"
 #include "config.hh"
 #include "lexer.hh"
+#include "hl-lexer.hh"
 #include "parser.hh"
 #include "printer.hh"
 #include "utils.hh"
@@ -54,12 +54,31 @@ int Lex(Args args) {
             Lexer lexer(text, filename);
             lexer.run();
             lexer.tokens().dump(cout);
-        } catch (LexError *e) {
+        } catch (Error *e) {
             e->print(cerr);
             return 1;
         }
     }
     return 0;
+}
+
+int HLex(Args args) {
+	for (auto filename : args) {
+		string text = read_file(filename);
+		if (args.size() > 1) {
+			cout << filename << ":" << endl;
+		}
+		try {
+			Lexer lexer(text, filename);
+			lexer.run();
+			HLexer hl_lex(lexer);
+			hl_lex.run();
+			hl_lex.dump(cout);
+		} catch (Error *e) {
+			e->print(cerr);
+		}
+	}
+	return 0;
 }
 
 int HelpParse() {

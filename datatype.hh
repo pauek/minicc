@@ -99,6 +99,12 @@ struct Variant {
     bool is() {
         return type_id == T::type_id;
     }
+
+    bool is_none() const { return type_id == None; }
+
+    void operator=(TypeID id) {
+    	type_id = id;
+    }
 };
 
 #endif
