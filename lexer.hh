@@ -15,7 +15,6 @@ class Lexer {
     Tokens             tokens_;
 
     uint32_t pos_, line_size_;
-    uint32_t curr_token_;
 
     template <class... Args>
     void error(std::format_string<Args...> fmt, Args&&...args) {
@@ -69,13 +68,10 @@ class Lexer {
     void lex_char_literal();
     void lex_string_literal();
 
-    void next();
-
    public:
     Lexer(const std::string& input, std::string filename)
         : input_(input), filename_(filename), tokens_(input, filename) {
         pos_ = 0;
-        curr_token_ = 0;
         line_size_ = 0;
     }
 

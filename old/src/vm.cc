@@ -1,6 +1,6 @@
 
 #include "vm.hh"
-#include "ast.hh"
+#include "datatype.hh"
 
 namespace vm {
 

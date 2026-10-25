@@ -3,7 +3,7 @@
 #include <sstream>
 using namespace std;
 
-#include "ast.hh"
+#include "datatype.hh"
 #include "i18n.hh"
 
 bool CommentSeq::has_endln() const {

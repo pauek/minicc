@@ -3,7 +3,7 @@
 
 #include <iostream>
 
-#include "ast.hh"
+#include "datatype.hh"
 
 void        pretty_print(AstNode *node, std::ostream& out = std::cout);
 std::string pretty_to_string(AstNode *node);

@@ -13,9 +13,7 @@ void Lexer::push(TokenID tokid, size_t start, size_t end) {
     // positions you have walked on. For string/char literals, filenames, etc.
     // that is not convenient.
     //
-    tokens_.ids.push_back(tokid);
-    tokens_.start_pos.push_back(start);
-    tokens_.end_pos.push_back(end);
+    tokens_.push(tokid, start, end);
     size_t jump = end - pos_;
     pos_ = end;
     line_size_ += jump;
@@ -176,7 +174,7 @@ void Lexer::lex_char_literal() {
 }
 
 // Returns `true` if the lexer is not finished yet
-void Lexer::next() {
+void Lexer::run() {
     while (not finished()) {
         if (is_space()) {
             advance(1);
@@ -330,13 +328,7 @@ void Lexer::next() {
             }
         }
     }
-}
 
-void Lexer::run() {
-    next();
-    while (not finished()) {
-        next();
-    }
     // The size of the last line might not be filled in yet
     if (line_size_ > 0) {
         tokens_.line_size.push_back(line_size_);

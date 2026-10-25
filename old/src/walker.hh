@@ -2,7 +2,7 @@
 #define WALKER_HH
 #include <assert.h>
 #include <vector>
-#include "ast.hh"
+#include "datatype.hh"
 
 template <typename Delegate>
 struct Walker {

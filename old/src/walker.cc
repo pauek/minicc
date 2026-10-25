@@ -1,5 +1,5 @@
 #include "walker.hh"
-#include "ast.hh"
+#include "datatype.hh"
 using namespace std;
 
 struct ErrorCollector {

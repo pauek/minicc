@@ -55,7 +55,7 @@ struct Ref {
 };
 
 template <IsStruct T, TypeID ID>
-struct AstType {
+struct DataType {
     static constexpr TypeID type_id = ID;
 
     static Ref<T> make(const T& t) {

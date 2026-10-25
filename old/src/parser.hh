@@ -4,7 +4,7 @@
 #include <fstream>
 #include <set>
 
-#include "ast.hh"
+#include "datatype.hh"
 #include "error.hh"
 #include "lexer.hh"
 

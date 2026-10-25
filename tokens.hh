@@ -16,23 +16,29 @@ inline std::ostream& operator<<(std::ostream& out, LinCol& lincol) {
     return out << lincol.lin << ':' << lincol.col;
 }
 
-// TokenID
-
+// Low-Level TokenID
 enum TokenID {
 #define TOKEN(id, name) id,
 #include "tokens.inc"
 #undef TOKEN
-	BEFORE_KEYWORDS,
+    BEFORE_KEYWORDS,
 #define KEYWORD(id, name) id,
 #include "generated/keywords.inc"
 #undef KEYWORD
-	AFTER_KEYWORDS,
+    AFTER_KEYWORDS,
+};
+
+// High-Level TokenID
+enum HLTokenID {
+#define HLTOKEN(id) id,
+#include "hl-tokens.inc"
+#undef HLTOKEN
 };
 
 std::string token_name(TokenID id);
 
 inline bool is_keyword(TokenID id) {
-	return id > BEFORE_KEYWORDS && id < AFTER_KEYWORDS;
+    return id > BEFORE_KEYWORDS && id < AFTER_KEYWORDS;
 }
 
 //
@@ -45,6 +51,13 @@ struct Tokens {
     std::vector<TokenID>  ids;
     std::vector<uint32_t> start_pos, end_pos;
     std::vector<uint32_t> line_size;
+
+    struct HighLevel {
+        std::vector<HLTokenID> ids;
+        std::vector<uint32_t>  start_pos, end_pos;
+    };
+
+    HighLevel high;
 
     explicit Tokens(const std::string& input, std::string filename = "<unknown>")
         : input_(input), filename_(filename) {}
@@ -74,33 +87,24 @@ struct Tokens {
             assert(i < line_size.size());
             begin += line_size[i];
         }
-        return input_.substr(begin, line_size[k-1]);
+        return input_.substr(begin, line_size[k - 1]);
     }
 
     std::string name(size_t i) const { return token_name(ids[i]); }
 
+    void push(TokenID id, size_t start, size_t end) {
+        ids.push_back(id);
+        start_pos.push_back(start);
+        end_pos.push_back(end);
+    }
+
+    void hl_push(HLTokenID id, size_t start, size_t end) {
+        high.ids.push_back(id);
+        high.start_pos.push_back(start);
+        high.end_pos.push_back(end);
+    }
+
     void dump(std::ostream& out) const;
-};
-
-// High-Level Tokens
-
-enum HLTokenID {
-#define HLTOKEN(id) id,
-#include "hl-tokens.inc"
-#undef HLTOKEN
-};
-
-struct HLTokens {
-    const Tokens& tokens_;
-
-    std::vector<HLTokenID> ids;
-    std::vector<uint32_t>  start_pos, end_pos;
-
-    HLTokens(const Tokens& tokens) : tokens_(tokens) {}
-
-    size_t size() const { return tokens_.ids.size(); }
-
-    // void dump(std::ostream& out) const;
 };
 
 #endif

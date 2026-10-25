@@ -2,7 +2,7 @@
 #include <iostream>
 using namespace std;
 
-#include "ast.hh"
+#include "datatype.hh"
 #include "i18n.hh"
 #include "interpreter.hh"
 #include "types.hh"

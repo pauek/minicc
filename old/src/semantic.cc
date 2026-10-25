@@ -1,5 +1,5 @@
 #include "semantic.hh"
-#include "ast.hh"
+#include "datatype.hh"
 #include "i18n.hh"
 #include "types.hh"
 #include "value.hh"

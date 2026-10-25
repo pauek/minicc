@@ -3,7 +3,7 @@
 
 #include <assert.h>
 #include <iostream>
-#include "ast.hh"
+#include "datatype.hh"
 
 void ast_print(AstNode *node, std::ostream& o = std::cout);
 

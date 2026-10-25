@@ -6,7 +6,7 @@
 #include <sstream>
 #include <vector>
 
-#include "ast.hh"
+#include "datatype.hh"
 #include "value.hh"
 #include "table.hh"
 

@@ -1,7 +1,7 @@
 
 #include "pprint.hh"
 #include <sstream>
-#include "ast.hh"
+#include "datatype.hh"
 using namespace std;
 
 class OutputWriter {

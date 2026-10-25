@@ -4,7 +4,7 @@
 #include <iostream>
 #include <vector>
 
-#include "ast.hh"
+#include "datatype.hh"
 #include "error.hh"
 #include "types.hh"
 #include "value.hh"

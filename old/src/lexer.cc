@@ -1,6 +1,6 @@
 #include "lexer.hh"
 #include <assert.h>
-#include "ast.hh"
+#include "datatype.hh"
 using namespace std;
 
 void Lexer::_error(string msg) {

@@ -2,7 +2,7 @@
 #define TEST_HH
 
 #include <sstream>
-#include "ast.hh"
+#include "datatype.hh"
 #include "commands.hh"
 #include "parser.hh"
 #include "walker.hh"
