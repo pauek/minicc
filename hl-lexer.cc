@@ -23,12 +23,7 @@ struct HLexDumper {
 
     void dump_tokenseq(const TokenSeq& tseq) {
         out << prefix(tseq.begin) << indent();
-        // out << tokens.filename_ << ":" << tokens.token_line_col(tseq.begin);
         for (size_t i = tseq.begin; i < tseq.end; i++) {
-            // if (tokens.ids[i] == ENDL) {
-            //     // out << endl;
-            // } else if (tokens.ids[i] != LINE_COMMENT) {
-            // }
             out << tokens.name(i) << ' ';
         }
         out << endl;
