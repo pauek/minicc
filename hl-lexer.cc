@@ -14,68 +14,76 @@ struct HLexDumper {
 
     string prefix(int i) const {
         auto [lin, col] = tokens.token_line_col(i);
-        return std::format("{}:{}:{}:\t", tokens.filename_, lin, col);
+        string pref = std::format("{}:{}:{}:", tokens.filename_, lin, col);
+        // Assume (naïve) that lin is at most 5 digits and col as well (1 + 5 + 1 + 5 + 1)
+        pref.resize(tokens.filename_.size() + 13, ' ');
+        return pref;
     }
 
     string indent() const { return string(level * 4, ' '); }
 
     HLexDumper(ostream& out, const Tokens& tokens) : out(out), tokens(tokens), level(0) {}
 
-    void dump_tokenseq(const TokenSeq& tseq) {
-        out << prefix(tseq.begin) << indent();
-        for (size_t i = tseq.begin; i < tseq.end; i++) {
-            out << tokens.name(i) << ' ';
-        }
-        out << endl;
-    }
+    void dump_tokenseq(const TokenSeq& tseq);
+    void dump_groupseq(const GroupSeq& gseq);
+    void dump_structured(const Structured& strd);
+    void dump(TokenGroup group);
+};
 
-    void dump_groupseq(const GroupSeq& gseq) {
-        out << prefix(gseq.begin) << indent() << "group:" << endl;
-        // out << tokens.filename_ << ":" << tokens.token_line_col(tseq.begin);
+void HLexDumper::dump_groupseq(const GroupSeq& gseq) {
+    out << prefix(gseq.begin) << indent() << "group:" << endl;
+    // out << tokens.filename_ << ":" << tokens.token_line_col(tseq.begin);
+    level++;
+    for (auto group : gseq.elems) {
+        dump(group);
+    }
+    level--;
+}
+
+void HLexDumper::dump_structured(const Structured& strd) {
+    out << prefix(strd.begin) << indent() << token_name(strd.delim);
+    if (strd.sep != NONE) {
+        out << token_name(strd.sep);
+    }
+    out << token_name(closing(strd.delim));
+    if (not strd.groups.empty()) {
+        out << ":" << endl;
         level++;
-        for (auto group : gseq.elems) {
-            dump(group);
+        for (auto group : strd.groups) {
+            dump_groupseq(group.get());
         }
         level--;
+    } else {
+        out << endl;
     }
+}
 
-    void dump_structured(const Structured& strd) {
-        out << prefix(strd.begin) << indent() << token_name(strd.delim);
-        if (strd.sep != NONE) {
-            out << token_name(strd.sep);
-        }
-        out << token_name(closing(strd.delim));
-        if (not strd.groups.empty()) {
-            out << ":" << endl;
-            level++;
-            for (auto group : strd.groups) {
-                dump_groupseq(group.get());
-            }
-            level--;
-        } else {
-            out << endl;
-        }
+void HLexDumper::dump_tokenseq(const TokenSeq& tseq) {
+    out << prefix(tseq.begin) << indent();
+    for (size_t i = tseq.begin; i < tseq.end; i++) {
+        out << tokens.name(i) << ' ';
     }
+    out << endl;
+}
 
-    void dump(TokenGroup group) {
-        switch (group.type_id) {
-            case TokenSeq::type_id: {
-                dump_tokenseq(group.as<TokenSeq>());
-                break;
-            }
-            case GroupSeq::type_id: {
-                dump_groupseq(group.as<GroupSeq>());
-                break;
-            }
-            case Structured::type_id: {
-                dump_structured(group.as<Structured>());
-                break;
-            }
-            default:
-                assert(false);
+void HLexDumper::dump(TokenGroup group) {
+    switch (group.type_id) {
+        case TokenSeq::type_id: {
+            dump_tokenseq(group.as<TokenSeq>());
+            break;
         }
+        case GroupSeq::type_id: {
+            dump_groupseq(group.as<GroupSeq>());
+            break;
+        }
+        case Structured::type_id: {
+            dump_structured(group.as<Structured>());
+            break;
+        }
+        default:
+            assert(false);
     }
-};
+}
 
 void HLexer::dump(std::ostream& out) {
     HLexDumper dumper(out, tokens());
