@@ -59,7 +59,7 @@ class HLexer {
 
     void skip_space();
 
-    TokenSeq parse_token_seq();
+    TokenSeq parse_token_seq(TokenID sentinel = NONE);
     Ref<Structured> parse_structured(TokenID open, TokenID close);
 
    public:

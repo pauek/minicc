@@ -92,11 +92,17 @@ void HLexer::dump(std::ostream& out) {
     }
 }
 
-TokenSeq HLexer::parse_token_seq() {
+TokenSeq HLexer::parse_token_seq(TokenID sentinel) {
     skip_space();
 
     size_t begin = pos_;
-    while (not finished() and not at_delimiter_or_separator()) {
+    while (not finished()) {
+        if (at_delimiter_or_separator()) {
+            break;
+        }
+        if (sentinel != NONE && curr() == sentinel) {
+            break;
+        }
         advance(1);
     }
     size_t end = pos_;
@@ -211,6 +217,42 @@ void HLexer::run() {
     while (not finished()) {
         TokenID tok = tokens.ids[pos_];
         switch (tok) {
+        	case ENDL: {
+         		// Skip empty lines in between groups
+         		advance(1);
+           		break;
+         	}
+            case MACRO: {
+            	// Save whatever is accumulated
+                if (not gseq.elems.empty()) {
+                    gseq.end = pos_;
+                    root.groups.push_back(GroupSeq::make(gseq));
+                }
+
+                // Check that the macro is at column 1
+                auto lincol = tokens.token_line_col(pos_);
+                if (lincol.col != 1) {
+                    error("{}:{}:{}: Unexpected macro.", tokens.filename_, lincol.lin, lincol.col);
+                }
+
+                // Parse the macro (token sequence with ENDL as sentinel)
+                auto seq = parse_token_seq(ENDL);
+                assert(at(ENDL));
+                advance(1);
+
+                // Add it as a whole group
+                root.groups.push_back(
+                    GroupSeq::make({
+                        .begin = seq.begin,
+                        .end = seq.end,
+                        .elems = {TokenGroup(TokenSeq::make(seq))},
+                    })
+                );
+
+                // Reset the current group
+                gseq = GroupSeq();
+                break;
+            }
             case SEMICOLON: {
                 // This is a semicolon at the top level: consume it.
                 advance(1);
@@ -219,7 +261,7 @@ void HLexer::run() {
                     root.groups.push_back(GroupSeq::make(gseq));
                     gseq = GroupSeq();
                 }
-                continue;
+                break;
             }
             case OPEN_BRACKET: {
                 auto group = parse_structured(OPEN_BRACKET, CLOSE_BRACKET);
