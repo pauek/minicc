@@ -1,0 +1,32 @@
+instructions.cc:1:1:        group:
+instructions.cc:1:1:            INT IDENT 
+instructions.cc:1:9:            ()
+instructions.cc:1:12:           {;}:
+instructions.cc:2:2:                group:
+instructions.cc:2:2:                    INT IDENT = INT_LITERAL , IDENT = INT_LITERAL 
+instructions.cc:3:2:                group:
+instructions.cc:3:2:                    IDENT = INT_LITERAL 
+instructions.cc:4:2:                group:
+instructions.cc:4:2:                    IDENT = INT_LITERAL 
+instructions.cc:5:2:                group:
+instructions.cc:5:2:                    IDENT << IDENT << IDENT 
+instructions.cc:6:2:                group:
+instructions.cc:6:2:                    IDENT << IDENT << IDENT 
+instructions.cc:7:2:                group:
+instructions.cc:7:2:                    IDENT 
+instructions.cc:8:2:                group:
+instructions.cc:8:2:                    IDENT 
+instructions.cc:9:2:                group:
+instructions.cc:9:2:                    INT_LITERAL , INT_LITERAL 
+instructions.cc:10:2:               group:
+instructions.cc:10:2:                   (,):
+instructions.cc:10:3:                       group:
+instructions.cc:10:3:                           IDENT 
+instructions.cc:10:6:                       group:
+instructions.cc:10:6:                           IDENT 
+instructions.cc:10:9:                   = 
+instructions.cc:10:11:                  (,):
+instructions.cc:10:12:                      group:
+instructions.cc:10:12:                          INT_LITERAL 
+instructions.cc:10:15:                      group:
+instructions.cc:10:15:                          INT_LITERAL 

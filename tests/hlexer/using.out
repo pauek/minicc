@@ -1,0 +1,8 @@
+using.cc:1:1:        group:
+using.cc:1:1:            MACRO GLOBAL_FILENAME 
+using.cc:2:1:        group:
+using.cc:2:1:            USING NAMESPACE IDENT 
+using.cc:4:1:        group:
+using.cc:4:1:            USING NAMESPACE IDENT 
+using.cc:6:1:        group:
+using.cc:6:1:            CONST INT IDENT = INT_LITERAL 

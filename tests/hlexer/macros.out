@@ -1,0 +1,26 @@
+macros.cc:1:1:        group:
+macros.cc:1:1:            MACRO 
+macros.cc:2:1:        group:
+macros.cc:2:1:            MACRO IDENT IDENT 
+macros.cc:3:1:        group:
+macros.cc:3:1:            MACRO LOCAL_FILENAME 
+macros.cc:4:1:        group:
+macros.cc:4:1:            MACRO GLOBAL_FILENAME 
+macros.cc:7:1:        group:
+macros.cc:7:1:            INT IDENT 
+macros.cc:7:6:            ()
+macros.cc:7:9:            {}
+macros.cc:9:1:        group:
+macros.cc:9:1:            MACRO IDENT 
+macros.cc:10:1:       group:
+macros.cc:10:1:           MACRO IDENT STR_LITERAL 
+macros.cc:12:1:       group:
+macros.cc:12:1:           MACRO IDENT 
+macros.cc:14:1:       group:
+macros.cc:14:1:           INT IDENT 
+macros.cc:14:6:           ()
+macros.cc:14:9:           {}
+macros.cc:16:1:       group:
+macros.cc:16:1:           MACRO IDENT INT_LITERAL INT_LITERAL INT_LITERAL INT_LITERAL CHAR_LITERAL STR_LITERAL 
+macros.cc:18:1:       group:
+macros.cc:18:1:           MACRO 

@@ -4,7 +4,6 @@
 #include "tokens.hh"
 using namespace std;
 
-#include "error.hh"
 #include "hl-lexer.hh"
 
 struct HLexDumper {
@@ -85,6 +84,8 @@ void HLexDumper::dump(TokenGroup group) {
     }
 }
 
+// Lexer
+
 void HLexer::dump(std::ostream& out) {
     HLexDumper dumper(out, tokens());
     for (auto group : root.groups) {
@@ -92,12 +93,12 @@ void HLexer::dump(std::ostream& out) {
     }
 }
 
-TokenSeq HLexer::parse_token_seq(TokenID sentinel) {
+TokenSeq HLexer::parse_token_seq(TokenID sentinel, TokenID separator) {
     skip_space();
 
     size_t begin = pos_;
     while (not finished()) {
-        if (at_delimiter_or_separator()) {
+        if (at_delimiter() || at(separator)) {
             break;
         }
         if (sentinel != NONE && curr() == sentinel) {
@@ -118,18 +119,18 @@ void HLexer::skip_space() {
     }
 }
 
-Ref<Structured> HLexer::parse_structured(TokenID open, TokenID close) {
+Ref<Structured> HLexer::parse_structured(TokenID open, TokenID close, TokenID separator) {
     size_t begin = pos_;
     assert(at(open));
+
     advance(1);
 
     size_t end;
 
-    TokenID               sep = NONE;
     GroupSeq              gseq;
     vector<Ref<GroupSeq>> groups;
 
-    TokenSeq seq = parse_token_seq();
+    TokenSeq seq = parse_token_seq(NONE, separator);
     while (not finished() and not at(close)) {
         if (seq.begin != seq.end) {
             if (gseq.elems.empty()) {
@@ -140,33 +141,11 @@ Ref<Structured> HLexer::parse_structured(TokenID open, TokenID close) {
         }
         if (finished()) {
             string tname = token_name(close);
-            LinCol lc = tokens().token_line_col(pos_);
-            error("{}:{}:{}: EOF while expecting '{}'", tokens().filename_, lc.lin, lc.col, tname);
-        } else if (at_close_delimiter()) {
-            // Wrong delimiter
-            string tname = token_name(close);
-            LinCol lincol = tokens().token_line_col(pos_);
-            error("{}:{}:{}: Expected '{}'", tokens().filename_, lincol.lin, lincol.col, tname);
-        } else if (at_separator()) {
-            if (sep != NONE) {
-                // FIXME(pauek): Handle two different separators
-                if (curr() != sep) {
-                    auto   tname = token_name(sep);
-                    LinCol lincol = tokens().token_line_col(pos_);
-                    error(
-                        "{}:{}:{}: Expected '{}'", tokens().filename_, lincol.lin, lincol.col, tname
-                    );
-                }
-            } else {
-                sep = curr();
-            }
-            gseq.end = pos_;
-            advance(1);
-            groups.push_back(GroupSeq::make(gseq));
-            gseq = GroupSeq();
+            error("EOF while expecting '{}'", tname);
         } else if (at_open_delimiter()) {
             auto open_ = curr();
-            auto elem = parse_structured(open_, closing(open_));
+            auto sep = open_ == OPEN_BRACE ? SEMICOLON : COMMA;
+            auto elem = parse_structured(open_, closing(open_), sep);
             if (gseq.elems.empty()) {
                 gseq.begin = elem.get().begin;
             }
@@ -177,13 +156,21 @@ Ref<Structured> HLexer::parse_structured(TokenID open, TokenID close) {
                 groups.push_back(GroupSeq::make(gseq));
                 gseq = GroupSeq();
             }
-
+        } else if (at_close_delimiter()) {
+            // Wrong delimiter
+            string tname = token_name(close);
+            error("Expected '{}'", tname);
+        } else if (at(separator)) {
+            gseq.end = pos_;
+            advance(1);
+            groups.push_back(GroupSeq::make(gseq));
+            gseq = GroupSeq();
         } else {
             // We should not be here since `parse_token_group` should have
             // stopped at delimiter or separator
             assert(false);
         }
-        seq = parse_token_seq();
+        seq = parse_token_seq(NONE, separator);
     }
     if (seq.begin != seq.end) {
         if (gseq.elems.empty()) {
@@ -203,7 +190,7 @@ Ref<Structured> HLexer::parse_structured(TokenID open, TokenID close) {
 
     return Structured::make({
         .delim = open,
-        .sep = sep,
+        .sep = groups.size() <= 1 ? NONE : separator,
         .begin = begin,
         .end = end,
         .groups = groups,
@@ -213,17 +200,21 @@ Ref<Structured> HLexer::parse_structured(TokenID open, TokenID close) {
 void HLexer::run() {
     auto& tokens = lexer_.tokens();
 
+    // NOTE(pauek): Should we merge the "parse_structured" with this function?
+    // In the sense that the internal part of a block is similar to the top-level
+    // Probably this can be simplified quite a bit...
+
     GroupSeq gseq;
     while (not finished()) {
         TokenID tok = tokens.ids[pos_];
         switch (tok) {
-        	case ENDL: {
-         		// Skip empty lines in between groups
-         		advance(1);
-           		break;
-         	}
+            case ENDL: {
+                // Skip empty lines in between groups
+                advance(1);
+                break;
+            }
             case MACRO: {
-            	// Save whatever is accumulated
+                // Save whatever is accumulated
                 if (not gseq.elems.empty()) {
                     gseq.end = pos_;
                     root.groups.push_back(GroupSeq::make(gseq));
@@ -264,7 +255,7 @@ void HLexer::run() {
                 break;
             }
             case OPEN_BRACKET: {
-                auto group = parse_structured(OPEN_BRACKET, CLOSE_BRACKET);
+                auto group = parse_structured(OPEN_BRACKET, CLOSE_BRACKET, COMMA);
                 if (gseq.elems.empty()) {
                     gseq.begin = group.get().begin;
                 }
@@ -272,7 +263,7 @@ void HLexer::run() {
                 break;
             }
             case OPEN_PAREN: {
-                auto group = parse_structured(OPEN_PAREN, CLOSE_PAREN);
+                auto group = parse_structured(OPEN_PAREN, CLOSE_PAREN, COMMA);
                 if (gseq.elems.empty()) {
                     gseq.begin = group.get().begin;
                 }
@@ -280,7 +271,7 @@ void HLexer::run() {
                 break;
             }
             case OPEN_BRACE: {
-                auto group = parse_structured(OPEN_BRACE, CLOSE_BRACE);
+                auto group = parse_structured(OPEN_BRACE, CLOSE_BRACE, SEMICOLON);
                 if (gseq.elems.empty()) {
                     gseq.begin = group.get().begin;
                 }
@@ -295,7 +286,8 @@ void HLexer::run() {
                 break;
             }
             default: {
-                auto seq = parse_token_seq();
+            	// At the top level, a token sequence stops at ';'
+                auto seq = parse_token_seq(SEMICOLON);
                 if (seq.begin != seq.end) {
                     if (gseq.elems.empty()) {
                         // Copy the begin from the first sequence (to skip spaces)

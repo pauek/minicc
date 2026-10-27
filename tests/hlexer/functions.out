@@ -1,0 +1,44 @@
+functions.cc:1:1:        group:
+functions.cc:1:1:            MACRO GLOBAL_FILENAME 
+functions.cc:2:1:        group:
+functions.cc:2:1:            USING NAMESPACE IDENT 
+functions.cc:4:1:        group:
+functions.cc:4:1:            INT IDENT 
+functions.cc:4:10:           ()
+functions.cc:4:13:           {}
+functions.cc:6:1:        group:
+functions.cc:6:1:            INT IDENT 
+functions.cc:6:10:           ()
+functions.cc:6:13:           {}:
+functions.cc:7:2:                group:
+functions.cc:7:2:                    WHILE 
+functions.cc:7:8:                    ():
+functions.cc:7:9:                        group:
+functions.cc:7:9:                            IDENT 
+functions.cc:7:12:                   {}:
+functions.cc:8:3:                        group:
+functions.cc:8:3:                            WHILE 
+functions.cc:8:9:                            ():
+functions.cc:8:10:                               group:
+functions.cc:8:10:                                   IDENT 
+functions.cc:8:13:                           {}:
+functions.cc:9:4:                                group:
+functions.cc:9:4:                                    WHILE 
+functions.cc:9:10:                                   ():
+functions.cc:9:11:                                       group:
+functions.cc:9:11:                                           IDENT 
+functions.cc:9:14:                                   {}:
+functions.cc:10:5:                                       group:
+functions.cc:10:5:                                           FOR 
+functions.cc:10:9:                                           ():
+functions.cc:10:10:                                              group:
+functions.cc:10:10:                                                  IDENT ; IDENT ; IDENT 
+functions.cc:10:17:                                          {}
+functions.cc:18:1:       group:
+functions.cc:18:1:           INT IDENT 
+functions.cc:18:10:          ()
+functions.cc:18:13:          {}
+functions.cc:28:1:       group:
+functions.cc:28:1:           INT IDENT 
+functions.cc:28:10:          ()
+functions.cc:28:13:          {}

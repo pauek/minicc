@@ -37,6 +37,17 @@ class HLexer {
 
     Structured root;
 
+    string prefix(int i) const {
+        auto [lin, col] = tokens().token_line_col(i);
+        return std::format("{}:{}:{}: ", tokens().filename_, lin, col);
+    }
+
+    template <class... Args>
+    void error(std::format_string<Args...> fmt, Args&&...args) {
+        std::cerr << prefix(pos_) << format(fmt, args...) << std::endl;
+        exit(1);
+    }
+
     const Tokens& tokens() const { return lexer_.tokens(); }
 
     bool finished() const { return pos_ >= tokens().ids.size(); }
@@ -59,8 +70,8 @@ class HLexer {
 
     void skip_space();
 
-    TokenSeq parse_token_seq(TokenID sentinel = NONE);
-    Ref<Structured> parse_structured(TokenID open, TokenID close);
+    TokenSeq parse_token_seq(TokenID sentinel = NONE, TokenID separator = NONE);
+    Ref<Structured> parse_structured(TokenID open, TokenID close, TokenID separator);
 
    public:
     HLexer(const Lexer& lexer) : lexer_(lexer), pos_(0) {}

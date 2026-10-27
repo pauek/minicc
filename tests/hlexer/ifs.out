@@ -1,0 +1,62 @@
+ifs.cc:1:1:        group:
+ifs.cc:1:1:            INT IDENT 
+ifs.cc:1:9:            ()
+ifs.cc:1:12:           {;}:
+ifs.cc:2:2:                group:
+ifs.cc:2:2:                    IF 
+ifs.cc:2:5:                    ():
+ifs.cc:2:6:                        group:
+ifs.cc:2:6:                            IDENT 
+ifs.cc:2:9:                    {}:
+ifs.cc:3:3:                        group:
+ifs.cc:3:3:                            IF 
+ifs.cc:3:6:                            ():
+ifs.cc:3:7:                                group:
+ifs.cc:3:7:                                    IDENT 
+ifs.cc:3:10:                           {}:
+ifs.cc:4:4:                                group:
+ifs.cc:4:4:                                    IDENT = IDENT 
+ifs.cc:6:4:                group:
+ifs.cc:6:4:                    ELSE IF 
+ifs.cc:6:12:                   ():
+ifs.cc:6:13:                       group:
+ifs.cc:6:13:                           IDENT 
+ifs.cc:6:16:                   {;}:
+ifs.cc:7:3:                        group:
+ifs.cc:7:3:                            IF 
+ifs.cc:7:6:                            ():
+ifs.cc:7:7:                                group:
+ifs.cc:7:7:                                    IDENT == IDENT 
+ifs.cc:7:15:                           {}:
+ifs.cc:8:4:                                group:
+ifs.cc:8:4:                                    IF 
+ifs.cc:8:7:                                    ():
+ifs.cc:8:8:                                        group:
+ifs.cc:8:8:                                            IDENT == IDENT 
+ifs.cc:8:16:                                   {}:
+ifs.cc:9:5:                                        group:
+ifs.cc:9:5:                                            IDENT 
+ifs.cc:11:5:                       group:
+ifs.cc:11:5:                           ELSE 
+ifs.cc:11:10:                          {}:
+ifs.cc:12:4:                               group:
+ifs.cc:12:4:                                   IF 
+ifs.cc:12:7:                                   ():
+ifs.cc:12:8:                                       group:
+ifs.cc:12:8:                                           IDENT == IDENT 
+ifs.cc:12:16:                                  {}:
+ifs.cc:13:5:                                       group:
+ifs.cc:13:5:                                           IDENT = IDENT 
+ifs.cc:16:4:               group:
+ifs.cc:16:4:                   ELSE IF 
+ifs.cc:16:12:                  ():
+ifs.cc:16:13:                      group:
+ifs.cc:16:13:                          IDENT 
+ifs.cc:16:16:                  {}:
+ifs.cc:17:3:                       group:
+ifs.cc:17:3:                           IDENT = IDENT 
+ifs.cc:18:4:               group:
+ifs.cc:18:4:                   ELSE 
+ifs.cc:18:9:                   {}:
+ifs.cc:19:3:                       group:
+ifs.cc:19:3:                           IDENT = IDENT 
