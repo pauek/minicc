@@ -88,7 +88,7 @@ void HLexDumper::dump(TokenGroup group) {
 
 void HLexer::dump(std::ostream& out) {
     HLexDumper dumper(out, tokens());
-    for (auto group : root.groups) {
+    for (auto group : root_.groups) {
         dumper.dump_groupseq(group.get());
     }
 }
@@ -217,7 +217,7 @@ void HLexer::run() {
                 // Save whatever is accumulated
                 if (not gseq.elems.empty()) {
                     gseq.end = pos_;
-                    root.groups.push_back(GroupSeq::make(gseq));
+                    root_.groups.push_back(GroupSeq::make(gseq));
                 }
 
                 // Check that the macro is at column 1
@@ -232,7 +232,7 @@ void HLexer::run() {
                 advance(1);
 
                 // Add it as a whole group
-                root.groups.push_back(
+                root_.groups.push_back(
                     GroupSeq::make({
                         .begin = seq.begin,
                         .end = seq.end,
@@ -249,7 +249,7 @@ void HLexer::run() {
                 advance(1);
                 if (not gseq.elems.empty()) {
                     gseq.end = pos_;
-                    root.groups.push_back(GroupSeq::make(gseq));
+                    root_.groups.push_back(GroupSeq::make(gseq));
                     gseq = GroupSeq();
                 }
                 break;
@@ -280,7 +280,7 @@ void HLexer::run() {
                 // A block acts like a separator
                 if (not gseq.elems.empty()) {
                     gseq.end = pos_;
-                    root.groups.push_back(GroupSeq::make(gseq));
+                    root_.groups.push_back(GroupSeq::make(gseq));
                     gseq = GroupSeq();
                 }
                 break;

@@ -3,6 +3,7 @@ MAKEFLAGS += --no-print-directory
 
 SOURCES=$(wildcard *.cc)
 SOURCES += config/config-line.cc
+SOURCES += $(wildcard commands/*.cc)
 HEADERS=$(wildcard *.hh)
 OBJECTS=$(patsubst %.cc,%.o,$(SOURCES))
 

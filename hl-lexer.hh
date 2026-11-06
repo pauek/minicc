@@ -37,7 +37,7 @@ class HLexer {
     const Lexer& lexer_;
     size_t pos_;
 
-    Structured root;
+    Structured root_;
 
     string prefix(int i) const {
         auto [lin, col] = tokens().token_line_col(i);
@@ -68,7 +68,7 @@ class HLexer {
 
     void advance(size_t n) { pos_ += n; }
 
-    void push(Ref<GroupSeq> group) { root.groups.push_back(group); }
+    void push(Ref<GroupSeq> group) { root_.groups.push_back(group); }
 
     void skip_space();
 
@@ -80,6 +80,8 @@ class HLexer {
 
     void run();
     void dump(std::ostream& out);
+
+    Structured root() const { return root_; }
 };
 
 #endif

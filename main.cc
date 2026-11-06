@@ -2,7 +2,7 @@
 #include <iostream>
 using namespace std;
 
-#include "command.hh"
+#include "commands/command.hh"
 #include "config.hh"
 #include "error.hh"
 
