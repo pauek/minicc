@@ -1,63 +1,30 @@
-#include <filesystem>
 #include <iostream>
 using namespace std;
 
-#include "../astdump.hh"
+#include "../hl-lexer.hh"
 #include "../lexer.hh"
-#include "../parser.hh"
-#include "../printer.hh"
 #include "../utils.hh"
 #include "command.hh"
 
-int HelpParse2() {
-    constexpr const char *parse_usage =
-        "Usage: minicc parse [options...] [file]...\n"
-        "\n"
-        "Shows the AST from file(s).\n"
-        "\n"
-        "Options:\n"
-        "    none for now... ;)\n"
-        "\n";
+void parse_file(string filename, bool show_filename) {
+    auto text = read_file(filename);
 
-    cout << parse_usage;
-    return 1;
-}
+    if (show_filename) {
+        cout << filename << ":" << endl;
+    }
 
-template <>
-ICommand *parse_args<Parse2>(Args args) {
-    // We still don't have subcommands, just the same base implementation.
-    return new Command<Parse2>(args);
+    Lexer lexer(text, filename);
+    lexer.run();
+
+    HLexer hl_lex(lexer);
+    hl_lex.run();
+    hl_lex.dump(cout);
 }
 
 int Parse2(Args args) {
-    if (args.empty()) {
-        return HelpParse2();
-    }
     for (auto filename : args) {
-        // Read file
-        string text;
         try {
-            text = read_file(filename);
-        } catch (filesystem::filesystem_error& e) {
-            cerr << "Could not read file '" << filename << "': " << e.what() << endl;
-        }
-        if (args.size() > 1) {
-            cout << filename << ":" << endl;
-        }
-
-        try {
-            // Lexer pass
-            Lexer lexer(text, filename);
-            lexer.run();
-
-            // Parser pass
-            Parser parser(lexer);
-            auto   program = parser.run();
-
-            // Show result
-            AstDumper ast_dumper(cout, parser);
-            ast_dumper.dump(program.get());
-
+            parse_file(filename, args.size() > 1);
         } catch (Error *e) {
             e->print(cerr);
             return 1;

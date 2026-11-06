@@ -68,8 +68,4 @@ COMMAND(ShowConfig)
 template <>
 ICommand *parse_args<Parse>(Args args);
 
-template <>
-ICommand *parse_args<Parse2>(Args args);
-
-
 #endif
