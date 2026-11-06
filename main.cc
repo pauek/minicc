@@ -19,6 +19,8 @@ ICommand *parse_args(Args args) {
         return parse_args<HLex>(args.from(1));
     } else if (command_name == "parse") {
         return parse_args<Parse>(args.from(1));
+    } else if (command_name == "parse2") {
+        return parse_args<Parse2>(args.from(1));
     } else if (command_name == "config") {
         return parse_args<ShowConfig>(args.from(1));
     }

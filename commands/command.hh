@@ -60,11 +60,16 @@ COMMAND(Help)
 COMMAND(Lex)
 COMMAND(HLex)
 COMMAND(Parse)
+COMMAND(Parse2)
 COMMAND(ShowConfig)
 //
 
 // If we want to make subcommands in Parse, we can implement parse_args<Parse>...
 template <>
 ICommand *parse_args<Parse>(Args args);
+
+template <>
+ICommand *parse_args<Parse2>(Args args);
+
 
 #endif
