@@ -50,7 +50,6 @@ class HLexer {
         exit(1);
     }
 
-    const Tokens& tokens() const { return lexer_.tokens(); }
 
     bool finished() const { return pos_ >= tokens().ids.size(); }
 
@@ -77,6 +76,8 @@ class HLexer {
 
    public:
     HLexer(const Lexer& lexer) : lexer_(lexer), pos_(0) {}
+
+    const Tokens& tokens() const { return lexer_.tokens(); }
 
     void run();
     void dump(std::ostream& out);

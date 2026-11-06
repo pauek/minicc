@@ -96,7 +96,7 @@ struct Variant {
     }
 
     template <IsStruct T>
-    bool is() {
+    bool is() const {
         return type_id == T::type_id;
     }
 

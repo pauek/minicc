@@ -45,6 +45,12 @@ inline bool is_close_delimiter(TokenID id) {
 inline bool is_delimiter(TokenID id) {
     return is_open_delimiter(id) || is_close_delimiter(id);
 }
+inline bool is_typespec_qualifier(TokenID id) {
+    return id == AUTO || id == CONST;
+}
+inline bool is_type_keyword(TokenID id) {
+    return id == BOOL || id == CHAR || id == INT || id == FLOAT || id == DOUBLE;
+}
 
 inline TokenID closing(TokenID open) {
     switch (open) {
