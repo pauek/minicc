@@ -17,12 +17,14 @@ struct TokenSeq : DataType<TokenSeq, 10000> {
     size_t begin, end;
 };
 
+// A sequence of token groups ()
 struct GroupSeq : DataType<GroupSeq, 10001> {
 	size_t begin, end;
 	vector<TokenGroup> elems;
 };
 
-// <open> ... <close>
+// A potentially delimited and separated sequence of token groups
+//    <OPEN> elem1 <SEP> elem2 <SEP> ... <SEP> elemN <CLOSE>
 struct Structured : DataType<Structured, 10002> {
 	TokenID delim = NONE, sep = NONE;
 	size_t begin, end;
