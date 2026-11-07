@@ -38,14 +38,36 @@ TopDecl Parser2::parse_macro(const GroupSeq& group) {
     );
 }
 
+Ref<FuncParam> Parser2::parse_parameter(TokenSeq seq) {
+    auto name = token_str(seq.last());
+    auto typespec = parse_typespec(seq.begin, seq.last());
+    return FuncParam::make({
+        .type = typespec,
+        .ident = Identifier::make({.name = name}),
+    });
+}
+
 vector<Ref<FuncParam>> Parser2::parse_parameters(const TokenGroup& group) {
-	return {};
+    assert(group.is<Structured>());
+    auto strd = group.as<Structured>();
+    assert(strd.delim == OPEN_PAREN && strd.sep == COMMA);
+
+    vector<Ref<FuncParam>> params;
+    for (auto ref : strd.groups) {
+        auto& subgroup = ref.get();
+        if (subgroup.elems.size() != 1 || not subgroup.elems[0].is<TokenSeq>()) {
+            error("Parameter has more than one token sequence");
+        }
+        auto tokseq = subgroup.elems[0].as<TokenSeq>();
+        params.push_back(parse_parameter(tokseq));
+    }
+
+    return params;
 }
 
 Ref<StmtBlock> Parser2::parse_block(const TokenGroup& group) {
-	return StmtBlock::make({ .stmts = {} });
+    return StmtBlock::make({.stmts = {}});
 }
-
 
 Ref<Identifier> Parser2::parse_type_keyword(size_t& i) {
     assert(is_type_keyword(token_id(i)));
@@ -105,8 +127,8 @@ TopDecl Parser2::parse_function(const GroupSeq& group) {
     assert(is_function(group));
     auto tokseq = group.elems[0].as<TokenSeq>();
 
-    auto return_type = parse_typespec(tokseq.begin, tokseq.end - 1);
-    auto ident = Identifier::make({.name = token_str(tokseq.end - 1)});
+    auto return_type = parse_typespec(tokseq.begin, tokseq.last());
+    auto ident = Identifier::make({.name = token_str(tokseq.last())});
     auto params = parse_parameters(group.elems[1]);
     auto body = parse_block(group.elems[2]);
 

@@ -17,6 +17,8 @@ class Parser2 {
     bool is_function(const GroupSeq& group);
 
     Ref<TypeSpec> parse_typespec(size_t begin, size_t end);
+    Ref<FuncParam> parse_parameter(TokenSeq seq);
+
     vector<Ref<FuncParam>> parse_parameters(const TokenGroup& group);
     Ref<StmtBlock> parse_block(const TokenGroup& group);
     Ref<Identifier> parse_type_keyword(size_t& i);
@@ -30,6 +32,7 @@ class Parser2 {
     Parser2(const HLexer& hlexer) : hlexer_(hlexer) {}
 
     void parse_unit(const Structured& root);
+
 
     Ref<Program> run();
 };

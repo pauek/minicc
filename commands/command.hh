@@ -1,71 +1,71 @@
 #ifndef COMMAND_HH
 #define COMMAND_HH
 
+#include <algorithm>
 #include <cassert>
 #include <string>
 #include <vector>
 
+// The command interface is just the `run` function, which returns something
+// similar to the `main` function, i.e. an error code (0 = success, etc.)
 struct ICommand {
     virtual int run() = 0;
 };
 
+// Args implements a slice of the arguments of a program (stored in a vector)
+// with a starting index (`start_`) different than 0, but no end index
+// (Peeling layers like that is typical of cmd/subcmd/subsubcmd hierarchies)
 class Args {
-    typedef std::vector<std::string> Container;
-
-    Container args_;
-    size_t    from_;
+    const size_t argc_, start_;
+    const char **argv_;
 
    public:
-    Args(int argc, char *argv[]) : args_(argv, argv + argc), from_(0) {}
-    Args(const Args& other) : args_(other.args_), from_(other.from_) {}
+    Args(int argc, const char *argv[]) : argc_(argc), start_(0), argv_(argv) {}
 
-    Args(const Args& other, size_t from) : args_(other.args_), from_(other.from_ + from) {}
-
-    bool   empty() const { return from_ >= args_.size(); }
-    size_t size() const { return empty() ? 0 : args_.size() - from_; }
-
-    Container::const_iterator begin() const {
-        return (empty() ? args_.end() : args_.begin() + from_);
+    Args(const Args& A, size_t start) : argc_(A.argc_), start_(A.start_ + start), argv_(A.argv_) {
+        assert(start_ <= argc_);
     }
-    Container::const_iterator end() const { return args_.end(); }
-
     Args from(size_t from) { return Args(*this, from); }
 
+    bool   empty() const { return start_ >= argc_; }
+    size_t size() const { return argc_ - start_; }
+
     std::string operator[](size_t i) {
-        assert(from_ + i < args_.size());
-        return args_[from_ + i];
+        assert(start_ + i < argc_);
+        return argv_[start_ + i];
     }
+
+    typedef const char **const_iterator;
+
+    const_iterator end() const { return argv_ + argc_; }
+    const_iterator begin() const { return argv_ + std::min(argc_, start_); }
 };
 
-template <auto CmdFn>
+typedef int (*CmdFuncPointer)(Args args);
+
 class Command : public ICommand {
     Args args_;
 
    public:
     Command(Args args) : args_(args) {}
 
-    int run() override { return CmdFn(args_); }
+    size_t num_args() const { return args_.size(); }
+    Args&  args() { return args_; }
+
+    struct ArgParser {
+        virtual ICommand *parse(Args args);
+    };
+
+    // Command Table
+
+    struct Info {
+        std::string name, help;
+        ArgParser  *parser;
+    };
+    static std::vector<Info> table;
+
+    static size_t max_name_len();
+    static Info  *find(std::string name);
 };
-
-template <auto CmdFn>
-ICommand *parse_args(Args args) {
-    // Handle subcommands if necessary...
-    return new Command<CmdFn>(args);
-}
-
-//
-// Add commands here:
-#define COMMAND(cmd_name) int cmd_name(Args args);
-COMMAND(Help)
-COMMAND(Lex)
-COMMAND(HLex)
-COMMAND(Parse)
-COMMAND(Parse2)
-COMMAND(ShowConfig)
-//
-
-// If we want to make subcommands in Parse, we can implement parse_args<Parse>...
-template <>
-ICommand *parse_args<Parse>(Args args);
 
 #endif

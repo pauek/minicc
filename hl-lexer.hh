@@ -15,6 +15,11 @@ typedef Variant<10000, 10002> TokenGroup;
 // A clean sequence of tokens without separators or delimiters
 struct TokenSeq : DataType<TokenSeq, 10000> {
     size_t begin, end;
+
+    size_t last() const {
+    	assert(end > begin && end > 0);
+    	return end - 1;
+    }
 };
 
 // A sequence of token groups ()
