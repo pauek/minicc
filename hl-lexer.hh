@@ -17,22 +17,24 @@ struct TokenSeq : DataType<TokenSeq, 10000> {
     size_t begin, end;
 
     size_t last() const {
-    	assert(end > begin && end > 0);
-    	return end - 1;
+        assert(end > begin && end > 0);
+        return end - 1;
     }
+
+    size_t length() const { return end - begin; }
 };
 
 // A sequence of token groups ()
 struct GroupSeq : DataType<GroupSeq, 10001> {
-	size_t begin, end;
-	vector<TokenGroup> elems;
+    size_t             begin, end;
+    vector<TokenGroup> elems;
 };
 
 // A potentially delimited and separated sequence of token groups
 //    <OPEN> elem1 <SEP> elem2 <SEP> ... <SEP> elemN <CLOSE>
 struct Structured : DataType<Structured, 10002> {
-	TokenID delim = NONE, sep = NONE;
-	size_t begin, end;
+    TokenID               delim = NONE, sep = NONE;
+    size_t                begin, end;
     vector<Ref<GroupSeq>> groups;
 };
 
@@ -40,7 +42,7 @@ struct Structured : DataType<Structured, 10002> {
 
 class HLexer {
     const Lexer& lexer_;
-    size_t pos_;
+    size_t       pos_;
 
     Structured root_;
 
@@ -55,7 +57,6 @@ class HLexer {
         exit(1);
     }
 
-
     bool finished() const { return pos_ >= tokens().ids.size(); }
 
     TokenID curr() const { return tokens().ids[pos_]; }
@@ -66,9 +67,7 @@ class HLexer {
     bool at_open_delimiter() const { return is_open_delimiter(curr()); }
     bool at_close_delimiter() const { return is_close_delimiter(curr()); }
 
-    bool at_delimiter_or_separator() const {
-    	return at_delimiter() || at_separator();
-    }
+    bool at_delimiter_or_separator() const { return at_delimiter() || at_separator(); }
 
     void advance(size_t n) { pos_ += n; }
 
@@ -76,7 +75,7 @@ class HLexer {
 
     void skip_space();
 
-    TokenSeq parse_token_seq(TokenID sentinel = NONE, TokenID separator = NONE);
+    TokenSeq        parse_token_seq(TokenID sentinel = NONE, TokenID separator = NONE);
     Ref<Structured> parse_structured(TokenID open, TokenID close, TokenID separator);
 
    public:

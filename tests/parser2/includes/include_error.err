@@ -1,0 +1,6 @@
+includes/include_error.cc:1:21: parse error: Extra characters after filename.
+    | #include "local.hh" with error text!
+    |                     ^
+includes/include_error.cc:2:19: parse error: Extra characters after filename.
+    | #include <global> yadda yadda
+    |                   ^

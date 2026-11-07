@@ -5,8 +5,20 @@
 #include "hl-lexer.hh"
 
 class Parser2 {
+	struct Error {
+		LinCol pos;
+		string message;
+	};
+
     const HLexer&        hlexer_;
     std::vector<TopDecl> top_decls_;
+
+    std::vector<Error> errors_;
+
+    void error(size_t tokpos, string message) {
+    	LinCol filepos = hlexer_.tokens().token_line_col(tokpos);
+    	errors_.push_back({ .pos = filepos, .message = message });
+    }
 
     TokenID token_id(size_t i) const { return hlexer_.tokens().ids[i]; }
     std::string token_str(size_t i) const { return hlexer_.tokens().str(i); }
@@ -25,6 +37,7 @@ class Parser2 {
     Ref<Identifier> parse_identifier(size_t& i);
 
     TopDecl parse_function(const GroupSeq& group);
+    TopDecl parse_include(TokenSeq seq);
     TopDecl parse_macro(const GroupSeq& group);
     TopDecl parse_top_level(const GroupSeq& group);
 
@@ -33,6 +46,8 @@ class Parser2 {
 
     void parse_unit(const Structured& root);
 
+    bool has_errors() const { return not errors_.empty(); }
+    const vector<Error>& errors() const { return errors_; }
 
     Ref<Program> run();
 };

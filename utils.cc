@@ -4,6 +4,7 @@
 #include <string>
 using namespace std;
 
+#include "tokens.hh"
 #include "utils.hh"
 
 string read_file(string filename) {
@@ -45,4 +46,24 @@ bool all_spaces(std::string line) {
         }
     }
     return true;
+}
+
+void print_error(ostream& out, string filename, LinCol pos, string msg, string codeline) {
+    out << filename << ":" << pos << ": " << "parse error: " << msg << std::endl;
+    out << "    | " << codeline;
+    out << "    | ";
+
+    // NOTE(pauek): When printing the circumflex to show the error, we have the problema that
+    // the codeline might have spaces or tabs, so we can't just offset the arrow by printing
+    // spaces before it... ;)
+    //
+    // We take the codeline and print a version keeping the spaces but replacing
+    // non-spaces with a single space. This will print exactly the same way with
+    // regard to tabs, and will position the arrow correctly.
+    //
+    for (size_t i = 0; i < pos.col - 1; i++) {
+        char c = codeline[i];
+        out << (isspace(c) ? c : ' ');
+    }
+    out << '^' << std::endl;
 }

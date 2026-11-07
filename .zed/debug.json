@@ -11,7 +11,7 @@
 			"cwd": "$ZED_WORKTREE_ROOT",
 		},
 		"program": "$ZED_WORKTREE_ROOT/minicc",
-		"args": ["lex", "tests/lexer/esc.cc"],
+		"args": ["parse2", "tests/parser/includes/include_error.cc"],
 		"request": "launch",
 		"adapter": "CodeLLDB",
 	},

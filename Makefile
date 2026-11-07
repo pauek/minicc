@@ -5,6 +5,7 @@ SOURCES=$(wildcard *.cc)
 SOURCES += config/config-line.cc
 SOURCES += $(wildcard commands/*.cc)
 HEADERS=$(wildcard *.hh)
+HEADERS += $(wildcard commands/*.hh)
 OBJECTS=$(patsubst %.cc,%.o,$(SOURCES))
 
 CXXFLAGS=-std=c++20
@@ -24,7 +25,9 @@ clean:
 install: minicc
 	cp minicc $(HOME)/.local/bin
 
+
 # Generators
+
 # '&:' means that only one invocation is necessary to produce both files!
 generated/keywords.inc generated/keyword_switch.inc &: keywords.gen.sh keywords
 	@bash keywords.gen.sh
@@ -32,9 +35,10 @@ generated/keywords.inc generated/keyword_switch.inc &: keywords.gen.sh keywords
 generated/config-levels.cc generated/config-types.hh &: config/gen.cc config.options
 	@make -C ./config run
 
-.depend: $(SOURCES) $(HEADERS)
-	@rm -f .depend
-	@$(CC) $(CXXFLAGS) -MM $^ >> .depend;
+# Dependencies
+
+.depend: $(SOURCES) $(HEADERS) generated/keywords.inc generated/keyword_switch.inc generated/config-levels.cc generated/config-types.hh
+	@$(CXX) $(CXXFLAGS) -MM $(SOURCES) $(HEADERS) > .depend;
 
 -include .depend
 config.cc: config/config-line.cc

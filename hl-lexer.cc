@@ -228,7 +228,7 @@ void HLexer::run() {
 
                 // Parse the macro (token sequence with ENDL as sentinel)
                 auto seq = parse_token_seq(ENDL);
-                assert(at(ENDL));
+                assert(finished() || at(ENDL));
                 advance(1);
 
                 // Add it as a whole group

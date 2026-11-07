@@ -48,10 +48,17 @@ struct Parse2Cmd : Command {
         Parser2 parser2(hl_lex);
         auto    program = parser2.run();
 
-        AstDumper dumper(cout, hl_lex.tokens());
-        dumper.dump(program.get());
-
-        return 0;
+        if (parser2.has_errors()) {
+            for (auto& err : parser2.errors()) {
+            	string codeline = lexer.tokens().get_line(err.pos.lin);
+            	print_error(cerr, filename, err.pos, err.message, codeline);
+            }
+            return 1;
+        } else {
+            AstDumper dumper(cout, hl_lex.tokens());
+            dumper.dump(program.get());
+            return 0;
+        }
     }
 
     int run() {

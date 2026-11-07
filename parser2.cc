@@ -26,12 +26,41 @@ bool Parser2::is_function(const GroupSeq& seq) {
            is_structured(seq.elems[2], OPEN_BRACE, SEMICOLON);
 }
 
+TopDecl Parser2::parse_include(TokenSeq seq) {
+    if (seq.length() != 2) {
+        error(seq.begin + 2, "Extra characters after filename.");
+        return TopDecl();
+    }
+    size_t file_pos = seq.begin + 1;
+    auto   elem1 = token_id(file_pos);
+    if (elem1 != LOCAL_FILENAME && elem1 != GLOBAL_FILENAME) {
+        error(seq.begin + 1, "Expected a filename.");
+        return TopDecl();
+    }
+    string delim_file = token_str(file_pos);
+    return TopDecl(
+        Include::make({
+            .filename = delim_file.substr(1, delim_file.size() - 2),
+            .global = elem1 == GLOBAL_FILENAME,
+        })
+    );
+}
+
 TopDecl Parser2::parse_macro(const GroupSeq& group) {
     assert(group.elems.size() == 1 && group.elems[0].is<TokenSeq>());
     auto tokseq = group.elems[0].as<TokenSeq>();
+
+    string name = token_str(tokseq.begin).substr(1);
+
+    // Special cases
+    if (name == "include") {
+        return parse_include(tokseq);
+    }
+
+    // Any macro
     return TopDecl(
         Macro::make({
-            .name = token_str(tokseq.begin).substr(1),
+            .name = name,
             .start = tokseq.begin + 1,
             .end = tokseq.end,
         })
@@ -56,7 +85,7 @@ vector<Ref<FuncParam>> Parser2::parse_parameters(const TokenGroup& group) {
     for (auto ref : strd.groups) {
         auto& subgroup = ref.get();
         if (subgroup.elems.size() != 1 || not subgroup.elems[0].is<TokenSeq>()) {
-            error("Parameter has more than one token sequence");
+            error(subgroup.begin, "Parameter has more than one token sequence");
         }
         auto tokseq = subgroup.elems[0].as<TokenSeq>();
         params.push_back(parse_parameter(tokseq));
@@ -78,13 +107,13 @@ Ref<Identifier> Parser2::parse_type_keyword(size_t& i) {
             return Identifier::make({.name = name});
         }
     }
-    error("Keyword is not a type!");
+    error(i, "Keyword is not a type!");
     return Identifier::make({});  // NOTE(pauek): Avoid compiler warning
 }
 
 Ref<Identifier> Parser2::parse_identifier(size_t& i) {
     if (not token_id(i)) {
-        error("Expected identifier.");
+        error(i, "Expected identifier.");
     }
     string name = token_str(i);
     i++;
