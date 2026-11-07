@@ -57,6 +57,7 @@ class Lexer {
     void push(TokenID tokid, size_t start, size_t end);
 
     void lex_endl();
+    void lex_escape();
     void lex_line_comment();
     void lex_multiline_comment();
 

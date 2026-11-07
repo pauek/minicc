@@ -1,19 +1,11 @@
-#include <iostream>
-using namespace std;
-
 #include <filesystem>
 #include <iostream>
-
-#include "../hl-lexer.hh"
-#include "../lexer.hh"
-#include "../utils.hh"
-#include "command.hh"
 using namespace std;
 
 #include "../astdump.hh"
+#include "../hl-lexer.hh"
 #include "../lexer.hh"
-#include "../parser.hh"
-#include "../printer.hh"
+#include "../parser2.hh"
 #include "../utils.hh"
 #include "command.hh"
 
@@ -52,7 +44,13 @@ struct Parse2Cmd : Command {
 
         HLexer hl_lex(lexer);
         hl_lex.run();
-        hl_lex.dump(cout);
+
+        Parser2 parser2(hl_lex);
+        auto    program = parser2.run();
+
+        AstDumper dumper(cout, hl_lex.tokens());
+        dumper.dump(program.get());
+
         return 0;
     }
 

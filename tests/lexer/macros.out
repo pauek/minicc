@@ -11,28 +11,20 @@ macros.cc:2:14: IDENT 'yay'
 macros.cc:2:18: STR_LITERAL '"yay"'
 macros.cc:2:23: ENDL
 macros.cc:3:1: MACRO '#a'
-macros.cc:3:4: ESC
-macros.cc:3:5: ENDL
 macros.cc:4:3: IDENT 'b'
 macros.cc:4:5: IDENT 'c'
 macros.cc:4:7: IDENT 'd'
 macros.cc:4:8: ENDL
 macros.cc:5:1: MACRO '#a'
 macros.cc:5:4: IDENT 'b'
-macros.cc:5:6: ESC
-macros.cc:5:7: ENDL
 macros.cc:6:4: IDENT 'c'
 macros.cc:6:5: ENDL
 macros.cc:7:1: MACRO '#a'
 macros.cc:7:4: IDENT 'b'
 macros.cc:7:6: IDENT 'c'
-macros.cc:7:8: ESC
-macros.cc:7:9: ENDL
 macros.cc:8:4: IDENT 'd'
 macros.cc:8:5: ENDL
 macros.cc:9:1: MACRO '#a'
 macros.cc:9:4: IDENT 'b'
 macros.cc:9:6: IDENT 'c'
 macros.cc:9:8: IDENT 'd'
-macros.cc:9:10: ESC
-macros.cc:9:11: ENDL

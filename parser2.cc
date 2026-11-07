@@ -15,7 +15,7 @@ bool Parser2::is_structured(const TokenGroup& group, TokenID delim, TokenID sep)
 // TokenSeq[MACRO, ...]
 bool Parser2::is_macro(const GroupSeq& seq) {
     return seq.elems.size() == 1 && seq.elems[0].is<TokenSeq>() &&
-           seq.elems[0].as<TokenSeq>().begin == MACRO;
+           token_id(seq.elems[0].as<TokenSeq>().begin) == MACRO;
 }
 
 // TokenSeq[..., IDENT], Structure(,), Structure{;}
@@ -31,8 +31,8 @@ TopDecl Parser2::parse_macro(const GroupSeq& group) {
     auto tokseq = group.elems[0].as<TokenSeq>();
     return TopDecl(
         Macro::make({
-            .name = token_str(tokseq.begin),
-            .start = tokseq.begin,
+            .name = token_str(tokseq.begin).substr(1),
+            .start = tokseq.begin + 1,
             .end = tokseq.end,
         })
     );
@@ -154,7 +154,7 @@ TopDecl Parser2::parse_top_level(const GroupSeq& group) {
 
 void Parser2::parse_unit(const Structured& root) {
     for (auto group : root.groups) {
-        parse_top_level(group.get());
+        top_decls_.push_back(parse_top_level(group.get()));
     }
 }
 

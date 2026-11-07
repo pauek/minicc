@@ -37,7 +37,7 @@ struct ParseCmd : Command {
             Parser parser(lexer);
             auto   program = parser.run();
 
-            AstDumper ast_dumper(cout, parser);
+            AstDumper ast_dumper(cout, lexer.tokens());
             ast_dumper.dump(program.get());
 
             return 0;

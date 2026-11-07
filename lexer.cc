@@ -66,6 +66,29 @@ void Lexer::lex_endl() {
     new_line();
 }
 
+void Lexer::lex_escape() {
+    assert(at('\\'));
+    size_t start = pos_;
+    advance(1);
+
+    // The escape cancels itself with the ENDL, so we need to skip
+    // spaces until the next character and see if it is an ENDL
+
+    while (not finished() && is_space()) {
+        advance(1);
+    }
+    // FIXME(pauek): This code is repeated shamelessly!!!
+    if (at('\r', '\n')) {
+        advance(2);
+        new_line();
+    } else if (at('\r') || at('\n')) {
+        advance(1);
+        new_line();
+    } else {
+    	tokens_.push(ESC, start, start + 1);
+    }
+}
+
 void Lexer::lex_identifier_or_keyword() {
     assert(is_identifier_start());
     size_t start = pos_;
@@ -201,6 +224,10 @@ void Lexer::run() {
             continue;
         }
         switch (curr()) {
+            case '\\': {
+                lex_escape();
+                break;
+            }
             case '\r':
             case '\n': {
                 lex_endl();
@@ -257,7 +284,6 @@ void Lexer::run() {
                 TOKEN_A('.', DOT)
 
                 TOKEN_A('!', ADM)
-                TOKEN_A('\\', ESC)
 
 #define TOKEN_A_AB(A, B, ID_A, ID_AB)    \
     case A: {                            \
