@@ -22,6 +22,9 @@ struct TokenSeq : DataType<TokenSeq, 10000> {
     }
 
     size_t length() const { return end - begin; }
+
+    // WARNING: no checking of boundaries here...
+    size_t at(int i) const { return begin + i; }
 };
 
 // A sequence of token groups ()

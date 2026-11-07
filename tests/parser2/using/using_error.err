@@ -1,0 +1,6 @@
+using/using_error.cc:1:16: parse error: Expected a namespace name.
+    | using namespace;
+    |                ^
+using/using_error.cc:2:17: parse error: Expected a namespace name.
+    | using namespace ();
+    |                 ^

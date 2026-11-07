@@ -12,6 +12,15 @@ bool Parser2::is_structured(const TokenGroup& group, TokenID delim, TokenID sep)
     return (strd.delim != delim || strd.sep != sep);
 }
 
+// TokenSeq[USING, NAMESPACE, ...]
+bool Parser2::is_using_namespace(const GroupSeq& seq) {
+    if (seq.elems.size() < 1 || not seq.elems[0].is<TokenSeq>()) {
+        return false;
+    }
+    auto tokseq = seq.elems[0].as<TokenSeq>();
+    return token_id(tokseq.at(0)) == USING && token_id(tokseq.at(1)) == NAMESPACE;
+}
+
 // TokenSeq[MACRO, ...]
 bool Parser2::is_macro(const GroupSeq& seq) {
     return seq.elems.size() == 1 && seq.elems[0].is<TokenSeq>() &&
@@ -171,11 +180,24 @@ TopDecl Parser2::parse_function(const GroupSeq& group) {
     );
 }
 
+TopDecl Parser2::parse_using_namespace(const GroupSeq& group) {
+    assert(is_using_namespace(group));
+    auto tokseq = group.elems[0].as<TokenSeq>();
+    if (token_id(tokseq.at(2)) != IDENT) {
+        error(tokseq.begin + 2, "Expected a namespace name.");
+        return TopDecl();
+    }
+    string namespc = token_str(tokseq.at(2));
+    return TopDecl(Using::make({.namespc = namespc}));
+}
+
 TopDecl Parser2::parse_top_level(const GroupSeq& group) {
     if (is_macro(group)) {
         return TopDecl(parse_macro(group));
     } else if (is_function(group)) {
         return TopDecl(parse_function(group));
+    } else if (is_using_namespace(group)) {
+        return TopDecl(parse_using_namespace(group));
     } else {
         return TopDecl();
     }

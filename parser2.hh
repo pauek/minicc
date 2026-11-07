@@ -27,6 +27,7 @@ class Parser2 {
     bool is_structured(const TokenGroup& group, TokenID delim, TokenID sep);
     bool is_macro(const GroupSeq& group);
     bool is_function(const GroupSeq& group);
+    bool is_using_namespace(const GroupSeq& seq);
 
     Ref<TypeSpec> parse_typespec(size_t begin, size_t end);
     Ref<FuncParam> parse_parameter(TokenSeq seq);
@@ -36,9 +37,11 @@ class Parser2 {
     Ref<Identifier> parse_type_keyword(size_t& i);
     Ref<Identifier> parse_identifier(size_t& i);
 
-    TopDecl parse_function(const GroupSeq& group);
     TopDecl parse_include(TokenSeq seq);
     TopDecl parse_macro(const GroupSeq& group);
+    TopDecl parse_using_namespace(const GroupSeq& group);
+    TopDecl parse_function(const GroupSeq& group);
+
     TopDecl parse_top_level(const GroupSeq& group);
 
    public:

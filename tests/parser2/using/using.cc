@@ -1,0 +1,3 @@
+using namespace std;
+using namespace yeah_yeah;
+using        namespace                         blip             ; using           namespace blop                            ;
