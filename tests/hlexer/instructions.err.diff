@@ -1,2 +1,0 @@
-terminate called after throwing an instance of 'std::filesystem::__cxx11::filesystem_error'
-  what():  filesystem error: cannot get file size: No such file or directory [hlex]
