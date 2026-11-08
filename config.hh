@@ -82,7 +82,6 @@ struct Level {
 
 extern std::vector<Level> levels;
 
-
 void read_from_file();
 
 inline std::string get_name(ID id) {

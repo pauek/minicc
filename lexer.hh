@@ -78,7 +78,7 @@ class Lexer {
 
     void run();
 
-    Tokens& tokens() { return tokens_; }
+    Tokens&       tokens() { return tokens_; }
     const Tokens& tokens() const { return tokens_; }
 };
 

@@ -51,7 +51,7 @@ void Printer::print(const BinaryExpr& e) {
             out_ << "||";
             break;
         case BinaryExpr::None:
-        	out_ << "<none>";
+            out_ << "<none>";
     }
     out_ << ' ';
     print(e.right);

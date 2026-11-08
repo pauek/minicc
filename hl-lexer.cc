@@ -286,7 +286,7 @@ void HLexer::run() {
                 break;
             }
             default: {
-            	// At the top level, a token sequence stops at ';'
+                // At the top level, a token sequence stops at ';'
                 auto seq = parse_token_seq(SEMICOLON);
                 if (seq.begin != seq.end) {
                     if (gseq.elems.empty()) {

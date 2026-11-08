@@ -85,7 +85,7 @@ void Lexer::lex_escape() {
         advance(1);
         new_line();
     } else {
-    	tokens_.push(ESC, start, start + 1);
+        tokens_.push(ESC, start, start + 1);
     }
 }
 

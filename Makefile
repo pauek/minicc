@@ -25,6 +25,16 @@ clean:
 install: minicc
 	cp minicc $(HOME)/.local/bin
 
+# Dependencies
+
+.depend: $(SOURCES) $(HEADERS) generated/keywords.inc generated/keyword_switch.inc generated/config-levels.cc generated/config-types.hh
+	@$(CXX) $(CXXFLAGS) -MM $(SOURCES) $(HEADERS) > .depend;
+
+# Don't include/remake .depend when cleaning: it would force the
+# generated files to be rebuilt only to be deleted again. -- Kimi K3
+ifeq ($(filter clean,$(MAKECMDGOALS)),)
+-include .depend
+endif
 
 # Generators
 
@@ -35,12 +45,6 @@ generated/keywords.inc generated/keyword_switch.inc &: keywords.gen.sh keywords
 generated/config-levels.cc generated/config-types.hh &: config/gen.cc config.options
 	@make -C ./config run
 
-# Dependencies
-
-.depend: $(SOURCES) $(HEADERS) generated/keywords.inc generated/keyword_switch.inc generated/config-levels.cc generated/config-types.hh
-	@$(CXX) $(CXXFLAGS) -MM $(SOURCES) $(HEADERS) > .depend;
-
--include .depend
 config.cc: config/config-line.cc
 
 debug: CXXFLAGS += -g3 -O0 -Wall -Wpedantic
@@ -48,8 +52,6 @@ debug: minicc
 
 release: CXXFLAGS += -O3
 release: minicc
-
-
 
 minicc: .depend $(OBJECTS)
 	$(CXX) -o minicc $(OBJECTS)

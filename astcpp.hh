@@ -107,8 +107,8 @@ struct AssignExpr : DataType<AssignExpr, 24> {
     Expr            expr;
     Operator        op;
 
-    static bool     is_assign_op(TypeID id);
-    static Operator token_to_op(TypeID id);
+    static bool        is_assign_op(TypeID id);
+    static Operator    token_to_op(TypeID id);
     static std::string op_to_str(Operator op);
 };
 
@@ -116,9 +116,9 @@ struct IncrExpr : DataType<IncrExpr, 25> {
     enum Operator { Add, Sub, Error };
     enum Order { Pre, Post };
 
-    static bool is_incr_op(TypeID id);
+    static bool     is_incr_op(TypeID id);
     static Operator token_to_op(TypeID id);
-    static string op_to_str(Operator op);
+    static string   op_to_str(Operator op);
 
     Ref<Identifier> target;
     Operator        op;

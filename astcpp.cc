@@ -1,6 +1,7 @@
 #include "astcpp.hh"
-#include "tokens.hh"
+
 #include "datatype.hh"
+#include "tokens.hh"
 
 TypeSpec::Qualifier TypeSpec::qualifier_from_str(std::string name) {
     if (name == "auto") {

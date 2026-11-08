@@ -51,7 +51,6 @@ struct Ref {
     }
 
     uint32_t type_id() const { return T::type_id; }
-
 };
 
 template <IsStruct T, TypeID ID>
@@ -102,9 +101,7 @@ struct Variant {
 
     bool is_none() const { return type_id == None; }
 
-    void operator=(TypeID id) {
-    	type_id = id;
-    }
+    void operator=(TypeID id) { type_id = id; }
 };
 
 #endif

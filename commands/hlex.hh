@@ -35,6 +35,6 @@ struct HLex : Command {
     }
 
     struct ArgParser : Command::ArgParser {
-    	ICommand *parse(Args args) override { return new HLex(args); }
+        ICommand *parse(Args args) override { return new HLex(args); }
     };
 };

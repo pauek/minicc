@@ -5,8 +5,8 @@
 using namespace std;
 
 #include "config.hh"
-#include "error.hh"
 #include "config/config-line.hh"
+#include "error.hh"
 
 namespace Config {
 
@@ -51,7 +51,7 @@ struct ConfigReader {
             // Parse the line first
             ConfigLine config_line;
             if (not get_line(config_line)) {
-            	break;
+                break;
             }
 
             // If parsing gave an error, show it
@@ -76,8 +76,8 @@ struct ConfigReader {
             }
             auto child_id = find_child(id, config_line.name);
             if (child_id == ID::none) {
-                auto name = get_name(id);
-                int indent = config_line.level * 4;
+                auto   name = get_name(id);
+                int    indent = config_line.level * 4;
                 string message = std::format("\"{}\" not found in \"{}\"", config_line.name, name);
                 if (id == ID::none) {
                     message = std::format("\"{}\" not found at top-level", config_line.name);

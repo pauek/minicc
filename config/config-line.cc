@@ -1,9 +1,9 @@
-#include <string>
 #include <format>
+#include <string>
 using namespace std;
 
-#include "config-line.hh"
 #include "../utils.hh"
+#include "config-line.hh"
 
 namespace Config {
 
@@ -79,4 +79,4 @@ ConfigLine split_config_line(string line, int lin) {
     return result;
 }
 
-}
+}  // namespace Config

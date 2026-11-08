@@ -50,8 +50,8 @@ struct Parse2Cmd : Command {
 
         if (parser2.has_errors()) {
             for (auto& err : parser2.errors()) {
-            	string codeline = lexer.tokens().get_line(err.pos.lin);
-            	print_error(cerr, filename, err.pos, err.message, codeline);
+                string codeline = lexer.tokens().get_line(err.pos.lin);
+                print_error(cerr, filename, err.pos, err.message, codeline);
             }
             return 1;
         } else {

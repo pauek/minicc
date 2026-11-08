@@ -15,7 +15,7 @@ std::string token_name(TokenID id) {
         //
 #define KEYWORD(id, name) \
     case id: {            \
-        return #id;     \
+        return #id;       \
     }
 #include "generated/keywords.inc"
 #undef KEYWORD
