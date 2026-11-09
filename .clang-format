@@ -1,7 +1,7 @@
 BasedOnStyle: Chromium
 IndentWidth: 4
 UseTab: Never
-ColumnLimit: 100
+ColumnLimit: 92
 ReferenceAlignment: Left
 PointerAlignment: Right
 ReflowComments: Always
@@ -28,4 +28,3 @@ InsertBraces: true
 BreakBeforeBraces: Attach
 MaxEmptyLinesToKeep: 1
 IncludeBlocks: Regroup
-

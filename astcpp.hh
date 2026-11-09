@@ -5,6 +5,7 @@
 #include <vector>
 
 #include "datatype.hh"
+#include "tokens.hh"
 
 // Type Specifier
 struct Identifier;
@@ -85,6 +86,7 @@ struct BinaryExpr : DataType<BinaryExpr, 20> {
     static Level op_level(Operator op);
 
     static std::string operator_to_str(Operator op);
+    static Operator token_to_operator_type(TokenID tokid);
 };
 struct CallExpr : DataType<CallExpr, 21> {
     Expr         func;

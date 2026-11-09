@@ -42,7 +42,7 @@ class Parser {
 
     bool at_type_keyword() const;
     bool at_typespec_qualifier() const;
-    bool at_literal() const;
+
     bool at_keyword() const { return curr() > BEFORE_KEYWORDS && curr() < AFTER_KEYWORDS; }
     bool at_assign_token() const { return AssignExpr::is_assign_op(curr()); }
 
@@ -69,8 +69,6 @@ class Parser {
     }
 
     void push(TopDecl top_decl) { top_decls_.push_back(top_decl); }
-
-    BinaryExpr::Operator token_to_operator_type();
 
     TopDecl         parse_macro();
     Ref<Using>      parse_using();

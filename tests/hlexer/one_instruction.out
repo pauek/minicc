@@ -1,0 +1,4 @@
+one_instruction.cc:1:1:        group:
+one_instruction.cc:1:1:            {;}:
+one_instruction.cc:2:2:                group:
+one_instruction.cc:2:2:                    INT IDENT = INT_LITERAL 

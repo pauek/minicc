@@ -51,6 +51,56 @@ BinaryExpr::Level BinaryExpr::op_level(Operator op) {
     }
 }
 
+BinaryExpr::Operator BinaryExpr::token_to_operator_type(TokenID tokid) {
+    switch (tokid) {
+        case PLUS: {
+            return BinaryExpr::Add;
+        }
+        case MINUS: {
+            return BinaryExpr::Sub;
+        }
+        case STAR: {
+            return BinaryExpr::Mul;
+        }
+        case DIV: {
+            return BinaryExpr::Div;
+        }
+        case MOD: {
+            return BinaryExpr::Mod;
+        }
+        case BARBAR: {
+            return BinaryExpr::Or;
+        }
+        case AMPAMP: {
+            return BinaryExpr::And;
+        }
+        case ::GT: {
+            return BinaryExpr::GT;
+        }
+        case ::GEQ: {
+            return BinaryExpr::GE;
+        }
+        case ::LT: {
+            return BinaryExpr::LT;
+        }
+        case LEQ: {
+            return BinaryExpr::LE;
+        }
+        case EQ: {
+            return BinaryExpr::Eq;
+        }
+        case NEQ: {
+            return BinaryExpr::NotEq;
+        }
+        case EQEQ: {
+            return BinaryExpr::Eq;
+        }
+        default: {
+            return BinaryExpr::None;
+        }
+    }
+}
+
 string BinaryExpr::operator_to_str(Operator op) {
     switch (op) {
         case Add:

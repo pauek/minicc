@@ -177,19 +177,6 @@ vector<Ref<FuncParam>> Parser::parse_function_parameters() {
     return params;
 }
 
-bool Parser::at_literal() const {
-    switch (curr()) {
-        case INT_LITERAL:
-        case STR_LITERAL:
-        case CHAR_LITERAL:
-        case TRUE:
-        case FALSE:
-            return true;
-        default:
-            return false;
-    }
-}
-
 Expr Parser::parse_literal() {
     switch (curr()) {
         case INT_LITERAL: {
@@ -219,70 +206,20 @@ Expr Parser::parse_literal() {
     }
 }
 
-BinaryExpr::Operator Parser::token_to_operator_type() {
-    switch (curr()) {
-        case PLUS: {
-            return BinaryExpr::Add;
-        }
-        case MINUS: {
-            return BinaryExpr::Sub;
-        }
-        case STAR: {
-            return BinaryExpr::Mul;
-        }
-        case DIV: {
-            return BinaryExpr::Div;
-        }
-        case MOD: {
-            return BinaryExpr::Mod;
-        }
-        case BARBAR: {
-            return BinaryExpr::Or;
-        }
-        case AMPAMP: {
-            return BinaryExpr::And;
-        }
-        case GT: {
-            return BinaryExpr::GT;
-        }
-        case GEQ: {
-            return BinaryExpr::GE;
-        }
-        case LT: {
-            return BinaryExpr::LT;
-        }
-        case LEQ: {
-            return BinaryExpr::LE;
-        }
-        case EQ: {
-            return BinaryExpr::Eq;
-        }
-        case NEQ: {
-            return BinaryExpr::NotEq;
-        }
-        case EQEQ: {
-            return BinaryExpr::Eq;
-        }
-        default: {
-            return BinaryExpr::None;
-        }
-    }
-}
-
 Ref<BinaryExpr> Parser::parse_binary_expr() {
     BinaryExpr binexp;
 
     // Left Hand Side
     if (at(IDENT)) {
         binexp.left = Expr(parse_identifier());
-    } else if (at_literal()) {
+    } else if (is_literal(curr())) {
         binexp.left = parse_literal();
     } else {
         error("Unimplemented!");
     }
 
     // Operator
-    binexp.op = token_to_operator_type();
+    binexp.op = BinaryExpr::token_to_operator_type(curr());
     advance(1);
 
     // Right Hand Side
@@ -296,7 +233,7 @@ Ref<BinaryExpr> Parser::parse_binary_expr() {
 }
 
 Expr Parser::parse_unary_expr() {
-    if (at_literal()) {
+    if (is_literal(curr())) {
         return parse_literal();
     } else if (at(IDENT)) {
         return Expr(parse_identifier());
@@ -320,7 +257,7 @@ Expr Parser::parse_expr(BinaryExpr::Level break_level) {
     auto curr_level = BinaryExpr::Infinite;
     while (true) {
         // See the operator, break if not an operator
-        BinaryExpr::Operator op = token_to_operator_type();
+        auto op = BinaryExpr::token_to_operator_type(curr());
         if (op == BinaryExpr::None) {
             break;
         }

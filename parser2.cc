@@ -4,12 +4,24 @@
 
 #include "tokens.hh"
 
-bool Parser2::is_structured(const TokenGroup& group, TokenID delim, TokenID sep) {
+bool Parser2::is_structured(
+    const TokenGroup&      group,
+    TokenID                delim,
+    const vector<TokenID>& seps
+) {
     if (not group.is<Structured>()) {
         return false;
     }
     auto strd = group.as<Structured>();
-    return (strd.delim != delim || strd.sep != sep);
+    if (strd.delim != delim) {
+        return false;
+    }
+    for (auto sep : seps) {
+        if (strd.sep == sep) {
+            return true;
+        }
+    }
+    return false;
 }
 
 // TokenSeq[USING, NAMESPACE, ...]
@@ -29,10 +41,31 @@ bool Parser2::is_macro(const GroupSeq& seq) {
 
 // TokenSeq[..., IDENT], Structure(,), Structure{;}
 bool Parser2::is_function(const GroupSeq& seq) {
-    return seq.elems.size() == 3 && seq.elems[0].is<TokenSeq>() &&
-           token_id(seq.elems[0].as<TokenSeq>().end - 1) == IDENT &&
-           is_structured(seq.elems[1], OPEN_PAREN, COMMA) &&
-           is_structured(seq.elems[2], OPEN_BRACE, SEMICOLON);
+    const int num_groups = seq.elems.size();
+
+    // 2 or 3 groups, if it has the body or not (decl/def)
+    if (num_groups < 2 || num_groups > 3) {
+        return false;
+    }
+
+    // The first part is a TokenSeq (typespec + name at the end)
+    auto& elm0 = seq.elems[0];
+    if (not elm0.is<TokenSeq>() || token_id(elm0.as<TokenSeq>().end - 1) != IDENT) {
+        return false;
+    }
+
+    // The second group is the parameter list
+    if (not is_structured(seq.elems[1], OPEN_PAREN, {COMMA, NONE})) {
+        return false;
+    }
+
+    // Either we don't have a body...
+    if (seq.elems.size() == 2) {
+        return true;
+    }
+    // ... or if we have it, it is a structured like '{;}' (or {} when there are only ifs,
+    // fors or whiles)
+    return is_structured(seq.elems[2], OPEN_BRACE, {SEMICOLON, NONE});
 }
 
 TopDecl Parser2::parse_include(TokenSeq seq) {
@@ -88,7 +121,8 @@ Ref<FuncParam> Parser2::parse_parameter(TokenSeq seq) {
 vector<Ref<FuncParam>> Parser2::parse_parameters(const TokenGroup& group) {
     assert(group.is<Structured>());
     auto strd = group.as<Structured>();
-    assert(strd.delim == OPEN_PAREN && strd.sep == COMMA);
+    assert(strd.delim == OPEN_PAREN);
+    assert(strd.sep == NONE || (strd.sep == COMMA && strd.groups.size() > 1));
 
     vector<Ref<FuncParam>> params;
     for (auto ref : strd.groups) {
@@ -103,8 +137,138 @@ vector<Ref<FuncParam>> Parser2::parse_parameters(const TokenGroup& group) {
     return params;
 }
 
-Ref<StmtBlock> Parser2::parse_block(const TokenGroup& group) {
-    return StmtBlock::make({.stmts = {}});
+// Expression Parser
+
+Ref<Identifier> ExprParser::parse_identifier() {
+    if (not at(IDENT)) {
+        error("Expected identifier.");
+    }
+    string name = curr_str();
+    advance(1);
+    return Identifier::make({.name = name});
+}
+
+Expr ExprParser::parse_literal() {
+    switch (curr()) {
+        case INT_LITERAL: {
+            int value = stoi(curr_str());
+            advance(1);
+            return Expr(IntLiteral::make({.value = value}));
+        }
+        case CHAR_LITERAL: {
+            char value = curr_str()[1];
+            advance(1);
+            return Expr(CharLiteral::make({.value = value}));
+        }
+        case STR_LITERAL: {
+            string value = curr_str();
+            advance(1);
+            return Expr(StringLiteral::make({.value = value}));
+        }
+        case TRUE:
+        case FALSE: {
+            bool value = curr() == TRUE;
+            advance(1);
+            return Expr(BoolLiteral::make({.value = value}));
+        }
+        default:
+            assert(false);
+            return Expr(StringLiteral::make({.value = "ERROR!"}));
+    }
+}
+
+Expr ExprParser::parse_unary_expr() {
+    if (is_literal(curr())) {
+        return parse_literal();
+    } else if (at(IDENT)) {
+        return Expr(parse_identifier());
+    } else if (at(OPEN_PAREN)) {
+        advance(1);
+        auto expr = parse_expr(BinaryExpr::Zero);
+        if (not at(CLOSE_PAREN)) {
+            error("Expected ')' here.");
+        }
+        advance(1);
+        return expr;
+    } else {
+        // FIXME(pauek): Add parenthesis here, which reset the level
+        error("Unimplemented!");
+        return Expr();
+    }
+}
+
+Expr ExprParser::parse_expr(BinaryExpr::Level break_level) {
+    Expr left = parse_unary_expr();
+    auto curr_level = BinaryExpr::Infinite;
+    while (true) {
+        // See the operator, break if not an operator
+        BinaryExpr::Operator op = BinaryExpr::token_to_operator_type(curr());
+        if (op == BinaryExpr::None) {
+            break;
+        }
+
+        Expr right;
+        auto op_level = BinaryExpr::op_level(op);
+        // Break if level is lower
+        if (op_level <= break_level) {
+            break;
+        } else if (op_level > curr_level || curr_level == BinaryExpr::Infinite) {
+            advance(1);
+            right = parse_expr(op_level);
+        } else {
+            advance(1);
+            curr_level = min(curr_level, op_level);
+            right = parse_unary_expr();
+        }
+
+        Ref<BinaryExpr> binexpr =
+            BinaryExpr::make({.op = op, .left = left, .right = right});
+        left = Expr(binexpr);
+    }
+
+    return left;
+}
+
+// Statements
+
+Stmt Parser2::parse_return(const GroupSeq& group) {
+    assert(token_id(group.begin) == RETURN);
+    size_t begin = group.begin + 1; // skip 'RETURN' token
+
+    ExprParser::Result result = ExprParser(tokens(), begin, group.end).run();
+    if (result.has_error) {
+        error(result.error.tokidx, result.error.message);
+        return Stmt();
+    }
+    return Stmt(ReturnStmt::make({.expr = result.expr}));
+}
+
+Ref<StmtBlock> Parser2::parse_block(Structured strd) {
+    vector<Stmt> stmts;
+    for (auto instruction : strd.groups) {
+        auto& gr_seq = instruction.get();
+        switch (token_id(gr_seq.begin)) {
+            case RETURN: {
+                stmts.push_back(parse_return(gr_seq));
+                break;
+            }
+            case IF: {
+                error(strd.begin, "Unimplemented");
+                break;
+            }
+            case WHILE: {
+                error(strd.begin, "Unimplemented");
+                break;
+            }
+            case FOR: {
+                error(strd.begin, "Unimplemented");
+                break;
+            }
+            default: {
+            }
+        }
+    }
+    return StmtBlock::make({.stmts = stmts});
 }
 
 Ref<Identifier> Parser2::parse_type_keyword(size_t& i) {
@@ -130,7 +294,7 @@ Ref<Identifier> Parser2::parse_identifier(size_t& i) {
 }
 
 Ref<TypeSpec> Parser2::parse_typespec(size_t begin, size_t end) {
-    assert(token_id(begin) == KEYWORD);
+    assert(is_keyword(token_id(begin)));
 
     // Check all possible modifiers
     size_t i = begin;
@@ -142,7 +306,7 @@ Ref<TypeSpec> Parser2::parse_typespec(size_t begin, size_t end) {
 
     // Now the main type (for now basic types only)
     Ref<Identifier> ident;
-    if (token_id(i) == KEYWORD) {
+    if (is_keyword(token_id(i))) {
         ident = parse_type_keyword(i);
     } else {
         ident = parse_identifier(i);
@@ -168,7 +332,15 @@ TopDecl Parser2::parse_function(const GroupSeq& group) {
     auto return_type = parse_typespec(tokseq.begin, tokseq.last());
     auto ident = Identifier::make({.name = token_str(tokseq.last())});
     auto params = parse_parameters(group.elems[1]);
-    auto body = parse_block(group.elems[2]);
+
+    // There are two options, either we have only the header, or it is the function
+    // definition
+    Ref<StmtBlock> body;
+    if (group.elems.size() > 2) {
+        // From the `is_function` predicate we know this must be a Structured
+        auto strd = group.elems[2].as<Structured>();
+        body = parse_block(strd);
+    }
 
     return TopDecl(
         FuncDecl::make({
@@ -199,6 +371,7 @@ TopDecl Parser2::parse_top_level(const GroupSeq& group) {
     } else if (is_using_namespace(group)) {
         return TopDecl(parse_using_namespace(group));
     } else {
+        error(group.begin, "Found unknown declaration");
         return TopDecl();
     }
 }

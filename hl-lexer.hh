@@ -31,6 +31,8 @@ struct TokenSeq : DataType<TokenSeq, 10000> {
 struct GroupSeq : DataType<GroupSeq, 10001> {
     size_t             begin, end;
     vector<TokenGroup> elems;
+
+    size_t head() const;
 };
 
 // A potentially delimited and separated sequence of token groups
@@ -40,6 +42,18 @@ struct Structured : DataType<Structured, 10002> {
     size_t                begin, end;
     vector<Ref<GroupSeq>> groups;
 };
+
+inline size_t GroupSeq::head() const {
+    assert(not elems.empty());
+    auto elm0 = elems[0];
+    if (elm0.is<TokenSeq>()) {
+        return elm0.as<TokenSeq>().at(0);
+    } else if (elm0.is<GroupSeq>()) {
+        return elm0.as<GroupSeq>().head();
+    } else {
+        return elm0.as<Structured>().groups[0].get().head();
+    }
+}
 
 // High-Level lexer
 

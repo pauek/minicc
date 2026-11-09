@@ -35,7 +35,6 @@ enum TokenID {
 inline bool is_separator(TokenID id) {
     return id == SEMICOLON || id == COMMA;
 }
-
 inline bool is_open_delimiter(TokenID id) {
     return id == OPEN_BRACE || id == OPEN_PAREN || id == OPEN_BRACKET;
 }
@@ -48,8 +47,15 @@ inline bool is_delimiter(TokenID id) {
 inline bool is_typespec_qualifier(TokenID id) {
     return id == AUTO || id == CONST;
 }
+inline bool is_keyword(TokenID id) {
+    return id > BEFORE_KEYWORDS && id < AFTER_KEYWORDS;
+}
 inline bool is_type_keyword(TokenID id) {
     return id == BOOL || id == CHAR || id == INT || id == FLOAT || id == DOUBLE;
+}
+inline bool is_literal(TokenID id) {
+    return id == INT_LITERAL || id == STR_LITERAL || id == CHAR_LITERAL || id == TRUE ||
+           id == FALSE;
 }
 
 inline TokenID closing(TokenID open) {
@@ -73,10 +79,6 @@ enum HLTokenID {
 };
 
 std::string token_name(TokenID id);
-
-inline bool is_keyword(TokenID id) {
-    return id > BEFORE_KEYWORDS && id < AFTER_KEYWORDS;
-}
 
 //
 // Token sequence

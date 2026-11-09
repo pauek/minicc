@@ -2,6 +2,7 @@
 #define PARSER2_HH
 
 #include "astcpp.hh"
+#include "config.hh"
 #include "hl-lexer.hh"
 
 class Parser2 {
@@ -24,7 +25,11 @@ class Parser2 {
     std::string   token_str(size_t i) const { return hlexer_.tokens().str(i); }
     const Tokens& tokens() const { return hlexer_.tokens(); }
 
-    bool is_structured(const TokenGroup& group, TokenID delim, TokenID sep);
+    bool is_structured(
+        const TokenGroup&      group,
+        TokenID                delim,
+        const vector<TokenID>& sep = {NONE}
+    );
     bool is_macro(const GroupSeq& group);
     bool is_function(const GroupSeq& group);
     bool is_using_namespace(const GroupSeq& seq);
@@ -33,9 +38,15 @@ class Parser2 {
     Ref<FuncParam> parse_parameter(TokenSeq seq);
 
     vector<Ref<FuncParam>> parse_parameters(const TokenGroup& group);
-    Ref<StmtBlock>         parse_block(const TokenGroup& group);
+    Ref<StmtBlock>         parse_block(Structured strd);
     Ref<Identifier>        parse_type_keyword(size_t& i);
     Ref<Identifier>        parse_identifier(size_t& i);
+
+    // Expressions
+    Expr parse_expression(const GroupSeq& group);
+
+    // Statements
+    Stmt parse_return(const GroupSeq& group);
 
     TopDecl parse_include(TokenSeq seq);
     TopDecl parse_macro(const GroupSeq& group);
@@ -48,11 +59,61 @@ class Parser2 {
     Parser2(const HLexer& hlexer) : hlexer_(hlexer) {}
 
     void parse_unit(const Structured& root);
+    bool has_errors() const { return not errors_.empty(); }
 
-    bool                 has_errors() const { return not errors_.empty(); }
     const vector<Error>& errors() const { return errors_; }
 
     Ref<Program> run();
+};
+
+class ExprParser {
+    const Tokens&   tokens_;
+    size_t          begin_, end_, pos_;
+
+    TokenID curr() const { return tokens_.ids[pos_]; }
+    string  curr_str() const { return tokens_.str(pos_); }
+
+    bool at(TokenID id) const { return curr() == id; }
+
+    void advance(size_t n) { pos_ += n; }
+
+    Ref<Identifier> parse_identifier();
+    Expr            parse_literal();
+    Expr            parse_unary_expr();
+
+    Expr parse_expr(BinaryExpr::Level break_level);
+
+   public:
+    ExprParser(const Tokens& tokens, size_t begin, size_t end) : tokens_(tokens), begin_(begin), end_(end) {
+        // We are going to actually ignore the groups inside `group`, even
+        // the tree is partially there (if there are parentheses), but it is
+        // easier to process the whole thing linearly.
+        pos_ = begin_;
+    }
+
+    struct Error {
+        string message;
+        size_t tokidx;
+    };
+
+    struct Result {
+        Expr  expr;
+        bool  has_error = false;
+        Error error;
+    };
+
+    Result run() {
+        Result result;
+        result.expr = parse_expr(BinaryExpr::Level::Zero);
+
+        // If we didn't consume the whole group something is wrong
+        if (pos_ < end_) {
+            result.has_error = true;
+            result.error.message = "Extra tokens at the end of the expression.";
+            result.error.tokidx = pos_;
+        }
+        return result;
+    }
 };
 
 #endif

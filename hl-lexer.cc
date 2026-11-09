@@ -125,6 +125,7 @@ Ref<Structured> HLexer::parse_structured(TokenID open, TokenID close, TokenID se
 
     advance(1);
 
+    bool seen_at_least_one_separator = false;
     size_t end;
 
     GroupSeq              gseq;
@@ -161,6 +162,7 @@ Ref<Structured> HLexer::parse_structured(TokenID open, TokenID close, TokenID se
             string tname = token_name(close);
             error("Expected '{}'", tname);
         } else if (at(separator)) {
+        	seen_at_least_one_separator = true;
             gseq.end = pos_;
             advance(1);
             groups.push_back(GroupSeq::make(gseq));
@@ -190,7 +192,7 @@ Ref<Structured> HLexer::parse_structured(TokenID open, TokenID close, TokenID se
 
     return Structured::make({
         .delim = open,
-        .sep = groups.size() <= 1 ? NONE : separator,
+        .sep = seen_at_least_one_separator ? separator : NONE,
         .begin = begin,
         .end = end,
         .groups = groups,
@@ -199,6 +201,7 @@ Ref<Structured> HLexer::parse_structured(TokenID open, TokenID close, TokenID se
 
 void HLexer::run() {
     auto& tokens = lexer_.tokens();
+    root_.begin = pos_;
 
     // NOTE(pauek): Should we merge the "parse_structured" with this function?
     // In the sense that the internal part of a block is similar to the top-level
@@ -298,4 +301,6 @@ void HLexer::run() {
             }
         }
     }
+
+    root_.end = pos_;
 }
