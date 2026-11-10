@@ -51,9 +51,11 @@ struct StringLiteral : DataType<StringLiteral, 14> {
     string value;
 };
 // </Literals>
-
+//
+//
+//
 // <UnaryExpressions>
-typedef Variant<16, 18> UnaryExpr;
+typedef Variant<16, 18> BaseExpr;
 
 struct SignExpr : DataType<SignExpr, 16> {
     Expr expr;
@@ -66,6 +68,15 @@ struct NotExpr : DataType<NotExpr, 18> {
 
 struct Identifier : DataType<Identifier, 15> {
     string name;
+};
+struct UnaryExpr : DataType<UnaryExpr, 16> {
+    enum Operator { Negation, SignChange, None };
+
+    Operator op;
+    Expr     expr;
+
+    static std::string operator_to_str(Operator op);
+    static Operator    token_to_operator_type(TokenID tokid);
 };
 struct BinaryExpr : DataType<BinaryExpr, 20> {
     enum Level {
@@ -86,7 +97,7 @@ struct BinaryExpr : DataType<BinaryExpr, 20> {
     static Level op_level(Operator op);
 
     static std::string operator_to_str(Operator op);
-    static Operator token_to_operator_type(TokenID tokid);
+    static Operator    token_to_operator_type(TokenID tokid);
 };
 struct CallExpr : DataType<CallExpr, 21> {
     Expr         func;
@@ -133,8 +144,29 @@ struct CondExpr : DataType<CondExpr, 26> {
     Expr           cond;
     Ref<StmtBlock> then;
 };
-// </Expressions>
 
+// </Expressions>
+//
+//
+//
+// <Declarations>
+
+struct VarInit : DataType<VarInit, 27> {
+    Identifier ident;
+    Expr       init;
+};
+
+typedef Variant<30, 40> Decl;
+
+struct VarDecl : DataType<VarDecl, 30> {
+    Ref<TypeSpec>        type;
+    vector<Ref<VarInit>> vars;
+};
+
+// </Declarations>
+//
+//
+//
 // <Statements>
 
 typedef Variant<100, 200> Stmt;
@@ -175,10 +207,12 @@ struct ForStmt : DataType<ForStmt, 122> {
 };
 
 // </Statements>
-
+//
+//
+//
 // <TopDeclarations>
 
-typedef Variant<1000, 1100> TopDecl;
+typedef Variant<1000, 1010> TopDecl;
 
 // Include
 struct Include : DataType<Include, 1000> {
@@ -209,12 +243,17 @@ struct FuncDecl : DataType<FuncDecl, 1005> {
     Ref<StmtBlock>         body;
 };
 
+struct GlobalVarDecl : DataType<GlobalVarDecl, 1006> {
+    Ref<VarDecl> decl;
+};
+
 // </TopDeclarations>
+//
+//
+//
 
 struct Program : DataType<Program, 2000> {
     std::vector<TopDecl> declarations;
 };
-
-//
 
 #endif

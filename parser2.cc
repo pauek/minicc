@@ -2,6 +2,7 @@
 
 #include <cassert>
 
+#include "astcpp.hh"
 #include "tokens.hh"
 
 bool Parser2::is_structured(
@@ -37,6 +38,26 @@ bool Parser2::is_using_namespace(const GroupSeq& seq) {
 bool Parser2::is_macro(const GroupSeq& seq) {
     return seq.elems.size() == 1 && seq.elems[0].is<TokenSeq>() &&
            token_id(seq.elems[0].as<TokenSeq>().begin) == MACRO;
+}
+
+bool Parser2::is_global_vardecl(const GroupSeq& seq) {
+    // For now no constructor calls... only a token sequence
+    if (seq.elems.size() != 1 || not seq.elems[0].is<TokenSeq>()) {
+        return false;
+    }
+
+    // Let's see if it has an identifier and maybe some equals
+    const auto& tokseq = seq.elems[0].as<TokenSeq>();
+    bool        has_it = false;
+    for (int i = tokseq.begin; i < tokseq.end; i++) {
+        if (token_id(i) == EQ || token_id(i) == IDENT) {
+            has_it = true;
+            break;
+        }
+    }
+
+    // No other (that we deal with) instruction has an '=' sign in it...
+    return has_it;
 }
 
 // TokenSeq[..., IDENT], Structure(,), Structure{;}
@@ -171,13 +192,18 @@ Expr ExprParser::parse_literal() {
             advance(1);
             return Expr(BoolLiteral::make({.value = value}));
         }
+        case DOUBLE_LITERAL: {
+            double value = stod(curr_str());
+            advance(1);
+            return Expr(DoubleLiteral::make({.value = value}));
+        }
         default:
             assert(false);
             return Expr(StringLiteral::make({.value = "ERROR!"}));
     }
 }
 
-Expr ExprParser::parse_unary_expr() {
+Expr ExprParser::parse_base_expr() {
     if (is_literal(curr())) {
         return parse_literal();
     } else if (at(IDENT)) {
@@ -186,19 +212,33 @@ Expr ExprParser::parse_unary_expr() {
         advance(1);
         auto expr = parse_expr(BinaryExpr::Zero);
         if (not at(CLOSE_PAREN)) {
-            error("Expected ')' here.");
+            throw new Error{.message = "Expected ')' here.", .tokidx = pos_};
         }
         advance(1);
         return expr;
+    } else if (at(SEMICOLON)) {
+        auto semicolon_pos = pos_;
+        pos_++;
+        throw new Error{
+            .message = "Expected expression before semicolon.", .tokidx = semicolon_pos
+        };
+    } else if (at(NOT) || at(ADM) || at(MINUS)) {
+        return Expr(parse_unary_expr());
     } else {
         // FIXME(pauek): Add parenthesis here, which reset the level
-        error("Unimplemented!");
-        return Expr();
+        throw new Error{.message = "Unexpected expression.", .tokidx = pos_};
     }
 }
 
+Expr ExprParser::parse_unary_expr() {
+    auto op = UnaryExpr::token_to_operator_type(curr());
+    advance(1);
+    Expr expr = parse_base_expr();
+    return Expr(UnaryExpr::make({.op = op, .expr = expr}));
+}
+
 Expr ExprParser::parse_expr(BinaryExpr::Level break_level) {
-    Expr left = parse_unary_expr();
+    Expr left = parse_base_expr();
     auto curr_level = BinaryExpr::Infinite;
     while (true) {
         // See the operator, break if not an operator
@@ -218,7 +258,7 @@ Expr ExprParser::parse_expr(BinaryExpr::Level break_level) {
         } else {
             advance(1);
             curr_level = min(curr_level, op_level);
-            right = parse_unary_expr();
+            right = parse_base_expr();
         }
 
         Ref<BinaryExpr> binexpr =
@@ -233,9 +273,17 @@ Expr ExprParser::parse_expr(BinaryExpr::Level break_level) {
 
 Stmt Parser2::parse_return(const GroupSeq& group) {
     assert(token_id(group.begin) == RETURN);
-    size_t begin = group.begin + 1; // skip 'RETURN' token
+    size_t begin = group.begin + 1;  // skip 'RETURN' token
 
-    ExprParser::Result result = ExprParser(tokens(), begin, group.end).run();
+    ExprParser         expr_parser(tokens(), begin, group.end);
+    ExprParser::Result result = expr_parser.run();
+
+    if (not expr_parser.is_complete()) {
+        result.has_error = true;
+        result.error.message = "Extra tokens at the end of the expression.";
+        result.error.tokidx = expr_parser.pos();
+    }
+
     if (result.has_error) {
         error(result.error.tokidx, result.error.message);
         return Stmt();
@@ -273,7 +321,9 @@ Ref<StmtBlock> Parser2::parse_block(Structured strd) {
 
 Ref<Identifier> Parser2::parse_type_keyword(size_t& i) {
     assert(is_type_keyword(token_id(i)));
-    constexpr const char *basic_types[] = {"bool", "char", "int", "float", "double"};
+    constexpr const char *basic_types[] = {
+        "bool", "char", "int", "float", "double", "void"
+    };
     for (auto name : basic_types) {
         if (token_str(i) == name) {
             i++;
@@ -293,8 +343,80 @@ Ref<Identifier> Parser2::parse_identifier(size_t& i) {
     return Identifier::make({.name = name});
 }
 
+Ref<VarDecl> Parser2::parse_vardecl(const TokenSeq& tokseq) {
+    size_t pos = tokseq.begin;
+    while (pos + 1 < tokseq.end && token_id(pos + 1) != COMMA && token_id(pos + 1) != EQ) {
+        pos++;
+    }
+    if (token_id(pos) != IDENT) {
+        error(tokseq.end, "Didn't find any identifiers!");
+        return Ref<VarDecl>();  // empty
+    }
+
+    VarDecl var_decl = {
+        .type = parse_typespec(tokseq.begin, pos),
+        .vars = {},
+    };
+
+    // Now parse variables
+    while (pos < tokseq.end) {
+        if (token_id(pos) != IDENT) {
+            error(pos, "Expected an identifier");
+            break;
+        }
+
+        Identifier ident = {.name = token_str(pos)};
+        pos++;
+
+        Expr init;
+        if (pos == tokseq.end) {
+            var_decl.vars.push_back(VarInit::make({.ident = ident, .init = init}));
+            break;
+        }
+
+        // If there is an initializer, parse it
+        if (token_id(pos) == EQ) {
+            pos++;
+            // We have the initialization expression
+            ExprParser expr_parser(tokens(), pos, tokseq.end);
+            auto       res = expr_parser.run();
+            if (res.has_error) {
+                error(res.error.tokidx, res.error.message);
+                break;
+            }
+            pos = expr_parser.pos();
+            init = res.expr;
+        }
+
+        // Add the variable
+        var_decl.vars.push_back(
+            VarInit::make({
+                .ident = ident,
+                .init = init,
+            })
+        );
+
+        // Here we expect either the end or a COMMA
+        if (pos == tokseq.end) {
+            break;
+        }
+        if (token_id(pos) != COMMA) {
+            error(pos, "Expected a comma");
+            break;
+        }
+        pos++;  // consume the COMMA
+
+        // ... and check that just after there is something!
+        if (pos == tokseq.end) {
+            error(pos, "Expected another variable");
+        }
+    }
+
+    return VarDecl::make(var_decl);
+}
+
 Ref<TypeSpec> Parser2::parse_typespec(size_t begin, size_t end) {
-    assert(is_keyword(token_id(begin)));
+    assert(is_keyword(token_id(begin)) || token_id(begin) == IDENT);
 
     // Check all possible modifiers
     size_t i = begin;
@@ -363,6 +485,12 @@ TopDecl Parser2::parse_using_namespace(const GroupSeq& group) {
     return TopDecl(Using::make({.namespc = namespc}));
 }
 
+TopDecl Parser2::parse_global_vardecl(const GroupSeq& group) {
+    assert(not group.elems.empty() && group.elems[0].is<TokenSeq>());
+    const auto& tokseq = group.elems[0].as<TokenSeq>();
+    return TopDecl(GlobalVarDecl::make({.decl = parse_vardecl(tokseq)}));
+}
+
 TopDecl Parser2::parse_top_level(const GroupSeq& group) {
     if (is_macro(group)) {
         return TopDecl(parse_macro(group));
@@ -370,6 +498,8 @@ TopDecl Parser2::parse_top_level(const GroupSeq& group) {
         return TopDecl(parse_function(group));
     } else if (is_using_namespace(group)) {
         return TopDecl(parse_using_namespace(group));
+    } else if (is_global_vardecl(group)) {
+        return TopDecl(parse_global_vardecl(group));
     } else {
         error(group.begin, "Found unknown declaration");
         return TopDecl();

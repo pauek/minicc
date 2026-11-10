@@ -134,12 +134,27 @@ void Lexer::lex_include_filename() {
 void Lexer::lex_int_literal() {
     size_t start = pos_;
     advance(1);  // We already know this is a digit
-    while (isdigit(curr())) {
+    while (not finished() && isdigit(curr())) {
         /// FIXME(pauek): Limit the size of this!
         advance(1);
     }
     size_t end = pos_;
     push(INT_LITERAL, start, end);
+}
+
+void Lexer::lex_float_literal() {
+    size_t start = pos_;
+    if (isdigit(curr())) {
+        advance(1);
+    }
+    if (curr() == '.') {
+        advance(1);
+    }
+    while (not finished() && isdigit(curr())) {
+        advance(1);
+    }
+    size_t end = pos_;
+    push(DOUBLE_LITERAL, start, end);
 }
 
 void Lexer::lex_macro() {
@@ -220,10 +235,22 @@ void Lexer::run() {
             continue;
         }
         if (isdigit(curr())) {
-            lex_int_literal();
+            if (peek(1) == '.') {
+                lex_float_literal();
+            } else {
+                lex_int_literal();
+            }
             continue;
         }
         switch (curr()) {
+            case '.': {
+                if (isdigit(peek(1))) {
+                    lex_float_literal();
+                } else {
+                    push(DOT, pos_, pos_ + 1);
+                }
+                break;
+            }
             case '\\': {
                 lex_escape();
                 break;
@@ -281,8 +308,6 @@ void Lexer::run() {
                 TOKEN_A('?', QUESTION)
                 TOKEN_A(';', SEMICOLON)
                 TOKEN_A(',', COMMA)
-                TOKEN_A('.', DOT)
-
                 TOKEN_A('!', ADM)
 
 #define TOKEN_A_AB(A, B, ID_A, ID_AB)    \

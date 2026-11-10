@@ -22,9 +22,13 @@ class AstDumper {
     void dump(const Program& P);
 
     void dump(Expr expr);
+    void dump(const UnaryExpr& expr);
     void dump(const BinaryExpr& expr);
     void dump(const AssignExpr& expr);
     void dump(const IncrExpr& stmt);
+
+    void dump(const VarInit& var_init);
+    void dump(const VarDecl& var_decl);
 
     void dump(Stmt S);
     void dump(const StmtBlock& block);
@@ -45,6 +49,7 @@ class AstDumper {
     void dump(const Using& usin);
     void dump(const Include& include);
     void dump(const FuncDecl& funcdecl);
+    void dump(const GlobalVarDecl& global_vardecl);
 
     void dump(const TypeSpec& typespec);
     void dump(const Identifier& ident);

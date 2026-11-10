@@ -51,11 +51,12 @@ inline bool is_keyword(TokenID id) {
     return id > BEFORE_KEYWORDS && id < AFTER_KEYWORDS;
 }
 inline bool is_type_keyword(TokenID id) {
-    return id == BOOL || id == CHAR || id == INT || id == FLOAT || id == DOUBLE;
+    return id == BOOL || id == CHAR || id == INT || id == FLOAT || id == DOUBLE ||
+           id == VOID;
 }
 inline bool is_literal(TokenID id) {
-    return id == INT_LITERAL || id == STR_LITERAL || id == CHAR_LITERAL || id == TRUE ||
-           id == FALSE;
+    return id == INT_LITERAL || id == STR_LITERAL || id == CHAR_LITERAL ||
+           id == DOUBLE_LITERAL || id == TRUE || id == FALSE;
 }
 
 inline TokenID closing(TokenID open) {

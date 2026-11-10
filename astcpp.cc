@@ -51,6 +51,29 @@ BinaryExpr::Level BinaryExpr::op_level(Operator op) {
     }
 }
 
+UnaryExpr::Operator UnaryExpr::token_to_operator_type(TokenID id) {
+    switch (id) {
+        case ADM:
+        case NOT:
+            return UnaryExpr::Operator::Negation;
+        case MINUS:
+            return UnaryExpr::Operator::SignChange;
+        default:
+            return UnaryExpr::Operator::None;
+    }
+}
+
+string UnaryExpr::operator_to_str(UnaryExpr::Operator op) {
+    switch (op) {
+        case Negation:
+            return "!";
+        case SignChange:
+            return "-";
+        case None:
+            return "<none>";
+    }
+}
+
 BinaryExpr::Operator BinaryExpr::token_to_operator_type(TokenID tokid) {
     switch (tokid) {
         case PLUS: {

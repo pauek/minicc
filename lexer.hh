@@ -65,6 +65,7 @@ class Lexer {
     void lex_include_filename();
 
     void lex_int_literal();
+    void lex_float_literal();
     void lex_identifier_or_keyword();
     void lex_char_literal();
     void lex_string_literal();

@@ -32,6 +32,7 @@ class Parser2 {
     );
     bool is_macro(const GroupSeq& group);
     bool is_function(const GroupSeq& group);
+    bool is_global_vardecl(const GroupSeq& group);
     bool is_using_namespace(const GroupSeq& seq);
 
     Ref<TypeSpec>  parse_typespec(size_t begin, size_t end);
@@ -41,9 +42,7 @@ class Parser2 {
     Ref<StmtBlock>         parse_block(Structured strd);
     Ref<Identifier>        parse_type_keyword(size_t& i);
     Ref<Identifier>        parse_identifier(size_t& i);
-
-    // Expressions
-    Expr parse_expression(const GroupSeq& group);
+    Ref<VarDecl>           parse_vardecl(const TokenSeq& seq);
 
     // Statements
     Stmt parse_return(const GroupSeq& group);
@@ -52,7 +51,7 @@ class Parser2 {
     TopDecl parse_macro(const GroupSeq& group);
     TopDecl parse_using_namespace(const GroupSeq& group);
     TopDecl parse_function(const GroupSeq& group);
-
+    TopDecl parse_global_vardecl(const GroupSeq& group);
     TopDecl parse_top_level(const GroupSeq& group);
 
    public:
@@ -67,8 +66,8 @@ class Parser2 {
 };
 
 class ExprParser {
-    const Tokens&   tokens_;
-    size_t          begin_, end_, pos_;
+    const Tokens& tokens_;
+    size_t        begin_, end_, pos_;
 
     TokenID curr() const { return tokens_.ids[pos_]; }
     string  curr_str() const { return tokens_.str(pos_); }
@@ -79,12 +78,14 @@ class ExprParser {
 
     Ref<Identifier> parse_identifier();
     Expr            parse_literal();
+    Expr            parse_base_expr();
     Expr            parse_unary_expr();
 
     Expr parse_expr(BinaryExpr::Level break_level);
 
    public:
-    ExprParser(const Tokens& tokens, size_t begin, size_t end) : tokens_(tokens), begin_(begin), end_(end) {
+    ExprParser(const Tokens& tokens, size_t begin, size_t end)
+        : tokens_(tokens), begin_(begin), end_(end) {
         // We are going to actually ignore the groups inside `group`, even
         // the tree is partially there (if there are parentheses), but it is
         // easier to process the whole thing linearly.
@@ -102,17 +103,19 @@ class ExprParser {
         Error error;
     };
 
-    Result run() {
-        Result result;
-        result.expr = parse_expr(BinaryExpr::Level::Zero);
+    // Whether the expression parser has consumed all tokens
+    bool is_complete() const { return pos_ == end_; }
 
-        // If we didn't consume the whole group something is wrong
-        if (pos_ < end_) {
-            result.has_error = true;
-            result.error.message = "Extra tokens at the end of the expression.";
-            result.error.tokidx = pos_;
+    size_t pos() const { return pos_; }
+
+    Result run() {
+        try {
+            Result result;
+            result.expr = parse_expr(BinaryExpr::Level::Zero);
+            return result;
+        } catch (Error *e) {
+            return {.expr = Expr(), .has_error = true, .error = *e};
         }
-        return result;
     }
 };
 

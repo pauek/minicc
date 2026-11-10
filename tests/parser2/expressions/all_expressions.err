@@ -1,0 +1,6 @@
+expressions/all_expressions.cc:10:9: parse error: Unexpected expression.
+    | int e = -a;
+    |         ^
+expressions/all_expressions.cc:16:10: parse error: Unexpected expression.
+    | bool a = !b;
+    |          ^

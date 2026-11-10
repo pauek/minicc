@@ -90,6 +90,11 @@ void AstDumper::dump(const BinaryExpr& binexpr) {
     dump(binexpr.right);
 }
 
+void AstDumper::dump(const UnaryExpr& unexpr) {
+	out_ << UnaryExpr::operator_to_str(unexpr.op);
+	dump(unexpr.expr);
+}
+
 void AstDumper::dump(Expr expr) {
     switch (expr.type_id) {
         case Identifier::type_id: {
@@ -98,6 +103,10 @@ void AstDumper::dump(Expr expr) {
         }
         case IntLiteral::type_id: {
             out_ << expr.as<IntLiteral>().value;
+            break;
+        }
+        case DoubleLiteral::type_id: {
+            out_ << expr.as<DoubleLiteral>().value;
             break;
         }
         case CharLiteral::type_id: {
@@ -116,6 +125,10 @@ void AstDumper::dump(Expr expr) {
             out_ << '(';
             dump(expr.as<BinaryExpr>());
             out_ << ')';
+            break;
+        }
+        case UnaryExpr::type_id: {
+            dump(expr.as<UnaryExpr>());
             break;
         }
         default: {
@@ -284,6 +297,31 @@ void AstDumper::dump(Stmt stmt) {
     }
 }
 
+void AstDumper::dump(const VarInit& var_init) {
+    out_ << var_init.ident.name;
+    if (not var_init.init.is_none()) {
+        out_ << " = ";
+        dump(var_init.init);
+    }
+}
+
+void AstDumper::dump(const VarDecl& vardecl) {
+    dump(vardecl.type.get());
+    out_ << " ";
+    if (not vardecl.vars.empty()) {
+        dump(vardecl.vars[0].get());
+        for (size_t i = 1; i < vardecl.vars.size(); i++) {
+            out_ << ", ";
+            dump(vardecl.vars[i].get());
+        }
+    }
+    out_ << ";" << endl;
+}
+
+void AstDumper::dump(const GlobalVarDecl& global_vardecl) {
+    dump(global_vardecl.decl.get());
+}
+
 void AstDumper::dump(const Program& P) {
     for (size_t i = 0; i < P.declarations.size(); i++) {
         const TopDecl& decl = P.declarations[i];
@@ -306,6 +344,13 @@ void AstDumper::dump(const Program& P) {
                 }
                 dump(decl.as<FuncDecl>());
                 break;
+            }
+            case GlobalVarDecl::type_id: {
+                dump(decl.as<GlobalVarDecl>());
+                break;
+            }
+            default: {
+                assert(false);
             }
         }
     }

@@ -1,0 +1,15 @@
+expressions/global_var_err.cc:1:8: parse error: Expected expression before semicolon.
+    | int a =;
+    |        ^
+expressions/global_var_err.cc:2:9: parse error: Unexpected expression.
+    | int a = =;
+    |         ^
+expressions/global_var_err.cc:3:10: parse error: Expected another variable
+    | int a, b,;
+    |          ^
+expressions/global_var_err.cc:4:11: parse error: Expected a comma
+    | int b = 3 3;
+    |           ^
+expressions/global_var_err.cc:5:21: parse error: Expected a comma
+    | int c = a + b, d, e e;
+    |                     ^
