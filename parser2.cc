@@ -42,7 +42,7 @@ bool Parser2::is_macro(const GroupSeq& seq) {
 
 bool Parser2::is_global_vardecl(const GroupSeq& seq) {
     // For now no constructor calls... only a token sequence
-    if (seq.elems.size() != 1 || not seq.elems[0].is<TokenSeq>()) {
+    if (not seq.elems[0].is<TokenSeq>()) {
         return false;
     }
 
@@ -343,23 +343,23 @@ Ref<Identifier> Parser2::parse_identifier(size_t& i) {
     return Identifier::make({.name = name});
 }
 
-Ref<VarDecl> Parser2::parse_vardecl(const TokenSeq& tokseq) {
-    size_t pos = tokseq.begin;
-    while (pos + 1 < tokseq.end && token_id(pos + 1) != COMMA && token_id(pos + 1) != EQ) {
+Ref<VarDecl> Parser2::parse_vardecl(size_t begin, size_t end) {
+    size_t pos = begin;
+    while (pos + 1 < end && token_id(pos + 1) != COMMA && token_id(pos + 1) != EQ) {
         pos++;
     }
     if (token_id(pos) != IDENT) {
-        error(tokseq.end, "Didn't find any identifiers!");
+        error(end, "Didn't find any identifiers!");
         return Ref<VarDecl>();  // empty
     }
 
     VarDecl var_decl = {
-        .type = parse_typespec(tokseq.begin, pos),
+        .type = parse_typespec(begin, pos),
         .vars = {},
     };
 
     // Now parse variables
-    while (pos < tokseq.end) {
+    while (pos < end) {
         if (token_id(pos) != IDENT) {
             error(pos, "Expected an identifier");
             break;
@@ -369,7 +369,7 @@ Ref<VarDecl> Parser2::parse_vardecl(const TokenSeq& tokseq) {
         pos++;
 
         Expr init;
-        if (pos == tokseq.end) {
+        if (pos == end) {
             var_decl.vars.push_back(VarInit::make({.ident = ident, .init = init}));
             break;
         }
@@ -378,7 +378,7 @@ Ref<VarDecl> Parser2::parse_vardecl(const TokenSeq& tokseq) {
         if (token_id(pos) == EQ) {
             pos++;
             // We have the initialization expression
-            ExprParser expr_parser(tokens(), pos, tokseq.end);
+            ExprParser expr_parser(tokens(), pos, end);
             auto       res = expr_parser.run();
             if (res.has_error) {
                 error(res.error.tokidx, res.error.message);
@@ -397,7 +397,7 @@ Ref<VarDecl> Parser2::parse_vardecl(const TokenSeq& tokseq) {
         );
 
         // Here we expect either the end or a COMMA
-        if (pos == tokseq.end) {
+        if (pos == end || token_id(pos) == SEMICOLON) {
             break;
         }
         if (token_id(pos) != COMMA) {
@@ -407,7 +407,7 @@ Ref<VarDecl> Parser2::parse_vardecl(const TokenSeq& tokseq) {
         pos++;  // consume the COMMA
 
         // ... and check that just after there is something!
-        if (pos == tokseq.end) {
+        if (pos == end) {
             error(pos, "Expected another variable");
         }
     }
@@ -487,8 +487,7 @@ TopDecl Parser2::parse_using_namespace(const GroupSeq& group) {
 
 TopDecl Parser2::parse_global_vardecl(const GroupSeq& group) {
     assert(not group.elems.empty() && group.elems[0].is<TokenSeq>());
-    const auto& tokseq = group.elems[0].as<TokenSeq>();
-    return TopDecl(GlobalVarDecl::make({.decl = parse_vardecl(tokseq)}));
+    return TopDecl(GlobalVarDecl::make({.decl = parse_vardecl(group.begin, group.end)}));
 }
 
 TopDecl Parser2::parse_top_level(const GroupSeq& group) {

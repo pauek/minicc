@@ -31,7 +31,6 @@ struct HLexDumper {
 
 void HLexDumper::dump_groupseq(const GroupSeq& gseq) {
     out << prefix(gseq.begin) << indent() << "group:" << endl;
-    // out << tokens.filename_ << ":" << tokens.token_line_col(tseq.begin);
     level++;
     for (auto group : gseq.elems) {
         dump(group);

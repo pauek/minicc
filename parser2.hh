@@ -42,7 +42,7 @@ class Parser2 {
     Ref<StmtBlock>         parse_block(Structured strd);
     Ref<Identifier>        parse_type_keyword(size_t& i);
     Ref<Identifier>        parse_identifier(size_t& i);
-    Ref<VarDecl>           parse_vardecl(const TokenSeq& seq);
+    Ref<VarDecl>           parse_vardecl(size_t begin, size_t end);
 
     // Statements
     Stmt parse_return(const GroupSeq& group);
